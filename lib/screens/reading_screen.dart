@@ -135,7 +135,15 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   void _openNavMenu() {
-    _showOverlay(NavMenuSheet(onClose: () => Navigator.pop(context)));
+    _showOverlay(
+      NavMenuSheet(
+        onClose: () => Navigator.pop(context),
+        onPageSelected: (page) {
+          Navigator.pop(context);
+          _goToPage(page);
+        },
+      ),
+    );
   }
 
   void _openThemePicker() {

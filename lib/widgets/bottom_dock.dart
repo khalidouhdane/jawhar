@@ -24,6 +24,9 @@ class BottomDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final totalPages = paginationArray.isNotEmpty
+        ? paginationArray.length
+        : 604;
 
     return Container(
       decoration: BoxDecoration(
@@ -31,25 +34,20 @@ class BottomDock extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.04),
+            color: theme.shadowColor.withValues(alpha: 0.04),
             blurRadius: 40,
             offset: const Offset(0, -10),
           ),
         ],
       ),
-      padding: EdgeInsets.only(
-        top: 20,
-        bottom: MediaQuery.paddingOf(context).bottom > 0
-            ? MediaQuery.paddingOf(context).bottom + 12
-            : 20,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
+      padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Surah name + Juz label
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -72,11 +70,9 @@ class BottomDock extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 8),
+            // Nav icon + pagination + bookmark
+            Row(
               children: [
                 GestureDetector(
                   onTap: onNavMenuTapped,
@@ -94,6 +90,7 @@ class BottomDock extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: SizedBox(
                     height: 48,
@@ -104,6 +101,7 @@ class BottomDock extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   width: 40,
                   height: 40,
@@ -113,7 +111,7 @@ class BottomDock extends StatelessWidget {
                     border: Border.all(color: theme.dividerColor),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.shadowColor.withOpacity(0.02),
+                        color: theme.shadowColor.withValues(alpha: 0.02),
                         blurRadius: 4,
                       ),
                     ],
@@ -126,12 +124,10 @@ class BottomDock extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
-              height: 16,
-              margin: const EdgeInsets.only(top: 8),
+            const SizedBox(height: 8),
+            // Full-width smooth slider
+            SizedBox(
+              height: 20,
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 6,
@@ -142,7 +138,7 @@ class BottomDock extends StatelessWidget {
                     enabledThumbRadius: 0,
                   ),
                   overlayShape: const RoundSliderOverlayShape(
-                    overlayRadius: 16,
+                    overlayRadius: 14,
                   ),
                   trackShape: const RoundedRectSliderTrackShape(),
                 ),
@@ -150,9 +146,7 @@ class BottomDock extends StatelessWidget {
                   child: Slider(
                     value: activePage.toDouble(),
                     min: 1,
-                    max: paginationArray.isNotEmpty
-                        ? paginationArray.length.toDouble()
-                        : 604,
+                    max: totalPages.toDouble(),
                     onChanged: (val) {
                       onPageSelected(val.round());
                     },
@@ -160,8 +154,8 @@ class BottomDock extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -184,39 +178,46 @@ class PaginationSlider extends StatefulWidget {
 }
 
 class _PaginationSliderState extends State<PaginationSlider> {
-  late PageController _controller;
+  late ScrollController _scrollController;
+  static const double _itemWidth = 36.0;
 
   @override
   void initState() {
     super.initState();
-    int initialIndex = widget.paginationArray.indexOf(widget.activePage);
-    if (initialIndex == -1) initialIndex = 0;
-    _controller = PageController(
-      viewportFraction: 0.15,
-      initialPage: initialIndex,
-    );
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActive());
   }
 
   @override
   void didUpdateWidget(PaginationSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.activePage != widget.activePage) {
-      int index = widget.paginationArray.indexOf(widget.activePage);
-      if (_controller.hasClients &&
-          index != -1 &&
-          _controller.page?.round() != index) {
-        _controller.animateToPage(
-          index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-        );
-      }
+      _scrollToActive();
     }
+  }
+
+  void _scrollToActive() {
+    final index = widget.paginationArray.indexOf(widget.activePage);
+    if (index == -1 || !_scrollController.hasClients) return;
+
+    final viewportWidth = _scrollController.position.viewportDimension;
+    final targetOffset =
+        (index * _itemWidth) - (viewportWidth / 2) + (_itemWidth / 2);
+    final clampedOffset = targetOffset.clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -224,12 +225,10 @@ class _PaginationSliderState extends State<PaginationSlider> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
 
-    return PageView.builder(
-      controller: _controller,
+    return ListView.builder(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
-      onPageChanged: (index) {
-        widget.onPageSelected(widget.paginationArray[index]);
-      },
       itemCount: widget.paginationArray.length,
       itemBuilder: (context, index) {
         final pageNum = widget.paginationArray[index];
@@ -239,28 +238,27 @@ class _PaginationSliderState extends State<PaginationSlider> {
 
         double targetOpacity = 1.0;
         if (!isActive) {
-          if (distance == 1)
-            targetOpacity = 0.4;
-          else if (distance == 2)
-            targetOpacity = 0.3;
-          else if (distance == 3)
+          if (distance == 1) {
+            targetOpacity = 0.5;
+          } else if (distance == 2) {
+            targetOpacity = 0.35;
+          } else if (distance == 3) {
             targetOpacity = 0.2;
-          else if (distance == 4)
+          } else if (distance == 4) {
             targetOpacity = 0.1;
-          else
-            targetOpacity = 0.03;
+          } else {
+            targetOpacity = 0.05;
+          }
         }
 
         return GestureDetector(
           onTap: () => widget.onPageSelected(pageNum),
           child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 200),
             opacity: targetOpacity,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
+            child: Container(
+              width: _itemWidth - 8,
               margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              width: isActive ? 28 : 26,
               decoration: BoxDecoration(
                 color: isActive ? theme.accentColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
@@ -268,7 +266,7 @@ class _PaginationSliderState extends State<PaginationSlider> {
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: theme.accentColor.withOpacity(0.2),
+                          color: theme.accentColor.withValues(alpha: 0.2),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),

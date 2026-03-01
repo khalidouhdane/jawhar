@@ -575,8 +575,13 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
 
 class NavMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
+  final ValueChanged<int> onPageSelected;
 
-  const NavMenuSheet({super.key, required this.onClose});
+  const NavMenuSheet({
+    super.key,
+    required this.onClose,
+    required this.onPageSelected,
+  });
 
   @override
   State<NavMenuSheet> createState() => _NavMenuSheetState();
@@ -584,6 +589,19 @@ class NavMenuSheet extends StatefulWidget {
 
 class _NavMenuSheetState extends State<NavMenuSheet> {
   String activeTab = 'surah';
+  String searchQuery = '';
+  // Simple in-memory bookmarks (page number -> surah name)
+  static final Map<int, String> _bookmarks = {};
+
+  void _toggleBookmark(int page, String name) {
+    setState(() {
+      if (_bookmarks.containsKey(page)) {
+        _bookmarks.remove(page);
+      } else {
+        _bookmarks[page] = name;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -658,8 +676,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: theme.shadowColor.withOpacity(
-                                          0.05,
+                                        color: theme.shadowColor.withValues(
+                                          alpha: 0.05,
                                         ),
                                         blurRadius: 2,
                                         offset: const Offset(0, 1),
@@ -684,155 +702,377 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  style: TextStyle(color: theme.primaryText),
-                  decoration: InputDecoration(
-                    hintText: 'Search surah, verse, or juz...',
-                    hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
-                    prefixIcon: Icon(
-                      LucideIcons.search,
-                      size: 18,
-                      color: theme.mutedText,
-                    ),
-                    filled: true,
-                    fillColor: theme.inputFill,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
+                if (activeTab == 'surah')
+                  TextField(
+                    onChanged: (v) => setState(() => searchQuery = v),
+                    style: TextStyle(color: theme.primaryText),
+                    decoration: InputDecoration(
+                      hintText: 'Search surah name or number...',
+                      hintStyle: TextStyle(
+                        color: theme.mutedText,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        LucideIcons.search,
+                        size: 18,
+                        color: theme.mutedText,
+                      ),
+                      filled: true,
+                      fillColor: theme.inputFill,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 16),
               ],
             ),
           ),
-          Expanded(
-            child: activeTab == 'surah'
-                ? Consumer<QuranReadingProvider>(
-                    builder: (context, readingProvider, child) {
-                      if (readingProvider.chapters.isEmpty) {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: theme.accentColor,
-                          ),
-                        );
-                      }
+          Expanded(child: _buildTabContent(theme)),
+        ],
+      ),
+    );
+  }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: readingProvider.chapters.length,
-                        itemBuilder: (context, index) {
-                          final surah = readingProvider.chapters[index];
-                          final isCurrent = index == 0;
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: isCurrent
-                                  ? theme.inputFill
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isCurrent
-                                    ? theme.accentColor.withOpacity(0.1)
-                                    : Colors.transparent,
-                              ),
-                            ),
-                            child: ListTile(
-                              leading: Container(
-                                width: 40,
-                                height: 40,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: isCurrent
-                                      ? theme.accentColor
-                                      : theme.pillBackground,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  surah.id.toString(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: isCurrent
-                                        ? Colors.white
-                                        : theme.chipUnselectedText,
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                surah.nameSimple,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isCurrent
-                                      ? theme.accentColor
-                                      : theme.primaryText,
-                                ),
-                              ),
-                              subtitle: Text(
-                                "Meccan • ${surah.versesCount} Ayahs",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: theme.mutedText,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isCurrent)
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.more_horiz,
-                                          color: theme.accentColor,
-                                        ),
-                                        const SizedBox(width: 8),
-                                      ],
-                                    ),
-                                  Text(
-                                    surah.nameArabic,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: isCurrent
-                                          ? theme.accentColor
-                                          : theme.mutedText,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  )
-                : activeTab == 'bookmarks'
-                ? Center(
-                    child: Text(
-                      "Bookmarks will appear here",
-                      style: TextStyle(
-                        color: theme.mutedText,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
-                : Center(
-                    child: Text(
-                      "Juz list will appear here",
-                      style: TextStyle(
-                        color: theme.mutedText,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+  Widget _buildTabContent(ThemeProvider theme) {
+    if (activeTab == 'surah') return _buildSurahList(theme);
+    if (activeTab == 'bookmarks') return _buildBookmarksList(theme);
+    // Juz tab
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(LucideIcons.bookOpen, size: 48, color: theme.dividerColor),
+          const SizedBox(height: 12),
+          Text(
+            "Juz list coming soon",
+            style: TextStyle(
+              color: theme.mutedText,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildSurahList(ThemeProvider theme) {
+    return Consumer<QuranReadingProvider>(
+      builder: (context, readingProvider, child) {
+        if (readingProvider.chapters.isEmpty) {
+          return Center(
+            child: CircularProgressIndicator(color: theme.accentColor),
+          );
+        }
+
+        var chapters = readingProvider.chapters;
+        if (searchQuery.isNotEmpty) {
+          chapters = chapters
+              .where(
+                (c) =>
+                    c.nameSimple.toLowerCase().contains(
+                      searchQuery.toLowerCase(),
+                    ) ||
+                    c.nameArabic.contains(searchQuery) ||
+                    c.id.toString() == searchQuery,
+              )
+              .toList();
+        }
+
+        final currentPage = readingProvider.activePage;
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: chapters.length,
+          itemBuilder: (context, index) {
+            final surah = chapters[index];
+            final surahPage = _getFirstPage(surah.id);
+            final isCurrent = surahPage == currentPage;
+            final isBookmarked = _bookmarks.containsKey(surahPage);
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: isCurrent ? theme.inputFill : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isCurrent
+                      ? theme.accentColor.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                ),
+              ),
+              child: ListTile(
+                onTap: () {
+                  widget.onPageSelected(surahPage);
+                },
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isCurrent ? theme.accentColor : theme.pillBackground,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    surah.id.toString(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isCurrent
+                          ? Colors.white
+                          : theme.chipUnselectedText,
+                    ),
+                  ),
+                ),
+                title: Text(
+                  surah.nameSimple,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isCurrent ? theme.accentColor : theme.primaryText,
+                  ),
+                ),
+                subtitle: Text(
+                  "${surah.versesCount} Ayahs",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.mutedText,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _toggleBookmark(surahPage, surah.nameSimple),
+                      child: Icon(
+                        isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                        size: 20,
+                        color: isBookmarked
+                            ? theme.accentColor
+                            : theme.mutedText,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      surah.nameArabic,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isCurrent ? theme.accentColor : theme.mutedText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBookmarksList(ThemeProvider theme) {
+    if (_bookmarks.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(LucideIcons.bookmark, size: 48, color: theme.dividerColor),
+            const SizedBox(height: 12),
+            Text(
+              "No bookmarks yet",
+              style: TextStyle(
+                color: theme.mutedText,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Tap the bookmark icon on any surah",
+              style: TextStyle(color: theme.mutedText, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final entries = _bookmarks.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: entries.length,
+      itemBuilder: (context, index) {
+        final entry = entries[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            onTap: () {
+              widget.onPageSelected(entry.key);
+            },
+            leading: Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: theme.pillBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                LucideIcons.bookmark,
+                size: 18,
+                color: theme.accentColor,
+              ),
+            ),
+            title: Text(
+              entry.value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: theme.primaryText,
+              ),
+            ),
+            subtitle: Text(
+              "Page ${entry.key}",
+              style: TextStyle(fontSize: 12, color: theme.mutedText),
+            ),
+            trailing: GestureDetector(
+              onTap: () => _toggleBookmark(entry.key, entry.value),
+              child: Icon(
+                LucideIcons.trash2,
+                size: 18,
+                color: Colors.red.shade400,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Chapter ID → first Quran page mapping
+int _getFirstPage(int chapterId) {
+  const chapterPages = {
+    1: 1,
+    2: 2,
+    3: 50,
+    4: 77,
+    5: 106,
+    6: 128,
+    7: 151,
+    8: 177,
+    9: 187,
+    10: 208,
+    11: 221,
+    12: 235,
+    13: 249,
+    14: 255,
+    15: 262,
+    16: 267,
+    17: 282,
+    18: 293,
+    19: 305,
+    20: 312,
+    21: 322,
+    22: 332,
+    23: 342,
+    24: 350,
+    25: 359,
+    26: 367,
+    27: 377,
+    28: 385,
+    29: 396,
+    30: 404,
+    31: 411,
+    32: 415,
+    33: 418,
+    34: 428,
+    35: 434,
+    36: 440,
+    37: 446,
+    38: 453,
+    39: 458,
+    40: 467,
+    41: 477,
+    42: 483,
+    43: 489,
+    44: 496,
+    45: 499,
+    46: 502,
+    47: 507,
+    48: 511,
+    49: 515,
+    50: 518,
+    51: 520,
+    52: 523,
+    53: 526,
+    54: 528,
+    55: 531,
+    56: 534,
+    57: 537,
+    58: 542,
+    59: 545,
+    60: 549,
+    61: 551,
+    62: 553,
+    63: 554,
+    64: 556,
+    65: 558,
+    66: 560,
+    67: 562,
+    68: 564,
+    69: 566,
+    70: 568,
+    71: 570,
+    72: 572,
+    73: 574,
+    74: 575,
+    75: 577,
+    76: 578,
+    77: 580,
+    78: 582,
+    79: 583,
+    80: 585,
+    81: 586,
+    82: 587,
+    83: 587,
+    84: 589,
+    85: 590,
+    86: 591,
+    87: 591,
+    88: 592,
+    89: 593,
+    90: 594,
+    91: 595,
+    92: 595,
+    93: 596,
+    94: 596,
+    95: 597,
+    96: 597,
+    97: 598,
+    98: 598,
+    99: 599,
+    100: 599,
+    101: 600,
+    102: 600,
+    103: 601,
+    104: 601,
+    105: 601,
+    106: 602,
+    107: 602,
+    108: 602,
+    109: 603,
+    110: 603,
+    111: 603,
+    112: 604,
+    113: 604,
+    114: 604,
+  };
+  return chapterPages[chapterId] ?? chapterId;
 }
 
 // ─── Theme Picker Sheet ───
@@ -889,18 +1129,28 @@ class ThemePickerSheet extends StatelessWidget {
             children: [
               _buildThemeOption(
                 context: context,
-                label: 'Light',
                 theme: theme,
-                targetTheme: AppTheme.light,
+                label: 'Classic',
+                targetTheme: AppTheme.classic,
+                bgColor: Colors.white,
+                textColor: const Color(0xFF1A454E),
+                icon: LucideIcons.sparkles,
+              ),
+              const SizedBox(width: 12),
+              _buildThemeOption(
+                context: context,
+                theme: theme,
+                label: 'Warm',
+                targetTheme: AppTheme.warm,
                 bgColor: const Color(0xFFF5F0E8),
                 textColor: const Color(0xFF1A454E),
                 icon: LucideIcons.sun,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               _buildThemeOption(
                 context: context,
-                label: 'Dark',
                 theme: theme,
+                label: 'Dark',
                 targetTheme: AppTheme.dark,
                 bgColor: const Color(0xFF0A1E24),
                 textColor: const Color(0xFFD4E8EC),
@@ -916,8 +1166,8 @@ class ThemePickerSheet extends StatelessWidget {
 
   Widget _buildThemeOption({
     required BuildContext context,
-    required String label,
     required ThemeProvider theme,
+    required String label,
     required AppTheme targetTheme,
     required Color bgColor,
     required Color textColor,
@@ -927,23 +1177,21 @@ class ThemePickerSheet extends StatelessWidget {
 
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          theme.setTheme(targetTheme);
-        },
+        onTap: () => theme.setTheme(targetTheme),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? theme.accentColor : Colors.transparent,
-              width: 2.5,
+              color: isSelected ? theme.accentColor : Colors.grey.shade300,
+              width: isSelected ? 2.5 : 1,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: theme.accentColor.withOpacity(0.2),
+                      color: theme.accentColor.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -952,38 +1200,38 @@ class ThemePickerSheet extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(icon, size: 32, color: textColor),
-              const SizedBox(height: 12),
+              Icon(icon, size: 28, color: textColor),
+              const SizedBox(height: 10),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: textColor,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               if (isSelected)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
+                    horizontal: 10,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: theme.accentColor,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     'Active',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.bold,
                       color: theme.chipSelectedText,
                     ),
                   ),
                 )
               else
-                const SizedBox(height: 22),
+                const SizedBox(height: 18),
             ],
           ),
         ),
