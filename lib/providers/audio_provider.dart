@@ -8,11 +8,14 @@ import 'package:quran_app/models/quran_models.dart';
 /// Plays the complete chapter mp3 and seeks to exact verse positions
 /// using timestamp data from the API. This gives truly gapless playback
 /// since it's a single continuous audio file.
+///
+/// Tracks the active verse by verseKey (e.g., "2:5") so highlighting
+/// works across page boundaries without needing the page's verse list.
 class AudioProvider extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
 
   bool _isPlaying = false;
-  int? _activeVerseId;
+  String? _activeVerseKey; // e.g., "2:5" — works across pages
   int _reciterId = 7;
   String _reciterName = 'Mishary Rashid al-`Afasy';
   Duration _currentPosition = Duration.zero;
@@ -21,7 +24,7 @@ class AudioProvider extends ChangeNotifier {
   bool get isPlaying => _isPlaying;
   Duration get currentPosition => _currentPosition;
   Duration get totalDuration => _totalDuration;
-  int? get activeVerseId => _activeVerseId;
+  String? get activeVerseKey => _activeVerseKey;
   int get reciterId => _reciterId;
   String get reciterName => _reciterName;
 
@@ -29,8 +32,6 @@ class AudioProvider extends ChangeNotifier {
   String? _currentAudioUrl;
   int? _currentChapter;
   List<_VerseTiming> _verseTimings = [];
-  List<Verse> _playlist = [];
-  int _currentPlaylistIndex = -1;
   bool _isLoading = false;
 
   // Cache: "reciterId:chapter" -> { audioUrl, timings }
@@ -48,18 +49,21 @@ class AudioProvider extends ChangeNotifier {
     _player.onPositionChanged.listen((position) {
       _currentPosition = position;
 
-      // Update active verse based on current position
-      if (_verseTimings.isNotEmpty && _playlist.isNotEmpty) {
+      // Update active verse based on current position using timing data
+      if (_verseTimings.isNotEmpty) {
         final posMs = position.inMilliseconds;
-        for (int i = _playlist.length - 1; i >= 0; i--) {
-          final timing = _findTiming(_playlist[i].verseKey);
-          if (timing != null && posMs >= timing.timestampFrom) {
-            if (_currentPlaylistIndex != i) {
-              _currentPlaylistIndex = i;
-              _activeVerseId = _playlist[i].id;
-            }
+        String? newKey;
+
+        // Walk backwards through timings to find the current verse
+        for (int i = _verseTimings.length - 1; i >= 0; i--) {
+          if (posMs >= _verseTimings[i].timestampFrom) {
+            newKey = _verseTimings[i].verseKey;
             break;
           }
+        }
+
+        if (newKey != null && newKey != _activeVerseKey) {
+          _activeVerseKey = newKey;
         }
       }
 
@@ -72,7 +76,7 @@ class AudioProvider extends ChangeNotifier {
     });
 
     _player.onPlayerComplete.listen((_) {
-      _activeVerseId = null;
+      _activeVerseKey = null;
       _isPlaying = false;
       notifyListeners();
     });
@@ -84,26 +88,25 @@ class AudioProvider extends ChangeNotifier {
     if (name != null) _reciterName = name;
 
     // If playing, restart with new reciter from current verse
-    if (_playlist.isNotEmpty && _currentPlaylistIndex >= 0) {
-      final currentVerse = _playlist[_currentPlaylistIndex];
-      final chapterNumber = int.parse(currentVerse.verseKey.split(':')[0]);
+    if (_activeVerseKey != null && _currentChapter != null) {
+      final savedKey = _activeVerseKey!;
 
       await _player.stop();
       notifyListeners();
 
       // Fetch new reciter's chapter audio
-      final data = await _fetchChapterAudio(chapterNumber);
+      final data = await _fetchChapterAudio(_currentChapter!);
       if (data == null) return;
 
       _currentAudioUrl = data.audioUrl;
       _verseTimings = data.timings;
 
       // Find timing for current verse and seek
-      final timing = _findTiming(currentVerse.verseKey);
+      final timing = _findTiming(savedKey);
       if (timing != null) {
         await _player.play(UrlSource(data.audioUrl));
         await _player.seek(Duration(milliseconds: timing.timestampFrom));
-        _activeVerseId = currentVerse.id;
+        _activeVerseKey = savedKey;
         notifyListeners();
       }
     } else {
@@ -172,9 +175,6 @@ class AudioProvider extends ChangeNotifier {
         return;
       }
 
-      _playlist = List<Verse>.from(verses);
-      _currentPlaylistIndex = startIndex;
-
       final startVerse = verses[startIndex];
       final chapterNumber = int.parse(startVerse.verseKey.split(':')[0]);
 
@@ -192,7 +192,7 @@ class AudioProvider extends ChangeNotifier {
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
 
-      _activeVerseId = startVerse.id;
+      _activeVerseKey = startVerse.verseKey;
       notifyListeners();
 
       // Play the full chapter audio
@@ -204,7 +204,7 @@ class AudioProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error in playVerseList: $e');
-      _activeVerseId = null;
+      _activeVerseKey = null;
       notifyListeners();
     } finally {
       _isLoading = false;

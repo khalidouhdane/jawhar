@@ -131,7 +131,8 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
 
               for (final verse in widget.verses) {
                 final isSelected = widget.selectedVerseId == verse.id;
-                final isPlaying = audioProvider.activeVerseId == verse.id;
+                final isPlaying =
+                    audioProvider.activeVerseKey == verse.verseKey;
                 final isHighlighted = isSelected || isPlaying;
 
                 for (int wi = 0; wi < verse.words.length; wi++) {

@@ -26,6 +26,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
   late PageController _pageController;
   static const int _totalPages = 604;
 
+  // Track audio verse changes for auto-page-sliding
+  String? _lastActiveVerseKey;
+
   @override
   void initState() {
     super.initState();
@@ -34,12 +37,67 @@ class _ReadingScreenState extends State<ReadingScreen> {
     _pageController = PageController(
       initialPage: _totalPages - readingProvider.activePage,
     );
+
+    // Listen to audio provider for auto-page-sliding
+    final audioProvider = context.read<AudioProvider>();
+    audioProvider.addListener(_onAudioChanged);
   }
 
   @override
   void dispose() {
+    context.read<AudioProvider>().removeListener(_onAudioChanged);
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// When the active verse key changes, check if we need to slide to a new page
+  void _onAudioChanged() {
+    final audioProvider = context.read<AudioProvider>();
+    final verseKey = audioProvider.activeVerseKey;
+
+    if (verseKey == null || verseKey == _lastActiveVerseKey) return;
+    _lastActiveVerseKey = verseKey;
+
+    // Check if the currently playing verse is on the current page
+    final readingProvider = context.read<QuranReadingProvider>();
+    final currentPageVerses = readingProvider.verses;
+
+    final isOnCurrentPage = currentPageVerses.any(
+      (v) => v.verseKey == verseKey,
+    );
+    if (isOnCurrentPage) return;
+
+    // The verse is NOT on the current page — find which page it belongs to
+    // Look through cached pages first
+    _findAndSlideTo(verseKey, readingProvider);
+  }
+
+  /// Find the page containing this verse key and slide to it
+  void _findAndSlideTo(
+    String verseKey,
+    QuranReadingProvider readingProvider,
+  ) async {
+    final currentPage = readingProvider.activePage;
+
+    // Try the next page first (most common case: audio advancing forward)
+    final nextPage = currentPage + 1;
+    if (nextPage <= _totalPages) {
+      final nextVerses = await readingProvider.getPageVerses(nextPage);
+      if (nextVerses.any((v) => v.verseKey == verseKey)) {
+        _goToPage(nextPage);
+        return;
+      }
+    }
+
+    // Try previous page (less common but possible with RTL)
+    final prevPage = currentPage - 1;
+    if (prevPage >= 1) {
+      final prevVerses = await readingProvider.getPageVerses(prevPage);
+      if (prevVerses.any((v) => v.verseKey == verseKey)) {
+        _goToPage(prevPage);
+        return;
+      }
+    }
   }
 
   void _toggleFullScreen() {
@@ -177,15 +235,11 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     : 0.0;
 
                 String playingVerseLabel = 'Select a verse';
-                if (audioProvider.activeVerseId != null &&
-                    readingProvider.verses.isNotEmpty) {
-                  try {
-                    final playingVerse = readingProvider.verses.firstWhere(
-                      (v) => v.id == audioProvider.activeVerseId,
-                    );
-                    playingVerseLabel =
-                        '$surahName - Verse ${playingVerse.verseNumber}';
-                  } catch (e) {
+                if (audioProvider.activeVerseKey != null) {
+                  final parts = audioProvider.activeVerseKey!.split(':');
+                  if (parts.length == 2) {
+                    playingVerseLabel = '$surahName - Verse ${parts[1]}';
+                  } else {
                     playingVerseLabel = '$surahName - Playing...';
                   }
                 }
@@ -213,7 +267,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                             () => isAudioExpanded = !isAudioExpanded,
                           ),
                           onTogglePlay: () {
-                            if (audioProvider.activeVerseId == null &&
+                            if (audioProvider.activeVerseKey == null &&
                                 readingProvider.verses.isNotEmpty) {
                               audioProvider.playVerseList(
                                 readingProvider.verses,
