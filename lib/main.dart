@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
+import 'package:quran_app/providers/theme_provider.dart';
 
 void main() {
   runApp(
@@ -11,6 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => QuranReadingProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const QuranApp(),
     ),
@@ -22,32 +24,38 @@ class QuranApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Quran Prototype',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Inter',
-        useMaterial3: true,
-        primaryColor: const Color(0xFF1A454E),
-        scaffoldBackgroundColor: const Color(0xFFF3F4F6),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1A454E),
-          primary: const Color(0xFF1A454E),
-        ),
-      ),
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.mouse,
-          PointerDeviceKind.touch,
-          PointerDeviceKind.stylus,
-          PointerDeviceKind.trackpad
-        },
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: ReadingScreen(),
-        ),
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Quran Prototype',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            fontFamily: 'Inter',
+            useMaterial3: true,
+            primaryColor: themeProvider.accentColor,
+            scaffoldBackgroundColor: themeProvider.scaffoldBackground,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1A454E),
+              primary: themeProvider.accentColor,
+              brightness: themeProvider.isDark
+                  ? Brightness.dark
+                  : Brightness.light,
+            ),
+          ),
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.touch,
+              PointerDeviceKind.stylus,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          home: Scaffold(
+            backgroundColor: themeProvider.scaffoldBackground,
+            body: const Center(child: ReadingScreen()),
+          ),
+        );
+      },
     );
   }
 }

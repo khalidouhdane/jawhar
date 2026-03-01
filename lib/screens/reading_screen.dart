@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/bottom_dock.dart';
@@ -137,6 +138,22 @@ class _ReadingScreenState extends State<ReadingScreen> {
     _showOverlay(NavMenuSheet(onClose: () => Navigator.pop(context)));
   }
 
+  void _openThemePicker() {
+    _showOverlay(ThemePickerSheet(onClose: () => Navigator.pop(context)));
+  }
+
+  void _openSearch() {
+    _showOverlay(
+      SearchSheet(
+        onClose: () => Navigator.pop(context),
+        onPageSelected: (page) {
+          Navigator.pop(context);
+          _goToPage(page);
+        },
+      ),
+    );
+  }
+
   void _goToPage(int page) {
     final readingProvider = context.read<QuranReadingProvider>();
     readingProvider.loadPage(page);
@@ -145,7 +162,10 @@ class _ReadingScreenState extends State<ReadingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackground,
       body: ExcludeSemantics(
         child: Stack(
           children: [
@@ -184,6 +204,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
                 child: TopNavBar(
                   readMode: readMode,
                   onReadModeChanged: (mode) => setState(() => readMode = mode),
+                  onThemeTapped: _openThemePicker,
+                  onSearchTapped: _openSearch,
                 ),
               ),
             ),
@@ -263,6 +285,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           progress: progress,
                           playingTitle: playingVerseLabel,
                           reciterName: audioProvider.reciterName,
+                          repeatMode: audioProvider.repeatMode,
                           onToggleExpand: () => setState(
                             () => isAudioExpanded = !isAudioExpanded,
                           ),
@@ -278,6 +301,14 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           },
                           onReciterMenuTapped: _openReciterMenu,
                           onSettingsTapped: _openAudioSettings,
+                          onSkipNext: () => audioProvider.skipToNextVerse(),
+                          onSkipPrevious: () =>
+                              audioProvider.skipToPreviousVerse(),
+                          onJumpForward: () => audioProvider.seekForward(10),
+                          onJumpBackward: () => audioProvider.seekBackward(10),
+                          onRepeatToggle: () =>
+                              audioProvider.toggleRepeatMode(),
+                          onSeek: (val) => audioProvider.seekToFraction(val),
                         ),
                         BottomDock(
                           activePage: readingProvider.activePage,
@@ -343,16 +374,18 @@ class _QuranPageState extends State<_QuranPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = context.watch<ThemeProvider>();
 
     if (_isLoading || _verses == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF1A454E)),
-      );
+      return Center(child: CircularProgressIndicator(color: theme.accentColor));
     }
 
     if (_verses!.isEmpty) {
-      return const Center(
-        child: Text('Page not available', style: TextStyle(color: Colors.grey)),
+      return Center(
+        child: Text(
+          'Page not available',
+          style: TextStyle(color: theme.mutedText),
+        ),
       );
     }
 

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:quran_app/providers/audio_provider.dart' show AudioRepeatMode;
+import 'package:quran_app/providers/theme_provider.dart';
 
 class AudioPlayerBridge extends StatelessWidget {
   final bool isExpanded;
@@ -9,10 +12,17 @@ class AudioPlayerBridge extends StatelessWidget {
   final double progress;
   final String playingTitle;
   final String reciterName;
+  final AudioRepeatMode repeatMode;
   final VoidCallback onToggleExpand;
   final VoidCallback onTogglePlay;
   final VoidCallback onReciterMenuTapped;
   final VoidCallback onSettingsTapped;
+  final VoidCallback onSkipNext;
+  final VoidCallback onSkipPrevious;
+  final VoidCallback onJumpForward;
+  final VoidCallback onJumpBackward;
+  final VoidCallback onRepeatToggle;
+  final ValueChanged<double> onSeek;
 
   const AudioPlayerBridge({
     super.key,
@@ -23,14 +33,23 @@ class AudioPlayerBridge extends StatelessWidget {
     required this.progress,
     required this.playingTitle,
     required this.reciterName,
+    required this.repeatMode,
     required this.onToggleExpand,
     required this.onTogglePlay,
     required this.onReciterMenuTapped,
     required this.onSettingsTapped,
+    required this.onSkipNext,
+    required this.onSkipPrevious,
+    required this.onJumpForward,
+    required this.onJumpBackward,
+    required this.onRepeatToggle,
+    required this.onSeek,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+
     return GestureDetector(
       onTap: !isExpanded ? onToggleExpand : null,
       child: AnimatedContainer(
@@ -43,14 +62,14 @@ class AudioPlayerBridge extends StatelessWidget {
         ),
         height: isExpanded ? 210 : 68,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.playerBackground,
           borderRadius: BorderRadius.circular(isExpanded ? 24 : 34),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: theme.shadowColor,
               blurRadius: 40,
               offset: const Offset(0, 10),
-            )
+            ),
           ],
         ),
         clipBehavior: Clip.hardEdge,
@@ -64,7 +83,10 @@ class AudioPlayerBridge extends StatelessWidget {
               child: IgnorePointer(
                 ignoring: isExpanded,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -74,9 +96,12 @@ class AudioPlayerBridge extends StatelessWidget {
                             onReciterMenuTapped();
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: theme.playerBackground,
                               borderRadius: BorderRadius.circular(9999),
                             ),
                             child: Row(
@@ -86,10 +111,14 @@ class AudioPlayerBridge extends StatelessWidget {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.grey[200],
-                                    border: Border.all(color: Colors.grey[100]!),
+                                    color: theme.pillBackground,
+                                    border: Border.all(
+                                      color: theme.dividerColor,
+                                    ),
                                     image: const DecorationImage(
-                                      image: NetworkImage("https://api.dicebear.com/7.x/avataaars/png?seed=Maher&backgroundColor=f0f7f8"),
+                                      image: NetworkImage(
+                                        "https://api.dicebear.com/7.x/avataaars/png?seed=Maher&backgroundColor=f0f7f8",
+                                      ),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -97,19 +126,28 @@ class AudioPlayerBridge extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
                                         reciterName,
-                                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF0B2128)),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: theme.primaryText,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         playingTitle,
-                                        style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.normal),
+                                        style: TextStyle(
+                                          color: theme.mutedText,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -130,13 +168,15 @@ class AudioPlayerBridge extends StatelessWidget {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
+                                color: theme.pillBackground,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                isPlaying ? LucideIcons.pause : LucideIcons.play,
+                                isPlaying
+                                    ? LucideIcons.pause
+                                    : LucideIcons.play,
                                 size: 20,
-                                color: const Color(0xFF0B2128),
+                                color: theme.primaryText,
                               ),
                             ),
                           ),
@@ -147,14 +187,18 @@ class AudioPlayerBridge extends StatelessWidget {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
+                                color: theme.pillBackground,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(LucideIcons.expand, size: 24, color: Color(0xFF0B2128)),
+                              child: Icon(
+                                LucideIcons.expand,
+                                size: 24,
+                                color: theme.primaryText,
+                              ),
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -179,18 +223,22 @@ class AudioPlayerBridge extends StatelessWidget {
                             child: SliderTheme(
                               data: SliderTheme.of(context).copyWith(
                                 trackHeight: 4,
-                                activeTrackColor: const Color(0xFF1A454E),
-                                inactiveTrackColor: Colors.grey[200],
-                                thumbColor: const Color(0xFF1A454E),
-                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                                activeTrackColor: theme.sliderActive,
+                                inactiveTrackColor: theme.sliderInactive,
+                                thumbColor: theme.sliderActive,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 6,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 14,
+                                ),
                                 trackShape: const RoundedRectSliderTrackShape(),
                               ),
                               child: ExcludeSemantics(
                                 child: Slider(
                                   value: progress.clamp(0.0, 1.0),
                                   onChanged: (val) {
-                                    // Seek logic placeholder
+                                    onSeek(val);
                                   },
                                 ),
                               ),
@@ -200,10 +248,26 @@ class AudioPlayerBridge extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(currentPositionText, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.grey, letterSpacing: 0.5)),
-                              Text(totalDurationText, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.grey, letterSpacing: 0.5)),
+                              Text(
+                                currentPositionText,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.mutedText,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              Text(
+                                totalDurationText,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.mutedText,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -211,14 +275,40 @@ class AudioPlayerBridge extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildJumpButton(isForward: false),
-                          GestureDetector(onTap: () {}, child: const Icon(LucideIcons.skipBack, size: 24, color: Color(0xFF1A454E))),
+                          _buildJumpButton(
+                            isForward: false,
+                            onTap: onJumpBackward,
+                            theme: theme,
+                          ),
+                          GestureDetector(
+                            onTap: onSkipPrevious,
+                            child: Icon(
+                              LucideIcons.skipBack,
+                              size: 24,
+                              color: theme.accentColor,
+                            ),
+                          ),
                           GestureDetector(
                             onTap: onTogglePlay,
-                            child: Icon(isPlaying ? LucideIcons.pause : LucideIcons.play, size: 36, color: const Color(0xFF1A454E)),
+                            child: Icon(
+                              isPlaying ? LucideIcons.pause : LucideIcons.play,
+                              size: 36,
+                              color: theme.accentColor,
+                            ),
                           ),
-                          GestureDetector(onTap: () {}, child: const Icon(LucideIcons.skipForward, size: 24, color: Color(0xFF1A454E))),
-                          _buildJumpButton(isForward: true),
+                          GestureDetector(
+                            onTap: onSkipNext,
+                            child: Icon(
+                              LucideIcons.skipForward,
+                              size: 24,
+                              color: theme.accentColor,
+                            ),
+                          ),
+                          _buildJumpButton(
+                            isForward: true,
+                            onTap: onJumpForward,
+                            theme: theme,
+                          ),
                         ],
                       ),
                       const Spacer(),
@@ -239,7 +329,9 @@ class AudioPlayerBridge extends StatelessWidget {
                                       shape: BoxShape.circle,
                                       color: Colors.grey,
                                       image: DecorationImage(
-                                        image: NetworkImage("https://api.dicebear.com/7.x/avataaars/png?seed=Maher&backgroundColor=f0f7f8"),
+                                        image: NetworkImage(
+                                          "https://api.dicebear.com/7.x/avataaars/png?seed=Maher&backgroundColor=f0f7f8",
+                                        ),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -247,16 +339,40 @@ class AudioPlayerBridge extends StatelessWidget {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
-                                            Flexible(child: Text(reciterName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1A454E)), overflow: TextOverflow.ellipsis)),
+                                            Flexible(
+                                              child: Text(
+                                                reciterName,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: theme.accentColor,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
                                             const SizedBox(width: 4),
-                                            const Icon(LucideIcons.chevronDown, size: 12, color: Colors.grey)
+                                            Icon(
+                                              LucideIcons.chevronDown,
+                                              size: 12,
+                                              color: theme.mutedText,
+                                            ),
                                           ],
                                         ),
-                                        Text(playingTitle, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis, maxLines: 1),
+                                        Text(
+                                          playingTitle,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: theme.mutedText,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -266,35 +382,85 @@ class AudioPlayerBridge extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              GestureDetector(onTap: () {}, child: const Padding(padding: EdgeInsets.all(8.0), child: Icon(LucideIcons.repeat, size: 18, color: Colors.grey))),
-                              GestureDetector(onTap: onSettingsTapped, child: const Padding(padding: EdgeInsets.all(8.0), child: Icon(LucideIcons.slidersHorizontal, size: 18, color: Colors.grey))),
+                              GestureDetector(
+                                onTap: onRepeatToggle,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Icon(
+                                    LucideIcons.repeat,
+                                    size: 18,
+                                    color: repeatMode != AudioRepeatMode.none
+                                        ? theme.accentColor
+                                        : theme.mutedText,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: onSettingsTapped,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Icon(
+                                    LucideIcons.slidersHorizontal,
+                                    size: 18,
+                                    color: theme.mutedText,
+                                  ),
+                                ),
+                              ),
                               Container(
                                 margin: const EdgeInsets.only(left: 8),
                                 padding: const EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(color: Colors.grey[50], shape: BoxShape.circle),
-                                child: GestureDetector(onTap: onToggleExpand, child: const Icon(LucideIcons.minimize2, size: 16, color: Colors.grey)),
-                              )
+                                decoration: BoxDecoration(
+                                  color: theme.pillBackground,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: GestureDetector(
+                                  onTap: onToggleExpand,
+                                  child: Icon(
+                                    LucideIcons.minimize2,
+                                    size: 16,
+                                    color: theme.mutedText,
+                                  ),
+                                ),
+                              ),
                             ],
-                          )
+                          ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
-            ],
-          ),
+          ],
         ),
+      ),
     );
   }
 
-  Widget _buildJumpButton({required bool isForward}) {
-    return Column(
-      children: [
-        const Text("10", style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF1A454E))),
-        Icon(isForward ? LucideIcons.rotateCw : LucideIcons.rotateCcw, size: 18, color: const Color(0xFF1A454E)),
-      ],
+  Widget _buildJumpButton({
+    required bool isForward,
+    required VoidCallback onTap,
+    required ThemeProvider theme,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            "10",
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              color: theme.accentColor,
+            ),
+          ),
+          Icon(
+            isForward ? LucideIcons.rotateCw : LucideIcons.rotateCcw,
+            size: 18,
+            color: theme.accentColor,
+          ),
+        ],
+      ),
     );
   }
 }

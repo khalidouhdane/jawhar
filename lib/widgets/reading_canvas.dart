@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/providers/theme_provider.dart';
 
 class ReadingCanvas extends StatefulWidget {
   final List<Verse> verses;
@@ -98,6 +99,7 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
     final totalWords = widget.verses
         .expand((v) => v.words)
         .where((w) => w.charTypeName == 'word')
@@ -114,7 +116,7 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
         }
       },
       child: Container(
-        color: Colors.transparent,
+        color: theme.canvasBackground,
         width: double.infinity,
         height: double.infinity,
         child: Padding(
@@ -185,9 +187,9 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
                           fontSize: 22,
                           height: 2.2,
                           fontWeight: FontWeight.w400,
-                          color: const Color(0xFF1A454E),
+                          color: theme.quranText,
                           backgroundColor: isHighlighted
-                              ? const Color(0xFFE0F2F1)
+                              ? theme.verseHighlight
                               : null,
                         ),
                         recognizer: recognizer,
@@ -228,6 +230,7 @@ class _VerseMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
     const size = 22.0;
     return Container(
       width: size,
@@ -235,21 +238,23 @@ class _VerseMarker extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isHighlighted
-            ? const Color(0xFF4DB6AC)
-            : const Color(0xFFB2DFDB),
+            ? theme.verseMarkerHighlight
+            : theme.verseMarkerColor,
         border: Border.all(
-          color: isHighlighted ? Colors.teal.shade600 : const Color(0xFF80CBC4),
+          color: isHighlighted
+              ? theme.verseMarkerHighlightBorder
+              : theme.verseMarkerBorder,
           width: 1.2,
         ),
       ),
       child: Center(
         child: Text(
           '$verseNumber',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Inter',
             fontSize: size * 0.42,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1A454E),
+            color: theme.primaryText,
             height: 1.0,
           ),
         ),
@@ -271,16 +276,17 @@ class _ContextualMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A454E),
+          color: theme.contextMenuBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1A454E).withOpacity(0.3),
+              color: theme.contextMenuBackground.withOpacity(0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

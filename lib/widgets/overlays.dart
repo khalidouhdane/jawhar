@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/providers/theme_provider.dart';
 
 class ReciterMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
@@ -28,11 +29,12 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
   @override
   Widget build(BuildContext context) {
     final audioProvider = context.watch<AudioProvider>();
+    final theme = context.watch<ThemeProvider>();
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: theme.sheetBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
         children: [
@@ -41,7 +43,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
             height: 6,
             margin: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: theme.sheetDragHandle,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -52,22 +54,22 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Select Reciter',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A454E),
+                        color: theme.accentColor,
                       ),
                     ),
                     GestureDetector(
                       onTap: widget.onClose,
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: Icon(
                           LucideIcons.x,
                           size: 18,
-                          color: Colors.grey,
+                          color: theme.mutedText,
                         ),
                       ),
                     ),
@@ -76,16 +78,17 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                 const SizedBox(height: 16),
                 TextField(
                   onChanged: (value) => setState(() => searchQuery = value),
+                  style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
                     hintText: 'Search by reciter name...',
-                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                    prefixIcon: const Icon(
+                    hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
+                    prefixIcon: Icon(
                       LucideIcons.search,
                       size: 18,
-                      color: Colors.grey,
+                      color: theme.mutedText,
                     ),
                     filled: true,
-                    fillColor: Colors.grey[50],
+                    fillColor: theme.inputFill,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -95,19 +98,20 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _buildTab('All', 'all'),
+                    _buildTab('All', 'all', theme: theme),
                     const SizedBox(width: 8),
-                    _buildTab('Recent', 'recent'),
+                    _buildTab('Recent', 'recent', theme: theme),
                     const SizedBox(width: 8),
                     _buildTab(
                       'Favorites',
                       'favorites',
                       icon: LucideIcons.heart,
+                      theme: theme,
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Divider(),
+                Divider(color: theme.dividerColor),
               ],
             ),
           ),
@@ -115,8 +119,8 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
             child: Consumer<QuranReadingProvider>(
               builder: (context, readingProvider, child) {
                 if (readingProvider.reciters.isEmpty) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF1A454E)),
+                  return Center(
+                    child: CircularProgressIndicator(color: theme.accentColor),
                   );
                 }
 
@@ -158,7 +162,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                               ? LucideIcons.heart
                               : LucideIcons.search,
                           size: 48,
-                          color: Colors.grey[300],
+                          color: theme.dividerColor,
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -168,7 +172,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                               ? 'No recent reciters'
                               : 'No reciters found',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: theme.mutedText,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -199,7 +203,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         backgroundImage: NetworkImage(
                           "https://api.dicebear.com/7.x/avataaars/png?seed=${reciter.reciterName}&backgroundColor=f0f7f8",
                         ),
-                        backgroundColor: Colors.grey[100],
+                        backgroundColor: theme.pillBackground,
                       ),
                       title: Text(
                         reciter.reciterName,
@@ -207,15 +211,15 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: isActive
-                              ? Colors.teal
-                              : const Color(0xFF1A454E),
+                              ? theme.accentColor
+                              : theme.primaryText,
                         ),
                       ),
                       subtitle: Text(
                         "${reciter.style ?? 'Standard'} Recitation",
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[400],
+                          color: theme.mutedText,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -239,15 +243,15 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                               size: 18,
                               color: isFavorite
                                   ? Colors.red[400]
-                                  : Colors.grey[300],
+                                  : theme.dividerColor,
                             ),
                           ),
                           const SizedBox(width: 12),
                           if (isActive)
-                            const Icon(
+                            Icon(
                               LucideIcons.checkCircle2,
                               size: 20,
-                              color: Colors.teal,
+                              color: theme.accentColor,
                             )
                           else
                             const SizedBox(width: 20),
@@ -264,14 +268,19 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
     );
   }
 
-  Widget _buildTab(String label, String tabKey, {IconData? icon}) {
+  Widget _buildTab(
+    String label,
+    String tabKey, {
+    IconData? icon,
+    required ThemeProvider theme,
+  }) {
     final isSelected = activeTab == tabKey;
     return GestureDetector(
       onTap: () => setState(() => activeTab = tabKey),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A454E) : Colors.grey[50],
+          color: isSelected ? theme.chipSelected : theme.chipUnselected,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -280,7 +289,9 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
               Icon(
                 icon,
                 size: 12,
-                color: isSelected ? Colors.white : Colors.grey[500],
+                color: isSelected
+                    ? theme.chipSelectedText
+                    : theme.chipUnselectedText,
               ),
               const SizedBox(width: 4),
             ],
@@ -289,7 +300,9 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.grey[500],
+                color: isSelected
+                    ? theme.chipSelectedText
+                    : theme.chipUnselectedText,
               ),
             ),
           ],
@@ -299,17 +312,27 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
   }
 }
 
-class AudioSettingsSheet extends StatelessWidget {
+// ─── Audio Settings Sheet (Functional) ───
+
+class AudioSettingsSheet extends StatefulWidget {
   final VoidCallback onClose;
 
   const AudioSettingsSheet({super.key, required this.onClose});
 
   @override
+  State<AudioSettingsSheet> createState() => _AudioSettingsSheetState();
+}
+
+class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
+  @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    final audioProvider = context.watch<AudioProvider>();
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: theme.sheetBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
@@ -320,26 +343,26 @@ class AudioSettingsSheet extends StatelessWidget {
             height: 6,
             margin: const EdgeInsets.only(bottom: 24),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: theme.sheetDragHandle,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Audio Settings',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A454E),
+                  color: theme.accentColor,
                 ),
               ),
               GestureDetector(
-                onTap: onClose,
-                child: const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(LucideIcons.x, size: 18, color: Colors.grey),
+                onTap: widget.onClose,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(LucideIcons.x, size: 18, color: theme.mutedText),
                 ),
               ),
             ],
@@ -349,36 +372,42 @@ class AudioSettingsSheet extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Playback Speed",
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey,
+                  color: theme.secondaryText,
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: ['0.75x', '1x', '1.25x', '1.5x'].map((speed) {
-                  final isSelected = speed == '1x';
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF1A454E)
-                          : Colors.grey[50],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      speed,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.grey[600],
+                children: [0.75, 1.0, 1.25, 1.5].map((speed) {
+                  final label = speed == 1.0 ? '1x' : '${speed}x';
+                  final isSelected = audioProvider.playbackSpeed == speed;
+                  return GestureDetector(
+                    onTap: () => audioProvider.setPlaybackSpeed(speed),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? theme.chipSelected
+                            : theme.chipUnselected,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? theme.chipSelectedText
+                              : theme.chipUnselectedText,
+                        ),
                       ),
                     ),
                   );
@@ -387,30 +416,30 @@ class AudioSettingsSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Looping
+          // Repeat mode
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F8F9),
+              color: theme.inputFill,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.teal.withOpacity(0.05)),
+              border: Border.all(color: theme.accentColor.withOpacity(0.05)),
             ),
             child: Column(
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(
                       LucideIcons.repeat,
                       size: 18,
-                      color: Color(0xFF1A454E),
+                      color: theme.accentColor,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      "Verse Looping (Memorize)",
+                      "Repeat Mode",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A454E),
+                        color: theme.accentColor,
                       ),
                     ),
                   ],
@@ -418,9 +447,19 @@ class AudioSettingsSheet extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _buildDropdown("From Ayah", "1"),
-                    const SizedBox(width: 12),
-                    _buildDropdown("To Ayah", "5"),
+                    _buildRepeatChip(
+                      'Off',
+                      AudioRepeatMode.none,
+                      audioProvider,
+                      theme,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildRepeatChip(
+                      'Verse',
+                      AudioRepeatMode.repeatVerse,
+                      audioProvider,
+                      theme,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -430,49 +469,57 @@ class AudioSettingsSheet extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[100]!),
+                    border: Border.all(color: theme.dividerColor),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Repeat times",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey,
+                          color: theme.secondaryText,
                         ),
                       ),
                       Row(
-                        children: ['3', '5', '10', '∞'].map((times) {
-                          final isSelected = times == '∞';
-                          return Container(
-                            width: 32,
-                            height: 32,
-                            margin: const EdgeInsets.only(left: 6),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isSelected
-                                  ? const Color(0xFF1A454E)
-                                  : Colors.grey[50],
-                            ),
-                            child: isSelected
-                                ? const Icon(
-                                    LucideIcons.infinity,
-                                    size: 16,
-                                    color: Colors.white,
-                                  )
-                                : Text(
-                                    times,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[500],
+                        children: [3, 5, 10, 0].map((times) {
+                          final isInfinite = times == 0;
+                          final isSelected = audioProvider.repeatCount == times;
+                          return GestureDetector(
+                            onTap: () => audioProvider.setRepeatCount(times),
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              margin: const EdgeInsets.only(left: 6),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected
+                                    ? theme.chipSelected
+                                    : theme.chipUnselected,
+                              ),
+                              child: isInfinite
+                                  ? Icon(
+                                      LucideIcons.infinity,
+                                      size: 16,
+                                      color: isSelected
+                                          ? theme.chipSelectedText
+                                          : theme.chipUnselectedText,
+                                    )
+                                  : Text(
+                                      '$times',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected
+                                            ? theme.chipSelectedText
+                                            : theme.chipUnselectedText,
+                                      ),
                                     ),
-                                  ),
+                            ),
                           );
                         }).toList(),
                       ),
@@ -483,88 +530,48 @@ class AudioSettingsSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Color(0xFFF9FAFB),
-                    child: Icon(
-                      LucideIcons.clock,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    "Sleep Timer",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                "Off",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildDropdown(String label, String value) {
+  Widget _buildRepeatChip(
+    String label,
+    AudioRepeatMode mode,
+    AudioProvider audioProvider,
+    ThemeProvider theme,
+  ) {
+    final isSelected = audioProvider.repeatMode == mode;
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[100]!),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A454E),
-                  ),
-                ),
-              ],
+      child: GestureDetector(
+        onTap: () => audioProvider.setRepeatMode(mode),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? theme.chipSelected : theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? theme.chipSelected : theme.dividerColor,
             ),
-            const Icon(LucideIcons.chevronDown, size: 16, color: Colors.grey),
-          ],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isSelected
+                  ? theme.chipSelectedText
+                  : theme.chipUnselectedText,
+            ),
+          ),
         ),
       ),
     );
   }
 }
+
+// ─── Nav Menu Sheet ───
 
 class NavMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
@@ -580,10 +587,12 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: theme.sheetBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
         children: [
@@ -592,7 +601,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             height: 6,
             margin: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: theme.sheetDragHandle,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -603,22 +612,22 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Index',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A454E),
+                        color: theme.accentColor,
                       ),
                     ),
                     GestureDetector(
                       onTap: widget.onClose,
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: Icon(
                           LucideIcons.x,
                           size: 18,
-                          color: Colors.grey,
+                          color: theme.mutedText,
                         ),
                       ),
                     ),
@@ -628,7 +637,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: theme.pillBackground,
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Row(
@@ -643,13 +652,15 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.white
+                                  ? theme.cardColor
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
+                                        color: theme.shadowColor.withOpacity(
+                                          0.05,
+                                        ),
                                         blurRadius: 2,
                                         offset: const Offset(0, 1),
                                       ),
@@ -662,8 +673,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
-                                    ? const Color(0xFF1A454E)
-                                    : Colors.grey[500],
+                                    ? theme.accentColor
+                                    : theme.chipUnselectedText,
                               ),
                             ),
                           ),
@@ -674,16 +685,17 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
                     hintText: 'Search surah, verse, or juz...',
-                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                    prefixIcon: const Icon(
+                    hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
+                    prefixIcon: Icon(
                       LucideIcons.search,
                       size: 18,
-                      color: Colors.grey,
+                      color: theme.mutedText,
                     ),
                     filled: true,
-                    fillColor: Colors.grey[50],
+                    fillColor: theme.inputFill,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -699,9 +711,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 ? Consumer<QuranReadingProvider>(
                     builder: (context, readingProvider, child) {
                       if (readingProvider.chapters.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFF1A454E),
+                            color: theme.accentColor,
                           ),
                         );
                       }
@@ -711,20 +723,18 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                         itemCount: readingProvider.chapters.length,
                         itemBuilder: (context, index) {
                           final surah = readingProvider.chapters[index];
-                          final isCurrent =
-                              index ==
-                              0; // Replace with actual current surah logic later
+                          final isCurrent = index == 0;
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
                               color: isCurrent
-                                  ? const Color(0xFFF2F8F9)
+                                  ? theme.inputFill
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isCurrent
-                                    ? Colors.teal.withOpacity(0.1)
+                                    ? theme.accentColor.withOpacity(0.1)
                                     : Colors.transparent,
                               ),
                             ),
@@ -735,8 +745,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(
                                   color: isCurrent
-                                      ? const Color(0xFF1A454E)
-                                      : Colors.grey[100],
+                                      ? theme.accentColor
+                                      : theme.pillBackground,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Text(
@@ -746,7 +756,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                     fontWeight: FontWeight.bold,
                                     color: isCurrent
                                         ? Colors.white
-                                        : Colors.grey[500],
+                                        : theme.chipUnselectedText,
                                   ),
                                 ),
                               ),
@@ -756,15 +766,15 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: isCurrent
-                                      ? const Color(0xFF1A454E)
-                                      : Colors.grey[800],
+                                      ? theme.accentColor
+                                      : theme.primaryText,
                                 ),
                               ),
                               subtitle: Text(
                                 "Meccan • ${surah.versesCount} Ayahs",
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey[400],
+                                  color: theme.mutedText,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -772,13 +782,13 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (isCurrent)
-                                    const Row(
+                                    Row(
                                       children: [
                                         Icon(
                                           Icons.more_horiz,
-                                          color: Color(0xFF1A454E),
+                                          color: theme.accentColor,
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                       ],
                                     ),
                                   Text(
@@ -787,8 +797,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: isCurrent
-                                          ? const Color(0xFF1A454E)
-                                          : Colors.grey[400],
+                                          ? theme.accentColor
+                                          : theme.mutedText,
                                     ),
                                   ),
                                 ],
@@ -800,20 +810,20 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                     },
                   )
                 : activeTab == 'bookmarks'
-                ? const Center(
+                ? Center(
                     child: Text(
                       "Bookmarks will appear here",
                       style: TextStyle(
-                        color: Colors.grey,
+                        color: theme.mutedText,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   )
-                : const Center(
+                : Center(
                     child: Text(
                       "Juz list will appear here",
                       style: TextStyle(
-                        color: Colors.grey,
+                        color: theme.mutedText,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -822,5 +832,488 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         ],
       ),
     );
+  }
+}
+
+// ─── Theme Picker Sheet ───
+
+class ThemePickerSheet extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const ThemePickerSheet({super.key, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.sheetBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 6,
+            margin: const EdgeInsets.only(bottom: 24),
+            decoration: BoxDecoration(
+              color: theme.sheetDragHandle,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Appearance',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: theme.accentColor,
+                ),
+              ),
+              GestureDetector(
+                onTap: onClose,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(LucideIcons.x, size: 18, color: theme.mutedText),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              _buildThemeOption(
+                context: context,
+                label: 'Light',
+                theme: theme,
+                targetTheme: AppTheme.light,
+                bgColor: const Color(0xFFF5F0E8),
+                textColor: const Color(0xFF1A454E),
+                icon: LucideIcons.sun,
+              ),
+              const SizedBox(width: 16),
+              _buildThemeOption(
+                context: context,
+                label: 'Dark',
+                theme: theme,
+                targetTheme: AppTheme.dark,
+                bgColor: const Color(0xFF0A1E24),
+                textColor: const Color(0xFFD4E8EC),
+                icon: LucideIcons.moon,
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeOption({
+    required BuildContext context,
+    required String label,
+    required ThemeProvider theme,
+    required AppTheme targetTheme,
+    required Color bgColor,
+    required Color textColor,
+    required IconData icon,
+  }) {
+    final isSelected = theme.theme == targetTheme;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          theme.setTheme(targetTheme);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? theme.accentColor : Colors.transparent,
+              width: 2.5,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: theme.accentColor.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 32, color: textColor),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (isSelected)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.accentColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Active',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: theme.chipSelectedText,
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 22),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Search Sheet ───
+
+class SearchSheet extends StatefulWidget {
+  final VoidCallback onClose;
+  final ValueChanged<int> onPageSelected;
+
+  const SearchSheet({
+    super.key,
+    required this.onClose,
+    required this.onPageSelected,
+  });
+
+  @override
+  State<SearchSheet> createState() => _SearchSheetState();
+}
+
+class _SearchSheetState extends State<SearchSheet> {
+  String searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.sheetBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 6,
+            margin: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: theme.sheetDragHandle,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Search',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: theme.accentColor,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: widget.onClose,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          LucideIcons.x,
+                          size: 18,
+                          color: theme.mutedText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  autofocus: true,
+                  onChanged: (value) => setState(() => searchQuery = value),
+                  style: TextStyle(color: theme.primaryText),
+                  decoration: InputDecoration(
+                    hintText: 'Search surah name or number...',
+                    hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
+                    prefixIcon: Icon(
+                      LucideIcons.search,
+                      size: 18,
+                      color: theme.mutedText,
+                    ),
+                    filled: true,
+                    fillColor: theme.inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Consumer<QuranReadingProvider>(
+              builder: (context, readingProvider, child) {
+                if (readingProvider.chapters.isEmpty) {
+                  return Center(
+                    child: CircularProgressIndicator(color: theme.accentColor),
+                  );
+                }
+
+                var chapters = readingProvider.chapters;
+                if (searchQuery.isNotEmpty) {
+                  chapters = chapters
+                      .where(
+                        (c) =>
+                            c.nameSimple.toLowerCase().contains(
+                              searchQuery.toLowerCase(),
+                            ) ||
+                            c.nameArabic.contains(searchQuery) ||
+                            c.id.toString() == searchQuery,
+                      )
+                      .toList();
+                }
+
+                if (chapters.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.search,
+                          size: 48,
+                          color: theme.dividerColor,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No results found',
+                          style: TextStyle(
+                            color: theme.mutedText,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: chapters.length,
+                  itemBuilder: (context, index) {
+                    final surah = chapters[index];
+                    // Navigate to the surah's first page
+                    // Each surah's pages can be roughly estimated;
+                    // for now, use surah.id as a page reference
+                    // The Quran API provides page numbers per verse
+
+                    return ListTile(
+                      onTap: () {
+                        // Navigate to surah — use page lookup
+                        // For simplicity, compute starting page from chapter
+                        // This is approximate; a full solution would need a chapter->page map
+                        widget.onPageSelected(_getFirstPage(surah.id));
+                      },
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: theme.pillBackground,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          surah.id.toString(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: theme.accentColor,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        surah.nameSimple,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "${surah.versesCount} Ayahs",
+                        style: TextStyle(fontSize: 12, color: theme.mutedText),
+                      ),
+                      trailing: Text(
+                        surah.nameArabic,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.mutedText,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Approximate first page for each chapter (first 30 chapters)
+  /// Falls back to chapter number for unknown chapters
+  int _getFirstPage(int chapterId) {
+    const chapterPages = {
+      1: 1,
+      2: 2,
+      3: 50,
+      4: 77,
+      5: 106,
+      6: 128,
+      7: 151,
+      8: 177,
+      9: 187,
+      10: 208,
+      11: 221,
+      12: 235,
+      13: 249,
+      14: 255,
+      15: 262,
+      16: 267,
+      17: 282,
+      18: 293,
+      19: 305,
+      20: 312,
+      21: 322,
+      22: 332,
+      23: 342,
+      24: 350,
+      25: 359,
+      26: 367,
+      27: 377,
+      28: 385,
+      29: 396,
+      30: 404,
+      31: 411,
+      32: 415,
+      33: 418,
+      34: 428,
+      35: 434,
+      36: 440,
+      37: 446,
+      38: 453,
+      39: 458,
+      40: 467,
+      41: 477,
+      42: 483,
+      43: 489,
+      44: 496,
+      45: 499,
+      46: 502,
+      47: 507,
+      48: 511,
+      49: 515,
+      50: 518,
+      51: 520,
+      52: 523,
+      53: 526,
+      54: 528,
+      55: 531,
+      56: 534,
+      57: 537,
+      58: 542,
+      59: 545,
+      60: 549,
+      61: 551,
+      62: 553,
+      63: 554,
+      64: 556,
+      65: 558,
+      66: 560,
+      67: 562,
+      68: 564,
+      69: 566,
+      70: 568,
+      71: 570,
+      72: 572,
+      73: 574,
+      74: 575,
+      75: 577,
+      76: 578,
+      77: 580,
+      78: 582,
+      79: 583,
+      80: 585,
+      81: 586,
+      82: 587,
+      83: 587,
+      84: 589,
+      85: 590,
+      86: 591,
+      87: 591,
+      88: 592,
+      89: 593,
+      90: 594,
+      91: 595,
+      92: 595,
+      93: 596,
+      94: 596,
+      95: 597,
+      96: 597,
+      97: 598,
+      98: 598,
+      99: 599,
+      100: 599,
+      101: 600,
+      102: 600,
+      103: 601,
+      104: 601,
+      105: 601,
+      106: 602,
+      107: 602,
+      108: 602,
+      109: 603,
+      110: 603,
+      111: 603,
+      112: 604,
+      113: 604,
+      114: 604,
+    };
+    return chapterPages[chapterId] ?? chapterId;
   }
 }

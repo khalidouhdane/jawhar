@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:quran_app/models/quran_models.dart';
 
+/// Repeat mode for audio playback
+enum AudioRepeatMode { none, repeatVerse, repeatRange }
+
 /// Audio playback using full chapter audio with verse timing data.
 /// Plays the complete chapter mp3 and seeks to exact verse positions
 /// using timestamp data from the API. This gives truly gapless playback
@@ -21,18 +24,36 @@ class AudioProvider extends ChangeNotifier {
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
 
+  // Playback speed
+  double _playbackSpeed = 1.0;
+
+  // Repeat mode
+  AudioRepeatMode _repeatMode = AudioRepeatMode.none;
+  String? _repeatRangeStart; // e.g., "2:1"
+  String? _repeatRangeEnd; // e.g., "2:5"
+  int _repeatCount = 0; // 0 = infinite
+  int _currentRepeatIteration = 0;
+
   bool get isPlaying => _isPlaying;
   Duration get currentPosition => _currentPosition;
   Duration get totalDuration => _totalDuration;
   String? get activeVerseKey => _activeVerseKey;
   int get reciterId => _reciterId;
   String get reciterName => _reciterName;
+  double get playbackSpeed => _playbackSpeed;
+  AudioRepeatMode get repeatMode => _repeatMode;
+  String? get repeatRangeStart => _repeatRangeStart;
+  String? get repeatRangeEnd => _repeatRangeEnd;
+  int get repeatCount => _repeatCount;
 
   // Chapter audio data
-  String? _currentAudioUrl;
+
   int? _currentChapter;
   List<_VerseTiming> _verseTimings = [];
   bool _isLoading = false;
+
+  // Seek buffer to avoid landing in previous verse's tail
+  static const int _seekBufferMs = 150;
 
   // Cache: "reciterId:chapter" -> { audioUrl, timings }
   final Map<String, _ChapterAudioData> _chapterCache = {};
@@ -54,16 +75,30 @@ class AudioProvider extends ChangeNotifier {
         final posMs = position.inMilliseconds;
         String? newKey;
 
-        // Walk backwards through timings to find the current verse
-        for (int i = _verseTimings.length - 1; i >= 0; i--) {
-          if (posMs >= _verseTimings[i].timestampFrom) {
-            newKey = _verseTimings[i].verseKey;
+        // Find the verse whose range contains the current position
+        for (int i = 0; i < _verseTimings.length; i++) {
+          final t = _verseTimings[i];
+          if (posMs >= t.timestampFrom && posMs < t.timestampTo) {
+            newKey = t.verseKey;
             break;
           }
         }
 
+        // Fallback: if position is past the last verse's timestampTo,
+        // use the last verse
+        if (newKey == null && _verseTimings.isNotEmpty) {
+          final last = _verseTimings.last;
+          if (posMs >= last.timestampFrom) {
+            newKey = last.verseKey;
+          }
+        }
+
         if (newKey != null && newKey != _activeVerseKey) {
+          final oldKey = _activeVerseKey;
           _activeVerseKey = newKey;
+
+          // Handle repeat mode when verse changes
+          _handleRepeat(oldKey, newKey, posMs);
         }
       }
 
@@ -82,6 +117,47 @@ class AudioProvider extends ChangeNotifier {
     });
   }
 
+  /// Handle repeat logic when the active verse changes
+  void _handleRepeat(String? oldKey, String newKey, int posMs) {
+    if (_repeatMode == AudioRepeatMode.repeatVerse && oldKey != null) {
+      // Repeat single verse: re-seek to the old verse's start
+      final oldTiming = _findTiming(oldKey);
+      if (oldTiming != null && newKey != oldKey) {
+        if (_repeatCount == 0 || _currentRepeatIteration < _repeatCount - 1) {
+          _currentRepeatIteration++;
+          _activeVerseKey = oldKey;
+          _player.seek(
+            Duration(milliseconds: oldTiming.timestampFrom + _seekBufferMs),
+          );
+          return;
+        } else {
+          // Exhausted repeats, reset and continue
+          _currentRepeatIteration = 0;
+        }
+      }
+    } else if (_repeatMode == AudioRepeatMode.repeatRange &&
+        _repeatRangeStart != null &&
+        _repeatRangeEnd != null) {
+      // Check if we just passed the end of the range
+      final endTiming = _findTiming(_repeatRangeEnd!);
+      if (endTiming != null && posMs >= endTiming.timestampTo) {
+        if (_repeatCount == 0 || _currentRepeatIteration < _repeatCount - 1) {
+          _currentRepeatIteration++;
+          final startTiming = _findTiming(_repeatRangeStart!);
+          if (startTiming != null) {
+            _activeVerseKey = _repeatRangeStart;
+            _player.seek(
+              Duration(milliseconds: startTiming.timestampFrom + _seekBufferMs),
+            );
+            return;
+          }
+        } else {
+          _currentRepeatIteration = 0;
+        }
+      }
+    }
+  }
+
   void setReciter(int reciterId, {String? name}) async {
     if (_reciterId == reciterId) return;
     _reciterId = reciterId;
@@ -98,20 +174,127 @@ class AudioProvider extends ChangeNotifier {
       final data = await _fetchChapterAudio(_currentChapter!);
       if (data == null) return;
 
-      _currentAudioUrl = data.audioUrl;
       _verseTimings = data.timings;
 
       // Find timing for current verse and seek
       final timing = _findTiming(savedKey);
       if (timing != null) {
         await _player.play(UrlSource(data.audioUrl));
-        await _player.seek(Duration(milliseconds: timing.timestampFrom));
+        await _player.setPlaybackRate(_playbackSpeed);
+        await _player.seek(
+          Duration(milliseconds: timing.timestampFrom + _seekBufferMs),
+        );
         _activeVerseKey = savedKey;
         notifyListeners();
       }
     } else {
       notifyListeners();
     }
+  }
+
+  /// Set playback speed (0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
+  Future<void> setPlaybackSpeed(double speed) async {
+    _playbackSpeed = speed;
+    await _player.setPlaybackRate(speed);
+    notifyListeners();
+  }
+
+  /// Set repeat mode
+  void setRepeatMode(AudioRepeatMode mode) {
+    _repeatMode = mode;
+    _currentRepeatIteration = 0;
+    notifyListeners();
+  }
+
+  /// Toggle repeat mode: none -> repeatVerse -> repeatRange -> none
+  void toggleRepeatMode() {
+    switch (_repeatMode) {
+      case AudioRepeatMode.none:
+        _repeatMode = AudioRepeatMode.repeatVerse;
+        break;
+      case AudioRepeatMode.repeatVerse:
+        _repeatMode = AudioRepeatMode.none;
+        break;
+      case AudioRepeatMode.repeatRange:
+        _repeatMode = AudioRepeatMode.none;
+        break;
+    }
+    _currentRepeatIteration = 0;
+    notifyListeners();
+  }
+
+  /// Set repeat range (from ayah to ayah)
+  void setRepeatRange(String fromKey, String toKey, {int count = 0}) {
+    _repeatRangeStart = fromKey;
+    _repeatRangeEnd = toKey;
+    _repeatCount = count;
+    _repeatMode = AudioRepeatMode.repeatRange;
+    _currentRepeatIteration = 0;
+    notifyListeners();
+  }
+
+  /// Set repeat count (0 = infinite)
+  void setRepeatCount(int count) {
+    _repeatCount = count;
+    _currentRepeatIteration = 0;
+    notifyListeners();
+  }
+
+  /// Skip to the next verse
+  Future<void> skipToNextVerse() async {
+    if (_verseTimings.isEmpty || _activeVerseKey == null) return;
+
+    final currentIndex = _verseTimings.indexWhere(
+      (t) => t.verseKey == _activeVerseKey,
+    );
+
+    if (currentIndex < 0 || currentIndex >= _verseTimings.length - 1) return;
+
+    final nextTiming = _verseTimings[currentIndex + 1];
+    _activeVerseKey = nextTiming.verseKey;
+    await _player.seek(
+      Duration(milliseconds: nextTiming.timestampFrom + _seekBufferMs),
+    );
+    notifyListeners();
+  }
+
+  /// Skip to the previous verse
+  Future<void> skipToPreviousVerse() async {
+    if (_verseTimings.isEmpty || _activeVerseKey == null) return;
+
+    final currentIndex = _verseTimings.indexWhere(
+      (t) => t.verseKey == _activeVerseKey,
+    );
+
+    if (currentIndex <= 0) return;
+
+    final prevTiming = _verseTimings[currentIndex - 1];
+    _activeVerseKey = prevTiming.verseKey;
+    await _player.seek(
+      Duration(milliseconds: prevTiming.timestampFrom + _seekBufferMs),
+    );
+    notifyListeners();
+  }
+
+  /// Seek forward by N seconds
+  Future<void> seekForward(int seconds) async {
+    final newPos = _currentPosition + Duration(seconds: seconds);
+    final clampedPos = newPos > _totalDuration ? _totalDuration : newPos;
+    await _player.seek(clampedPos);
+  }
+
+  /// Seek backward by N seconds
+  Future<void> seekBackward(int seconds) async {
+    final newPos = _currentPosition - Duration(seconds: seconds);
+    final clampedPos = newPos < Duration.zero ? Duration.zero : newPos;
+    await _player.seek(clampedPos);
+  }
+
+  /// Seek to a specific position (0.0 - 1.0 fraction)
+  Future<void> seekToFraction(double fraction) async {
+    if (_totalDuration.inMilliseconds <= 0) return;
+    final posMs = (fraction * _totalDuration.inMilliseconds).round();
+    await _player.seek(Duration(milliseconds: posMs));
   }
 
   /// Fetch chapter audio data with verse timings
@@ -185,7 +368,6 @@ class AudioProvider extends ChangeNotifier {
         return;
       }
 
-      _currentAudioUrl = data.audioUrl;
       _currentChapter = chapterNumber;
       _verseTimings = data.timings;
 
@@ -197,10 +379,13 @@ class AudioProvider extends ChangeNotifier {
 
       // Play the full chapter audio
       await _player.play(UrlSource(data.audioUrl));
+      await _player.setPlaybackRate(_playbackSpeed);
 
-      // Seek to the correct verse position
+      // Seek to the correct verse position with buffer
       if (timing != null && timing.timestampFrom > 0) {
-        await _player.seek(Duration(milliseconds: timing.timestampFrom));
+        await _player.seek(
+          Duration(milliseconds: timing.timestampFrom + _seekBufferMs),
+        );
       }
     } catch (e) {
       debugPrint('Error in playVerseList: $e');
