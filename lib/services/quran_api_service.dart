@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:quran_app/models/quran_models.dart';
 
@@ -39,21 +40,50 @@ class QuranApiService {
     }
   }
 
-  // Fetch Reciters that have both chapter audio and verse timing support
+  /// Fetch reciters from both the standard API and the QDC API, then merge
+  /// them (dedup by id). This gives us ~14 entries including reciters like
+  /// Yasser Ad Dussary and Khalifah Al Tunaiji that only appear in QDC.
   Future<List<Reciter>> getReciters() async {
-    final uri = Uri.parse('$baseUrl/resources/recitations');
-    final response = await http.get(uri);
+    final Map<int, Reciter> merged = {};
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      final List<dynamic> recitersJson = jsonResponse['recitations'];
-      return recitersJson.map((json) => Reciter.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load reciters');
+    // 1) Standard API (always works)
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/resources/recitations'));
+      if (res.statusCode == 200) {
+        final list = json.decode(res.body)['recitations'] as List;
+        for (final j in list) {
+          final r = Reciter.fromJson(j);
+          merged[r.id] = r;
+        }
+      }
+    } catch (e) {
+      debugPrint('Standard reciters fetch failed: $e');
     }
-  }
 
-  // Fetch audio timestamps for a specific chapter and reciter
-  // This is used for gapless playback if we playback chapter by chapter
-  // Or we use word.audioUrl for word-by-word audio.
+    // 2) QDC API (has extra reciters)
+    try {
+      final res = await http.get(
+        Uri.parse('https://api.qurancdn.com/api/qdc/audio/reciters?locale=en'),
+      );
+      if (res.statusCode == 200) {
+        final list = json.decode(res.body)['reciters'] as List;
+        for (final j in list) {
+          final r = Reciter.fromQdcJson(j);
+          // Only add if not already present (standard API takes priority)
+          merged.putIfAbsent(r.id, () => r);
+        }
+      }
+    } catch (e) {
+      debugPrint('QDC reciters fetch failed: $e');
+    }
+
+    if (merged.isEmpty) {
+      throw Exception('Failed to load reciters from any source');
+    }
+
+    // Sort alphabetically by name for a clean list
+    final result = merged.values.toList()
+      ..sort((a, b) => a.reciterName.compareTo(b.reciterName));
+    return result;
+  }
 }

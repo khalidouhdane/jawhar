@@ -95,11 +95,25 @@ class Reciter {
 
   Reciter({required this.id, required this.reciterName, this.style});
 
+  /// Standard API format: { "id": 7, "reciter_name": "...", "style": "..." }
   factory Reciter.fromJson(Map<String, dynamic> json) {
     return Reciter(
       id: json['id'],
       reciterName: json['reciter_name'],
       style: json['style'],
+    );
+  }
+
+  /// QDC API format: { "id": 7, "name": "...", "style": { "name": "..." } }
+  factory Reciter.fromQdcJson(Map<String, dynamic> json) {
+    String? styleName;
+    if (json['style'] is Map) {
+      styleName = json['style']['name'] as String?;
+    }
+    return Reciter(
+      id: json['id'],
+      reciterName: json['name'] ?? json['translated_name']?['name'] ?? '',
+      style: styleName,
     );
   }
 }

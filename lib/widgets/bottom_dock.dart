@@ -161,6 +161,9 @@ class BottomDock extends StatelessWidget {
   }
 }
 
+/// A horizontally scrolling pagination strip where the active page is always
+/// centered. Scrolling/swiping snaps to the nearest item and fires
+/// [onPageSelected] so the center item drives the reading view.
 class PaginationSlider extends StatefulWidget {
   final int activePage;
   final List<int> paginationArray;
@@ -181,42 +184,105 @@ class _PaginationSliderState extends State<PaginationSlider> {
   late ScrollController _scrollController;
   static const double _itemWidth = 36.0;
 
+  // The index currently closest to center (updated on scroll).
+  int _centerIndex = 0;
+
+  // Whether an external page change triggered the scroll (so we don't loop).
+  bool _isExternalScroll = false;
+
   @override
   void initState() {
     super.initState();
+    _centerIndex = _activeIndex;
     _scrollController = ScrollController();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActive());
+    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _jumpToIndex(_centerIndex);
+    });
+  }
+
+  int get _activeIndex {
+    final idx = widget.paginationArray.indexOf(widget.activePage);
+    return idx == -1 ? 0 : idx;
   }
 
   @override
   void didUpdateWidget(PaginationSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.activePage != widget.activePage) {
-      _scrollToActive();
+      final newIndex = _activeIndex;
+      if (newIndex != _centerIndex) {
+        _isExternalScroll = true;
+        _centerIndex = newIndex;
+        _animateToIndex(newIndex);
+      }
     }
   }
 
-  void _scrollToActive() {
-    final index = widget.paginationArray.indexOf(widget.activePage);
-    if (index == -1 || !_scrollController.hasClients) return;
+  // ------------------------------------------------------------------
+  // Scroll helpers
+  // ------------------------------------------------------------------
 
-    final viewportWidth = _scrollController.position.viewportDimension;
-    final targetOffset =
-        (index * _itemWidth) - (viewportWidth / 2) + (_itemWidth / 2);
-    final clampedOffset = targetOffset.clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
+  /// The scroll offset that places [index] exactly at the viewport center.
+  double _offsetForIndex(int index) {
+    if (!_scrollController.hasClients) return 0;
+    final viewportW = _scrollController.position.viewportDimension;
+    final desired = (index * _itemWidth) - (viewportW / 2) + (_itemWidth / 2);
+    return desired.clamp(0.0, _scrollController.position.maxScrollExtent);
+  }
+
+  void _jumpToIndex(int index) {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(_offsetForIndex(index));
+  }
+
+  void _animateToIndex(int index) {
+    if (!_scrollController.hasClients) return;
+    _scrollController
+        .animateTo(
+          _offsetForIndex(index),
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        )
+        .then((_) => _isExternalScroll = false);
+  }
+
+  /// Called on every scroll tick. Only updates the visual center index
+  /// (for opacity rendering). Does NOT fire onPageSelected — that happens
+  /// only when scrolling stops, so big drags scroll freely.
+  void _onScroll() {
+    if (_isExternalScroll || !_scrollController.hasClients) return;
+
+    final viewportW = _scrollController.position.viewportDimension;
+    final scrollOffset = _scrollController.offset;
+    final centerPixel = scrollOffset + viewportW / 2;
+
+    int closestIndex = (centerPixel / _itemWidth).round().clamp(
+      0,
+      widget.paginationArray.length - 1,
     );
 
-    _scrollController.animateTo(
-      clampedOffset,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-    );
+    if (closestIndex != _centerIndex) {
+      setState(() {
+        _centerIndex = closestIndex;
+      });
+    }
+  }
+
+  /// Snap to the nearest item when scrolling ends and fire onPageSelected.
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollEndNotification && !_isExternalScroll) {
+      // Snap visually
+      _animateToIndex(_centerIndex);
+      // Navigate to the page that landed in the center
+      widget.onPageSelected(widget.paginationArray[_centerIndex]);
+    }
+    return false;
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -225,105 +291,108 @@ class _PaginationSliderState extends State<PaginationSlider> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
 
-    return ListView.builder(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      itemCount: widget.paginationArray.length,
-      itemBuilder: (context, index) {
-        final pageNum = widget.paginationArray[index];
-        final isActive = pageNum == widget.activePage;
-        final activeIndex = widget.paginationArray.indexOf(widget.activePage);
-        final distance = (index - activeIndex).abs();
+    return NotificationListener<ScrollNotification>(
+      onNotification: _handleScrollNotification,
+      child: ListView.builder(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: widget.paginationArray.length,
+        itemBuilder: (context, index) {
+          final pageNum = widget.paginationArray[index];
+          final isActive = index == _centerIndex;
+          final distance = (index - _centerIndex).abs();
 
-        double targetOpacity = 1.0;
-        if (!isActive) {
-          if (distance == 1) {
-            targetOpacity = 0.5;
+          // Opacity gradient radiates from the center item.
+          double targetOpacity;
+          if (isActive) {
+            targetOpacity = 1.0;
+          } else if (distance == 1) {
+            targetOpacity = 0.6;
           } else if (distance == 2) {
-            targetOpacity = 0.35;
+            targetOpacity = 0.45;
           } else if (distance == 3) {
-            targetOpacity = 0.2;
+            targetOpacity = 0.30;
           } else if (distance == 4) {
-            targetOpacity = 0.1;
+            targetOpacity = 0.20;
           } else {
-            targetOpacity = 0.05;
+            targetOpacity = 0.12;
           }
-        }
 
-        return GestureDetector(
-          onTap: () => widget.onPageSelected(pageNum),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: targetOpacity,
-            child: Container(
-              width: _itemWidth - 8,
-              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              decoration: BoxDecoration(
-                color: isActive ? theme.accentColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: isActive ? null : Border.all(color: theme.accentColor),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: theme.accentColor.withValues(alpha: 0.2),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 14,
-                    height: 2,
-                    margin: const EdgeInsets.only(bottom: 2),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : theme.accentColor,
-                      borderRadius: BorderRadius.circular(2),
+          return GestureDetector(
+            onTap: () {
+              _centerIndex = index;
+              widget.onPageSelected(pageNum);
+              _animateToIndex(index);
+            },
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 150),
+              opacity: targetOpacity,
+              child: Container(
+                width: _itemWidth - 8,
+                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isActive ? theme.accentColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  border: isActive
+                      ? null
+                      : Border.all(color: theme.accentColor),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: theme.accentColor.withValues(alpha: 0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _line(isActive, theme),
+                    _line(isActive, theme),
+                    Container(
+                      width: 14,
+                      height: 2,
+                      margin: const EdgeInsets.only(bottom: 6),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? Colors.white.withValues(alpha: 0.7)
+                            : theme.accentColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                  ),
-                  Container(
-                    width: 14,
-                    height: 2,
-                    margin: const EdgeInsets.only(bottom: 2),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : theme.accentColor,
-                      borderRadius: BorderRadius.circular(2),
+                    Text(
+                      pageNum.toString().padLeft(2, '0'),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0,
+                        color: isActive ? Colors.white : theme.accentColor,
+                      ),
                     ),
-                  ),
-                  Container(
-                    width: 14,
-                    height: 2,
-                    margin: const EdgeInsets.only(bottom: 6),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : theme.accentColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Text(
-                    pageNum.toString().padLeft(2, '0'),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0,
-                      color: isActive ? Colors.white : theme.accentColor,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _line(bool isActive, ThemeProvider theme) {
+    return Container(
+      width: 14,
+      height: 2,
+      margin: const EdgeInsets.only(bottom: 2),
+      decoration: BoxDecoration(
+        color: isActive
+            ? Colors.white.withValues(alpha: 0.7)
+            : theme.accentColor,
+        borderRadius: BorderRadius.circular(2),
+      ),
     );
   }
 }

@@ -115,105 +115,110 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
           widget.onCanvasTapped();
         }
       },
-      child: Container(
-        color: theme.canvasBackground,
-        width: double.infinity,
-        height: double.infinity,
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.paddingOf(context).top + 16,
-            bottom: MediaQuery.paddingOf(context).bottom + 32,
-            left: 12,
-            right: 12,
-          ),
-          child: Consumer<AudioProvider>(
-            builder: (context, audioProvider, child) {
-              // Build RichText with TextSpan and WidgetSpan for continuous verse highlight
-              final spans = <InlineSpan>[];
+      child: SafeArea(
+        child: Container(
+          color: theme.canvasBackground,
+          width: double.infinity,
+          height: double.infinity,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 32),
+            child: Consumer<AudioProvider>(
+              builder: (context, audioProvider, child) {
+                // Build RichText with TextSpan and WidgetSpan for continuous verse highlight
+                final spans = <InlineSpan>[];
 
-              for (final verse in widget.verses) {
-                final isSelected = widget.selectedVerseId == verse.id;
-                final isPlaying =
-                    audioProvider.activeVerseKey == verse.verseKey;
-                final isHighlighted = isSelected || isPlaying;
+                for (final verse in widget.verses) {
+                  final isSelected = widget.selectedVerseId == verse.id;
+                  final isPlaying =
+                      audioProvider.activeVerseKey == verse.verseKey;
+                  final isHighlighted = isSelected || isPlaying;
 
-                for (int wi = 0; wi < verse.words.length; wi++) {
-                  final word = verse.words[wi];
+                  for (int wi = 0; wi < verse.words.length; wi++) {
+                    final word = verse.words[wi];
 
-                  if (word.charTypeName == 'end') {
-                    // Verse marker as WidgetSpan
-                    Widget marker = _VerseMarker(
-                      verseNumber: verse.verseNumber,
-                      isHighlighted: isHighlighted,
-                    );
-                    // Attach key on first marker for menu positioning
-                    if (isSelected) {
-                      marker = KeyedSubtree(
-                        key: _getKeyForVerse(verse.id),
-                        child: marker,
+                    if (word.charTypeName == 'end') {
+                      // Verse marker as WidgetSpan
+                      Widget marker = _VerseMarker(
+                        verseNumber: verse.verseNumber,
+                        isHighlighted: isHighlighted,
                       );
-                    }
-                    spans.add(
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: GestureDetector(
-                            onLongPress: () {
-                              widget.onVerseSelected(
-                                isSelected ? null : verse.id,
-                              );
-                            },
-                            child: marker,
+                      // Attach key on first marker for menu positioning
+                      if (isSelected) {
+                        marker = KeyedSubtree(
+                          key: _getKeyForVerse(verse.id),
+                          child: marker,
+                        );
+                      }
+                      spans.add(
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: GestureDetector(
+                              onLongPress: () {
+                                widget.onVerseSelected(
+                                  isSelected ? null : verse.id,
+                                );
+                              },
+                              child: marker,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  } else {
-                    // Add space between words (except first word)
-                    final text = wi == 0
-                        ? word.textUthmani
-                        : ' ${word.textUthmani}';
+                      );
+                    } else {
+                      // Add space between words (except first word)
+                      final text = wi == 0
+                          ? word.textUthmani
+                          : ' ${word.textUthmani}';
 
-                    final recognizer = LongPressGestureRecognizer()
-                      ..onLongPress = () {
-                        widget.onVerseSelected(isSelected ? null : verse.id);
-                      };
+                      final recognizer = LongPressGestureRecognizer()
+                        ..onLongPress = () {
+                          widget.onVerseSelected(isSelected ? null : verse.id);
+                        };
 
-                    spans.add(
-                      TextSpan(
-                        text: text,
-                        style: GoogleFonts.amiriQuran(
-                          fontSize: 22,
-                          height: 2.2,
-                          fontWeight: FontWeight.w400,
-                          color: theme.quranText,
-                          backgroundColor: isHighlighted
-                              ? theme.verseHighlight
-                              : null,
+                      spans.add(
+                        TextSpan(
+                          text: text,
+                          style: GoogleFonts.amiriQuran(
+                            fontSize: 22,
+                            height: 2.2,
+                            fontWeight: FontWeight.w400,
+                            color: theme.quranText,
+                            backgroundColor: isHighlighted
+                                ? theme.verseHighlight
+                                : null,
+                          ),
+                          recognizer: recognizer,
                         ),
-                        recognizer: recognizer,
-                      ),
-                    );
+                      );
+                    }
                   }
+
+                  // Add a small space between verses
+                  spans.add(const TextSpan(text: ' '));
                 }
 
-                // Add a small space between verses
-                spans.add(const TextSpan(text: ' '));
-              }
+                final richText = RichText(
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
+                  text: TextSpan(children: spans),
+                );
 
-              final richText = RichText(
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-                text: TextSpan(children: spans),
-              );
-
-              if (isShortPage) {
-                return Center(child: richText);
-              } else {
-                return Align(alignment: Alignment.topCenter, child: richText);
-              }
-            },
+                if (isShortPage) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 80,
+                      ), // offset for short pages
+                      child: richText,
+                    ),
+                  );
+                } else {
+                  return Align(alignment: Alignment.topCenter, child: richText);
+                }
+              },
+            ),
           ),
         ),
       ),
