@@ -298,6 +298,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           totalDurationText: totalDurStr,
                           progress: progress,
                           playingTitle: playingVerseLabel,
+                          reciterId: audioProvider.reciterId,
                           reciterName: audioProvider.reciterName,
                           repeatMode: audioProvider.repeatMode,
                           onToggleExpand: () => setState(

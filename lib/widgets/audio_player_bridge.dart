@@ -11,6 +11,7 @@ class AudioPlayerBridge extends StatelessWidget {
   final String totalDurationText;
   final double progress;
   final String playingTitle;
+  final int reciterId;
   final String reciterName;
   final AudioRepeatMode repeatMode;
   final VoidCallback onToggleExpand;
@@ -32,6 +33,7 @@ class AudioPlayerBridge extends StatelessWidget {
     required this.totalDurationText,
     required this.progress,
     required this.playingTitle,
+    required this.reciterId,
     required this.reciterName,
     required this.repeatMode,
     required this.onToggleExpand,
@@ -115,11 +117,21 @@ class AudioPlayerBridge extends StatelessWidget {
                                     border: Border.all(
                                       color: theme.dividerColor,
                                     ),
-                                    image: const DecorationImage(
-                                      image: NetworkImage(
-                                        "https://api.dicebear.com/7.x/avataaars/png?seed=Maher&backgroundColor=f0f7f8",
-                                      ),
+                                  ),
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      'assets/images/reciters/$reciterId.jpg',
+                                      width: 40,
+                                      height: 40,
                                       fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Image.network(
+                                          "https://api.dicebear.com/7.x/avataaars/png?seed=$reciterName&backgroundColor=f0f7f8",
+                                          width: 40,
+                                          height: 40,
+                                          fit: BoxFit.cover,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),

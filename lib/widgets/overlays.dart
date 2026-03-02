@@ -200,10 +200,23 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         widget.onClose();
                       },
                       leading: CircleAvatar(
-                        backgroundImage: NetworkImage(
-                          "https://api.dicebear.com/7.x/avataaars/png?seed=${reciter.reciterName}&backgroundColor=f0f7f8",
-                        ),
                         backgroundColor: theme.pillBackground,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/reciters/${reciter.id}.jpg',
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.network(
+                                "https://api.dicebear.com/7.x/avataaars/png?seed=${reciter.reciterName}&backgroundColor=f0f7f8",
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          ),
+                        ),
                       ),
                       title: Text(
                         reciter.reciterName,
