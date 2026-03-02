@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:quran_app/models/quran_models.dart';
+import 'package:quran_app/services/quran_auth_service.dart';
 
 /// Repeat mode for audio playback
 enum AudioRepeatMode { none, repeatVerse, repeatRange }
@@ -295,9 +296,17 @@ class AudioProvider extends ChangeNotifier {
 
     try {
       final uri = Uri.parse(
-        'https://api.quran.com/api/v4/chapter_recitations/$_reciterId/$chapterNumber?segments=true',
+        'https://apis.quran.foundation/content/api/v4/chapter_recitations/$_reciterId/$chapterNumber?segments=true',
       );
-      final response = await http.get(uri);
+
+      final token = await QuranAuthService.getValidToken();
+      final response = await http.get(
+        uri,
+        headers: {
+          'x-auth-token': token,
+          'x-client-id': QuranAuthService.clientId,
+        },
+      );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
