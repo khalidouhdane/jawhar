@@ -52,9 +52,6 @@ class AudioProvider extends ChangeNotifier {
   List<_VerseTiming> _verseTimings = [];
   bool _isLoading = false;
 
-  // Seek buffer to avoid landing in previous verse's tail
-  static const int _seekBufferMs = 150;
-
   // Cache: "reciterId:chapter" -> { audioUrl, timings }
   final Map<String, _ChapterAudioData> _chapterCache = {};
 
@@ -75,10 +72,12 @@ class AudioProvider extends ChangeNotifier {
         final posMs = position.inMilliseconds;
         String? newKey;
 
-        // Find the verse whose range contains the current position
+        // Find the verse whose range contains the current position.
+        // Use firstSegmentMs as the lower bound so highlighting kicks in
+        // exactly when the reciter starts the first word.
         for (int i = 0; i < _verseTimings.length; i++) {
           final t = _verseTimings[i];
-          if (posMs >= t.timestampFrom && posMs < t.timestampTo) {
+          if (posMs >= t.firstSegmentMs && posMs < t.timestampTo) {
             newKey = t.verseKey;
             break;
           }
@@ -126,9 +125,7 @@ class AudioProvider extends ChangeNotifier {
         if (_repeatCount == 0 || _currentRepeatIteration < _repeatCount - 1) {
           _currentRepeatIteration++;
           _activeVerseKey = oldKey;
-          _player.seek(
-            Duration(milliseconds: oldTiming.timestampFrom + _seekBufferMs),
-          );
+          _player.seek(Duration(milliseconds: oldTiming.firstSegmentMs));
           return;
         } else {
           // Exhausted repeats, reset and continue
@@ -146,9 +143,7 @@ class AudioProvider extends ChangeNotifier {
           final startTiming = _findTiming(_repeatRangeStart!);
           if (startTiming != null) {
             _activeVerseKey = _repeatRangeStart;
-            _player.seek(
-              Duration(milliseconds: startTiming.timestampFrom + _seekBufferMs),
-            );
+            _player.seek(Duration(milliseconds: startTiming.firstSegmentMs));
             return;
           }
         } else {
@@ -181,9 +176,7 @@ class AudioProvider extends ChangeNotifier {
       if (timing != null) {
         await _player.play(UrlSource(data.audioUrl));
         await _player.setPlaybackRate(_playbackSpeed);
-        await _player.seek(
-          Duration(milliseconds: timing.timestampFrom + _seekBufferMs),
-        );
+        await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
         _activeVerseKey = savedKey;
         notifyListeners();
       }
@@ -252,9 +245,7 @@ class AudioProvider extends ChangeNotifier {
 
     final nextTiming = _verseTimings[currentIndex + 1];
     _activeVerseKey = nextTiming.verseKey;
-    await _player.seek(
-      Duration(milliseconds: nextTiming.timestampFrom + _seekBufferMs),
-    );
+    await _player.seek(Duration(milliseconds: nextTiming.firstSegmentMs));
     notifyListeners();
   }
 
@@ -270,9 +261,7 @@ class AudioProvider extends ChangeNotifier {
 
     final prevTiming = _verseTimings[currentIndex - 1];
     _activeVerseKey = prevTiming.verseKey;
-    await _player.seek(
-      Duration(milliseconds: prevTiming.timestampFrom + _seekBufferMs),
-    );
+    await _player.seek(Duration(milliseconds: prevTiming.firstSegmentMs));
     notifyListeners();
   }
 
@@ -316,16 +305,38 @@ class AudioProvider extends ChangeNotifier {
         final audioUrl = audioFile['audio_url'] as String;
         final timestamps = audioFile['timestamps'] as List? ?? [];
 
-        final timings = timestamps
-            .map(
-              (t) => _VerseTiming(
-                verseKey: t['verse_key'] as String,
-                timestampFrom: t['timestamp_from'] as int,
-                timestampTo: t['timestamp_to'] as int,
-                duration: t['duration'] as int,
-              ),
-            )
-            .toList();
+        final timings = timestamps.map((t) {
+          final verseKey = t['verse_key'] as String;
+          final timestampFrom = t['timestamp_from'] as int;
+          final timestampTo = t['timestamp_to'] as int;
+          final duration = t['duration'] as int;
+
+          // Extract the true first-word start from the segments array.
+          // Each segment is [wordIndex, startMs, endMs]. The first segment's
+          // startMs is the genuine moment the reciter begins this verse —
+          // typically 75-100ms before timestampFrom.
+          int firstSegmentMs = timestampFrom;
+          final segs = t['segments'] as List?;
+          if (segs != null && segs.isNotEmpty) {
+            final firstSeg = segs[0] as List;
+            if (firstSeg.length >= 2) {
+              final segStart = firstSeg[1] as int;
+              // Only use segment start if it's sensibly close to timestampFrom
+              // (within 500ms) to guard against bad data.
+              if ((segStart - timestampFrom).abs() < 500) {
+                firstSegmentMs = segStart;
+              }
+            }
+          }
+
+          return _VerseTiming(
+            verseKey: verseKey,
+            timestampFrom: timestampFrom,
+            timestampTo: timestampTo,
+            duration: duration,
+            firstSegmentMs: firstSegmentMs,
+          );
+        }).toList();
 
         final data = _ChapterAudioData(audioUrl: audioUrl, timings: timings);
 
@@ -381,11 +392,11 @@ class AudioProvider extends ChangeNotifier {
       await _player.play(UrlSource(data.audioUrl));
       await _player.setPlaybackRate(_playbackSpeed);
 
-      // Seek to the correct verse position with buffer
-      if (timing != null && timing.timestampFrom > 0) {
-        await _player.seek(
-          Duration(milliseconds: timing.timestampFrom + _seekBufferMs),
-        );
+      // Seek to the exact first-word start of the target verse.
+      // firstSegmentMs is derived from the segments array and is the
+      // genuine moment the reciter begins speaking — no artificial buffer.
+      if (timing != null && timing.firstSegmentMs > 0) {
+        await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
       }
     } catch (e) {
       debugPrint('Error in playVerseList: $e');
@@ -427,14 +438,18 @@ class _ChapterAudioData {
 /// Verse timing within the chapter audio
 class _VerseTiming {
   final String verseKey;
-  final int timestampFrom; // ms
+  final int timestampFrom; // ms — verse boundary from API
   final int timestampTo; // ms
   final int duration; // ms
+  /// The actual first-word start from the segments array.
+  /// Typically ~75-100ms before [timestampFrom] — use this for seeking.
+  final int firstSegmentMs;
 
   _VerseTiming({
     required this.verseKey,
     required this.timestampFrom,
     required this.timestampTo,
     required this.duration,
+    required this.firstSegmentMs,
   });
 }

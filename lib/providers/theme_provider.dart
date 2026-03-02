@@ -102,27 +102,31 @@ class ThemeProvider extends ChangeNotifier {
   // ── Highlight colors ──
   Color get verseHighlight => _pick(
     classic: const Color(0xFFE0F2F1),
-    warm: const Color(0xFFE0F2F1),
+    warm: const Color(0xFFF0E1C5),
     dark: const Color(0xFF1A3A42),
   );
 
   Color get verseMarkerColor => _pick(
     classic: const Color(0xFFB2DFDB),
-    warm: const Color(0xFFB2DFDB),
+    warm: const Color(0xFFE6D5B8),
     dark: const Color(0xFF2A6A6E),
   );
 
-  Color get verseMarkerHighlight => const Color(0xFF4DB6AC);
+  Color get verseMarkerHighlight => _pick(
+    classic: const Color(0xFF4DB6AC),
+    warm: const Color(0xFFD4A373),
+    dark: const Color(0xFF4DB6AC),
+  );
 
   Color get verseMarkerBorder => _pick(
     classic: const Color(0xFF80CBC4),
-    warm: const Color(0xFF80CBC4),
+    warm: const Color(0xFFD4A373),
     dark: const Color(0xFF3A8A8E),
   );
 
   Color get verseMarkerHighlightBorder => _pick(
     classic: Colors.teal.shade600,
-    warm: Colors.teal.shade600,
+    warm: const Color(0xFFB5835A),
     dark: Colors.teal.shade400,
   );
 

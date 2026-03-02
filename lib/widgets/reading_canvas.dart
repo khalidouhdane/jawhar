@@ -120,9 +120,9 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
         width: double.infinity,
         height: double.infinity,
         child: Padding(
-          padding: const EdgeInsets.only(
-            top: 0,
-            bottom: 90,
+          padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top + 16,
+            bottom: MediaQuery.paddingOf(context).bottom + 32,
             left: 12,
             right: 12,
           ),
