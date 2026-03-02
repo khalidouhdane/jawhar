@@ -209,7 +209,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Image.network(
-                                "https://api.dicebear.com/7.x/avataaars/png?seed=${reciter.reciterName}&backgroundColor=f0f7f8",
+                                "https://api.dicebear.com/7.x/initials/png?seed=${reciter.reciterName}&backgroundColor=transparent&textColor=a1a1aa&fontWeight=600",
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.cover,

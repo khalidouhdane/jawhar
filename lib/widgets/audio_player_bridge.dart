@@ -126,7 +126,7 @@ class AudioPlayerBridge extends StatelessWidget {
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) {
                                         return Image.network(
-                                          "https://api.dicebear.com/7.x/avataaars/png?seed=$reciterName&backgroundColor=f0f7f8",
+                                          "https://api.dicebear.com/7.x/initials/png?seed=$reciterName&backgroundColor=transparent&textColor=a1a1aa&fontWeight=600",
                                           width: 40,
                                           height: 40,
                                           fit: BoxFit.cover,
