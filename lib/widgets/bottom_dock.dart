@@ -3,7 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
-class BottomDock extends StatelessWidget {
+class BottomDock extends StatefulWidget {
   final int activePage;
   final List<int> paginationArray;
   final ValueChanged<int> onPageSelected;
@@ -22,10 +22,17 @@ class BottomDock extends StatelessWidget {
   });
 
   @override
+  State<BottomDock> createState() => _BottomDockState();
+}
+
+class _BottomDockState extends State<BottomDock> {
+  double? _dragValue;
+
+  @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
-    final totalPages = paginationArray.isNotEmpty
-        ? paginationArray.length
+    final totalPages = widget.paginationArray.isNotEmpty
+        ? widget.paginationArray.length
         : 604;
 
     return Container(
@@ -51,7 +58,7 @@ class BottomDock extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  surahName,
+                  widget.surahName,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -60,7 +67,7 @@ class BottomDock extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  juzName,
+                  widget.juzName,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -75,7 +82,7 @@ class BottomDock extends StatelessWidget {
             Row(
               children: [
                 GestureDetector(
-                  onTap: onNavMenuTapped,
+                  onTap: widget.onNavMenuTapped,
                   child: Container(
                     width: 40,
                     height: 40,
@@ -95,9 +102,9 @@ class BottomDock extends StatelessWidget {
                   child: SizedBox(
                     height: 48,
                     child: PaginationSlider(
-                      activePage: activePage,
-                      paginationArray: paginationArray,
-                      onPageSelected: onPageSelected,
+                      activePage: widget.activePage,
+                      paginationArray: widget.paginationArray,
+                      onPageSelected: widget.onPageSelected,
                     ),
                   ),
                 ),
@@ -128,6 +135,8 @@ class BottomDock extends StatelessWidget {
             // Full-width smooth slider
             SizedBox(
               height: 20,
+              // Negative horizontal margin to pull the slider track exactly to the container edges
+              // (which are padded by 16px). Or instead use a custom track shape.
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 6,
@@ -140,15 +149,24 @@ class BottomDock extends StatelessWidget {
                   overlayShape: const RoundSliderOverlayShape(
                     overlayRadius: 14,
                   ),
-                  trackShape: const RoundedRectSliderTrackShape(),
+                  trackShape: const _FullWidthTrackShape(),
                 ),
                 child: ExcludeSemantics(
                   child: Slider(
-                    value: activePage.toDouble(),
+                    value: _dragValue ?? widget.activePage.toDouble(),
                     min: 1,
                     max: totalPages.toDouble(),
                     onChanged: (val) {
-                      onPageSelected(val.round());
+                      setState(() {
+                        _dragValue = val;
+                      });
+                      widget.onPageSelected(val.round());
+                    },
+                    onChangeEnd: (val) {
+                      setState(() {
+                        _dragValue = null;
+                      });
+                      widget.onPageSelected(val.round());
                     },
                   ),
                 ),
@@ -158,6 +176,26 @@ class BottomDock extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _FullWidthTrackShape extends RoundedRectSliderTrackShape {
+  const _FullWidthTrackShape();
+
+  @override
+  Rect getPreferredRect({
+    required RenderBox parentBox,
+    Offset offset = Offset.zero,
+    required SliderThemeData sliderTheme,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+  }) {
+    final double trackHeight = sliderTheme.trackHeight ?? 2;
+    final double trackLeft = offset.dx;
+    final double trackTop =
+        offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final double trackWidth = parentBox.size.width;
+    return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
 }
 

@@ -73,8 +73,10 @@ class _SvgFillPainter extends CustomPainter {
 
     // Scale and translate the path to fit inside the given canvas size perfectly.
     final Matrix4 matrix = Matrix4.identity()
-      ..scale(scaleX, scaleY)
-      ..translate(-viewBox.left, -viewBox.top);
+      ..setEntry(0, 0, scaleX)
+      ..setEntry(1, 1, scaleY)
+      ..setEntry(0, 3, -viewBox.left * scaleX)
+      ..setEntry(1, 3, -viewBox.top * scaleY);
 
     final Path scaledPath = path.transform(matrix.storage);
 

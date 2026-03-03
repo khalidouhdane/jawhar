@@ -4,6 +4,7 @@ class Verse {
   final String verseKey;
   final int pageNumber;
   final int juzNumber;
+  final int hizbNumber;
   final List<Word> words;
   final String? audioUrl;
 
@@ -13,6 +14,7 @@ class Verse {
     required this.verseKey,
     required this.pageNumber,
     required this.juzNumber,
+    required this.hizbNumber,
     required this.words,
     this.audioUrl,
   });
@@ -24,6 +26,7 @@ class Verse {
       verseKey: json['verse_key'],
       pageNumber: json['page_number'],
       juzNumber: json['juz_number'],
+      hizbNumber: json['hizb_number'] ?? 0,
       words: (json['words'] as List).map((w) => Word.fromJson(w)).toList(),
       audioUrl: json['audio']?['url'],
     );

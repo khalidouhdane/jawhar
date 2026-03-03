@@ -316,9 +316,9 @@ class AudioProvider extends ChangeNotifier {
 
         final timings = timestamps.map((t) {
           final verseKey = t['verse_key'] as String;
-          final timestampFrom = t['timestamp_from'] as int;
-          final timestampTo = t['timestamp_to'] as int;
-          final duration = t['duration'] as int;
+          final timestampFrom = (t['timestamp_from'] as num).toInt();
+          final timestampTo = (t['timestamp_to'] as num).toInt();
+          final duration = (t['duration'] as num).toInt();
 
           // Extract the true first-word start from the segments array.
           // Each segment is [wordIndex, startMs, endMs]. The first segment's
@@ -329,7 +329,7 @@ class AudioProvider extends ChangeNotifier {
           if (segs != null && segs.isNotEmpty) {
             final firstSeg = segs[0] as List;
             if (firstSeg.length >= 2) {
-              final segStart = firstSeg[1] as int;
+              final segStart = (firstSeg[1] as num).toInt();
               // Only use segment start if it's sensibly close to timestampFrom
               // (within 500ms) to guard against bad data.
               if ((segStart - timestampFrom).abs() < 500) {

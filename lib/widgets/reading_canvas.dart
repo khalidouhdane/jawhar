@@ -5,10 +5,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
 class ReadingCanvas extends StatefulWidget {
   final List<Verse> verses;
+  final int pageNumber;
   final int? selectedVerseId;
   final ValueChanged<int?> onVerseSelected;
   final VoidCallback onCanvasTapped;
@@ -16,6 +18,7 @@ class ReadingCanvas extends StatefulWidget {
   const ReadingCanvas({
     super.key,
     required this.verses,
+    required this.pageNumber,
     required this.selectedVerseId,
     required this.onVerseSelected,
     required this.onCanvasTapped,
@@ -106,6 +109,16 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
         .length;
     final isShortPage = totalWords < 40;
 
+    // In a physical Mushaf (RTL): odd pages are on the right, even on the left.
+    final isOddPage = widget.pageNumber.isOdd;
+
+    // Determine where the effect should be placed
+    final isCenterEffect =
+        theme.pageIndicatorEffect == PageIndicatorEffect.center;
+    // Center Spine: Odd (Right) pages have spine on Left. Even (Left) pages have spine on Right.
+    // Outer Edge: Odd (Right) pages have edge on Right. Even (Left) pages have edge on Left.
+    final isEffectOnRight = isCenterEffect ? !isOddPage : isOddPage;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -116,110 +129,203 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
         }
       },
       child: SafeArea(
-        child: Container(
-          color: theme.canvasBackground,
-          width: double.infinity,
-          height: double.infinity,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 32),
-            child: Consumer<AudioProvider>(
-              builder: (context, audioProvider, child) {
-                // Build RichText with TextSpan and WidgetSpan for continuous verse highlight
-                final spans = <InlineSpan>[];
+        child: Stack(
+          children: [
+            // Main page content
+            Container(
+              color: theme.canvasBackground,
+              width: double.infinity,
+              height: double.infinity,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.only(
+                  left:
+                      12 +
+                      (theme.spineEffectEnabled && !isEffectOnRight
+                          ? theme.spineEffectPadding
+                          : 0),
+                  right:
+                      12 +
+                      (theme.spineEffectEnabled && isEffectOnRight
+                          ? theme.spineEffectPadding
+                          : 0),
+                  top: 32,
+                  bottom: 32,
+                ),
+                child: Consumer<AudioProvider>(
+                  builder: (context, audioProvider, child) {
+                    // Build RichText with TextSpan and WidgetSpan for continuous verse highlight
+                    final spans = <InlineSpan>[];
+                    final readingProvider = context
+                        .read<QuranReadingProvider>();
 
-                for (final verse in widget.verses) {
-                  final isSelected = widget.selectedVerseId == verse.id;
-                  final isPlaying =
-                      audioProvider.activeVerseKey == verse.verseKey;
-                  final isHighlighted = isSelected || isPlaying;
-
-                  for (int wi = 0; wi < verse.words.length; wi++) {
-                    final word = verse.words[wi];
-
-                    if (word.charTypeName == 'end') {
-                      // Verse marker as WidgetSpan
-                      Widget marker = _VerseMarker(
-                        verseNumber: verse.verseNumber,
-                        isHighlighted: isHighlighted,
-                      );
-                      // Attach key on first marker for menu positioning
-                      if (isSelected) {
-                        marker = KeyedSubtree(
-                          key: _getKeyForVerse(verse.id),
-                          child: marker,
+                    for (final verse in widget.verses) {
+                      // Detect surah start (verse 1) and insert decorative header
+                      if (verse.verseNumber == 1) {
+                        final chapterNum = int.tryParse(
+                          verse.verseKey.split(':').first,
                         );
-                      }
-                      spans.add(
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: GestureDetector(
-                              onLongPress: () {
-                                widget.onVerseSelected(
-                                  isSelected ? null : verse.id,
-                                );
-                              },
-                              child: marker,
+                        if (chapterNum != null) {
+                          Chapter? chapter;
+                          try {
+                            chapter = readingProvider.chapters.firstWhere(
+                              (c) => c.id == chapterNum,
+                            );
+                          } catch (_) {}
+
+                          spans.add(
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: _SurahHeader(
+                                chapterNumber: chapterNum,
+                                nameArabic: chapter?.nameArabic ?? '',
+                                nameSimple:
+                                    chapter?.nameSimple ?? 'Surah $chapterNum',
+                                versesCount: chapter?.versesCount ?? 0,
+                              ),
                             ),
-                          ),
+                          );
+                        }
+                      }
+
+                      final isSelected = widget.selectedVerseId == verse.id;
+                      final isPlaying =
+                          audioProvider.activeVerseKey == verse.verseKey;
+                      final isHighlighted = isSelected || isPlaying;
+
+                      for (int wi = 0; wi < verse.words.length; wi++) {
+                        final word = verse.words[wi];
+
+                        if (word.charTypeName == 'end') {
+                          // Verse marker as WidgetSpan
+                          Widget marker = _VerseMarker(
+                            verseNumber: verse.verseNumber,
+                            isHighlighted: isHighlighted,
+                          );
+                          // Attach key on first marker for menu positioning
+                          if (isSelected) {
+                            marker = KeyedSubtree(
+                              key: _getKeyForVerse(verse.id),
+                              child: marker,
+                            );
+                          }
+                          spans.add(
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                child: GestureDetector(
+                                  onLongPress: () {
+                                    widget.onVerseSelected(
+                                      isSelected ? null : verse.id,
+                                    );
+                                  },
+                                  child: marker,
+                                ),
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Add space between words (except first word)
+                          final text = wi == 0
+                              ? word.textUthmani
+                              : ' ${word.textUthmani}';
+
+                          final recognizer = LongPressGestureRecognizer()
+                            ..onLongPress = () {
+                              widget.onVerseSelected(
+                                isSelected ? null : verse.id,
+                              );
+                            };
+
+                          spans.add(
+                            TextSpan(
+                              text: text,
+                              style: GoogleFonts.amiriQuran(
+                                fontSize: theme.quranFontSize,
+                                height: theme.quranLineHeight,
+                                fontWeight: FontWeight.w400,
+                                color: theme.quranText,
+                                backgroundColor: isHighlighted
+                                    ? theme.verseHighlight
+                                    : null,
+                              ),
+                              recognizer: recognizer,
+                            ),
+                          );
+                        }
+                      }
+
+                      // Add a small space between verses
+                      spans.add(const TextSpan(text: ' '));
+                    }
+
+                    final richText = ExcludeSemantics(
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        textDirection: TextDirection.rtl,
+                        text: TextSpan(children: spans),
+                      ),
+                    );
+
+                    if (isShortPage) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 80,
+                          ), // offset for short pages
+                          child: richText,
                         ),
                       );
                     } else {
-                      // Add space between words (except first word)
-                      final text = wi == 0
-                          ? word.textUthmani
-                          : ' ${word.textUthmani}';
-
-                      final recognizer = LongPressGestureRecognizer()
-                        ..onLongPress = () {
-                          widget.onVerseSelected(isSelected ? null : verse.id);
-                        };
-
-                      spans.add(
-                        TextSpan(
-                          text: text,
-                          style: GoogleFonts.amiriQuran(
-                            fontSize: 22,
-                            height: 2.2,
-                            fontWeight: FontWeight.w400,
-                            color: theme.quranText,
-                            backgroundColor: isHighlighted
-                                ? theme.verseHighlight
-                                : null,
-                          ),
-                          recognizer: recognizer,
-                        ),
+                      return Align(
+                        alignment: Alignment.topCenter,
+                        child: richText,
                       );
                     }
-                  }
-
-                  // Add a small space between verses
-                  spans.add(const TextSpan(text: ' '));
-                }
-
-                final richText = RichText(
-                  textAlign: TextAlign.center,
-                  textDirection: TextDirection.rtl,
-                  text: TextSpan(children: spans),
-                );
-
-                if (isShortPage) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 80,
-                      ), // offset for short pages
-                      child: richText,
-                    ),
-                  );
-                } else {
-                  return Align(alignment: Alignment.topCenter, child: richText);
-                }
-              },
+                  },
+                ),
+              ),
             ),
-          ),
+            // Page indicator effect (Center Spine or Outer Edge stack)
+            if (theme.spineEffectEnabled)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Align(
+                    alignment: isEffectOnRight
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      width: theme.spineEffectWidth,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: isEffectOnRight
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          end: isEffectOnRight
+                              ? Alignment.centerLeft
+                              : Alignment.centerRight,
+                          colors: [
+                            isCenterEffect
+                                ? Colors.black.withValues(
+                                    alpha: theme.spineEffectIntensity,
+                                  )
+                                : theme.accentColor.withValues(
+                                    alpha: theme.spineEffectIntensity * 1.5,
+                                  ),
+                            isCenterEffect
+                                ? Colors.black.withValues(alpha: 0.0)
+                                : theme.accentColor.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -291,7 +397,7 @@ class _ContextualMenu extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: theme.contextMenuBackground.withOpacity(0.3),
+              color: theme.contextMenuBackground.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -321,7 +427,7 @@ class _ContextualMenu extends StatelessWidget {
             Container(
               width: 1,
               height: 16,
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
             ),
             const SizedBox(width: 16),
             GestureDetector(
@@ -353,6 +459,128 @@ class _ActionIcon extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Icon(icon, size: 16, color: Colors.white),
+    );
+  }
+}
+
+/// Decorative surah introduction header
+class _SurahHeader extends StatelessWidget {
+  final int chapterNumber;
+  final String nameArabic;
+  final String nameSimple;
+  final int versesCount;
+
+  const _SurahHeader({
+    required this.chapterNumber,
+    required this.nameArabic,
+    required this.nameSimple,
+    required this.versesCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 8, bottom: 12),
+      child: Column(
+        children: [
+          // Ornamental divider top
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        theme.accentColor.withValues(alpha: 0.4),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  LucideIcons.sparkles,
+                  size: 10,
+                  color: theme.accentColor.withValues(alpha: 0.5),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.accentColor.withValues(alpha: 0.4),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Arabic surah name
+          Text(
+            'سُورَةُ $nameArabic',
+            style: GoogleFonts.amiri(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: theme.accentColor,
+              height: 1.6,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Ornamental divider bottom
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        theme.accentColor.withValues(alpha: 0.4),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  LucideIcons.sparkles,
+                  size: 10,
+                  color: theme.accentColor.withValues(alpha: 0.5),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.accentColor.withValues(alpha: 0.4),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,0 +1,8 @@
+{
+    "type": "object",
+    "properties": {
+        "imageUrl": {
+            "type": "string"
+        }
+    }
+}

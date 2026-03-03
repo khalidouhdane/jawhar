@@ -113,19 +113,23 @@ class _ReadingScreenState extends State<ReadingScreen> {
     });
   }
 
-  void _showOverlay(Widget sheet) {
+  void _showOverlay(Widget Function(BuildContext sheetContext) sheetBuilder) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).size.height * 0.1,
-          ),
-          child: DefaultTextStyle(
-            style: const TextStyle(fontFamily: 'Inter'),
-            child: sheet,
+      isScrollControlled: true, // Allow sheets to be taller if needed
+      backgroundColor: Colors.transparent, // Required for custom sheet shapes
+      builder: (sheetContext) {
+        return ExcludeSemantics(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top:
+                  MediaQuery.of(sheetContext).size.height *
+                  0.1, // Leave top space
+            ),
+            child: DefaultTextStyle(
+              style: const TextStyle(fontFamily: 'Inter'),
+              child: sheetBuilder(sheetContext),
+            ),
           ),
         );
       },
@@ -133,19 +137,21 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   void _openReciterMenu() {
-    _showOverlay(ReciterMenuSheet(onClose: () => Navigator.pop(context)));
+    _showOverlay((ctx) => ReciterMenuSheet(onClose: () => Navigator.pop(ctx)));
   }
 
   void _openAudioSettings() {
-    _showOverlay(AudioSettingsSheet(onClose: () => Navigator.pop(context)));
+    _showOverlay(
+      (ctx) => AudioSettingsSheet(onClose: () => Navigator.pop(ctx)),
+    );
   }
 
   void _openNavMenu() {
     _showOverlay(
-      NavMenuSheet(
-        onClose: () => Navigator.pop(context),
+      (ctx) => NavMenuSheet(
+        onClose: () => Navigator.pop(ctx),
         onPageSelected: (page) {
-          Navigator.pop(context);
+          Navigator.pop(ctx); // Close sheet
           _goToPage(page);
         },
       ),
@@ -153,15 +159,15 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   void _openThemePicker() {
-    _showOverlay(ThemePickerSheet(onClose: () => Navigator.pop(context)));
+    _showOverlay((ctx) => ThemePickerSheet(onClose: () => Navigator.pop(ctx)));
   }
 
   void _openSearch() {
     _showOverlay(
-      SearchSheet(
-        onClose: () => Navigator.pop(context),
+      (ctx) => SearchSheet(
+        onClose: () => Navigator.pop(ctx),
         onPageSelected: (page) {
-          Navigator.pop(context);
+          Navigator.pop(ctx);
           _goToPage(page);
         },
       ),
@@ -342,8 +348,115 @@ class _ReadingScreenState extends State<ReadingScreen> {
                 );
               },
             ),
+
+            // Fullscreen Overlay Info (separate Consumer so it doesn't block touches)
+            if (isFullScreen)
+              Consumer2<QuranReadingProvider, AudioProvider>(
+                builder: (context, readingProvider, audioProvider, child) {
+                  String surahName = 'Loading...';
+                  String juzName = '...';
+                  String hizbName = '...';
+
+                  if (readingProvider.verses.isNotEmpty &&
+                      readingProvider.chapters.isNotEmpty) {
+                    final firstVerse = readingProvider.verses.first;
+                    juzName =
+                        'Juz ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
+                    hizbName = 'Hizb ${firstVerse.hizbNumber}';
+
+                    int chapterId =
+                        int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
+                    try {
+                      surahName = readingProvider.chapters
+                          .firstWhere((c) => c.id == chapterId)
+                          .nameSimple;
+                    } catch (e) {
+                      surahName = 'Surah $chapterId';
+                    }
+                  }
+
+                  // Determine dynamic layout for bottom edge
+                  final isOddPage = readingProvider.activePage.isOdd;
+                  final theme = context.watch<ThemeProvider>();
+
+                  // By default, page is on the left
+                  Alignment pageNumberAlignment = Alignment.bottomLeft;
+                  // If dynamic enabled, Right page (odd) -> BottomRight, Left page (even) -> BottomLeft
+                  if (theme.dynamicPageInfoEnabled) {
+                    pageNumberAlignment = isOddPage
+                        ? Alignment.bottomRight
+                        : Alignment.bottomLeft;
+                  }
+
+                  return Positioned.fill(
+                    child: IgnorePointer(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Stack(
+                          children: [
+                            // ── Top Row (3 Infos) ──
+                            Align(
+                              alignment: Alignment.topLeft,
+                              child: _OverlayText(text: juzName),
+                            ),
+                            Align(
+                              alignment: Alignment.topCenter,
+                              child: _OverlayText(text: surahName),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: _OverlayText(text: hizbName),
+                            ),
+
+                            // ── Bottom Row (Page Num & Book) ──
+                            Align(
+                              alignment: pageNumberAlignment,
+                              child: _OverlayText(
+                                text: 'Page ${readingProvider.activePage}',
+                              ),
+                            ),
+                            if (theme.spineEffectEnabled &&
+                                theme.showBookIconIndicator)
+                              Align(
+                                alignment: Alignment.bottomCenter,
+                                child: _BookSideIndicator(
+                                  isRightPage: isOddPage,
+                                  theme: theme,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OverlayText extends StatelessWidget {
+  final String text;
+
+  const _OverlayText({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    return Text(
+      text,
+      style: TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: theme.primaryText.withValues(alpha: 0.4),
+        letterSpacing: 0.5,
       ),
     );
   }
@@ -406,9 +519,58 @@ class _QuranPageState extends State<_QuranPage>
 
     return ReadingCanvas(
       verses: _verses!,
+      pageNumber: widget.pageNumber,
       selectedVerseId: _selectedVerseId,
       onVerseSelected: (id) => setState(() => _selectedVerseId = id),
       onCanvasTapped: widget.onCanvasTapped,
+    );
+  }
+}
+
+class _BookSideIndicator extends StatelessWidget {
+  final bool isRightPage;
+  final ThemeProvider theme;
+
+  const _BookSideIndicator({required this.isRightPage, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = theme.primaryText.withValues(alpha: 0.6);
+    final inactiveColor = theme.primaryText.withValues(alpha: 0.15);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Left Page
+        Container(
+          width: 14,
+          height: 16,
+          decoration: BoxDecoration(
+            color: !isRightPage ? activeColor : inactiveColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(3),
+              bottomLeft: Radius.circular(3),
+              topRight: Radius.circular(1),
+              bottomRight: Radius.circular(1),
+            ),
+          ),
+        ),
+        const SizedBox(width: 1),
+        // Right Page
+        Container(
+          width: 14,
+          height: 16,
+          decoration: BoxDecoration(
+            color: isRightPage ? activeColor : inactiveColor,
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(3),
+              bottomRight: Radius.circular(3),
+              topLeft: Radius.circular(1),
+              bottomLeft: Radius.circular(1),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

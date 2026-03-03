@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+/// Page indicator effect
+enum PageIndicatorEffect { center, edge }
+
 /// App theme modes
 enum AppTheme { classic, warm, dark }
 
@@ -10,13 +13,92 @@ enum AppTheme { classic, warm, dark }
 class ThemeProvider extends ChangeNotifier {
   AppTheme _theme = AppTheme.classic;
 
+  // Reading typography settings
+  double _quranFontSize = 20;
+  double _quranLineHeight = 2.1;
+
+  // Spine effect (page shadow) settings
+  bool _spineEffectEnabled = true;
+  PageIndicatorEffect _pageIndicatorEffect = PageIndicatorEffect.center;
+  double _spineEffectIntensity = 0.06;
+  double _spineEffectWidth = 20;
+  double _spineEffectPadding = 0;
+
+  // Layout features
+  bool _dynamicPageInfoEnabled = true;
+  bool _showBookIconIndicator = true;
+
   AppTheme get theme => _theme;
   bool get isDark => _theme == AppTheme.dark;
   bool get isWarm => _theme == AppTheme.warm;
 
+  double get quranFontSize => _quranFontSize;
+  double get quranLineHeight => _quranLineHeight;
+
+  bool get spineEffectEnabled => _spineEffectEnabled;
+  PageIndicatorEffect get pageIndicatorEffect => _pageIndicatorEffect;
+  double get spineEffectIntensity => _spineEffectIntensity;
+  double get spineEffectWidth => _spineEffectWidth;
+  double get spineEffectPadding => _spineEffectPadding;
+
+  bool get dynamicPageInfoEnabled => _dynamicPageInfoEnabled;
+  bool get showBookIconIndicator => _showBookIconIndicator;
+
   void setTheme(AppTheme theme) {
     if (_theme == theme) return;
     _theme = theme;
+    notifyListeners();
+  }
+
+  void setQuranFontSize(double size) {
+    _quranFontSize = size.clamp(14, 40);
+    notifyListeners();
+  }
+
+  void setQuranLineHeight(double height) {
+    // Round to 1 decimal place to avoid floating point precision issues and then clamp
+    _quranLineHeight = double.parse(height.toStringAsFixed(1)).clamp(1.4, 3.6);
+    notifyListeners();
+  }
+
+  void setSpineEffectEnabled(bool enabled) {
+    if (_spineEffectEnabled == enabled) return;
+    _spineEffectEnabled = enabled;
+    notifyListeners();
+  }
+
+  void setPageIndicatorEffect(PageIndicatorEffect effect) {
+    if (_pageIndicatorEffect == effect) return;
+    _pageIndicatorEffect = effect;
+    notifyListeners();
+  }
+
+  void setDynamicPageInfoEnabled(bool enabled) {
+    if (_dynamicPageInfoEnabled == enabled) return;
+    _dynamicPageInfoEnabled = enabled;
+    notifyListeners();
+  }
+
+  void setShowBookIconIndicator(bool show) {
+    if (_showBookIconIndicator == show) return;
+    _showBookIconIndicator = show;
+    notifyListeners();
+  }
+
+  void setSpineEffectIntensity(double intensity) {
+    _spineEffectIntensity = double.parse(
+      intensity.toStringAsFixed(2),
+    ).clamp(0.0, 0.20);
+    notifyListeners();
+  }
+
+  void setSpineEffectWidth(double width) {
+    _spineEffectWidth = width.clamp(5, 60);
+    notifyListeners();
+  }
+
+  void setSpineEffectPadding(double padding) {
+    _spineEffectPadding = padding.clamp(0, 16);
     notifyListeners();
   }
 
