@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: DevicePreview(
-        enabled: true,
+        enabled: !kReleaseMode,
         builder: (context) => const QuranApp(),
       ),
     ),
