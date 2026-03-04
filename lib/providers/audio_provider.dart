@@ -52,12 +52,15 @@ class AudioProvider extends ChangeNotifier {
   int? _currentChapter;
   List<_VerseTiming> _verseTimings = [];
   bool _isLoading = false;
+  bool _isSeeking =
+      false; // Guard: prevents onPositionChanged from overriding _activeVerseKey during seek
 
   // Cache: "reciterId:chapter" -> { audioUrl, timings }
   final Map<String, _ChapterAudioData> _chapterCache = {};
 
   AudioProvider() {
     _player.onPlayerStateChanged.listen((state) {
+      if (_isSeeking) return;
       final playing = state == PlayerState.playing;
       if (_isPlaying != playing) {
         _isPlaying = playing;
@@ -68,28 +71,27 @@ class AudioProvider extends ChangeNotifier {
     _player.onPositionChanged.listen((position) {
       _currentPosition = position;
 
+      // While seeking to a target verse, don't let intermediate positions
+      // override _activeVerseKey — this prevents the wrong-verse flash.
+      if (_isSeeking) {
+        notifyListeners();
+        return;
+      }
+
       // Update active verse based on current position using timing data
       if (_verseTimings.isNotEmpty) {
         final posMs = position.inMilliseconds;
         String? newKey;
 
-        // Find the verse whose range contains the current position.
-        // Use firstSegmentMs as the lower bound so highlighting kicks in
-        // exactly when the reciter starts the first word.
-        for (int i = 0; i < _verseTimings.length; i++) {
+        // Find the most recent verse whose start has been reached.
+        // Search in REVERSE so that when timing ranges overlap (verse N's
+        // firstSegmentMs < verse N-1's timestampTo), we pick the newer verse
+        // instead of the older one — eliminating the previous-verse flash.
+        for (int i = _verseTimings.length - 1; i >= 0; i--) {
           final t = _verseTimings[i];
-          if (posMs >= t.firstSegmentMs && posMs < t.timestampTo) {
+          if (posMs >= t.firstSegmentMs) {
             newKey = t.verseKey;
             break;
-          }
-        }
-
-        // Fallback: if position is past the last verse's timestampTo,
-        // use the last verse
-        if (newKey == null && _verseTimings.isNotEmpty) {
-          final last = _verseTimings.last;
-          if (posMs >= last.timestampFrom) {
-            newKey = last.verseKey;
           }
         }
 
@@ -106,11 +108,13 @@ class AudioProvider extends ChangeNotifier {
     });
 
     _player.onDurationChanged.listen((duration) {
+      if (_isSeeking) return;
       _totalDuration = duration;
       notifyListeners();
     });
 
     _player.onPlayerComplete.listen((_) {
+      if (_isSeeking) return;
       _activeVerseKey = null;
       _isPlaying = false;
       notifyListeners();
@@ -175,10 +179,14 @@ class AudioProvider extends ChangeNotifier {
       // Find timing for current verse and seek
       final timing = _findTiming(savedKey);
       if (timing != null) {
-        await _player.play(UrlSource(data.audioUrl));
-        await _player.setPlaybackRate(_playbackSpeed);
-        await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+        // Guard: block onPositionChanged from overriding _activeVerseKey
+        _isSeeking = true;
         _activeVerseKey = savedKey;
+        await _player.setSourceUrl(data.audioUrl);
+        await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+        _isSeeking = false;
+        await _player.setPlaybackRate(_playbackSpeed);
+        await _player.resume();
         notifyListeners();
       }
     } else {
@@ -381,9 +389,16 @@ class AudioProvider extends ChangeNotifier {
       final startVerse = verses[startIndex];
       final chapterNumber = int.parse(startVerse.verseKey.split(':')[0]);
 
+      // Block ALL player listeners from modifying state or triggering rebuilds
+      // during the transition. This MUST happen synchronously before any await.
+      _isSeeking = true;
+      _activeVerseKey = startVerse.verseKey;
+      notifyListeners();
+
       // Fetch chapter audio with timings
       final data = await _fetchChapterAudio(chapterNumber);
       if (data == null) {
+        _isSeeking = false;
         _isLoading = false;
         return;
       }
@@ -394,12 +409,7 @@ class AudioProvider extends ChangeNotifier {
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
 
-      _activeVerseKey = startVerse.verseKey;
-      notifyListeners();
-
-      // Play the full chapter audio
-      await _player.play(UrlSource(data.audioUrl));
-      await _player.setPlaybackRate(_playbackSpeed);
+      await _player.setSourceUrl(data.audioUrl);
 
       // Seek to the exact first-word start of the target verse.
       // firstSegmentMs is derived from the segments array and is the
@@ -407,8 +417,13 @@ class AudioProvider extends ChangeNotifier {
       if (timing != null && timing.firstSegmentMs > 0) {
         await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
       }
+      _isSeeking = false;
+
+      await _player.setPlaybackRate(_playbackSpeed);
+      await _player.resume();
     } catch (e) {
       debugPrint('Error in playVerseList: $e');
+      _isSeeking = false;
       _activeVerseKey = null;
       notifyListeners();
     } finally {
