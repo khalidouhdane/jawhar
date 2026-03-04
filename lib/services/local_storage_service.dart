@@ -1,0 +1,71 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Persists user reading state using SharedPreferences.
+class LocalStorageService {
+  static const _keyLastPage = 'last_read_page';
+  static const _keyLastSurah = 'last_read_surah';
+  static const _keyLastVerseKey = 'last_read_verse_key';
+  static const _keyLastTimestamp = 'last_read_timestamp';
+  static const _keyHasReadingHistory = 'has_reading_history';
+
+  final SharedPreferences _prefs;
+
+  LocalStorageService(this._prefs);
+
+  /// Save the user's current reading position.
+  void saveLastRead({
+    required int page,
+    required String surahName,
+    String? verseKey,
+  }) {
+    _prefs.setInt(_keyLastPage, page);
+    _prefs.setString(_keyLastSurah, surahName);
+    if (verseKey != null) _prefs.setString(_keyLastVerseKey, verseKey);
+    _prefs.setInt(_keyLastTimestamp, DateTime.now().millisecondsSinceEpoch);
+    _prefs.setBool(_keyHasReadingHistory, true);
+  }
+
+  /// Returns the last read position, or null if none saved.
+  LastReadPosition? getLastRead() {
+    final page = _prefs.getInt(_keyLastPage);
+    final surah = _prefs.getString(_keyLastSurah);
+    if (page == null || surah == null) return null;
+
+    return LastReadPosition(
+      page: page,
+      surahName: surah,
+      verseKey: _prefs.getString(_keyLastVerseKey),
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+        _prefs.getInt(_keyLastTimestamp) ?? 0,
+      ),
+    );
+  }
+
+  /// Whether the user has ever read something.
+  bool get hasReadingHistory => _prefs.getBool(_keyHasReadingHistory) ?? false;
+}
+
+/// Simple data class for last read position.
+class LastReadPosition {
+  final int page;
+  final String surahName;
+  final String? verseKey;
+  final DateTime timestamp;
+
+  const LastReadPosition({
+    required this.page,
+    required this.surahName,
+    this.verseKey,
+    required this.timestamp,
+  });
+
+  /// Friendly time description (e.g. "2 hours ago", "Yesterday").
+  String get timeAgo {
+    final diff = DateTime.now().difference(timestamp);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays} days ago';
+  }
+}

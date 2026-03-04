@@ -225,8 +225,9 @@ class _PaginationSliderState extends State<PaginationSlider> {
   // The index currently closest to center (updated on scroll).
   int _centerIndex = 0;
 
-  // Whether an external page change triggered the scroll (so we don't loop).
-  bool _isExternalScroll = false;
+  // True only when the user physically drags the pagination strip.
+  // Programmatic scrolls (jumpTo, animateTo) leave this false.
+  bool _userDragging = false;
 
   @override
   void initState() {
@@ -250,7 +251,6 @@ class _PaginationSliderState extends State<PaginationSlider> {
     if (oldWidget.activePage != widget.activePage) {
       final newIndex = _activeIndex;
       if (newIndex != _centerIndex) {
-        _isExternalScroll = true;
         _centerIndex = newIndex;
         _animateToIndex(newIndex);
       }
@@ -276,20 +276,16 @@ class _PaginationSliderState extends State<PaginationSlider> {
 
   void _animateToIndex(int index) {
     if (!_scrollController.hasClients) return;
-    _scrollController
-        .animateTo(
-          _offsetForIndex(index),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-        )
-        .then((_) => _isExternalScroll = false);
+    _scrollController.animateTo(
+      _offsetForIndex(index),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
   }
 
-  /// Called on every scroll tick. Only updates the visual center index
-  /// (for opacity rendering). Does NOT fire onPageSelected — that happens
-  /// only when scrolling stops, so big drags scroll freely.
+  /// Called on every scroll tick. Only updates the visual center index.
   void _onScroll() {
-    if (_isExternalScroll || !_scrollController.hasClients) return;
+    if (!_userDragging || !_scrollController.hasClients) return;
 
     final viewportW = _scrollController.position.viewportDimension;
     final scrollOffset = _scrollController.offset;
@@ -307,12 +303,15 @@ class _PaginationSliderState extends State<PaginationSlider> {
     }
   }
 
-  /// Snap to the nearest item when scrolling ends and fire onPageSelected.
+  /// Only fire onPageSelected for user-initiated scrolls.
+  /// Programmatic scrolls (from didUpdateWidget) have null dragDetails.
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (notification is ScrollEndNotification && !_isExternalScroll) {
-      // Snap visually
+    if (notification is ScrollStartNotification) {
+      _userDragging = notification.dragDetails != null;
+    }
+    if (notification is ScrollEndNotification && _userDragging) {
+      _userDragging = false;
       _animateToIndex(_centerIndex);
-      // Navigate to the page that landed in the center
       widget.onPageSelected(widget.paginationArray[_centerIndex]);
     }
     return false;

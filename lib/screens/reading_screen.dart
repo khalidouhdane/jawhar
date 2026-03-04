@@ -10,9 +10,11 @@ import 'package:quran_app/widgets/bottom_dock.dart';
 import 'package:quran_app/widgets/overlays.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/widgets/top_nav_bar.dart';
+import 'package:quran_app/services/local_storage_service.dart';
 
 class ReadingScreen extends StatefulWidget {
-  const ReadingScreen({super.key});
+  final int initialPage;
+  const ReadingScreen({super.key, this.initialPage = 1});
 
   @override
   State<ReadingScreen> createState() => _ReadingScreenState();
@@ -31,31 +33,45 @@ class _ReadingScreenState extends State<ReadingScreen> {
   // Track audio verse changes for auto-page-sliding
   String? _lastActiveVerseKey;
 
+  // Saved reference to avoid context.read in dispose
+  late final AudioProvider _audioProvider;
+
   @override
   void initState() {
     super.initState();
-    final readingProvider = context.read<QuranReadingProvider>();
-    // RTL: page 1 starts at the end of the PageView
+    final startPage = widget.initialPage;
+
+    // RTL: page 1 starts at the end of the PageView.
+    // keepPage: false prevents PageStorage from restoring the old position
+    // when the Consumer rebuilds the PageView on subsequent visits.
     _pageController = PageController(
-      initialPage: _totalPages - readingProvider.activePage,
+      initialPage: _totalPages - startPage,
+      keepPage: false,
     );
 
-    // Listen to audio provider for auto-page-sliding
-    final audioProvider = context.read<AudioProvider>();
-    audioProvider.addListener(_onAudioChanged);
+    // Set provider state after the first frame to avoid rebuild race
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<QuranReadingProvider>().setActivePage(startPage);
+    });
+
+    // Save ref for dispose, initialize _lastActiveVerseKey
+    _audioProvider = context.read<AudioProvider>();
+    _lastActiveVerseKey = _audioProvider.activeVerseKey;
+    _audioProvider.addListener(_onAudioChanged);
   }
 
   @override
   void dispose() {
-    context.read<AudioProvider>().removeListener(_onAudioChanged);
+    _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
     super.dispose();
   }
 
   /// When the active verse key changes, check if we need to slide to a new page
   void _onAudioChanged() {
-    final audioProvider = context.read<AudioProvider>();
-    final verseKey = audioProvider.activeVerseKey;
+    if (!mounted) return;
+    final verseKey = _audioProvider.activeVerseKey;
 
     if (verseKey == null || verseKey == _lastActiveVerseKey) return;
     _lastActiveVerseKey = verseKey;
@@ -70,7 +86,6 @@ class _ReadingScreenState extends State<ReadingScreen> {
     if (isOnCurrentPage) return;
 
     // The verse is NOT on the current page — find which page it belongs to
-    // Look through cached pages first
     _findAndSlideTo(verseKey, readingProvider);
   }
 
@@ -180,6 +195,27 @@ class _ReadingScreenState extends State<ReadingScreen> {
     _pageController.jumpToPage(_totalPages - page);
   }
 
+  /// Persist the current reading position for the Home Screen hero card.
+  void _saveLastReadPosition(int page, QuranReadingProvider provider) {
+    String surahName = 'Page $page';
+    String? verseKey;
+    if (provider.verses.isNotEmpty && provider.chapters.isNotEmpty) {
+      final firstVerse = provider.verses.first;
+      final chapterId = int.tryParse(firstVerse.verseKey.split(':').first) ?? 1;
+      final chapter = provider.chapters.firstWhere(
+        (c) => c.id == chapterId,
+        orElse: () => provider.chapters.first,
+      );
+      surahName = chapter.nameSimple;
+      verseKey = firstVerse.verseKey;
+    }
+    context.read<LocalStorageService>().saveLastRead(
+      page: page,
+      surahName: surahName,
+      verseKey: verseKey,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
@@ -200,6 +236,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   onPageChanged: (index) {
                     final page = _totalPages - index;
                     readingProvider.setActivePage(page);
+
+                    // Save last-read position for the Home Screen hero card
+                    _saveLastReadPosition(page, readingProvider);
                   },
                   itemBuilder: (context, index) {
                     final page = _totalPages - index;

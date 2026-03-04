@@ -1,9 +1,41 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/services/quran_auth_service.dart';
+import 'package:quran_app/services/quran_audio_handler.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
+
+/// Surah names for media notification display.
+const List<String> _surahNames = [
+  '', // index 0 unused
+  'Al-Fatihah', 'Al-Baqarah', 'Ali \'Imran', 'An-Nisa', 'Al-Ma\'idah',
+  'Al-An\'am', 'Al-A\'raf', 'Al-Anfal', 'At-Tawbah', 'Yunus',
+  'Hud', 'Yusuf', 'Ar-Ra\'d', 'Ibrahim', 'Al-Hijr',
+  'An-Nahl', 'Al-Isra', 'Al-Kahf', 'Maryam', 'Taha',
+  'Al-Anbiya', 'Al-Hajj', 'Al-Mu\'minun', 'An-Nur', 'Al-Furqan',
+  'Ash-Shu\'ara', 'An-Naml', 'Al-Qasas', 'Al-Ankabut', 'Ar-Rum',
+  'Luqman', 'As-Sajdah', 'Al-Ahzab', 'Saba', 'Fatir',
+  'Ya-Sin', 'As-Saffat', 'Sad', 'Az-Zumar', 'Ghafir',
+  'Fussilat', 'Ash-Shura', 'Az-Zukhruf', 'Ad-Dukhan', 'Al-Jathiyah',
+  'Al-Ahqaf', 'Muhammad', 'Al-Fath', 'Al-Hujurat', 'Qaf',
+  'Adh-Dhariyat', 'At-Tur', 'An-Najm', 'Al-Qamar', 'Ar-Rahman',
+  'Al-Waqi\'ah', 'Al-Hadid', 'Al-Mujadila', 'Al-Hashr', 'Al-Mumtahanah',
+  'As-Saf', 'Al-Jumu\'ah', 'Al-Munafiqun', 'At-Taghabun', 'At-Talaq',
+  'At-Tahrim', 'Al-Mulk', 'Al-Qalam', 'Al-Haqqah', 'Al-Ma\'arij',
+  'Nuh', 'Al-Jinn', 'Al-Muzzammil', 'Al-Muddaththir', 'Al-Qiyamah',
+  'Al-Insan', 'Al-Mursalat', 'An-Naba', 'An-Nazi\'at', 'Abasa',
+  'At-Takwir', 'Al-Infitar', 'Al-Mutaffifin', 'Al-Inshiqaq', 'Al-Buruj',
+  'At-Tariq', 'Al-A\'la', 'Al-Ghashiyah', 'Al-Fajr', 'Al-Balad',
+  'Ash-Shams', 'Al-Layl', 'Ad-Duhaa', 'Ash-Sharh', 'At-Tin',
+  'Al-Alaq', 'Al-Qadr', 'Al-Bayyinah', 'Az-Zalzalah', 'Al-Adiyat',
+  'Al-Qari\'ah', 'At-Takathur', 'Al-Asr', 'Al-Humazah', 'Al-Fil',
+  'Quraysh', 'Al-Ma\'un', 'Al-Kawthar', 'Al-Kafirun', 'An-Nasr',
+  'Al-Masad', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas',
+];
 
 /// Repeat mode for audio playback
 enum AudioRepeatMode { none, repeatVerse, repeatRange }
@@ -17,6 +49,25 @@ enum AudioRepeatMode { none, repeatVerse, repeatRange }
 /// works across page boundaries without needing the page's verse list.
 class AudioProvider extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
+
+  /// Reference to the media notification handler.
+  QuranAudioHandler? _audioHandler;
+
+  /// Attach the audio handler (called once from main.dart).
+  void attachAudioHandler(QuranAudioHandler handler) {
+    _audioHandler = handler;
+    handler.onPlay = () => togglePlay();
+    handler.onPause = () => togglePlay();
+    handler.onSkipToNext = () => skipToNextVerse();
+    handler.onSkipToPrevious = () => skipToPreviousVerse();
+    handler.onSeek = (pos) => _player.seek(pos);
+    handler.onStop = () async {
+      await _player.stop();
+      _activeVerseKey = null;
+      _isPlaying = false;
+      notifyListeners();
+    };
+  }
 
   bool _isPlaying = false;
   String? _activeVerseKey; // e.g., "2:5" — works across pages
@@ -64,6 +115,7 @@ class AudioProvider extends ChangeNotifier {
       final playing = state == PlayerState.playing;
       if (_isPlaying != playing) {
         _isPlaying = playing;
+        _syncNotificationState();
         notifyListeners();
       }
     });
@@ -98,6 +150,7 @@ class AudioProvider extends ChangeNotifier {
         if (newKey != null && newKey != _activeVerseKey) {
           final oldKey = _activeVerseKey;
           _activeVerseKey = newKey;
+          _syncNotificationMetadata();
 
           // Handle repeat mode when verse changes
           _handleRepeat(oldKey, newKey, posMs);
@@ -117,6 +170,7 @@ class AudioProvider extends ChangeNotifier {
       if (_isSeeking) return;
       _activeVerseKey = null;
       _isPlaying = false;
+      _syncNotificationState();
       notifyListeners();
     });
   }
@@ -421,10 +475,13 @@ class AudioProvider extends ChangeNotifier {
 
       await _player.setPlaybackRate(_playbackSpeed);
       await _player.resume();
+      _syncNotificationMetadata();
+      _syncNotificationState();
     } catch (e) {
       debugPrint('Error in playVerseList: $e');
       _isSeeking = false;
       _activeVerseKey = null;
+      _syncNotificationState();
       notifyListeners();
     } finally {
       _isLoading = false;
@@ -442,6 +499,67 @@ class AudioProvider extends ChangeNotifier {
     } else {
       await _player.resume();
     }
+  }
+
+  // ── Media notification sync helpers ──────────────────────────
+
+  /// Push current playback state to the media notification.
+  void _syncNotificationState() {
+    _audioHandler?.updatePlaybackState(
+      playing: _isPlaying,
+      position: _currentPosition,
+    );
+  }
+
+  /// Push current surah / reciter metadata to the media notification.
+  void _syncNotificationMetadata() async {
+    if (_currentChapter == null || _audioHandler == null) return;
+
+    final surahName =
+        (_currentChapter! >= 1 && _currentChapter! < _surahNames.length)
+        ? _surahNames[_currentChapter!]
+        : 'Surah $_currentChapter';
+
+    // Verse info for subtitle
+    final verseInfo = _activeVerseKey != null
+        ? ' \u2022 Ayah ${_activeVerseKey!.split(':').last}'
+        : '';
+
+    // Copy the reciter image asset to a temp file for the notification
+    Uri? artUri;
+    try {
+      artUri = await _getReciterArtUri(_reciterId);
+    } catch (_) {
+      // Silently ignore — notification will just have no image
+    }
+
+    _audioHandler!.setMediaMetadata(
+      surahName: '$surahName$verseInfo',
+      reciterName: _reciterName,
+      artUri: artUri,
+      duration: _totalDuration,
+    );
+  }
+
+  /// Cache of reciter ID -> temp file URI for notification art.
+  final Map<int, Uri> _artUriCache = {};
+
+  /// Copy asset image to temp file and return a file:// URI.
+  Future<Uri> _getReciterArtUri(int reciterId) async {
+    if (_artUriCache.containsKey(reciterId)) {
+      return _artUriCache[reciterId]!;
+    }
+    final dir = await path_provider.getTemporaryDirectory();
+    final file = File('${dir.path}/reciter_$reciterId.jpg');
+    if (!file.existsSync()) {
+      final data = await rootBundle.load(
+        'assets/images/reciters/$reciterId.jpg',
+      );
+      await file.writeAsBytes(data.buffer.asUint8List());
+    }
+    final uri = Uri.file(file.path);
+    _artUriCache[reciterId] = uri;
+    return uri;
   }
 
   @override

@@ -1,23 +1,59 @@
+import 'dart:io' show Platform;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:quran_app/screens/reading_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/screens/app_shell.dart';
+import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/providers/hifz_provider.dart';
+import 'package:quran_app/services/quran_audio_handler.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize local storage
+  final prefs = await SharedPreferences.getInstance();
+  final storageService = LocalStorageService(prefs);
+
+  // Initialize audio_service — creates a foreground service for media notification
+  final audioHandler = await AudioService.init(
+    builder: () => QuranAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.quranapp.audio',
+      androidNotificationChannelName: 'Quran Audio',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+    ),
+  );
+
+  // Create AudioProvider and wire the handler
+  final audioProvider = AudioProvider();
+  audioProvider.attachAudioHandler(audioHandler);
+
+  // Default tab: Home (0) if user has reading history, else Read (1)
+  final defaultTab = storageService.hasReadingHistory ? 0 : 1;
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => QuranReadingProvider()),
-        ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
+        ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
+        Provider.value(value: storageService),
       ],
       child: DevicePreview(
-        enabled: !kReleaseMode,
+        enabled:
+            !kReleaseMode &&
+            (Platform.isWindows || Platform.isMacOS || Platform.isLinux),
         builder: (context) => const QuranApp(),
       ),
     ),
@@ -32,7 +68,7 @@ class QuranApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'Quran Prototype',
+          title: 'Le Quran',
           debugShowCheckedModeBanner: false,
           locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
@@ -57,10 +93,7 @@ class QuranApp extends StatelessWidget {
               PointerDeviceKind.trackpad,
             },
           ),
-          home: Scaffold(
-            backgroundColor: themeProvider.scaffoldBackground,
-            body: const Center(child: ReadingScreen()),
-          ),
+          home: const AppShell(),
         );
       },
     );

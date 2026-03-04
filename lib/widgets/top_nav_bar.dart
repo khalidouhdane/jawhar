@@ -48,15 +48,16 @@ class TopNavBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: GestureDetector(
-                  onTap: () {},
+              GestureDetector(
+                onTap: () => Navigator.of(context).maybePop(),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.pillBackground,
+                    shape: BoxShape.circle,
+                  ),
                   child: Icon(
                     LucideIcons.chevronLeft,
                     size: 18,
