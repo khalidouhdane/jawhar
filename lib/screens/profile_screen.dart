@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
@@ -239,7 +238,7 @@ class ProfileScreen extends StatelessWidget {
     Color previewBg,
     Color previewAccent,
   ) {
-    final isActive = theme.currentTheme == appTheme;
+    final isActive = theme.theme == appTheme;
     return Expanded(
       child: GestureDetector(
         onTap: () => theme.setTheme(appTheme),
