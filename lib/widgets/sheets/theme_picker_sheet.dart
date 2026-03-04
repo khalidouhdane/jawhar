@@ -101,34 +101,280 @@ class ThemePickerSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 28),
-
-              // ── Font Size Control ──
-              _DebouncedSliderControl(
-                label: 'Font Size',
-                initialValue: theme.quranFontSize,
-                min: 14,
-                max: 40,
-                step: 1,
-                displayFormat: (v) => v.round().toString(),
-                onChanged: (v) => theme.setQuranFontSize(v),
-                theme: theme,
-              ),
-              const SizedBox(height: 20),
-
-              // ── Line Height Control ──
-              _DebouncedSliderControl(
-                label: 'Line Spacing',
-                initialValue: theme.quranLineHeight,
-                min: 1.4,
-                max: 3.6,
-                step: 0.1,
-                displayFormat: (v) => v.toStringAsFixed(1),
-                onChanged: (v) => theme.setQuranLineHeight(v),
-                theme: theme,
+              // ── Fit Screen Height Toggle ──
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.pillBackground,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: SwitchListTile(
+                  title: Text(
+                    'Fit Screen Height',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                      color: theme.primaryText,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Auto-calculates the perfect font size to fit the entire page without scrolling.',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                  value: theme.fitScreenHeight,
+                  onChanged: (v) => theme.setFitScreenHeight(v),
+                  activeColor: theme.accentColor,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
               ),
               const SizedBox(height: 28),
 
-              // ── Page Edge Effect ──
+              // ── Manual Typography Controls ──
+              Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Font Size Control ──
+                      Expanded(
+                        child: IgnorePointer(
+                          ignoring: theme.fitScreenHeight,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: theme.fitScreenHeight ? 0.4 : 1.0,
+                            child: _DebouncedSliderControl(
+                              label: 'Font Size',
+                              initialValue: theme.quranFontSize,
+                              min: 14,
+                              max: 40,
+                              step: 1,
+                              displayFormat: (v) => v.round().toString(),
+                              onChanged: (v) {
+                                if (!theme.fitScreenHeight)
+                                  theme.setQuranFontSize(v);
+                              },
+                              theme: theme,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // ── Line Height Control ──
+                      Expanded(
+                        child: _DebouncedSliderControl(
+                          label: 'Line Spacing',
+                          initialValue: theme.quranLineHeight,
+                          min: 1.4,
+                          max: 3.6,
+                          step: 0.1,
+                          displayFormat: (v) => v.toStringAsFixed(1),
+                          onChanged: (v) {
+                            theme.setQuranLineHeight(v);
+                          },
+                          theme: theme,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
+              // ── Text Alignment & Content Alignment ──
+              Row(
+                children: [
+                  Expanded(
+                    child: _AlignmentSelector<QuranTextAlign>(
+                      label: 'Text Align',
+                      icon1: Icons.format_align_right,
+                      icon2: Icons.format_align_center,
+                      icon3: Icons.format_align_justify,
+                      value1: QuranTextAlign.right,
+                      value2: QuranTextAlign.center,
+                      value3: QuranTextAlign.justify,
+                      groupValue: theme.quranTextAlign,
+                      onChanged: (v) => theme.setQuranTextAlign(v),
+                      theme: theme,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _AlignmentSelector<QuranContentAlignment>(
+                      label: 'Content Align',
+                      icon1: Icons.vertical_align_top,
+                      icon2: Icons.vertical_align_center,
+                      icon3: Icons.vertical_align_bottom,
+                      value1: QuranContentAlignment.top,
+                      value2: QuranContentAlignment.center,
+                      value3: QuranContentAlignment.bottom,
+                      groupValue: theme.contentAlignment,
+                      onChanged: (v) => theme.setContentAlignment(v),
+                      theme: theme,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
+              // ── Group 1: Overlay Typography ──
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.pillBackground,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          LucideIcons.type,
+                          size: 16,
+                          color: theme.accentColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Overlay Typography',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _DebouncedSliderControl(
+                      label: 'Font Size',
+                      initialValue: theme.overlayFontSize,
+                      min: 10,
+                      max: 24,
+                      step: 1,
+                      displayFormat: (v) => v.round().toString(),
+                      onChanged: (v) => theme.setOverlayFontSize(v),
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 12),
+                    _DebouncedSliderControl(
+                      label: 'Opacity',
+                      initialValue: theme.overlayOpacity,
+                      min: 0.1,
+                      max: 1.0,
+                      step: 0.05,
+                      displayFormat: (v) => '${(v * 100).round()}%',
+                      onChanged: (v) => theme.setOverlayOpacity(v),
+                      theme: theme,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // ── Group 2: Overlay Indicators ──
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.pillBackground,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          LucideIcons.layoutTemplate,
+                          size: 16,
+                          color: theme.accentColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Overlay Indicators',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Alternate Info Layout per Page',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 24,
+                          child: Switch.adaptive(
+                            value: theme.dynamicPageInfoEnabled,
+                            activeColor: theme.accentColor,
+                            onChanged: (v) =>
+                                theme.setDynamicPageInfoEnabled(v),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Show Hizb Info',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 24,
+                          child: Switch.adaptive(
+                            value: theme.showHizbInfo,
+                            activeColor: theme.accentColor,
+                            onChanged: (v) => theme.setShowHizbInfo(v),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Show Book Icon Indicator',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 24,
+                          child: Switch.adaptive(
+                            value: theme.showBookIconIndicator,
+                            activeColor: theme.accentColor,
+                            onChanged: (v) => theme.setShowBookIconIndicator(v),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // ── Group 3: Page Shadow Effects ──
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -149,7 +395,7 @@ class ThemePickerSheet extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Page Layout & Effects',
+                              'Page Shadow Effects',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -184,8 +430,8 @@ class ThemePickerSheet extends StatelessWidget {
                                   PageIndicatorEffect
                                 >(
                                   groupValue: theme.pageIndicatorEffect,
-                                  backgroundColor: Colors.black.withValues(
-                                    alpha: 0.05,
+                                  backgroundColor: Colors.black.withOpacity(
+                                    0.05,
                                   ),
                                   thumbColor: theme.canvasBackground,
                                   children: {
@@ -231,54 +477,6 @@ class ThemePickerSheet extends StatelessWidget {
                                 ),
                           ),
                           const SizedBox(height: 20),
-                          // ── Dynamic Info Toggle ──
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Dynamic Page Info',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: theme.primaryText,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 24,
-                                child: Switch.adaptive(
-                                  value: theme.dynamicPageInfoEnabled,
-                                  activeColor: theme.accentColor,
-                                  onChanged: (v) =>
-                                      theme.setDynamicPageInfoEnabled(v),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          // ── Book Icon Toggle ──
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Show Book Icon Indicator',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: theme.primaryText,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 24,
-                                child: Switch.adaptive(
-                                  value: theme.showBookIconIndicator,
-                                  activeColor: theme.accentColor,
-                                  onChanged: (v) =>
-                                      theme.setShowBookIconIndicator(v),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Divider(color: Colors.black.withValues(alpha: 0.05)),
-                          const SizedBox(height: 16),
                           _DebouncedSliderControl(
                             label: 'Intensity',
                             initialValue: theme.spineEffectIntensity,
@@ -291,7 +489,11 @@ class ThemePickerSheet extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           _DebouncedSliderControl(
-                            label: 'Edge Width',
+                            label:
+                                theme.pageIndicatorEffect ==
+                                    PageIndicatorEffect.center
+                                ? 'Spine Width'
+                                : 'Edge Width',
                             initialValue: theme.spineEffectWidth,
                             min: 5,
                             max: 60,
@@ -302,7 +504,11 @@ class ThemePickerSheet extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           _DebouncedSliderControl(
-                            label: 'Edge Padding',
+                            label:
+                                theme.pageIndicatorEffect ==
+                                    PageIndicatorEffect.center
+                                ? 'Spine Padding'
+                                : 'Edge Padding',
                             initialValue: theme.spineEffectPadding,
                             min: 0,
                             max: 16,
@@ -559,6 +765,86 @@ class _DebouncedSliderControlState extends State<_DebouncedSliderControl> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _AlignmentSelector<T> extends StatelessWidget {
+  final String label;
+  final IconData icon1;
+  final IconData icon2;
+  final IconData icon3;
+  final T value1;
+  final T value2;
+  final T value3;
+  final T groupValue;
+  final ValueChanged<T> onChanged;
+  final ThemeProvider theme;
+
+  const _AlignmentSelector({
+    required this.label,
+    required this.icon1,
+    required this.icon2,
+    required this.icon3,
+    required this.value1,
+    required this.value2,
+    required this.value3,
+    required this.groupValue,
+    required this.onChanged,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: theme.primaryText,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: theme.pillBackground,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              _buildSegment(icon1, value1),
+              _buildSegment(icon2, value2),
+              _buildSegment(icon3, value3),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSegment(IconData icon, T value) {
+    final isSelected = groupValue == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onChanged(value),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? theme.chipSelected : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: isSelected ? theme.chipSelectedText : theme.mutedText,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
@@ -14,7 +15,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => AudioProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: const QuranApp(),
+      child: DevicePreview(
+        enabled: true,
+        builder: (context) => const QuranApp(),
+      ),
     ),
   );
 }
@@ -29,6 +33,8 @@ class QuranApp extends StatelessWidget {
         return MaterialApp(
           title: 'Quran Prototype',
           debugShowCheckedModeBanner: false,
+          locale: DevicePreview.locale(context),
+          builder: DevicePreview.appBuilder,
           theme: ThemeData(
             fontFamily: 'Inter',
             useMaterial3: true,

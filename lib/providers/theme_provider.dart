@@ -6,6 +6,10 @@ enum PageIndicatorEffect { center, edge }
 /// App theme modes
 enum AppTheme { classic, warm, dark }
 
+enum QuranContentAlignment { top, center, bottom }
+
+enum QuranTextAlign { right, center, justify }
+
 /// Provides theme colors for the entire app.
 /// Classic = Original brand colors (white surfaces, teal accents) — DEFAULT
 /// Warm = Parchment/beige background with teal accents
@@ -14,11 +18,20 @@ class ThemeProvider extends ChangeNotifier {
   AppTheme _theme = AppTheme.classic;
 
   // Reading typography settings
-  double _quranFontSize = 20;
-  double _quranLineHeight = 2.1;
+  double _quranFontSize = 22;
+  double _quranLineHeight = 1.8;
+  bool _fitScreenHeight = true;
+
+  // Overlay Typography settings
+  double _overlayFontSize = 14;
+  double _overlayOpacity = 1.0;
+
+  // Alignment settings
+  QuranContentAlignment _contentAlignment = QuranContentAlignment.top;
+  QuranTextAlign _quranTextAlign = QuranTextAlign.center;
 
   // Spine effect (page shadow) settings
-  bool _spineEffectEnabled = true;
+  bool _spineEffectEnabled = false;
   PageIndicatorEffect _pageIndicatorEffect = PageIndicatorEffect.center;
   double _spineEffectIntensity = 0.06;
   double _spineEffectWidth = 20;
@@ -27,6 +40,7 @@ class ThemeProvider extends ChangeNotifier {
   // Layout features
   bool _dynamicPageInfoEnabled = true;
   bool _showBookIconIndicator = true;
+  bool _showHizbInfo = false;
 
   AppTheme get theme => _theme;
   bool get isDark => _theme == AppTheme.dark;
@@ -34,6 +48,13 @@ class ThemeProvider extends ChangeNotifier {
 
   double get quranFontSize => _quranFontSize;
   double get quranLineHeight => _quranLineHeight;
+  bool get fitScreenHeight => _fitScreenHeight;
+
+  double get overlayFontSize => _overlayFontSize;
+  double get overlayOpacity => _overlayOpacity;
+
+  QuranContentAlignment get contentAlignment => _contentAlignment;
+  QuranTextAlign get quranTextAlign => _quranTextAlign;
 
   bool get spineEffectEnabled => _spineEffectEnabled;
   PageIndicatorEffect get pageIndicatorEffect => _pageIndicatorEffect;
@@ -43,6 +64,7 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get dynamicPageInfoEnabled => _dynamicPageInfoEnabled;
   bool get showBookIconIndicator => _showBookIconIndicator;
+  bool get showHizbInfo => _showHizbInfo;
 
   void setTheme(AppTheme theme) {
     if (_theme == theme) return;
@@ -58,6 +80,34 @@ class ThemeProvider extends ChangeNotifier {
   void setQuranLineHeight(double height) {
     // Round to 1 decimal place to avoid floating point precision issues and then clamp
     _quranLineHeight = double.parse(height.toStringAsFixed(1)).clamp(1.4, 3.6);
+    notifyListeners();
+  }
+
+  void setFitScreenHeight(bool enabled) {
+    if (_fitScreenHeight == enabled) return;
+    _fitScreenHeight = enabled;
+    notifyListeners();
+  }
+
+  void setOverlayFontSize(double size) {
+    _overlayFontSize = size.clamp(10, 24);
+    notifyListeners();
+  }
+
+  void setOverlayOpacity(double opacity) {
+    _overlayOpacity = double.parse(opacity.toStringAsFixed(2)).clamp(0.1, 1.0);
+    notifyListeners();
+  }
+
+  void setContentAlignment(QuranContentAlignment alignment) {
+    if (_contentAlignment == alignment) return;
+    _contentAlignment = alignment;
+    notifyListeners();
+  }
+
+  void setQuranTextAlign(QuranTextAlign alignment) {
+    if (_quranTextAlign == alignment) return;
+    _quranTextAlign = alignment;
     notifyListeners();
   }
 
@@ -82,6 +132,12 @@ class ThemeProvider extends ChangeNotifier {
   void setShowBookIconIndicator(bool show) {
     if (_showBookIconIndicator == show) return;
     _showBookIconIndicator = show;
+    notifyListeners();
+  }
+
+  void setShowHizbInfo(bool show) {
+    if (_showHizbInfo == show) return;
+    _showHizbInfo = show;
     notifyListeners();
   }
 
@@ -160,6 +216,12 @@ class ThemeProvider extends ChangeNotifier {
     classic: Colors.grey,
     warm: Colors.grey,
     dark: const Color(0xFF4A7A86),
+  );
+
+  Color get overlayTextColor => _pick(
+    classic: const Color(0xFF63777E),
+    warm: const Color(0xFF63777E),
+    dark: const Color(0xFF7FABB5),
   );
 
   Color get quranText => _pick(
@@ -259,6 +321,12 @@ class ThemeProvider extends ChangeNotifier {
     classic: Colors.grey.shade200,
     warm: Colors.grey.shade200,
     dark: const Color(0xFF1A3A42),
+  );
+
+  Color get indicatorInactive => _pick(
+    classic: const Color(0xFFA9CBD6),
+    warm: const Color(0xFFA9CBD6),
+    dark: const Color(0xFF2A6A6E),
   );
 
   // ── Overlay / Sheet colors ──

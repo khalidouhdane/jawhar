@@ -379,56 +379,165 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   final isOddPage = readingProvider.activePage.isOdd;
                   final theme = context.watch<ThemeProvider>();
 
-                  // By default, page is on the left
+                  // Logic for bottom row elements
                   Alignment pageNumberAlignment = Alignment.bottomLeft;
-                  // If dynamic enabled, Right page (odd) -> BottomRight, Left page (even) -> BottomLeft
-                  if (theme.dynamicPageInfoEnabled) {
-                    pageNumberAlignment = isOddPage
-                        ? Alignment.bottomRight
-                        : Alignment.bottomLeft;
+                  Alignment? hizbAlignment;
+                  Alignment? indicatorAlignment;
+
+                  if (theme.showBookIconIndicator) {
+                    // Indicator is always bottom center
+                    indicatorAlignment = Alignment.bottomCenter;
+
+                    if (theme.showHizbInfo) {
+                      if (theme.dynamicPageInfoEnabled) {
+                        // Page and Hizb swap left/right
+                        pageNumberAlignment = isOddPage
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft;
+                        hizbAlignment = isOddPage
+                            ? Alignment.bottomLeft
+                            : Alignment.bottomRight;
+                      } else {
+                        // Page takes Left, Hizb takes Right
+                        pageNumberAlignment = Alignment.bottomLeft;
+                        hizbAlignment = Alignment.bottomRight;
+                      }
+                    } else {
+                      if (theme.dynamicPageInfoEnabled) {
+                        // Page moves left/right
+                        pageNumberAlignment = isOddPage
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft;
+                      } else {
+                        // Page takes Bottom Left
+                        pageNumberAlignment = Alignment.bottomLeft;
+                      }
+                    }
+                  } else {
+                    // Indicator is OFF
+                    if (theme.showHizbInfo) {
+                      if (theme.dynamicPageInfoEnabled) {
+                        // Page and Hizb swap left/right
+                        pageNumberAlignment = isOddPage
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft;
+                        hizbAlignment = isOddPage
+                            ? Alignment.bottomLeft
+                            : Alignment.bottomRight;
+                      } else {
+                        // Page takes Left, Hizb takes Right
+                        pageNumberAlignment = Alignment.bottomLeft;
+                        hizbAlignment = Alignment.bottomRight;
+                      }
+                    } else {
+                      if (theme.dynamicPageInfoEnabled) {
+                        // Page moves left/right
+                        pageNumberAlignment = isOddPage
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft;
+                      } else {
+                        // Page takes Bottom Center
+                        pageNumberAlignment = Alignment.bottomCenter;
+                      }
+                    }
                   }
 
                   return Positioned.fill(
                     child: IgnorePointer(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Stack(
-                          children: [
-                            // ── Top Row (3 Infos) ──
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: _OverlayText(text: juzName),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // ── Top Row (2 Infos with Gradient) ──
+                          Container(
+                            padding: EdgeInsets.only(
+                              left: 26,
+                              right: 26,
+                              top: MediaQuery.paddingOf(context).top > 0
+                                  ? 20 // Smart padding: clears device corners but stays in 'ears'
+                                  : 8,
+                              bottom: 10,
                             ),
-                            Align(
-                              alignment: Alignment.topCenter,
-                              child: _OverlayText(text: surahName),
-                            ),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: _OverlayText(text: hizbName),
-                            ),
-
-                            // ── Bottom Row (Page Num & Book) ──
-                            Align(
-                              alignment: pageNumberAlignment,
-                              child: _OverlayText(
-                                text: 'Page ${readingProvider.activePage}',
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  theme.canvasBackground,
+                                  theme.canvasBackground,
+                                  theme.canvasBackground.withValues(alpha: 0.0),
+                                ],
+                                stops: const [0.0, 0.5, 1.0],
                               ),
                             ),
-                            if (theme.spineEffectEnabled &&
-                                theme.showBookIconIndicator)
-                              Align(
-                                alignment: Alignment.bottomCenter,
-                                child: _BookSideIndicator(
-                                  isRightPage: isOddPage,
-                                  theme: theme,
+                            child: SafeArea(
+                              bottom: false,
+                              top: false,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _OverlayText(text: surahName),
+                                  _OverlayText(text: juzName),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // ── Bottom Row (Dynamic with Gradient) ──
+                          Container(
+                            padding: EdgeInsets.only(
+                              left: 26,
+                              right: 26,
+                              top: 16,
+                              bottom: MediaQuery.paddingOf(context).bottom > 0
+                                  ? 20 // Clears bottom swipe bar corners but stays low
+                                  : 18,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  theme.canvasBackground,
+                                  theme.canvasBackground,
+                                  theme.canvasBackground.withValues(alpha: 0.0),
+                                ],
+                                stops: const [0.0, 0.5, 1.0],
+                              ),
+                            ),
+                            child: SafeArea(
+                              top: false,
+                              bottom: false,
+                              child: SizedBox(
+                                height: 20,
+                                width: double.infinity,
+                                child: Stack(
+                                  children: [
+                                    Align(
+                                      alignment: pageNumberAlignment,
+                                      child: _OverlayText(
+                                        text: '${readingProvider.activePage}',
+                                      ),
+                                    ),
+                                    if (hizbAlignment != null)
+                                      Align(
+                                        alignment: hizbAlignment,
+                                        child: _OverlayText(text: hizbName),
+                                      ),
+                                    if (indicatorAlignment != null)
+                                      Align(
+                                        alignment: indicatorAlignment,
+                                        child: _BookSideIndicator(
+                                          isRightPage: isOddPage,
+                                          theme: theme,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                          ],
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -453,9 +562,9 @@ class _OverlayText extends StatelessWidget {
       text,
       style: TextStyle(
         fontFamily: 'Inter',
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: theme.primaryText.withValues(alpha: 0.4),
+        fontSize: theme.overlayFontSize,
+        fontWeight: FontWeight.w500,
+        color: theme.overlayTextColor.withValues(alpha: theme.overlayOpacity),
         letterSpacing: 0.5,
       ),
     );
@@ -535,9 +644,6 @@ class _BookSideIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = theme.primaryText.withValues(alpha: 0.6);
-    final inactiveColor = theme.primaryText.withValues(alpha: 0.15);
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -546,7 +652,14 @@ class _BookSideIndicator extends StatelessWidget {
           width: 14,
           height: 16,
           decoration: BoxDecoration(
-            color: !isRightPage ? activeColor : inactiveColor,
+            color: !isRightPage ? null : theme.indicatorInactive,
+            gradient: !isRightPage
+                ? LinearGradient(
+                    colors: theme.modeToggleGradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(3),
               bottomLeft: Radius.circular(3),
@@ -561,7 +674,14 @@ class _BookSideIndicator extends StatelessWidget {
           width: 14,
           height: 16,
           decoration: BoxDecoration(
-            color: isRightPage ? activeColor : inactiveColor,
+            color: isRightPage ? null : theme.indicatorInactive,
+            gradient: isRightPage
+                ? LinearGradient(
+                    colors: theme.modeToggleGradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
             borderRadius: const BorderRadius.only(
               topRight: Radius.circular(3),
               bottomRight: Radius.circular(3),

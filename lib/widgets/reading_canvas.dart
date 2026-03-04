@@ -100,16 +100,101 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
     return _verseKeys.putIfAbsent(verseId, () => GlobalKey());
   }
 
+  List<InlineSpan> _buildSpans(
+    ThemeProvider theme,
+    AudioProvider audioProvider,
+    QuranReadingProvider readingProvider,
+    double fontSize,
+  ) {
+    final spans = <InlineSpan>[];
+    for (final verse in widget.verses) {
+      if (verse.verseNumber == 1) {
+        final chapterNum = int.tryParse(verse.verseKey.split(':').first);
+        if (chapterNum != null) {
+          Chapter? chapter;
+          try {
+            chapter = readingProvider.chapters.firstWhere(
+              (c) => c.id == chapterNum,
+            );
+          } catch (_) {}
+          spans.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: _SurahHeader(
+                chapterNumber: chapterNum,
+                nameArabic: chapter?.nameArabic ?? '',
+                nameSimple: chapter?.nameSimple ?? 'Surah $chapterNum',
+                versesCount: chapter?.versesCount ?? 0,
+              ),
+            ),
+          );
+        }
+      }
+
+      final isSelected = widget.selectedVerseId == verse.id;
+      final isPlaying = audioProvider.activeVerseKey == verse.verseKey;
+      final isHighlighted = isSelected || isPlaying;
+
+      for (int wi = 0; wi < verse.words.length; wi++) {
+        final word = verse.words[wi];
+
+        if (word.charTypeName == 'end') {
+          Widget marker = _VerseMarker(
+            verseNumber: verse.verseNumber,
+            isHighlighted: isHighlighted,
+          );
+          if (isSelected) {
+            marker = KeyedSubtree(
+              key: _getKeyForVerse(verse.id),
+              child: marker,
+            );
+          }
+          spans.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: GestureDetector(
+                  onLongPress: () {
+                    widget.onVerseSelected(isSelected ? null : verse.id);
+                  },
+                  child: marker,
+                ),
+              ),
+            ),
+          );
+        } else {
+          final text = wi == 0 ? word.textUthmani : ' ${word.textUthmani}';
+          final recognizer = LongPressGestureRecognizer()
+            ..onLongPress = () {
+              widget.onVerseSelected(isSelected ? null : verse.id);
+            };
+
+          spans.add(
+            TextSpan(
+              text: text,
+              style: GoogleFonts.amiriQuran(
+                fontSize: fontSize,
+                height: theme.quranLineHeight,
+                fontWeight: FontWeight.w400,
+                color: theme.quranText,
+                backgroundColor: isHighlighted ? theme.verseHighlight : null,
+              ),
+              recognizer: recognizer,
+            ),
+          );
+        }
+      }
+      spans.add(const TextSpan(text: ' '));
+    }
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>();
-    final totalWords = widget.verses
-        .expand((v) => v.words)
-        .where((w) => w.charTypeName == 'word')
-        .length;
-    final isShortPage = totalWords < 40;
+    if (widget.verses.isEmpty) return const SizedBox.shrink();
 
-    // In a physical Mushaf (RTL): odd pages are on the right, even on the left.
+    final theme = context.watch<ThemeProvider>();
     final isOddPage = widget.pageNumber.isOdd;
 
     // Determine where the effect should be placed
@@ -129,6 +214,8 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
         }
       },
       child: SafeArea(
+        top: false,
+        bottom: false,
         child: Stack(
           children: [
             // Main page content
@@ -136,157 +223,179 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
               color: theme.canvasBackground,
               width: double.infinity,
               height: double.infinity,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.only(
-                  left:
-                      12 +
-                      (theme.spineEffectEnabled && !isEffectOnRight
-                          ? theme.spineEffectPadding
-                          : 0),
-                  right:
-                      12 +
-                      (theme.spineEffectEnabled && isEffectOnRight
-                          ? theme.spineEffectPadding
-                          : 0),
-                  top: 32,
-                  bottom: 32,
-                ),
-                child: Consumer<AudioProvider>(
-                  builder: (context, audioProvider, child) {
-                    // Build RichText with TextSpan and WidgetSpan for continuous verse highlight
-                    final spans = <InlineSpan>[];
-                    final readingProvider = context
-                        .read<QuranReadingProvider>();
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Consumer<AudioProvider>(
+                    builder: (context, audioProvider, child) {
+                      final readingProvider = context
+                          .watch<QuranReadingProvider>();
+                      final isActivePage =
+                          readingProvider.activePage == widget.pageNumber;
 
-                    for (final verse in widget.verses) {
-                      // Detect surah start (verse 1) and insert decorative header
-                      if (verse.verseNumber == 1) {
-                        final chapterNum = int.tryParse(
-                          verse.verseKey.split(':').first,
-                        );
-                        if (chapterNum != null) {
-                          Chapter? chapter;
-                          try {
-                            chapter = readingProvider.chapters.firstWhere(
-                              (c) => c.id == chapterNum,
-                            );
-                          } catch (_) {}
+                      final paddingLeft =
+                          10.0 +
+                          (theme.spineEffectEnabled && !isEffectOnRight
+                              ? theme.spineEffectPadding
+                              : 0);
+                      final paddingRight =
+                          10.0 +
+                          (theme.spineEffectEnabled && isEffectOnRight
+                              ? theme.spineEffectPadding
+                              : 0);
+                      final paddingTop = MediaQuery.paddingOf(context).top > 0
+                          ? MediaQuery.paddingOf(context).top + 20
+                          : 32.0;
+                      final paddingBottom =
+                          MediaQuery.paddingOf(context).bottom > 0
+                          ? MediaQuery.paddingOf(context).bottom
+                          : 32.0;
 
-                          spans.add(
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: _SurahHeader(
-                                chapterNumber: chapterNum,
-                                nameArabic: chapter?.nameArabic ?? '',
-                                nameSimple:
-                                    chapter?.nameSimple ?? 'Surah $chapterNum',
-                                versesCount: chapter?.versesCount ?? 0,
-                              ),
-                            ),
+                      final availableWidth =
+                          constraints.maxWidth - paddingLeft - paddingRight;
+                      // Subtract a small safe zone margin (20px) to ensure text never touches the fade gradients
+                      final availableHeight =
+                          constraints.maxHeight -
+                          paddingTop -
+                          paddingBottom -
+                          20.0;
+
+                      double calculatedFontSize = theme.quranFontSize;
+
+                      if (theme.fitScreenHeight &&
+                          availableHeight > 0 &&
+                          availableWidth > 0 &&
+                          widget.verses.isNotEmpty) {
+                        double minFS = 14.0;
+                        double maxFS = 30.0; // Hard cap per User instruction
+
+                        for (int i = 0; i < 6; i++) {
+                          final midFS = (minFS + maxFS) / 2;
+
+                          final testSpans = _buildSpans(
+                            theme,
+                            audioProvider,
+                            readingProvider,
+                            midFS,
                           );
-                        }
-                      }
 
-                      final isSelected = widget.selectedVerseId == verse.id;
-                      final isPlaying =
-                          audioProvider.activeVerseKey == verse.verseKey;
-                      final isHighlighted = isSelected || isPlaying;
-
-                      for (int wi = 0; wi < verse.words.length; wi++) {
-                        final word = verse.words[wi];
-
-                        if (word.charTypeName == 'end') {
-                          // Verse marker as WidgetSpan
-                          Widget marker = _VerseMarker(
-                            verseNumber: verse.verseNumber,
-                            isHighlighted: isHighlighted,
-                          );
-                          // Attach key on first marker for menu positioning
-                          if (isSelected) {
-                            marker = KeyedSubtree(
-                              key: _getKeyForVerse(verse.id),
-                              child: marker,
-                            );
+                          List<PlaceholderDimensions> placeholderDimensions =
+                              [];
+                          for (final span in testSpans) {
+                            if (span is WidgetSpan) {
+                              if (span.child is _SurahHeader) {
+                                placeholderDimensions.add(
+                                  PlaceholderDimensions(
+                                    size: Size(availableWidth, 110),
+                                    alignment: PlaceholderAlignment.middle,
+                                  ),
+                                );
+                              } else {
+                                placeholderDimensions.add(
+                                  const PlaceholderDimensions(
+                                    size: Size(26, 22),
+                                    alignment: PlaceholderAlignment.middle,
+                                  ),
+                                );
+                              }
+                            }
                           }
-                          spans.add(
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                child: GestureDetector(
-                                  onLongPress: () {
-                                    widget.onVerseSelected(
-                                      isSelected ? null : verse.id,
-                                    );
-                                  },
-                                  child: marker,
-                                ),
-                              ),
-                            ),
+
+                          final textPainter = TextPainter(
+                            text: TextSpan(children: testSpans),
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.center,
                           );
-                        } else {
-                          // Add space between words (except first word)
-                          final text = wi == 0
-                              ? word.textUthmani
-                              : ' ${word.textUthmani}';
 
-                          final recognizer = LongPressGestureRecognizer()
-                            ..onLongPress = () {
-                              widget.onVerseSelected(
-                                isSelected ? null : verse.id,
-                              );
-                            };
+                          textPainter.setPlaceholderDimensions(
+                            placeholderDimensions,
+                          );
+                          textPainter.layout(maxWidth: availableWidth);
 
-                          spans.add(
-                            TextSpan(
-                              text: text,
-                              style: GoogleFonts.amiriQuran(
-                                fontSize: theme.quranFontSize,
-                                height: theme.quranLineHeight,
-                                fontWeight: FontWeight.w400,
-                                color: theme.quranText,
-                                backgroundColor: isHighlighted
-                                    ? theme.verseHighlight
-                                    : null,
-                              ),
-                              recognizer: recognizer,
-                            ),
+                          if (textPainter.size.height > availableHeight) {
+                            maxFS = midFS;
+                          } else {
+                            minFS = midFS;
+                            calculatedFontSize = midFS;
+                          }
+                        }
+
+                        // Prevent endless fraction jitter and ensure it remains within manual slider limits
+                        // by safely flooring the double to the nearest whole integer.
+                        // Implements the hard cap of 30.0 to prevent short pages from exploding.
+                        calculatedFontSize = calculatedFontSize
+                            .clamp(14.0, 30.0)
+                            .floorToDouble();
+
+                        // Push the dynamically calculated font size to the theme so sliders update visually
+                        // using microtask to avoid dirty build state exception
+                        if (isActivePage &&
+                            theme.quranFontSize != calculatedFontSize) {
+                          Future.microtask(
+                            () => theme.setQuranFontSize(calculatedFontSize),
                           );
                         }
                       }
 
-                      // Add a small space between verses
-                      spans.add(const TextSpan(text: ' '));
-                    }
+                      final finalSpans = _buildSpans(
+                        theme,
+                        audioProvider,
+                        readingProvider,
+                        calculatedFontSize,
+                      );
 
-                    final richText = ExcludeSemantics(
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        textDirection: TextDirection.rtl,
-                        text: TextSpan(children: spans),
-                      ),
-                    );
+                      final textAlign =
+                          theme.quranTextAlign == QuranTextAlign.right
+                          ? TextAlign.right
+                          : theme.quranTextAlign == QuranTextAlign.justify
+                          ? TextAlign.justify
+                          : TextAlign.center;
 
-                    if (isShortPage) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 80,
-                          ), // offset for short pages
-                          child: richText,
+                      final richText = ExcludeSemantics(
+                        child: RichText(
+                          textAlign: textAlign,
+                          textDirection: TextDirection.rtl,
+                          text: TextSpan(children: finalSpans),
                         ),
                       );
-                    } else {
-                      return Align(
-                        alignment: Alignment.topCenter,
+
+                      final contentAlign =
+                          theme.contentAlignment == QuranContentAlignment.bottom
+                          ? Alignment.bottomCenter
+                          : theme.contentAlignment ==
+                                QuranContentAlignment.center
+                          ? Alignment.center
+                          : Alignment.topCenter;
+
+                      Widget contentWidget = Align(
+                        alignment: contentAlign,
                         child: richText,
                       );
-                    }
-                  },
-                ),
+
+                      if (theme.fitScreenHeight) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            left: paddingLeft,
+                            right: paddingRight,
+                            top: paddingTop,
+                            bottom: paddingBottom,
+                          ),
+                          child: contentWidget,
+                        );
+                      } else {
+                        return SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: EdgeInsets.only(
+                            left: paddingLeft,
+                            right: paddingRight,
+                            top: paddingTop,
+                            bottom: paddingBottom,
+                          ),
+                          child: contentWidget,
+                        );
+                      }
+                    },
+                  );
+                },
               ),
             ),
             // Page indicator effect (Center Spine or Outer Edge stack)
