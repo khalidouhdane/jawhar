@@ -7,6 +7,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/widgets/surah_list_tile.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Static lookup: Surah number → starting Mushaf page (Madani/Standard)
 const List<int> _surahStartPages = [
@@ -68,6 +69,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
     final readingProvider = context.watch<QuranReadingProvider>();
     final chapters = readingProvider.chapters;
 
@@ -87,7 +89,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
               child: Row(
                 children: [
                   Text(
-                    'Quran',
+                    l.t('read_title'),
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 28,
@@ -116,7 +118,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search surah...',
+                    hintText: l.t('read_search_hint'),
                     hintStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -164,10 +166,10 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                   ),
-                  tabs: const [
-                    Tab(text: 'Surah'),
-                    Tab(text: 'Juz'),
-                    Tab(text: 'Hizb'),
+                  tabs: [
+                    Tab(text: l.t('read_tab_surah')),
+                    Tab(text: l.t('read_tab_juz')),
+                    Tab(text: l.t('read_tab_hizb')),
                   ],
                 ),
               ),

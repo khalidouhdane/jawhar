@@ -6,12 +6,14 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class HifzScreen extends StatelessWidget {
   const HifzScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final theme = context.watch<ThemeProvider>();
     final hifz = context.watch<HifzProvider>();
 
@@ -28,7 +30,7 @@ class HifzScreen extends StatelessWidget {
 
               // ── Header ──
               Text(
-                'Memorization',
+                l.t('hifz_title'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 26,
@@ -39,7 +41,7 @@ class HifzScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Track your Hifz journey',
+                l.t('hifz_subtitle'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -50,21 +52,22 @@ class HifzScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── Streak & Stats Row ──
-              _buildStreakRow(theme, hifz),
+              _buildStreakRow(context, theme, hifz),
               const SizedBox(height: 20),
 
               // ── Sabaq / Sabqi / Manzil Progress ──
-              _buildProgressSection(theme, hifz),
+              _buildProgressSection(context, theme, hifz),
               const SizedBox(height: 24),
 
               // ── Overall Progress Bar ──
-              _buildOverallProgress(theme, hifz),
+              _buildOverallProgress(context, theme, hifz),
               const SizedBox(height: 24),
 
               // ── Surah Grid ──
               _buildSectionHeader(
+                context,
                 theme,
-                'All Surahs',
+                l.t('hifz_all_surahs'),
                 '${hifz.totalMemorized}/114',
               ),
               const SizedBox(height: 12),
@@ -78,7 +81,12 @@ class HifzScreen extends StatelessWidget {
   }
 
   // ── Streak Row ──
-  Widget _buildStreakRow(ThemeProvider theme, HifzProvider hifz) {
+  Widget _buildStreakRow(
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProvider hifz,
+  ) {
+    final l = AppLocalizations.of(context);
     final streak = hifz.streak;
     return Row(
       children: [
@@ -152,7 +160,7 @@ class HifzScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Best streak',
+                      l.t('hifz_best_streak'),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11,
@@ -170,13 +178,18 @@ class HifzScreen extends StatelessWidget {
   }
 
   // ── Sabaq / Sabqi / Manzil ──
-  Widget _buildProgressSection(ThemeProvider theme, HifzProvider hifz) {
+  Widget _buildProgressSection(
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProvider hifz,
+  ) {
+    final l = AppLocalizations.of(context);
     return Row(
       children: [
         _buildProgressRing(
           theme,
-          label: 'Sabaq',
-          subtitle: 'New lessons',
+          label: l.t('hifz_sabaq'),
+          subtitle: l.t('hifz_sabaq_desc'),
           count: hifz.sabaqSurahs.length,
           color: const Color(0xFF4CAF50),
           icon: LucideIcons.bookPlus,
@@ -184,8 +197,8 @@ class HifzScreen extends StatelessWidget {
         const SizedBox(width: 10),
         _buildProgressRing(
           theme,
-          label: 'Sabqi',
-          subtitle: 'Recent review',
+          label: l.t('hifz_sabqi'),
+          subtitle: l.t('hifz_sabqi_desc'),
           count: hifz.sabqiSurahs.length,
           color: const Color(0xFF2196F3),
           icon: LucideIcons.refreshCw,
@@ -193,8 +206,8 @@ class HifzScreen extends StatelessWidget {
         const SizedBox(width: 10),
         _buildProgressRing(
           theme,
-          label: 'Manzil',
-          subtitle: 'Mastered',
+          label: l.t('hifz_manzil'),
+          subtitle: l.t('hifz_manzil_desc'),
           count: hifz.manzilSurahs.length,
           color: theme.accentColor,
           icon: LucideIcons.checkCircle,
@@ -273,7 +286,12 @@ class HifzScreen extends StatelessWidget {
   }
 
   // ── Overall Progress ──
-  Widget _buildOverallProgress(ThemeProvider theme, HifzProvider hifz) {
+  Widget _buildOverallProgress(
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProvider hifz,
+  ) {
+    final l = AppLocalizations.of(context);
     final pct = (hifz.overallProgress * 100).round();
     return Container(
       padding: const EdgeInsets.all(18),
@@ -289,7 +307,7 @@ class HifzScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Overall Progress',
+                l.t('hifz_overall'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -320,7 +338,7 @@ class HifzScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${hifz.totalMemorized} of 114 surahs',
+            '${hifz.totalMemorized} ${l.t('hifz_of_surahs')}',
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 11,
@@ -334,6 +352,7 @@ class HifzScreen extends StatelessWidget {
 
   // ── Section Header ──
   Widget _buildSectionHeader(
+    BuildContext context,
     ThemeProvider theme,
     String title,
     String trailing,
@@ -453,6 +472,7 @@ class HifzScreen extends StatelessWidget {
     String name,
   ) {
     final record = hifz.getRecord(surahId);
+    final l = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.sheetBackground,
@@ -490,8 +510,8 @@ class HifzScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 record.lastReviewed != null
-                    ? 'Last reviewed: ${_formatDate(record.lastReviewed!)}'
-                    : 'Never reviewed',
+                    ? '${l.t('hifz_last_reviewed')} ${_formatDate(record.lastReviewed!)}'
+                    : l.t('hifz_never_reviewed'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -516,7 +536,7 @@ class HifzScreen extends StatelessWidget {
                 hifz,
                 surahId,
                 HifzStatus.learning,
-                'Learning (Sabaq)',
+                l.t('hifz_learning'),
                 LucideIcons.bookPlus,
                 const Color(0xFF4CAF50),
               ),
@@ -526,7 +546,7 @@ class HifzScreen extends StatelessWidget {
                 hifz,
                 surahId,
                 HifzStatus.reviewing,
-                'Reviewing (Sabqi)',
+                l.t('hifz_reviewing'),
                 LucideIcons.refreshCw,
                 const Color(0xFF2196F3),
               ),
@@ -536,7 +556,7 @@ class HifzScreen extends StatelessWidget {
                 hifz,
                 surahId,
                 HifzStatus.memorized,
-                'Memorized (Manzil)',
+                l.t('hifz_memorized'),
                 LucideIcons.checkCircle,
                 theme.accentColor,
               ),
@@ -552,7 +572,7 @@ class HifzScreen extends StatelessWidget {
                     },
                     icon: const Icon(LucideIcons.checkCheck, size: 18),
                     label: Text(
-                      'Mark Reviewed Today (${record.reviewCount} total)',
+                      'Mark Reviewed Today (${record.reviewCount} ${l.t('hifz_total')})',
                       style: const TextStyle(fontFamily: 'Inter', fontSize: 13),
                     ),
                     style: ElevatedButton.styleFrom(

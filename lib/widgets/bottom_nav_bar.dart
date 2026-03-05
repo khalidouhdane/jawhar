@@ -1,24 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
 class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({super.key});
 
-  static const _items = [
-    _NavItem(icon: LucideIcons.home, label: 'Home'),
-    _NavItem(icon: LucideIcons.bookOpen, label: 'Read'),
-    _NavItem(icon: LucideIcons.headphones, label: 'Audio'),
-    _NavItem(icon: LucideIcons.brain, label: 'Hifz'),
-    _NavItem(icon: LucideIcons.user, label: 'Profile'),
+  static const _icons = [
+    LucideIcons.home,
+    LucideIcons.bookOpen,
+    LucideIcons.headphones,
+    LucideIcons.brain,
+    LucideIcons.user,
+  ];
+
+  static const _labelKeys = [
+    'nav_home',
+    'nav_read',
+    'nav_audio',
+    'nav_hifz',
+    'nav_profile',
   ];
 
   @override
   Widget build(BuildContext context) {
     final nav = context.watch<NavigationProvider>();
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Container(
@@ -36,8 +46,7 @@ class AppBottomNavBar extends StatelessWidget {
         height: 56,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(_items.length, (i) {
-            final item = _items[i];
+          children: List.generate(_icons.length, (i) {
             final isActive = nav.currentIndex == i;
 
             return Expanded(
@@ -61,7 +70,7 @@ class AppBottomNavBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        item.icon,
+                        _icons[i],
                         size: 20,
                         color: isActive
                             ? theme.accentColor
@@ -70,7 +79,7 @@ class AppBottomNavBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      item.label,
+                      l.t(_labelKeys[i]),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 10,
@@ -91,10 +100,4 @@ class AppBottomNavBar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

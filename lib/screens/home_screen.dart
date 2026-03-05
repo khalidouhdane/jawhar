@@ -7,6 +7,8 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/widgets/werd_card.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -68,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
     final storage = context.read<LocalStorageService>();
     final lastRead = storage.getLastRead();
 
@@ -82,23 +85,27 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const SizedBox(height: 8),
               // ── Greeting Header ──
-              _buildGreeting(theme),
+              _buildGreeting(theme, l),
               const SizedBox(height: 24),
 
               // ── Resume Your Journey ──
-              _buildHeroCard(theme, lastRead),
+              _buildHeroCard(theme, lastRead, l),
               const SizedBox(height: 20),
 
               // ── Quick Access Row ──
-              _buildQuickAccess(theme),
+              _buildQuickAccess(theme, l),
+              const SizedBox(height: 24),
+
+              // ── Daily Werd ──
+              WerdCard(onStartReading: (page) => _openReadingScreen(page)),
               const SizedBox(height: 24),
 
               // ── Ayah of the Day ──
-              _buildAyahOfTheDay(theme),
+              _buildAyahOfTheDay(theme, l),
               const SizedBox(height: 24),
 
               // ── Hifz Placeholder ──
-              _buildHifzPlaceholder(theme),
+              _buildHifzPlaceholder(theme, l),
               const SizedBox(height: 32),
             ],
           ),
@@ -108,12 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Greeting ──
-  Widget _buildGreeting(ThemeProvider theme) {
+  Widget _buildGreeting(ThemeProvider theme, AppLocalizations l) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Assalamu Alaikum',
+          l.t('home_greeting'),
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 26,
@@ -166,7 +173,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Hero Card ──
-  Widget _buildHeroCard(ThemeProvider theme, LastReadPosition? lastRead) {
+  Widget _buildHeroCard(
+    ThemeProvider theme,
+    LastReadPosition? lastRead,
+    AppLocalizations l,
+  ) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -232,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   lastRead != null
                       ? 'Resume Your Journey'
-                      : 'Start Your Journey',
+                      : l.t('home_resume_title'),
                   style: const TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 20,
@@ -244,8 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 6),
                 Text(
                   lastRead != null
-                      ? '${lastRead.surahName} — Page ${lastRead.page}'
-                      : 'Open the Quran and begin reading',
+                      ? '${lastRead.surahName} — ${l.t('home_page')} ${lastRead.page}'
+                      : l.t('home_no_history'),
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 13,
@@ -283,7 +294,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              lastRead != null ? 'Continue' : 'Start Reading',
+                              lastRead != null
+                                  ? l.t('home_continue')
+                                  : l.t('home_continue'),
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 13,
@@ -325,20 +338,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Quick Access ──
-  Widget _buildQuickAccess(ThemeProvider theme) {
+  Widget _buildQuickAccess(ThemeProvider theme, AppLocalizations l) {
     return Row(
       children: [
         _quickAccessItem(
           theme,
           icon: LucideIcons.bookmark,
-          label: 'Bookmarks',
+          label: l.t('home_bookmarks'),
           onTap: () {}, // Phase 5
         ),
         const SizedBox(width: 12),
         _quickAccessItem(
           theme,
           icon: LucideIcons.bookOpen,
-          label: 'Read',
+          label: l.t('home_read'),
           onTap: () {
             context.read<NavigationProvider>().setTab(1);
           },
@@ -347,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _quickAccessItem(
           theme,
           icon: LucideIcons.shuffle,
-          label: 'Random',
+          label: l.t('home_random'),
           onTap: () {
             final randomPage = Random().nextInt(604) + 1;
             _openReadingScreen(randomPage);
@@ -395,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Ayah of the Day ──
-  Widget _buildAyahOfTheDay(ThemeProvider theme) {
+  Widget _buildAyahOfTheDay(ThemeProvider theme, AppLocalizations l) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -412,7 +425,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(LucideIcons.sparkles, size: 16, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
-                'Ayah of the Day',
+                l.t('home_ayah_title'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -472,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Hifz Placeholder ──
-  Widget _buildHifzPlaceholder(ThemeProvider theme) {
+  Widget _buildHifzPlaceholder(ThemeProvider theme, AppLocalizations l) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -492,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Memorization',
+                l.t('home_hifz_title'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -508,9 +521,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _hifzRingPlaceholder(theme, 'Sabaq', 0.0),
-              _hifzRingPlaceholder(theme, 'Sabqi', 0.0),
-              _hifzRingPlaceholder(theme, 'Manzil', 0.0),
+              _hifzRingPlaceholder(theme, l.t('hifz_sabaq'), 0.0),
+              _hifzRingPlaceholder(theme, l.t('hifz_sabqi'), 0.0),
+              _hifzRingPlaceholder(theme, l.t('hifz_manzil'), 0.0),
             ],
           ),
           const SizedBox(height: 16),
@@ -521,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              'Coming Soon',
+              l.t('home_coming_soon'),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 11,

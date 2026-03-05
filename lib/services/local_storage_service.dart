@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quran_app/models/werd_models.dart';
 
 /// Persists user reading state using SharedPreferences.
 class LocalStorageService {
@@ -7,6 +8,7 @@ class LocalStorageService {
   static const _keyLastVerseKey = 'last_read_verse_key';
   static const _keyLastTimestamp = 'last_read_timestamp';
   static const _keyHasReadingHistory = 'has_reading_history';
+  static const _keyWerdConfig = 'werd_config';
 
   final SharedPreferences _prefs;
 
@@ -43,6 +45,23 @@ class LocalStorageService {
 
   /// Whether the user has ever read something.
   bool get hasReadingHistory => _prefs.getBool(_keyHasReadingHistory) ?? false;
+
+  // ── Werd (Daily Recitation) ──
+
+  /// Save the user's werd configuration.
+  void saveWerdConfig(WerdConfig config) {
+    _prefs.setString(_keyWerdConfig, config.encode());
+  }
+
+  /// Returns the saved werd configuration, or null if none set.
+  WerdConfig? getWerdConfig() {
+    return WerdConfig.decode(_prefs.getString(_keyWerdConfig));
+  }
+
+  /// Clear the saved werd configuration.
+  void clearWerdConfig() {
+    _prefs.remove(_keyWerdConfig);
+  }
 }
 
 /// Simple data class for last read position.

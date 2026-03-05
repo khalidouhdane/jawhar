@@ -7,6 +7,7 @@ import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class AudioScreen extends StatefulWidget {
   const AudioScreen({super.key});
@@ -35,6 +36,7 @@ class _AudioScreenState extends State<AudioScreen>
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
@@ -47,7 +49,7 @@ class _AudioScreenState extends State<AudioScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'Listen',
+                l.t('audio_title'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 26,
@@ -61,7 +63,7 @@ class _AudioScreenState extends State<AudioScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'Explore reciters and listen to the Quran',
+                l.t('audio_subtitle'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -92,7 +94,7 @@ class _AudioScreenState extends State<AudioScreen>
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search reciters or surahs...',
+                    hintText: l.t('audio_search_hint'),
                     hintStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -140,9 +142,9 @@ class _AudioScreenState extends State<AudioScreen>
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
-                  tabs: const [
-                    Tab(text: 'Reciters'),
-                    Tab(text: 'Surahs'),
+                  tabs: [
+                    Tab(text: l.t('audio_tab_reciters')),
+                    Tab(text: l.t('audio_tab_surahs')),
                   ],
                 ),
               ),
@@ -167,6 +169,7 @@ class _AudioScreenState extends State<AudioScreen>
     return Consumer<AudioProvider>(
       builder: (context, audio, _) {
         if (audio.activeVerseKey == null) return const SizedBox.shrink();
+        final loc = AppLocalizations.of(context);
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
@@ -227,7 +230,7 @@ class _AudioScreenState extends State<AudioScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Now Playing — ${audio.activeVerseKey}',
+                          '${loc.t('audio_now_playing')} — ${audio.activeVerseKey}',
                           style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 12,

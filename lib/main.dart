@@ -13,7 +13,11 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/app_shell.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
+import 'package:quran_app/providers/werd_provider.dart';
+import 'package:quran_app/providers/locale_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +52,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
         ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => WerdProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         Provider.value(value: storageService),
       ],
       child: DevicePreview(
@@ -65,12 +71,19 @@ class QuranApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, LocaleProvider>(
+      builder: (context, themeProvider, localeProvider, child) {
         return MaterialApp(
           title: 'Le Quran',
           debugShowCheckedModeBanner: false,
-          locale: DevicePreview.locale(context),
+          locale: localeProvider.locale,
+          supportedLocales: const [Locale('en'), Locale('ar')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           builder: DevicePreview.appBuilder,
           theme: ThemeData(
             fontFamily: 'Inter',

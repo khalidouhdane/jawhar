@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
+import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 
@@ -12,6 +14,8 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final hifz = context.watch<HifzProvider>();
+    final locale = context.watch<LocaleProvider>();
+    final l = AppLocalizations.of(context);
     final storage = context.read<LocalStorageService>();
     final lastRead = storage.getLastRead();
 
@@ -28,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
 
               // ── Header ──
               Text(
-                'Settings',
+                l.t('profile_title'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 26,
@@ -39,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Customize your experience',
+                l.t('profile_subtitle'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -50,50 +54,132 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── Reading Stats ──
-              _buildStatsCard(theme, hifz, lastRead),
+              _buildStatsCard(theme, hifz, lastRead, l),
               const SizedBox(height: 20),
 
-              // ── Theme Selector ──
-              _buildSectionLabel(theme, 'Appearance'),
+              // ── Language Selector ──
+              _buildSectionLabel(theme, l.t('profile_language')),
               const SizedBox(height: 10),
-              _buildThemeSelector(context, theme),
+              _buildLanguageSelector(context, theme, locale),
+              const SizedBox(height: 24),
+
+              // ── Theme Selector ──
+              _buildSectionLabel(theme, l.t('profile_appearance')),
+              const SizedBox(height: 10),
+              _buildThemeSelector(context, theme, l),
               const SizedBox(height: 24),
 
               // ── Bookmarks ──
-              _buildSectionLabel(theme, 'Bookmarks'),
+              _buildSectionLabel(theme, l.t('profile_bookmarks_title')),
               const SizedBox(height: 10),
               _buildPlaceholderCard(
                 theme,
                 icon: LucideIcons.bookmark,
-                title: 'Your Bookmarks',
-                subtitle: 'Save and organize your favorite verses',
+                title: l.t('profile_bookmarks_title'),
+                subtitle: l.t('profile_bookmarks_desc'),
+                badge: l.t('profile_soon'),
               ),
               const SizedBox(height: 24),
 
               // ── About ──
-              _buildSectionLabel(theme, 'About'),
+              _buildSectionLabel(theme, l.t('profile_about')),
               const SizedBox(height: 10),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.info,
                 title: 'Le Quran',
-                subtitle: 'Version 1.0.0',
+                subtitle: l.t('profile_version'),
               ),
               const SizedBox(height: 6),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.heart,
-                title: 'Made with love',
-                subtitle: 'A modern Quran companion',
+                title: l.t('profile_made_with'),
+                subtitle: l.t('profile_companion'),
               ),
               const SizedBox(height: 6),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.globe,
-                title: 'Data Source',
+                title: l.t('profile_data'),
                 subtitle: 'Quran.com API',
               ),
               const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Language Selector ──
+  Widget _buildLanguageSelector(
+    BuildContext context,
+    ThemeProvider theme,
+    LocaleProvider locale,
+  ) {
+    return Row(
+      children: [
+        _langOption(
+          context,
+          theme,
+          locale,
+          const Locale('en'),
+          'English',
+          '🇬🇧',
+        ),
+        const SizedBox(width: 10),
+        _langOption(
+          context,
+          theme,
+          locale,
+          const Locale('ar'),
+          'العربية',
+          '🇸🇦',
+        ),
+      ],
+    );
+  }
+
+  Widget _langOption(
+    BuildContext context,
+    ThemeProvider theme,
+    LocaleProvider locale,
+    Locale target,
+    String label,
+    String flag,
+  ) {
+    final isActive = locale.locale == target;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => locale.setLocale(target),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive ? theme.accentColor : theme.dividerColor,
+              width: isActive ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 28)),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: isActive ? theme.accentColor : theme.secondaryText,
+                ),
+              ),
+              if (isActive) ...[
+                const SizedBox(height: 4),
+                Icon(LucideIcons.check, size: 14, color: theme.accentColor),
+              ],
             ],
           ),
         ),
@@ -106,6 +192,7 @@ class ProfileScreen extends StatelessWidget {
     ThemeProvider theme,
     HifzProvider hifz,
     LastReadPosition? lastRead,
+    AppLocalizations l,
   ) {
     return Container(
       width: double.infinity,
@@ -119,7 +206,7 @@ class ProfileScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your Journey',
+            l.t('profile_journey'),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -133,21 +220,21 @@ class ProfileScreen extends StatelessWidget {
               _statItem(
                 theme,
                 value: '${hifz.totalMemorized}',
-                label: 'Memorized',
+                label: l.t('profile_memorized'),
                 icon: LucideIcons.brain,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: '${hifz.streak.currentStreak}',
-                label: 'Day streak',
+                label: l.t('hifz_day_streak'),
                 icon: LucideIcons.flame,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: lastRead != null ? '${lastRead.page}' : '-',
-                label: 'Last page',
+                label: l.t('profile_last_page'),
                 icon: LucideIcons.bookOpen,
               ),
             ],
@@ -197,14 +284,18 @@ class ProfileScreen extends StatelessWidget {
   }
 
   // ── Theme Selector ──
-  Widget _buildThemeSelector(BuildContext context, ThemeProvider theme) {
+  Widget _buildThemeSelector(
+    BuildContext context,
+    ThemeProvider theme,
+    AppLocalizations l,
+  ) {
     return Row(
       children: [
         _themeOption(
           context,
           theme,
           AppTheme.classic,
-          'Classic',
+          l.t('profile_theme_classic'),
           Colors.white,
           const Color(0xFF1A454E),
         ),
@@ -213,7 +304,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.warm,
-          'Warm',
+          l.t('profile_theme_warm'),
           const Color(0xFFF5F0E8),
           const Color(0xFF1A454E),
         ),
@@ -222,7 +313,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.dark,
-          'Dark',
+          l.t('profile_theme_dark'),
           const Color(0xFF0A1E24),
           const Color(0xFF4DB6AC),
         ),
@@ -254,7 +345,6 @@ class ProfileScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Preview circle
               Container(
                 width: 44,
                 height: 44,
@@ -317,6 +407,7 @@ class ProfileScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    required String badge,
   }) {
     return Container(
       width: double.infinity,
@@ -369,7 +460,7 @@ class ProfileScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              'Soon',
+              badge,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 10,
