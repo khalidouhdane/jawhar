@@ -48,6 +48,7 @@ dependencies:
   audio_service: ^0.18.18
   path_provider: ^2.1.5
   shared_preferences: ^2.5.4
+  quran: ^1.4.1
 
 dev_dependencies:
   flutter_test:

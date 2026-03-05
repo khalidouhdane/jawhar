@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
+import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/app_shell.dart';
@@ -41,6 +42,32 @@ void main() async {
   // Create AudioProvider and wire the handler
   final audioProvider = AudioProvider();
   audioProvider.attachAudioHandler(audioHandler);
+
+  // Determine initial language from saved or system locale
+  final savedLocale = prefs.getString('app_locale');
+  final systemLang = PlatformDispatcher.instance.locale.languageCode;
+  final initialLang = savedLocale ?? (systemLang == 'ar' ? 'ar' : 'en');
+
+  // Set default reciter based on saved rewaya with locale-aware name
+  if (storageService.savedRewaya == 2) {
+    // Warsh: Al Ayoun Al Koushi (MP3Quran id=16, but not in QDC map)
+    final name = initialLang == 'ar' ? 'العيون الكوشي' : 'Al Ayoun Al Koushi';
+    audioProvider.setReciter(
+      16, // Al Ayoun Al Koushi
+      name: name,
+      apiSource: ApiSource.mp3Quran,
+      serverUrl: "https://server11.mp3quran.net/koshi/",
+      moshafId: 16,
+    );
+  } else {
+    // Hafs default: Mishary Rashid Alafasy (QDC id=7)
+    // setReciter would bail early because _reciterId already defaults to 7,
+    // so we directly update the name via updateReciterName.
+    if (initialLang == 'ar') {
+      final arabicName = Reciter.arabicNamesById[7] ?? 'مشاري راشد العفاسي';
+      audioProvider.updateReciterName(arabicName);
+    }
+  }
 
   // Default tab: Home (0) if user has reading history, else Read (1)
   final defaultTab = storageService.hasReadingHistory ? 0 : 1;

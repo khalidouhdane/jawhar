@@ -15,6 +15,7 @@ import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/widgets/top_nav_bar.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran/quran.dart' as quran;
 
 class ReadingScreen extends StatefulWidget {
   final int initialPage;
@@ -465,6 +466,26 @@ class _ReadingScreenState extends State<ReadingScreen> {
                         '$surahName - ${l.t('reading_playing')}';
                   }
                 }
+                // Determine if we are currently viewing the page that is playing
+                bool isViewingPlayingPage = true;
+                int? targetPage;
+                if (audioProvider.activeVerseKey != null &&
+                    readingProvider.verses.isNotEmpty) {
+                  isViewingPlayingPage = readingProvider.verses.any(
+                    (v) => v.verseKey == audioProvider.activeVerseKey,
+                  );
+
+                  if (!isViewingPlayingPage) {
+                    final parts = audioProvider.activeVerseKey!.split(':');
+                    if (parts.length == 2) {
+                      final surah = int.tryParse(parts[0]);
+                      final ayah = int.tryParse(parts[1]);
+                      if (surah != null && ayah != null) {
+                        targetPage = quran.getPageNumber(surah, ayah);
+                      }
+                    }
+                  }
+                }
 
                 return Positioned(
                   bottom: 0,
@@ -484,10 +505,14 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           currentPositionText: currentPosStr,
                           totalDurationText: totalDurStr,
                           progress: progress,
+                          isViewingPlayingPage: isViewingPlayingPage,
                           playingTitle: playingVerseLabel,
                           reciterId: audioProvider.reciterId,
                           reciterName: audioProvider.reciterName,
                           repeatMode: audioProvider.repeatMode,
+                          onJumpToPlayingVerse: targetPage != null
+                              ? () => _goToPage(targetPage!)
+                              : null,
                           onToggleExpand: () => setState(
                             () => isAudioExpanded = !isAudioExpanded,
                           ),
@@ -574,7 +599,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     // Indicator is always bottom center
                     indicatorAlignment = Alignment.bottomCenter;
 
-                    if (theme.showHizbInfo) {
+                    if (theme.showJuzInfo) {
                       if (theme.dynamicPageInfoEnabled) {
                         // Page and Hizb swap left/right
                         pageNumberAlignment = isOddPage
@@ -601,7 +626,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     }
                   } else {
                     // Indicator is OFF
-                    if (theme.showHizbInfo) {
+                    if (theme.showJuzInfo) {
                       if (theme.dynamicPageInfoEnabled) {
                         // Page and Hizb swap left/right
                         pageNumberAlignment = isOddPage
@@ -663,7 +688,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   _OverlayText(text: surahName),
-                                  _OverlayText(text: juzName),
+                                  _OverlayText(text: hizbName),
                                 ],
                               ),
                             ),
@@ -708,7 +733,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                     if (hizbAlignment != null)
                                       Align(
                                         alignment: hizbAlignment,
-                                        child: _OverlayText(text: hizbName),
+                                        child: _OverlayText(text: juzName),
                                       ),
                                     if (indicatorAlignment != null)
                                       Align(

@@ -1,6 +1,8 @@
 # Gemini — Project Context & Instructions
 
 > This file is for AI assistants working on this project. It contains essential context, architecture decisions, and instructions to maintain consistency across sessions.
+>
+> **NOTE:** Don't push and build until fixes are confirmed by the user.
 
 ---
 
@@ -156,6 +158,7 @@ The app features a one-time onboarding flow that auto-detects the system languag
 6. **Verse keys format**: `"chapter:verse"` (e.g., `"2:255"` = Al-Baqarah, Ayat al-Kursi)
 7. **Cache chapter audio data per reciter** — Key pattern: `"reciterId:chapterNumber"`
 8. **File Size Management** — `overlays.dart` was previously split into the `sheets/` directory to improve maintainability. If other files like `reading_canvas.dart`, `reading_screen.dart`, or `audio_player_bridge.dart` grow too large, consider segmenting them similarly.
+9. **Don't push or build until confirmed** — Do NOT push to GitHub or build APKs until the user has confirmed fixes look correct on their device.
 
 ---
 

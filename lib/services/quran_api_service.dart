@@ -52,10 +52,10 @@ class QuranApiService {
 
   /// Fetch reciters using the new authenticated /resources/chapter_reciters
   /// endpoint which natively returns 20+ reciters including QDC exclusives.
+  /// The endpoint always returns `arabic_name` as a dedicated field,
+  /// so we don't need to change the language parameter to get Arabic names.
   Future<List<Reciter>> getReciters({String language = 'en'}) async {
-    final uri = Uri.parse(
-      '$baseUrl/resources/chapter_reciters?language=$language',
-    );
+    final uri = Uri.parse('$baseUrl/resources/chapter_reciters');
     final headers = await _getAuthHeaders();
     final response = await http.get(uri, headers: headers);
 
@@ -63,12 +63,17 @@ class QuranApiService {
       final jsonResponse = json.decode(response.body);
       final List<dynamic> recitersJson = jsonResponse['reciters'];
 
-      // We can use fromQdcJson because the new API formats it identically
-      // to the older QDC json format we wrote the parser for (e.g. 'name' instead of 'reciter_name').
       final result = recitersJson
-          .map((json) => Reciter.fromQdcJson(json))
+          .map((json) => Reciter.fromQdcJson(json, language: language))
           .toList();
-      result.sort((a, b) => a.reciterName.compareTo(b.reciterName));
+      // Sort using locale-aware comparison to handle both Arabic and English
+      result.sort((a, b) {
+        try {
+          return a.reciterName.compareTo(b.reciterName);
+        } catch (_) {
+          return 0;
+        }
+      });
       return result;
     } else {
       throw Exception('Failed to load reciters: ${response.statusCode}');

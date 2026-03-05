@@ -8,6 +8,7 @@ class AudioPlayerBridge extends StatelessWidget {
   final bool isExpanded;
   final bool isPlaying;
   final bool isLoading;
+  final bool isViewingPlayingPage;
   final String currentPositionText;
   final String totalDurationText;
   final double progress;
@@ -24,6 +25,7 @@ class AudioPlayerBridge extends StatelessWidget {
   final VoidCallback onJumpForward;
   final VoidCallback onJumpBackward;
   final VoidCallback onRepeatToggle;
+  final VoidCallback? onJumpToPlayingVerse;
   final ValueChanged<double> onSeek;
 
   const AudioPlayerBridge({
@@ -31,6 +33,7 @@ class AudioPlayerBridge extends StatelessWidget {
     required this.isExpanded,
     required this.isPlaying,
     this.isLoading = false,
+    this.isViewingPlayingPage = true,
     required this.currentPositionText,
     required this.totalDurationText,
     required this.progress,
@@ -47,6 +50,7 @@ class AudioPlayerBridge extends StatelessWidget {
     required this.onJumpForward,
     required this.onJumpBackward,
     required this.onRepeatToggle,
+    this.onJumpToPlayingVerse,
     required this.onSeek,
   });
 
@@ -126,14 +130,28 @@ class AudioPlayerBridge extends StatelessWidget {
                                       width: 40,
                                       height: 40,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Image.network(
-                                          "https://api.dicebear.com/7.x/initials/png?seed=$reciterName&backgroundColor=transparent&textColor=a1a1aa&fontWeight=600",
-                                          width: 40,
-                                          height: 40,
-                                          fit: BoxFit.cover,
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Center(
+                                              child: Directionality(
+                                                textDirection:
+                                                    TextDirection.ltr,
+                                                child: Text(
+                                                  reciterName.isNotEmpty
+                                                      ? reciterName
+                                                            .trim()
+                                                            .characters
+                                                            .first
+                                                      : '?',
+                                                  style: TextStyle(
+                                                    color: theme.mutedText,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
                                     ),
                                   ),
                                 ),
@@ -176,6 +194,27 @@ class AudioPlayerBridge extends StatelessWidget {
                       const SizedBox(width: 24),
                       Row(
                         children: [
+                          if (!isViewingPlayingPage &&
+                              isPlaying &&
+                              onJumpToPlayingVerse != null) ...[
+                            GestureDetector(
+                              onTap: onJumpToPlayingVerse,
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: theme.pillBackground,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  LucideIcons.locate,
+                                  size: 20,
+                                  color: theme.primaryText,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
                           GestureDetector(
                             onTap: onTogglePlay,
                             child: Container(
@@ -235,115 +274,125 @@ class AudioPlayerBridge extends StatelessWidget {
               child: IgnorePointer(
                 ignoring: !isExpanded,
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 16.0,
+                  ),
                   child: Column(
                     children: [
                       // Scrubber
-                      Column(
-                        children: [
-                          SizedBox(
-                            height: 12,
-                            child: SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 4,
-                                activeTrackColor: theme.sliderActive,
-                                inactiveTrackColor: theme.sliderInactive,
-                                thumbColor: theme.sliderActive,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 6,
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 12,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 4,
+                                  activeTrackColor: theme.sliderActive,
+                                  inactiveTrackColor: theme.sliderInactive,
+                                  thumbColor: theme.sliderActive,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 6,
+                                  ),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 14,
+                                  ),
+                                  trackShape:
+                                      const RoundedRectSliderTrackShape(),
                                 ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 14,
-                                ),
-                                trackShape: const RoundedRectSliderTrackShape(),
-                              ),
-                              child: ExcludeSemantics(
-                                child: Slider(
-                                  value: progress.clamp(0.0, 1.0),
-                                  onChanged: (val) {
-                                    onSeek(val);
-                                  },
+                                child: ExcludeSemantics(
+                                  child: Slider(
+                                    value: progress.clamp(0.0, 1.0),
+                                    onChanged: (val) {
+                                      onSeek(val);
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                currentPositionText,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.mutedText,
-                                  letterSpacing: 0.5,
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  currentPositionText,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: theme.mutedText,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                totalDurationText,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.mutedText,
-                                  letterSpacing: 0.5,
+                                Text(
+                                  totalDurationText,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: theme.mutedText,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       // Playback Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildJumpButton(
-                            isForward: false,
-                            onTap: onJumpBackward,
-                            theme: theme,
-                          ),
-                          GestureDetector(
-                            onTap: onSkipPrevious,
-                            child: Icon(
-                              LucideIcons.skipBack,
-                              size: 24,
-                              color: theme.accentColor,
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildJumpButton(
+                              isForward: false,
+                              onTap: onJumpBackward,
+                              theme: theme,
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: isLoading ? null : onTogglePlay,
-                            child: isLoading
-                                ? SizedBox(
-                                    width: 36,
-                                    height: 36,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 3,
+                            GestureDetector(
+                              onTap: onSkipPrevious,
+                              child: Icon(
+                                LucideIcons.skipBack,
+                                size: 24,
+                                color: theme.accentColor,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: isLoading ? null : onTogglePlay,
+                              child: isLoading
+                                  ? SizedBox(
+                                      width: 36,
+                                      height: 36,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        color: theme.accentColor,
+                                      ),
+                                    )
+                                  : Icon(
+                                      isPlaying
+                                          ? LucideIcons.pause
+                                          : LucideIcons.play,
+                                      size: 36,
                                       color: theme.accentColor,
                                     ),
-                                  )
-                                : Icon(
-                                    isPlaying
-                                        ? LucideIcons.pause
-                                        : LucideIcons.play,
-                                    size: 36,
-                                    color: theme.accentColor,
-                                  ),
-                          ),
-                          GestureDetector(
-                            onTap: onSkipNext,
-                            child: Icon(
-                              LucideIcons.skipForward,
-                              size: 24,
-                              color: theme.accentColor,
                             ),
-                          ),
-                          _buildJumpButton(
-                            isForward: true,
-                            onTap: onJumpForward,
-                            theme: theme,
-                          ),
-                        ],
+                            GestureDetector(
+                              onTap: onSkipNext,
+                              child: Icon(
+                                LucideIcons.skipForward,
+                                size: 24,
+                                color: theme.accentColor,
+                              ),
+                            ),
+                            _buildJumpButton(
+                              isForward: true,
+                              onTap: onJumpForward,
+                              theme: theme,
+                            ),
+                          ],
+                        ),
                       ),
                       const Spacer(),
                       // Bottom Tools
@@ -359,14 +408,35 @@ class AudioPlayerBridge extends StatelessWidget {
                                   Container(
                                     width: 36,
                                     height: 36,
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.grey,
-                                      image: DecorationImage(
-                                        image: NetworkImage(
-                                          "https://api.dicebear.com/7.x/avataaars/png?seed=Maher&backgroundColor=f0f7f8",
-                                        ),
+                                      color: theme.pillBackground,
+                                      border: Border.all(
+                                        color: theme.dividerColor,
+                                      ),
+                                    ),
+                                    child: ClipOval(
+                                      child: Image.asset(
+                                        'assets/images/reciters/$reciterId.jpg',
+                                        width: 36,
+                                        height: 36,
                                         fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return Center(
+                                                child: Text(
+                                                  reciterName.isNotEmpty
+                                                      ? reciterName
+                                                            .substring(0, 1)
+                                                            .toUpperCase()
+                                                      : '?',
+                                                  style: TextStyle(
+                                                    color: theme.mutedText,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                       ),
                                     ),
                                   ),
@@ -382,9 +452,9 @@ class AudioPlayerBridge extends StatelessWidget {
                                               child: Text(
                                                 reciterName,
                                                 style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: theme.accentColor,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                  color: theme.primaryText,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -392,17 +462,18 @@ class AudioPlayerBridge extends StatelessWidget {
                                             const SizedBox(width: 4),
                                             Icon(
                                               LucideIcons.chevronDown,
-                                              size: 12,
+                                              size: 14,
                                               color: theme.mutedText,
                                             ),
                                           ],
                                         ),
+                                        const SizedBox(height: 2),
                                         Text(
                                           playingTitle,
                                           style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: 12,
                                             color: theme.mutedText,
-                                            fontWeight: FontWeight.w500,
+                                            fontWeight: FontWeight.normal,
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
@@ -419,10 +490,13 @@ class AudioPlayerBridge extends StatelessWidget {
                               GestureDetector(
                                 onTap: onRepeatToggle,
                                 child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0,
+                                    vertical: 8.0,
+                                  ),
                                   child: Icon(
                                     LucideIcons.repeat,
-                                    size: 18,
+                                    size: 20,
                                     color: repeatMode != AudioRepeatMode.none
                                         ? theme.accentColor
                                         : theme.mutedText,
@@ -432,10 +506,13 @@ class AudioPlayerBridge extends StatelessWidget {
                               GestureDetector(
                                 onTap: onSettingsTapped,
                                 child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0,
+                                    vertical: 8.0,
+                                  ),
                                   child: Icon(
                                     LucideIcons.slidersHorizontal,
-                                    size: 18,
+                                    size: 20,
                                     color: theme.mutedText,
                                   ),
                                 ),

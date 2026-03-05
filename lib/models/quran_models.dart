@@ -112,25 +112,71 @@ class Reciter {
     this.hasTimingData = true,
   });
 
-  /// Standard API format: { "id": 7, "reciter_name": "...", "style": "..." }
+  /// Standard API format: { "id": 7, "reciter_name": "...", "style": "...", "translated_name": { "name": "..." } }
+  /// When called with language=ar, translated_name.name contains the Arabic name.
   factory Reciter.fromJson(Map<String, dynamic> json) {
+    // Prefer translated_name (localized) over reciter_name (always English)
+    final translatedName = json['translated_name']?['name'] as String?;
+    final fallbackName = json['reciter_name'] ?? '';
     return Reciter(
       id: json['id'],
-      reciterName: json['reciter_name'],
+      reciterName: (translatedName != null && translatedName.isNotEmpty)
+          ? translatedName
+          : fallbackName,
       style: json['style'],
       apiSource: ApiSource.quranDotCom,
     );
   }
 
+  /// Public Arabic names map — keyed by reciter ID.
+  /// Used by AudioProvider and main.dart to set the localized initial name.
+  static const Map<int, String> arabicNamesById = {
+    1: 'عبد الباسط عبد الصمد (مجوّد)',
+    2: 'عبد الباسط عبد الصمد',
+    3: 'عبد الرحمن السديس',
+    4: 'أبو بكر الشاطري',
+    5: 'هاني الرفاعي',
+    6: 'محمود خليل الحصري',
+    7: 'مشاري راشد العفاسي',
+    9: 'محمد صديق المنشاوي',
+    10: 'سعود الشريم',
+    12: 'محمود خليل الحصري (حفص)',
+    13: 'سعد الغامدي',
+    19: 'أحمد بن علي العجمي',
+    158: 'عبدالله علي جابر',
+    159: 'ماهر المعيقلي',
+    160: 'بندر بليلة',
+    161: 'خليفة الطنيجي',
+    168: 'محمد صديق المنشاوي (مع أطفال)',
+    173: 'مشاري راشد العفاسي (بث مباشر)',
+    174: 'ياسر الدوسري',
+    175: 'عبدالله حمد أبو شريدة',
+  };
+
   /// QDC API format: { "id": 7, "name": "...", "style": { "name": "..." } }
-  factory Reciter.fromQdcJson(Map<String, dynamic> json) {
+  /// Note: arabic_name is always empty in the API response; we use a local map instead.
+  factory Reciter.fromQdcJson(
+    Map<String, dynamic> json, {
+    String language = 'en',
+  }) {
     String? styleName;
     if (json['style'] is Map) {
       styleName = json['style']['name'] as String?;
     }
+    final id = json['id'] as int;
+    final fallbackName = json['name'] ?? json['reciter_name'] ?? '';
+
+    String finalName;
+    if (language == 'ar') {
+      // API arabic_name field is always empty — use local map instead
+      finalName = arabicNamesById[id] ?? fallbackName;
+    } else {
+      finalName = fallbackName;
+    }
+
     return Reciter(
-      id: json['id'],
-      reciterName: json['name'] ?? json['translated_name']?['name'] ?? '',
+      id: id,
+      reciterName: finalName,
       style: styleName,
       apiSource: ApiSource.quranDotCom,
     );

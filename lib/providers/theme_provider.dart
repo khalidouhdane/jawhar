@@ -40,7 +40,7 @@ class ThemeProvider extends ChangeNotifier {
   // Layout features
   bool _dynamicPageInfoEnabled = true;
   bool _showBookIconIndicator = true;
-  bool _showHizbInfo = false;
+  bool _showJuzInfo = false;
 
   AppTheme get theme => _theme;
   bool get isDark => _theme == AppTheme.dark;
@@ -64,7 +64,7 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get dynamicPageInfoEnabled => _dynamicPageInfoEnabled;
   bool get showBookIconIndicator => _showBookIconIndicator;
-  bool get showHizbInfo => _showHizbInfo;
+  bool get showJuzInfo => _showJuzInfo;
 
   void setTheme(AppTheme theme) {
     if (_theme == theme) return;
@@ -136,8 +136,8 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   void setShowHizbInfo(bool show) {
-    if (_showHizbInfo == show) return;
-    _showHizbInfo = show;
+    if (_showJuzInfo == show) return;
+    _showJuzInfo = show;
     notifyListeners();
   }
 

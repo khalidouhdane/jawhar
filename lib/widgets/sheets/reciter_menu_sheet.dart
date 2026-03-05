@@ -18,7 +18,6 @@ class ReciterMenuSheet extends StatefulWidget {
 class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
   late String activeTab;
   String searchQuery = '';
-  String _selectedStyle = 'All';
 
   // Static so favorites & recents persist across popup open/close
   static final Set<int> _favoriteIds = {};
@@ -27,19 +26,8 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
   @override
   void initState() {
     super.initState();
-    // Default to Favorites tab if user has any favorites
     activeTab = _favoriteIds.isNotEmpty ? 'favorites' : 'all';
   }
-
-  // Style priority for sorting (lower = first)
-  static const _stylePriority = {
-    'Murattal': 0,
-    'Mujawwad': 1,
-    'Muallim': 2,
-    'Kids repeat': 3,
-  };
-
-  int _styleOrder(String? style) => _stylePriority[style] ?? 99;
 
   void _addToRecent(int id) {
     _recentIds.remove(id);
@@ -105,7 +93,6 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         child: GestureDetector(
                           onTap: () {
                             rp.setRewaya(1);
-                            setState(() => _selectedStyle = 'All');
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -117,7 +104,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              "Hafs",
+                              l.t('reciter_hafs'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: rp.selectedRewaya == 1
@@ -133,7 +120,6 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         child: GestureDetector(
                           onTap: () {
                             rp.setRewaya(2);
-                            setState(() => _selectedStyle = 'All');
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -145,7 +131,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              "Warsh",
+                              l.t('reciter_warsh'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: rp.selectedRewaya == 2
@@ -223,73 +209,6 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                           ),
                         ],
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 32,
-                  child: Consumer<QuranReadingProvider>(
-                    builder: (context, rp, _) {
-                      // Collect unique styles from reciter data
-                      final styles = <String>{'All'};
-                      for (final r in rp.reciters) {
-                        if (r.style != null && r.style!.isNotEmpty) {
-                          styles.add(r.style!);
-                        }
-                      }
-                      final orderedStyles = styles.toList()
-                        ..sort((a, b) {
-                          if (a == 'All') return -1;
-                          if (b == 'All') return 1;
-                          return (_stylePriority[a] ?? 99).compareTo(
-                            _stylePriority[b] ?? 99,
-                          );
-                        });
-
-                      return ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: orderedStyles.length,
-                        separatorBuilder: (_, _) => const SizedBox(width: 8),
-                        itemBuilder: (context, index) {
-                          final style = orderedStyles[index];
-                          final isSelected = _selectedStyle == style;
-                          return GestureDetector(
-                            onTap: () => setState(() => _selectedStyle = style),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? theme.accentColor.withValues(alpha: 0.15)
-                                    : theme.chipUnselected,
-                                borderRadius: BorderRadius.circular(12),
-                                border: isSelected
-                                    ? Border.all(
-                                        color: theme.accentColor.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                        width: 1,
-                                      )
-                                    : null,
-                              ),
-                              child: Text(
-                                style,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? theme.accentColor
-                                      : theme.mutedText,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Divider(color: theme.dividerColor),
               ],
             ),
@@ -303,22 +222,9 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   );
                 }
 
-                // Sort reciters: Murattal first, then by style priority, then alphabetically
+                // Sort reciters alphabetically
                 var reciters = List.of(readingProvider.reciters)
-                  ..sort((a, b) {
-                    final styleCmp = _styleOrder(
-                      a.style,
-                    ).compareTo(_styleOrder(b.style));
-                    if (styleCmp != 0) return styleCmp;
-                    return a.reciterName.compareTo(b.reciterName);
-                  });
-
-                // Filter by style
-                if (_selectedStyle != 'All') {
-                  reciters = reciters
-                      .where((r) => r.style == _selectedStyle)
-                      .toList();
-                }
+                  ..sort((a, b) => a.reciterName.compareTo(b.reciterName));
 
                 // Filter by tab
                 if (activeTab == 'favorites') {
@@ -385,102 +291,125 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                     final isActive = reciter.id == audioProvider.reciterId;
                     final isFavorite = _favoriteIds.contains(reciter.id);
 
-                    return ListTile(
-                      onTap: () {
-                        audioProvider.setReciter(
-                          reciter.id,
-                          name: reciter.reciterName,
-                          apiSource: reciter.apiSource,
-                          serverUrl: reciter.serverUrl,
-                          moshafId: reciter.moshafId,
-                        );
-                        _addToRecent(reciter.id);
-                        widget.onClose();
-                      },
-                      leading: CircleAvatar(
-                        backgroundColor: theme.pillBackground,
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/images/reciters/${reciter.id}.jpg',
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.network(
-                                "https://api.dicebear.com/7.x/initials/png?seed=${reciter.reciterName}&backgroundColor=transparent&textColor=a1a1aa&fontWeight=600",
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              );
-                            },
-                          ),
-                        ),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? theme.accentColor.withValues(alpha: 0.08)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: isActive
+                            ? Border.all(
+                                color: theme.accentColor.withValues(alpha: 0.3),
+                                width: 1.5,
+                              )
+                            : null,
                       ),
-                      title: Text(
-                        reciter.reciterName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isActive
-                              ? theme.accentColor
-                              : theme.primaryText,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
                         ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${reciter.style ?? l.t('reciter_standard')} ${l.t('reciter_recitation')}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: theme.mutedText,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (!reciter.hasTimingData)
-                            Text(
-                              '⚠ No verse sync',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: theme.mutedText.withValues(alpha: 0.6),
-                                fontWeight: FontWeight.w500,
+                        onTap: () {
+                          audioProvider.setReciter(
+                            reciter.id,
+                            name: reciter.reciterName,
+                            apiSource: reciter.apiSource,
+                            serverUrl: reciter.serverUrl,
+                            moshafId: reciter.moshafId,
+                          );
+                          _addToRecent(reciter.id);
+                          widget.onClose();
+                        },
+                        leading: Stack(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: theme.pillBackground,
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/images/reciters/${reciter.id}.jpg',
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Image.network(
+                                      "https://api.dicebear.com/7.x/initials/png?seed=${reciter.reciterName}&backgroundColor=transparent&textColor=a1a1aa&fontWeight=600",
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isFavorite) {
-                                  _favoriteIds.remove(reciter.id);
-                                } else {
-                                  _favoriteIds.add(reciter.id);
-                                }
-                              });
-                            },
+                            if (isActive)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: theme.accentColor,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: theme.sheetBackground,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    LucideIcons.check,
+                                    size: 10,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        title: Text(
+                          reciter.reciterName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isActive
+                                ? FontWeight.w700
+                                : FontWeight.bold,
+                            color: isActive
+                                ? theme.accentColor
+                                : theme.primaryText,
+                          ),
+                        ),
+                        subtitle: !reciter.hasTimingData
+                            ? Text(
+                                '⚠ No verse sync',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: theme.mutedText.withValues(alpha: 0.6),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            : null,
+                        trailing: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (isFavorite) {
+                                _favoriteIds.remove(reciter.id);
+                              } else {
+                                _favoriteIds.add(reciter.id);
+                              }
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
                             child: Icon(
                               isFavorite
                                   ? LucideIcons.heartHandshake
                                   : LucideIcons.heart,
-                              size: 18,
+                              size: 22,
                               color: isFavorite
                                   ? Colors.red[400]
                                   : theme.dividerColor,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          if (isActive)
-                            Icon(
-                              LucideIcons.checkCircle2,
-                              size: 20,
-                              color: theme.accentColor,
-                            )
-                          else
-                            const SizedBox(width: 20),
-                        ],
+                        ),
                       ),
                     );
                   },

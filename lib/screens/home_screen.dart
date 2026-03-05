@@ -228,7 +228,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        lastRead != null ? lastRead.timeAgo : 'Welcome',
+                        lastRead != null
+                            ? lastRead.timeAgoLocalized(l)
+                            : l.t('home_welcome'),
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 11,
@@ -242,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 Text(
                   lastRead != null
-                      ? 'Resume Your Journey'
+                      ? l.t('home_resume_title')
                       : l.t('home_resume_title'),
                   style: const TextStyle(
                     fontFamily: 'Inter',

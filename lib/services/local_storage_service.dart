@@ -106,4 +106,18 @@ class LastReadPosition {
     if (diff.inDays == 1) return 'Yesterday';
     return '${diff.inDays} days ago';
   }
+
+  /// Localized version of timeAgo using app localizations.
+  String timeAgoLocalized(dynamic l) {
+    final diff = DateTime.now().difference(timestamp);
+    try {
+      if (diff.inMinutes < 1) return l.t('home_just_now');
+      if (diff.inMinutes < 60) return '${diff.inMinutes}${l.t('home_min_ago')}';
+      if (diff.inHours < 24) return '${diff.inHours}${l.t('home_hour_ago')}';
+      if (diff.inDays == 1) return l.t('home_yesterday');
+      return '${diff.inDays} ${l.t('home_days_ago')}';
+    } catch (_) {
+      return timeAgo;
+    }
+  }
 }

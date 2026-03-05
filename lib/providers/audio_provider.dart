@@ -226,6 +226,13 @@ class AudioProvider extends ChangeNotifier {
     }
   }
 
+  void updateReciterName(String newName) {
+    if (_reciterName != newName) {
+      _reciterName = newName;
+      notifyListeners();
+    }
+  }
+
   void setReciter(
     int reciterId, {
     String? name,

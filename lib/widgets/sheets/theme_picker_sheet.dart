@@ -334,7 +334,7 @@ class ThemePickerSheet extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          l.t('theme_show_hizb'),
+                          l.t('theme_show_juz'),
                           style: TextStyle(
                             fontSize: 13,
                             color: theme.primaryText,
@@ -343,7 +343,7 @@ class ThemePickerSheet extends StatelessWidget {
                         SizedBox(
                           height: 24,
                           child: Switch.adaptive(
-                            value: theme.showHizbInfo,
+                            value: theme.showJuzInfo,
                             activeColor: theme.accentColor,
                             onChanged: (v) => theme.setShowHizbInfo(v),
                           ),
