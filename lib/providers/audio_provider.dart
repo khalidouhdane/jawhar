@@ -7,6 +7,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/services/quran_auth_service.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
+import 'package:quran_app/services/mp3quran_service.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 /// Surah names for media notification display.
@@ -71,10 +72,20 @@ class AudioProvider extends ChangeNotifier {
 
   bool _isPlaying = false;
   String? _activeVerseKey; // e.g., "2:5" — works across pages
-  int _reciterId = 7;
-  String _reciterName = 'Mishary Rashid al-`Afasy';
+  int _reciterId = 7; // Default: Mishary Rashid Alafasy
+  String _reciterName = "Mishary Rashid Alafasy";
+  ApiSource _apiSource = ApiSource.quranDotCom;
+  String? _serverUrl;
+  int? _moshafId;
+
+  final Mp3QuranService _mp3QuranService = Mp3QuranService();
+
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
+
+  /// Generation counter: incremented on every new play/setReciter call.
+  /// If a callback sees _generation != its captured value, it aborts.
+  int _generation = 0;
 
   // Playback speed
   double _playbackSpeed = 1.0;
@@ -87,11 +98,14 @@ class AudioProvider extends ChangeNotifier {
   int _currentRepeatIteration = 0;
 
   bool get isPlaying => _isPlaying;
+  bool get isLoading => _isLoading;
   Duration get currentPosition => _currentPosition;
   Duration get totalDuration => _totalDuration;
   String? get activeVerseKey => _activeVerseKey;
   int get reciterId => _reciterId;
   String get reciterName => _reciterName;
+  ApiSource get apiSource => _apiSource;
+  String? get serverUrl => _serverUrl;
   double get playbackSpeed => _playbackSpeed;
   AudioRepeatMode get repeatMode => _repeatMode;
   String? get repeatRangeStart => _repeatRangeStart;
@@ -212,38 +226,71 @@ class AudioProvider extends ChangeNotifier {
     }
   }
 
-  void setReciter(int reciterId, {String? name}) async {
+  void setReciter(
+    int reciterId, {
+    String? name,
+    ApiSource apiSource = ApiSource.quranDotCom,
+    String? serverUrl,
+    int? moshafId,
+  }) async {
     if (_reciterId == reciterId) return;
+
+    // Cancel any in-flight operation
+    final gen = ++_generation;
     _reciterId = reciterId;
+    _apiSource = apiSource;
+    _serverUrl = serverUrl;
+    _moshafId = moshafId;
     if (name != null) _reciterName = name;
+
+    // Clear cache for MP3Quran when switching source type
+    _chapterCache.clear();
 
     // If playing, restart with new reciter from current verse
     if (_activeVerseKey != null && _currentChapter != null) {
       final savedKey = _activeVerseKey!;
+      final savedChapter = _currentChapter!;
 
+      _isSeeking = true;
+      _isLoading = true;
       await _player.stop();
+      _isPlaying = false;
       notifyListeners();
 
       // Fetch new reciter's chapter audio
-      final data = await _fetchChapterAudio(_currentChapter!);
-      if (data == null) return;
+      final data = await _fetchChapterAudio(savedChapter);
+      if (gen != _generation) return; // cancelled
+      if (data == null) {
+        _isSeeking = false;
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
       _verseTimings = data.timings;
 
       // Find timing for current verse and seek
       final timing = _findTiming(savedKey);
       if (timing != null) {
-        // Guard: block onPositionChanged from overriding _activeVerseKey
-        _isSeeking = true;
         _activeVerseKey = savedKey;
         await _player.setSourceUrl(data.audioUrl);
+        if (gen != _generation) return; // cancelled
         await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-        _isSeeking = false;
+        if (gen != _generation) return; // cancelled
         await _player.setPlaybackRate(_playbackSpeed);
         await _player.resume();
+        _isSeeking = false;
+        _isLoading = false;
+        notifyListeners();
+      } else {
+        // No timing for that verse — just load from start
+        _activeVerseKey = null;
+        _isSeeking = false;
+        _isLoading = false;
         notifyListeners();
       }
     } else {
+      _chapterCache.clear();
       notifyListeners();
     }
   }
@@ -357,6 +404,44 @@ class AudioProvider extends ChangeNotifier {
     }
 
     try {
+      if (_apiSource == ApiSource.mp3Quran) {
+        // MP3Quran fetch
+        final paddedSurah = chapterNumber.toString().padLeft(3, '0');
+        final audioUrl = '$_serverUrl$paddedSurah.mp3';
+        List<_VerseTiming> timings = [];
+
+        try {
+          final timingData = await _mp3QuranService.getAyatTiming(
+            _moshafId ?? _reciterId,
+            chapterNumber,
+          );
+          timings = timingData.map((t) {
+            final verseKey = '$chapterNumber:${t['ayah']}';
+            // MP3Quran returns times in milliseconds
+            final timestampFrom = (t['start_time'] as num).toInt();
+            final timestampTo = (t['end_time'] as num).toInt();
+            final duration = timestampTo - timestampFrom;
+
+            return _VerseTiming(
+              verseKey: verseKey,
+              timestampFrom: timestampFrom,
+              timestampTo: timestampTo,
+              duration: duration,
+              firstSegmentMs: timestampFrom,
+            );
+          }).toList();
+        } catch (e) {
+          debugPrint(
+            'No timing data found for MP3Quran reciter $_reciterId: $e',
+          );
+        }
+
+        final data = _ChapterAudioData(audioUrl: audioUrl, timings: timings);
+        _chapterCache[cacheKey] = data;
+        return data;
+      }
+
+      // Quran.com fetch
       final uri = Uri.parse(
         'https://apis.quran.foundation/content/api/v4/chapter_recitations/$_reciterId/$chapterNumber?segments=true',
       );
@@ -431,29 +516,33 @@ class AudioProvider extends ChangeNotifier {
   /// Play a list of verses starting from the given index.
   /// Loads the full chapter audio and seeks to the start verse.
   Future<void> playVerseList(List<Verse> verses, {int startIndex = 0}) async {
-    if (_isLoading) return;
+    if (verses.isEmpty) return;
+
+    // Cancel any in-flight operation
+    final gen = ++_generation;
+
+    final startVerse = verses[startIndex];
+    final chapterNumber = int.parse(startVerse.verseKey.split(':')[0]);
+
+    // Immediately show loading & target verse, block position listener
+    _isSeeking = true;
     _isLoading = true;
+    _activeVerseKey = startVerse.verseKey;
+
+    // Stop any current playback first
+    await _player.stop();
+    _isPlaying = false;
+    notifyListeners();
 
     try {
-      if (verses.isEmpty) {
-        _isLoading = false;
-        return;
-      }
-
-      final startVerse = verses[startIndex];
-      final chapterNumber = int.parse(startVerse.verseKey.split(':')[0]);
-
-      // Block ALL player listeners from modifying state or triggering rebuilds
-      // during the transition. This MUST happen synchronously before any await.
-      _isSeeking = true;
-      _activeVerseKey = startVerse.verseKey;
-      notifyListeners();
-
       // Fetch chapter audio with timings
       final data = await _fetchChapterAudio(chapterNumber);
+      if (gen != _generation) return; // cancelled by newer call
       if (data == null) {
         _isSeeking = false;
         _isLoading = false;
+        _activeVerseKey = null;
+        notifyListeners();
         return;
       }
 
@@ -462,29 +551,59 @@ class AudioProvider extends ChangeNotifier {
 
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
+      debugPrint(
+        '[AudioProvider] verse=${startVerse.verseKey}, '
+        'timings=${data.timings.length}, '
+        'timing found=${timing != null}, '
+        'seekMs=${timing?.firstSegmentMs}, '
+        'audioUrl=${data.audioUrl.substring(0, data.audioUrl.length.clamp(0, 80))}',
+      );
 
       await _player.setSourceUrl(data.audioUrl);
-
-      // Seek to the exact first-word start of the target verse.
-      // firstSegmentMs is derived from the segments array and is the
-      // genuine moment the reciter begins speaking — no artificial buffer.
-      if (timing != null && timing.firstSegmentMs > 0) {
-        await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-      }
-      _isSeeking = false;
+      if (gen != _generation) return; // cancelled
 
       await _player.setPlaybackRate(_playbackSpeed);
-      await _player.resume();
+
+      // For MP3Quran, we need to resume first then seek because some
+      // backends silently ignore seek on an unbuffered source.
+      if (timing != null && timing.firstSegmentMs > 0) {
+        if (_apiSource == ApiSource.mp3Quran) {
+          // Start playback first so the source buffers
+          await _player.resume();
+          if (gen != _generation) return;
+          // Small delay to allow the player to prepare
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (gen != _generation) return;
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return;
+          debugPrint(
+            '[AudioProvider] MP3Quran seek to ${timing.firstSegmentMs}ms',
+          );
+        } else {
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return;
+          await _player.resume();
+          if (gen != _generation) return;
+        }
+      } else {
+        await _player.resume();
+        if (gen != _generation) return;
+      }
+
+      // Only NOW release the seeking guard — audio is actually playing
+      _isSeeking = false;
+      _isLoading = false;
       _syncNotificationMetadata();
       _syncNotificationState();
+      notifyListeners();
     } catch (e) {
       debugPrint('Error in playVerseList: $e');
+      if (gen != _generation) return;
       _isSeeking = false;
+      _isLoading = false;
       _activeVerseKey = null;
       _syncNotificationState();
       notifyListeners();
-    } finally {
-      _isLoading = false;
     }
   }
 

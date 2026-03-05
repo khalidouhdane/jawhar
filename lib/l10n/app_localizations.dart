@@ -98,6 +98,7 @@ class AppLocalizations {
       'profile_last_page': 'Last page',
       'profile_appearance': 'Appearance',
       'profile_language': 'Language',
+      'profile_reading': 'Reading',
       'profile_theme_classic': 'Classic',
       'profile_theme_warm': 'Warm',
       'profile_theme_dark': 'Dark',
@@ -208,6 +209,13 @@ class AppLocalizations {
       'audio_repeat_verse': 'Verse',
       'audio_repeat_times': 'Repeat times',
 
+      // Reading Edge Info
+      'reading_juz': 'Juz',
+      'reading_hizb': 'Hizb',
+      'reading_verse': 'Verse',
+      'reading_playing': 'Playing...',
+      'reading_page_na': 'Page not available',
+
       // General
       'loading': 'Loading...',
     },
@@ -289,6 +297,7 @@ class AppLocalizations {
       'profile_last_page': 'آخر صفحة',
       'profile_appearance': 'المظهر',
       'profile_language': 'اللغة',
+      'profile_reading': 'القراءة',
       'profile_theme_classic': 'كلاسيكي',
       'profile_theme_warm': 'دافئ',
       'profile_theme_dark': 'داكن',
@@ -398,6 +407,13 @@ class AppLocalizations {
       'audio_repeat_off': 'إيقاف',
       'audio_repeat_verse': 'آية',
       'audio_repeat_times': 'عدد التكرار',
+
+      // Reading Edge Info
+      'reading_juz': 'الجزء',
+      'reading_hizb': 'الحزب',
+      'reading_verse': 'الآية',
+      'reading_playing': 'يتم التشغيل...',
+      'reading_page_na': 'الصفحة غير متوفرة',
 
       // General
       'loading': 'جاري التحميل...',

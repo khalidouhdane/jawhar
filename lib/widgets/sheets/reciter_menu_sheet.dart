@@ -98,6 +98,68 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                Consumer<QuranReadingProvider>(
+                  builder: (context, rp, _) => Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            rp.setRewaya(1);
+                            setState(() => _selectedStyle = 'All');
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: rp.selectedRewaya == 1
+                                  ? theme.accentColor
+                                  : theme.inputFill,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              "Hafs",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: rp.selectedRewaya == 1
+                                    ? Colors.white
+                                    : theme.primaryText,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            rp.setRewaya(2);
+                            setState(() => _selectedStyle = 'All');
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: rp.selectedRewaya == 2
+                                  ? theme.accentColor
+                                  : theme.inputFill,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              "Warsh",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: rp.selectedRewaya == 2
+                                    ? Colors.white
+                                    : theme.primaryText,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   onChanged: (value) => setState(() => searchQuery = value),
                   style: TextStyle(color: theme.primaryText),
@@ -328,6 +390,9 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         audioProvider.setReciter(
                           reciter.id,
                           name: reciter.reciterName,
+                          apiSource: reciter.apiSource,
+                          serverUrl: reciter.serverUrl,
+                          moshafId: reciter.moshafId,
                         );
                         _addToRecent(reciter.id);
                         widget.onClose();
@@ -361,13 +426,27 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                               : theme.primaryText,
                         ),
                       ),
-                      subtitle: Text(
-                        "${reciter.style ?? l.t('reciter_standard')} ${l.t('reciter_recitation')}",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.mutedText,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${reciter.style ?? l.t('reciter_standard')} ${l.t('reciter_recitation')}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: theme.mutedText,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (!reciter.hasTimingData)
+                            Text(
+                              '⚠ No verse sync',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: theme.mutedText.withValues(alpha: 0.6),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

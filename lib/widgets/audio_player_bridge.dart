@@ -7,6 +7,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 class AudioPlayerBridge extends StatelessWidget {
   final bool isExpanded;
   final bool isPlaying;
+  final bool isLoading;
   final String currentPositionText;
   final String totalDurationText;
   final double progress;
@@ -29,6 +30,7 @@ class AudioPlayerBridge extends StatelessWidget {
     super.key,
     required this.isExpanded,
     required this.isPlaying,
+    this.isLoading = false,
     required this.currentPositionText,
     required this.totalDurationText,
     required this.progress,
@@ -183,13 +185,22 @@ class AudioPlayerBridge extends StatelessWidget {
                                 color: theme.pillBackground,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
-                                isPlaying
-                                    ? LucideIcons.pause
-                                    : LucideIcons.play,
-                                size: 20,
-                                color: theme.primaryText,
-                              ),
+                              child: isLoading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: theme.primaryText,
+                                      ),
+                                    )
+                                  : Icon(
+                                      isPlaying
+                                          ? LucideIcons.pause
+                                          : LucideIcons.play,
+                                      size: 20,
+                                      color: theme.primaryText,
+                                    ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -301,12 +312,23 @@ class AudioPlayerBridge extends StatelessWidget {
                             ),
                           ),
                           GestureDetector(
-                            onTap: onTogglePlay,
-                            child: Icon(
-                              isPlaying ? LucideIcons.pause : LucideIcons.play,
-                              size: 36,
-                              color: theme.accentColor,
-                            ),
+                            onTap: isLoading ? null : onTogglePlay,
+                            child: isLoading
+                                ? SizedBox(
+                                    width: 36,
+                                    height: 36,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      color: theme.accentColor,
+                                    ),
+                                  )
+                                : Icon(
+                                    isPlaying
+                                        ? LucideIcons.pause
+                                        : LucideIcons.play,
+                                    size: 36,
+                                    color: theme.accentColor,
+                                  ),
                           ),
                           GestureDetector(
                             onTap: onSkipNext,

@@ -18,6 +18,7 @@ import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:quran_app/screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +48,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => QuranReadingProvider()),
+        ChangeNotifierProvider(
+          create: (_) => QuranReadingProvider(storage: storageService),
+        ),
         ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
@@ -106,7 +109,15 @@ class QuranApp extends StatelessWidget {
               PointerDeviceKind.trackpad,
             },
           ),
-          home: const AppShell(),
+          home: Builder(
+            builder: (context) {
+              final storage = context.read<LocalStorageService>();
+              if (!storage.hasCompletedOnboarding) {
+                return const OnboardingScreen();
+              }
+              return const AppShell();
+            },
+          ),
         );
       },
     );

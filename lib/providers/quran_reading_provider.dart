@@ -1,29 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/quran_models.dart';
+import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/services/quran_api_service.dart';
+import 'package:quran_app/services/mp3quran_service.dart';
+import 'package:quran_app/services/warsh_text_service.dart';
 
 class QuranReadingProvider extends ChangeNotifier {
   final QuranApiService _apiService = QuranApiService();
+  final Mp3QuranService _mp3QuranService = Mp3QuranService();
+  final WarshTextService _warshTextService = WarshTextService();
+  final LocalStorageService? _storage;
 
   List<Verse> _verses = [];
   List<Chapter> _chapters = [];
-  List<Reciter> _reciters = [];
+  List<Reciter> _hafsReciters = [];
+  List<Reciter> _warshReciters = [];
 
   bool _isLoading = false;
   int _activePage = 1;
   String _error = '';
+  int _selectedRewaya = 1; // 1 = Hafs, 2 = Warsh
 
   // Page cache for smooth swipe transitions
   final Map<int, List<Verse>> _pageCache = {};
 
   List<Verse> get verses => _verses;
   List<Chapter> get chapters => _chapters;
-  List<Reciter> get reciters => _reciters;
+  List<Reciter> get reciters =>
+      _selectedRewaya == 2 ? _warshReciters : _hafsReciters;
   bool get isLoading => _isLoading;
   int get activePage => _activePage;
   String get error => _error;
+  int get selectedRewaya => _selectedRewaya;
 
-  QuranReadingProvider() {
+  /// Whether the Warsh text data is loaded and ready
+  bool get isWarshTextLoaded => _warshTextService.isLoaded;
+
+  void setRewaya(int rewaya) {
+    if (_selectedRewaya == rewaya) return;
+    _selectedRewaya = rewaya;
+    _storage?.saveRewaya(rewaya);
+    // Clear page cache so pages re-render with the new text
+    _pageCache.clear();
+    notifyListeners();
+    if (rewaya == 2) {
+      _preloadWarshText();
+    }
+    // Reload the current page to reflect new rewaya
+    loadPage(_activePage);
+  }
+
+  /// Preload Warsh text data from CDN
+  Future<void> _preloadWarshText() async {
+    if (_warshTextService.isLoaded) return;
+    await _warshTextService.preload();
+    // Notify so the canvas re-renders with Warsh text
+    if (_selectedRewaya == 2) {
+      _pageCache.clear();
+      notifyListeners();
+    }
+  }
+
+  /// Get Warsh text for a verse key (e.g. "2:255")
+  String? getWarshVerseText(String verseKey) {
+    return _warshTextService.getVerseText(verseKey);
+  }
+
+  QuranReadingProvider({LocalStorageService? storage}) : _storage = storage {
+    // Load persisted rewaya preference
+    _selectedRewaya = storage?.savedRewaya ?? 1;
+    if (_selectedRewaya == 2) {
+      _preloadWarshText();
+    }
     loadPage(1);
     loadChapters();
     loadReciters();
@@ -40,10 +88,17 @@ class QuranReadingProvider extends ChangeNotifier {
 
   Future<void> loadReciters() async {
     try {
-      _reciters = await _apiService.getReciters();
+      _hafsReciters = await _apiService.getReciters();
+      try {
+        _warshReciters = await _mp3QuranService.getRecitersWithTimingInfo(
+          rewaya: 2,
+        );
+      } catch (e) {
+        debugPrint("Failed to load Warsh reciters: $e");
+      }
       notifyListeners();
     } catch (e) {
-      debugPrint("Failed to load reciters: $e");
+      debugPrint("Failed to load Hafs reciters: $e");
     }
   }
 
@@ -90,16 +145,21 @@ class QuranReadingProvider extends ChangeNotifier {
     }
   }
 
-  /// Set the active page without triggering a full reload (used by PageView)
+  /// Set the active page (used by PageView).
+  /// If the page is already cached, updates _verses immediately.
+  /// Otherwise, triggers a full load so edge info is always correct.
   void setActivePage(int page) {
     if (_activePage == page) return;
     _activePage = page;
     final cachedVerses = _pageCache[page];
     if (cachedVerses != null) {
       _verses = cachedVerses;
+      notifyListeners();
+      prefetchPages(page);
+    } else {
+      // Page not cached yet — do a full load so _verses gets updated
+      loadPage(page);
     }
-    notifyListeners();
-    prefetchPages(page);
   }
 
   void nextPage() {

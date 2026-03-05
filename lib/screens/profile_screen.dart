@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
 import 'package:quran_app/providers/locale_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 
@@ -15,6 +16,7 @@ class ProfileScreen extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final hifz = context.watch<HifzProvider>();
     final locale = context.watch<LocaleProvider>();
+    final reading = context.watch<QuranReadingProvider>();
     final l = AppLocalizations.of(context);
     final storage = context.read<LocalStorageService>();
     final lastRead = storage.getLastRead();
@@ -61,6 +63,12 @@ class ProfileScreen extends StatelessWidget {
               _buildSectionLabel(theme, l.t('profile_language')),
               const SizedBox(height: 10),
               _buildLanguageSelector(context, theme, locale),
+              const SizedBox(height: 24),
+
+              // ── Rewaya (Reading) Selector ──
+              _buildSectionLabel(theme, l.t('profile_reading')),
+              const SizedBox(height: 10),
+              _buildRewayaSelector(context, theme, reading),
               const SizedBox(height: 24),
 
               // ── Theme Selector ──
@@ -172,6 +180,75 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: isActive ? theme.accentColor : theme.secondaryText,
+                ),
+              ),
+              if (isActive) ...[
+                const SizedBox(height: 4),
+                Icon(LucideIcons.check, size: 14, color: theme.accentColor),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Rewaya (Reading) Selector ──
+  Widget _buildRewayaSelector(
+    BuildContext context,
+    ThemeProvider theme,
+    QuranReadingProvider reading,
+  ) {
+    return Row(
+      children: [
+        _rewayaOption(context, theme, reading, 1, 'حفص', 'Hafs'),
+        const SizedBox(width: 10),
+        _rewayaOption(context, theme, reading, 2, 'ورش', 'Warsh'),
+      ],
+    );
+  }
+
+  Widget _rewayaOption(
+    BuildContext context,
+    ThemeProvider theme,
+    QuranReadingProvider reading,
+    int rewaya,
+    String arabicLabel,
+    String englishLabel,
+  ) {
+    final isActive = reading.selectedRewaya == rewaya;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => reading.setRewaya(rewaya),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive ? theme.accentColor : theme.dividerColor,
+              width: isActive ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(
+                arabicLabel,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isActive ? theme.accentColor : theme.primaryText,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                englishLabel,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   color: isActive ? theme.accentColor : theme.secondaryText,
                 ),

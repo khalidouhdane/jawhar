@@ -91,12 +91,26 @@ class Chapter {
   }
 }
 
+enum ApiSource { quranDotCom, mp3Quran }
+
 class Reciter {
   final int id;
   final String reciterName;
   final String? style;
+  final ApiSource apiSource;
+  final String? serverUrl; // For MP3Quran
+  final int? moshafId; // For MP3Quran timing API
+  final bool hasTimingData; // Whether ayat_timing is available
 
-  Reciter({required this.id, required this.reciterName, this.style});
+  Reciter({
+    required this.id,
+    required this.reciterName,
+    this.style,
+    this.apiSource = ApiSource.quranDotCom,
+    this.serverUrl,
+    this.moshafId,
+    this.hasTimingData = true,
+  });
 
   /// Standard API format: { "id": 7, "reciter_name": "...", "style": "..." }
   factory Reciter.fromJson(Map<String, dynamic> json) {
@@ -104,6 +118,7 @@ class Reciter {
       id: json['id'],
       reciterName: json['reciter_name'],
       style: json['style'],
+      apiSource: ApiSource.quranDotCom,
     );
   }
 
@@ -117,6 +132,28 @@ class Reciter {
       id: json['id'],
       reciterName: json['name'] ?? json['translated_name']?['name'] ?? '',
       style: styleName,
+      apiSource: ApiSource.quranDotCom,
+    );
+  }
+
+  /// MP3Quran API format
+  factory Reciter.fromMp3QuranJson(Map<String, dynamic> json) {
+    String? server;
+    String? styleName;
+    int? moshafId;
+    if (json['moshaf'] != null && (json['moshaf'] as List).isNotEmpty) {
+      final moshaf = json['moshaf'][0];
+      server = moshaf['server'];
+      styleName = moshaf['name'];
+      moshafId = moshaf['id'];
+    }
+    return Reciter(
+      id: json['id'],
+      reciterName: json['name'] ?? '',
+      style: styleName,
+      apiSource: ApiSource.mp3Quran,
+      serverUrl: server,
+      moshafId: moshafId,
     );
   }
 }

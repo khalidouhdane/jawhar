@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/bottom_dock.dart';
@@ -11,6 +14,7 @@ import 'package:quran_app/widgets/overlays.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/widgets/top_nav_bar.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class ReadingScreen extends StatefulWidget {
   final int initialPage;
@@ -36,6 +40,11 @@ class _ReadingScreenState extends State<ReadingScreen> {
   // Saved reference to avoid context.read in dispose
   late final AudioProvider _audioProvider;
 
+  // Werd progress tracking
+  final Set<int> _readPagesInSession = {};
+  Timer? _pageReadTimer;
+  bool _hasExceededGoalThisSession = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,10 +68,14 @@ class _ReadingScreenState extends State<ReadingScreen> {
     _audioProvider = context.read<AudioProvider>();
     _lastActiveVerseKey = _audioProvider.activeVerseKey;
     _audioProvider.addListener(_onAudioChanged);
+
+    // Track initial page for Werd progress
+    _startPageReadTimer(startPage);
   }
 
   @override
   void dispose() {
+    _pageReadTimer?.cancel();
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
     super.dispose();
@@ -216,6 +229,111 @@ class _ReadingScreenState extends State<ReadingScreen> {
     );
   }
 
+  // ── Werd Progress Tracking ───────────────────────────────────────────────
+
+  void _startPageReadTimer(int page) {
+    _pageReadTimer?.cancel();
+
+    // If already read this session, don't start timer again
+    if (_readPagesInSession.contains(page)) return;
+
+    final werdProvider = context.read<WerdProvider>();
+    if (!werdProvider.hasWerd || werdProvider.config?.isEnabled != true) return;
+
+    _pageReadTimer = Timer(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      _markPageAsRead(page);
+    });
+  }
+
+  void _markPageAsRead(int page) {
+    final werdProvider = context.read<WerdProvider>();
+    if (!werdProvider.hasWerd || werdProvider.config?.isEnabled != true) return;
+    if (_readPagesInSession.contains(page)) return;
+
+    _readPagesInSession.add(page);
+
+    final config = werdProvider.config!;
+    final int oldRead = config.pagesReadToday;
+    final int target = config.todayTarget;
+
+    werdProvider.incrementProgress(1);
+    final int newRead = oldRead + 1;
+
+    _checkWerdMilestones(oldRead, newRead, target);
+  }
+
+  void _checkWerdMilestones(int oldRead, int newRead, int target) {
+    if (target == 0) return;
+
+    String? message;
+    IconData? icon;
+    Color? iconColor;
+
+    if (oldRead < target / 2 && newRead >= target / 2) {
+      if (newRead < target) {
+        message = "Halfway there! Keep it up. 🌟";
+        icon = LucideIcons.star;
+        iconColor = Colors.orangeAccent;
+      }
+    } else if (oldRead < target * 0.8 &&
+        newRead >= target * 0.8 &&
+        newRead < target) {
+      message = "Almost there! Just a bit more. 💪";
+      icon = LucideIcons.flame;
+      iconColor = Colors.orangeAccent;
+    } else if (oldRead < target && newRead >= target) {
+      message = "Masha'Allah! Daily Goal Completed! 🎉";
+      icon = LucideIcons.checkCircle2;
+      iconColor = Colors.green;
+    } else if (oldRead == target &&
+        newRead > target &&
+        !_hasExceededGoalThisSession) {
+      message = "Exceeding your daily goal! May Allah reward you. 🌺";
+      icon = LucideIcons.heart;
+      iconColor = Colors.pinkAccent;
+      _hasExceededGoalThisSession = true;
+    }
+
+    if (message != null) {
+      _showWerdSnackbar(message, icon, iconColor);
+    }
+  }
+
+  void _showWerdSnackbar(String message, IconData? icon, Color? iconColor) {
+    if (!mounted) return;
+    final theme = context.read<ThemeProvider>();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: iconColor ?? theme.accentColor, size: 20),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: theme.primaryText,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: theme.cardColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        duration: const Duration(seconds: 4),
+        elevation: 4,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
@@ -239,6 +357,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
 
                     // Save last-read position for the Home Screen hero card
                     _saveLastReadPosition(page, readingProvider);
+
+                    // Track Werd reading progress
+                    _startPageReadTimer(page);
                   },
                   itemBuilder: (context, index) {
                     final page = _totalPages - index;
@@ -272,23 +393,27 @@ class _ReadingScreenState extends State<ReadingScreen> {
             // Bottom Layers
             Consumer2<QuranReadingProvider, AudioProvider>(
               builder: (context, readingProvider, audioProvider, child) {
-                String surahName = 'Loading...';
+                final l = AppLocalizations.of(context);
+                String surahName = l.t('loading');
                 String juzName = '...';
 
                 if (readingProvider.verses.isNotEmpty &&
                     readingProvider.chapters.isNotEmpty) {
                   final firstVerse = readingProvider.verses.first;
                   juzName =
-                      'Juz ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
+                      '${l.t('reading_juz')} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
 
                   int chapterId =
                       int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
                   try {
-                    surahName = readingProvider.chapters
-                        .firstWhere((c) => c.id == chapterId)
-                        .nameSimple;
+                    final chapter = readingProvider.chapters.firstWhere(
+                      (c) => c.id == chapterId,
+                    );
+                    surahName = l.locale.languageCode == 'ar'
+                        ? chapter.nameArabic
+                        : chapter.nameSimple;
                   } catch (e) {
-                    surahName = 'Surah $chapterId';
+                    surahName = '${l.t('read_tab_surah')} $chapterId';
                   }
                 }
 
@@ -315,13 +440,29 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           .clamp(0.0, 1.0)
                     : 0.0;
 
-                String playingVerseLabel = 'Select a verse';
+                // Build the playing title from the ACTUAL playing verse, not the viewed page
+                String playingVerseLabel = l.t('reading_select_verse');
                 if (audioProvider.activeVerseKey != null) {
                   final parts = audioProvider.activeVerseKey!.split(':');
                   if (parts.length == 2) {
-                    playingVerseLabel = '$surahName - Verse ${parts[1]}';
+                    // Look up the playing verse's chapter
+                    final playingChapterId = int.tryParse(parts[0]) ?? 0;
+                    String playingSurahName = surahName; // fallback
+                    if (readingProvider.chapters.isNotEmpty &&
+                        playingChapterId > 0) {
+                      try {
+                        final playingChapter = readingProvider.chapters
+                            .firstWhere((c) => c.id == playingChapterId);
+                        playingSurahName = l.locale.languageCode == 'ar'
+                            ? playingChapter.nameArabic
+                            : playingChapter.nameSimple;
+                      } catch (_) {}
+                    }
+                    playingVerseLabel =
+                        '$playingSurahName - ${l.t('reading_verse')} ${parts[1]}';
                   } else {
-                    playingVerseLabel = '$surahName - Playing...';
+                    playingVerseLabel =
+                        '$surahName - ${l.t('reading_playing')}';
                   }
                 }
 
@@ -339,6 +480,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                         AudioPlayerBridge(
                           isExpanded: isAudioExpanded,
                           isPlaying: audioProvider.isPlaying,
+                          isLoading: audioProvider.isLoading,
                           currentPositionText: currentPosStr,
                           totalDurationText: totalDurStr,
                           progress: progress,
@@ -392,7 +534,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
             if (isFullScreen)
               Consumer2<QuranReadingProvider, AudioProvider>(
                 builder: (context, readingProvider, audioProvider, child) {
-                  String surahName = 'Loading...';
+                  final l = AppLocalizations.of(context);
+                  String surahName = l.t('loading');
                   String juzName = '...';
                   String hizbName = '...';
 
@@ -400,17 +543,21 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       readingProvider.chapters.isNotEmpty) {
                     final firstVerse = readingProvider.verses.first;
                     juzName =
-                        'Juz ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
-                    hizbName = 'Hizb ${firstVerse.hizbNumber}';
+                        '${l.t('reading_juz')} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
+                    hizbName =
+                        '${l.t('reading_hizb')} ${firstVerse.hizbNumber}';
 
                     int chapterId =
                         int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
                     try {
-                      surahName = readingProvider.chapters
-                          .firstWhere((c) => c.id == chapterId)
-                          .nameSimple;
+                      final chapter = readingProvider.chapters.firstWhere(
+                        (c) => c.id == chapterId,
+                      );
+                      surahName = l.locale.languageCode == 'ar'
+                          ? chapter.nameArabic
+                          : chapter.nameSimple;
                     } catch (e) {
-                      surahName = 'Surah $chapterId';
+                      surahName = '${l.t('read_tab_surah')} $chapterId';
                     }
                   }
 

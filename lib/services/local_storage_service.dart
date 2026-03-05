@@ -9,6 +9,8 @@ class LocalStorageService {
   static const _keyLastTimestamp = 'last_read_timestamp';
   static const _keyHasReadingHistory = 'has_reading_history';
   static const _keyWerdConfig = 'werd_config';
+  static const _keyRewaya = 'user_rewaya';
+  static const _keyOnboardingComplete = 'onboarding_complete';
 
   final SharedPreferences _prefs;
 
@@ -45,6 +47,23 @@ class LocalStorageService {
 
   /// Whether the user has ever read something.
   bool get hasReadingHistory => _prefs.getBool(_keyHasReadingHistory) ?? false;
+
+  // ── Rewaya (Qira'at) Preference ──
+
+  /// Save the user's preferred rewaya (1 = Hafs, 2 = Warsh).
+  void saveRewaya(int rewaya) => _prefs.setInt(_keyRewaya, rewaya);
+
+  /// Returns the saved rewaya, or null if not yet set.
+  int? get savedRewaya => _prefs.getInt(_keyRewaya);
+
+  // ── Onboarding ──
+
+  /// Whether the user has completed the onboarding flow.
+  bool get hasCompletedOnboarding =>
+      _prefs.getBool(_keyOnboardingComplete) ?? false;
+
+  /// Mark onboarding as complete.
+  void setOnboardingComplete() => _prefs.setBool(_keyOnboardingComplete, true);
 
   // ── Werd (Daily Recitation) ──
 

@@ -48,8 +48,12 @@ lib/
 
 ### State Management
 - **Provider** package with `ChangeNotifier`
-- `QuranReadingProvider` — page data, chapter list, reciter list, page cache
-- `AudioProvider` — audio playback state, verse timing, reciter switching
+- `QuranReadingProvider` — page data, chapter list, reciter list, page cache, rewaya selection (Hafs/Warsh)
+- `AudioProvider` — audio playback state, verse timing, reciter switching, integration with `audio_service`
+- `ThemeProvider` — app aesthetics, custom text alignments, overlay settings
+- `LocaleProvider` — UI localization (English/Arabic)
+- `HifzProvider` — memorization tracking and daily streaks
+- `LocalStorageService` — persistent storage (SharedPreferences) for rewaya, werd goals, last read page
 
 ### Data Flow
 1. `QuranReadingProvider` fetches page data from quran.com API
@@ -80,6 +84,15 @@ Key endpoints and discoveries are documented in [findings.md](./findings.md).
 ### Default Reciter
 Reciter ID `7` = Mishary Rashid al-Afasy (default). Users can switch reciters via the settings overlay.
 
+### Warsh Text Rendering
+To keep the app size small, we do NOT bundle custom fonts for Warsh. Instead, we use a CDN (`fawazahmed0/quran-api`) to fetch a flat JSON array of all 6236 Warsh verses rendered in basic Unicode. The `WarshTextService` caches this in memory. `ReadingCanvas` dynamically switches between Hafs word-by-word rendering and Warsh full-verse rendering based on the user's persisted rewaya preference.
+
+### Background Audio & Media Controls
+We use `audioplayers` for the audio engine but wrap it with `audio_service` to provide lock screen and notification media controls. The `QuranAudioHandler` syncs state between the system media session and the app's internal `AudioProvider`.
+
+### Rewaya & Onboarding
+The app features a one-time onboarding flow that auto-detects the system language and prompts the user to select their preferred *Rewaya* (Hafs vs Warsh). This preference is persisted via `SharedPreferences`. The reciter selection menu automatically filters to show reciters matching the saved rewaya first.
+
 ---
 
 ## Dependencies
@@ -89,6 +102,9 @@ Reciter ID `7` = Mishary Rashid al-Afasy (default). Users can switch reciters vi
 | `provider` | State management |
 | `http` | API requests |
 | `audioplayers` | Audio playback (Windows-compatible) |
+| `audio_service` | Background audio and lock screen controls |
+| `audio_session` | Audio session management (focus, interruptions) |
+| `shared_preferences` | Persistent user settings (theme, rewaya, werd) |
 | `google_fonts` | Typography |
 | `lucide_icons` | UI icons |
 | `path_drawing` | SVG path rendering |
@@ -110,14 +126,23 @@ Reciter ID `7` = Mishary Rashid al-Afasy (default). Users can switch reciters vi
 
 ---
 
+## Completed Features
+
+- [x] Warsh text integration via CDN & Unicode rendering
+- [x] Persistent Rewaya selection with first-launch onboarding
+- [x] Daily Werd (custom reading goals tracking)
+- [x] Advanced Theme Picker (vertical alignment, justify options, page shadow toggles)
+- [x] Lock screen / Media Notification controls via `audio_service`
+- [x] App Localization (English/Arabic)
+- [x] Search (Surahs)
+- [x] Bookmarks and reading progress persistence
+- [x] Dark mode (Implemented alongside Classic and Warm themes)
+
 ## Planned / Upcoming Features
 
 - [ ] Word-by-word highlighting synced with audio (using word-level `segments` data)
 - [ ] Offline audio caching
 - [ ] Translation overlay
-- [x] Bookmarks and reading progress persistence
-- [x] Search
-- [x] Dark mode (Implemented alongside Classic and Warm themes)
 
 ---
 

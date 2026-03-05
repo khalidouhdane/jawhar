@@ -107,6 +107,8 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
     double fontSize,
   ) {
     final spans = <InlineSpan>[];
+    final isWarsh = readingProvider.selectedRewaya == 2;
+
     for (final verse in widget.verses) {
       if (verse.verseNumber == 1) {
         final chapterNum = int.tryParse(verse.verseKey.split(':').first);
@@ -135,54 +137,106 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
       final isPlaying = audioProvider.activeVerseKey == verse.verseKey;
       final isHighlighted = isSelected || isPlaying;
 
-      for (int wi = 0; wi < verse.words.length; wi++) {
-        final word = verse.words[wi];
+      // Try to get Warsh text for this verse
+      String? warshText;
+      if (isWarsh) {
+        warshText = readingProvider.getWarshVerseText(verse.verseKey);
+      }
 
-        if (word.charTypeName == 'end') {
-          Widget marker = _VerseMarker(
-            verseNumber: verse.verseNumber,
-            isHighlighted: isHighlighted,
-          );
-          if (isSelected) {
-            marker = KeyedSubtree(
-              key: _getKeyForVerse(verse.id),
-              child: marker,
+      if (isWarsh && warshText != null) {
+        // ── Warsh mode: render full verse text as a single TextSpan ──
+        final recognizer = LongPressGestureRecognizer()
+          ..onLongPress = () {
+            widget.onVerseSelected(isSelected ? null : verse.id);
+          };
+
+        spans.add(
+          TextSpan(
+            text: warshText,
+            style: GoogleFonts.amiriQuran(
+              fontSize: fontSize,
+              height: theme.quranLineHeight,
+              fontWeight: FontWeight.w400,
+              color: theme.quranText,
+              backgroundColor: isHighlighted ? theme.verseHighlight : null,
+            ),
+            recognizer: recognizer,
+          ),
+        );
+
+        // Add verse end marker
+        Widget marker = _VerseMarker(
+          verseNumber: verse.verseNumber,
+          isHighlighted: isHighlighted,
+        );
+        if (isSelected) {
+          marker = KeyedSubtree(key: _getKeyForVerse(verse.id), child: marker);
+        }
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: GestureDetector(
+                onLongPress: () {
+                  widget.onVerseSelected(isSelected ? null : verse.id);
+                },
+                child: marker,
+              ),
+            ),
+          ),
+        );
+      } else {
+        // ── Hafs mode (or Warsh fallback): word-by-word rendering ──
+        for (int wi = 0; wi < verse.words.length; wi++) {
+          final word = verse.words[wi];
+
+          if (word.charTypeName == 'end') {
+            Widget marker = _VerseMarker(
+              verseNumber: verse.verseNumber,
+              isHighlighted: isHighlighted,
             );
-          }
-          spans.add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: GestureDetector(
-                  onLongPress: () {
-                    widget.onVerseSelected(isSelected ? null : verse.id);
-                  },
-                  child: marker,
+            if (isSelected) {
+              marker = KeyedSubtree(
+                key: _getKeyForVerse(verse.id),
+                child: marker,
+              );
+            }
+            spans.add(
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: GestureDetector(
+                    onLongPress: () {
+                      widget.onVerseSelected(isSelected ? null : verse.id);
+                    },
+                    child: marker,
+                  ),
                 ),
               ),
-            ),
-          );
-        } else {
-          final text = wi == 0 ? word.textUthmani : ' ${word.textUthmani}';
-          final recognizer = LongPressGestureRecognizer()
-            ..onLongPress = () {
-              widget.onVerseSelected(isSelected ? null : verse.id);
-            };
+            );
+          } else {
+            final text = wi == 0 ? word.textUthmani : ' ${word.textUthmani}';
+            final recognizer = LongPressGestureRecognizer()
+              ..onLongPress = () {
+                widget.onVerseSelected(isSelected ? null : verse.id);
+              };
 
-          spans.add(
-            TextSpan(
-              text: text,
-              style: GoogleFonts.amiriQuran(
-                fontSize: fontSize,
-                height: theme.quranLineHeight,
-                fontWeight: FontWeight.w400,
-                color: theme.quranText,
-                backgroundColor: isHighlighted ? theme.verseHighlight : null,
+            spans.add(
+              TextSpan(
+                text: text,
+                style: GoogleFonts.amiriQuran(
+                  fontSize: fontSize,
+                  height: theme.quranLineHeight,
+                  fontWeight: FontWeight.w400,
+                  color: theme.quranText,
+                  backgroundColor: isHighlighted ? theme.verseHighlight : null,
+                ),
+                recognizer: recognizer,
               ),
-              recognizer: recognizer,
-            ),
-          );
+            );
+          }
         }
       }
       spans.add(const TextSpan(text: ' '));
