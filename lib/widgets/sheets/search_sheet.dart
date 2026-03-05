@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 // ─── Search Sheet ───
 
@@ -26,6 +27,7 @@ class _SearchSheetState extends State<SearchSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -51,7 +53,7 @@ class _SearchSheetState extends State<SearchSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Search',
+                      l.t('search_title'),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -77,7 +79,7 @@ class _SearchSheetState extends State<SearchSheet> {
                   onChanged: (value) => setState(() => searchQuery = value),
                   style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
-                    hintText: 'Search surah name or number...',
+                    hintText: l.t('search_hint'),
                     hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
                     prefixIcon: Icon(
                       LucideIcons.search,
@@ -131,7 +133,7 @@ class _SearchSheetState extends State<SearchSheet> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'No results found',
+                          l.t('search_no_results'),
                           style: TextStyle(
                             color: theme.mutedText,
                             fontSize: 14,
@@ -185,7 +187,7 @@ class _SearchSheetState extends State<SearchSheet> {
                         ),
                       ),
                       subtitle: Text(
-                        "${surah.versesCount} Ayahs",
+                        "${surah.versesCount} ${l.t('nav_ayahs')}",
                         style: TextStyle(fontSize: 12, color: theme.mutedText),
                       ),
                       trailing: Text(

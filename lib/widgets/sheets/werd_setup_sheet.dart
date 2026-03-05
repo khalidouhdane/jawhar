@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/models/werd_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/werd_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Bottom sheet for creating or editing a daily werd configuration.
 class WerdSetupSheet extends StatefulWidget {
@@ -43,6 +44,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: theme.sheetBackground,
@@ -81,7 +83,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Daily Werd Setup',
+                      l.t('werd_setup_title'),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 18,
@@ -96,7 +98,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Set your daily Quran reading goal',
+                    l.t('werd_setup_desc'),
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -108,7 +110,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                 const SizedBox(height: 24),
 
                 // ── Mode selector ──
-                _buildModeSelector(theme),
+                _buildModeSelector(theme, l),
 
                 const SizedBox(height: 24),
 
@@ -116,14 +118,14 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 250),
                   child: _mode == WerdMode.fixedRange
-                      ? _buildFixedRangeInputs(theme)
-                      : _buildDailyPagesInput(theme),
+                      ? _buildFixedRangeInputs(theme, l)
+                      : _buildDailyPagesInput(theme, l),
                 ),
 
                 const SizedBox(height: 20),
 
                 // ── Summary preview ──
-                _buildSummary(theme),
+                _buildSummary(theme, l),
 
                 const SizedBox(height: 24),
 
@@ -165,9 +167,9 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                             color: theme.accentColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
-                              'Save Werd',
+                              l.t('werd_save'),
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 14,
@@ -191,7 +193,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
 
   // ── Mode Selector ───────────────────────────────────────────────────────
 
-  Widget _buildModeSelector(ThemeProvider theme) {
+  Widget _buildModeSelector(ThemeProvider theme, AppLocalizations l) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -202,7 +204,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
         children: [
           _modeChip(
             theme,
-            label: 'Fixed Range',
+            label: l.t('werd_fixed_range'),
             icon: LucideIcons.bookOpen,
             selected: _mode == WerdMode.fixedRange,
             onTap: () => setState(() => _mode = WerdMode.fixedRange),
@@ -210,7 +212,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
           const SizedBox(width: 4),
           _modeChip(
             theme,
-            label: 'Daily Pages',
+            label: l.t('werd_daily_pages'),
             icon: LucideIcons.layers,
             selected: _mode == WerdMode.dailyPages,
             onTap: () => setState(() => _mode = WerdMode.dailyPages),
@@ -264,7 +266,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
 
   // ── Fixed Range Inputs ──────────────────────────────────────────────────
 
-  Widget _buildFixedRangeInputs(ThemeProvider theme) {
+  Widget _buildFixedRangeInputs(ThemeProvider theme, AppLocalizations l) {
     return Column(
       key: const ValueKey('fixed'),
       children: [
@@ -273,7 +275,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             Expanded(
               child: _pageInput(
                 theme,
-                label: 'From Page',
+                label: l.t('werd_from_page'),
                 controller: _startController,
               ),
             ),
@@ -288,7 +290,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             Expanded(
               child: _pageInput(
                 theme,
-                label: 'To Page',
+                label: l.t('werd_to_page'),
                 controller: _endController,
               ),
             ),
@@ -355,12 +357,12 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
 
   // ── Daily Pages Slider ──────────────────────────────────────────────────
 
-  Widget _buildDailyPagesInput(ThemeProvider theme) {
+  Widget _buildDailyPagesInput(ThemeProvider theme, AppLocalizations l) {
     return Column(
       key: const ValueKey('daily'),
       children: [
         Text(
-          'Pages per day',
+          l.t('werd_pages_per_day'),
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 11,
@@ -403,7 +405,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '1 page',
+              l.t('werd_1_page'),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 10,
@@ -411,7 +413,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
               ),
             ),
             Text(
-              '30 pages',
+              l.t('werd_30_pages'),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 10,
@@ -426,18 +428,24 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
 
   // ── Summary ─────────────────────────────────────────────────────────────
 
-  Widget _buildSummary(ThemeProvider theme) {
+  Widget _buildSummary(ThemeProvider theme, AppLocalizations l) {
     final start = int.tryParse(_startController.text) ?? 1;
     final end = int.tryParse(_endController.text) ?? 20;
 
     String summary;
     if (_mode == WerdMode.fixedRange) {
       final pages = (end - start + 1).clamp(1, 604);
-      summary = 'Read $pages pages daily (Pages $start–$end)';
+      summary = l
+          .t('werd_summary_fixed')
+          .replaceAll('{pages}', pages.toString())
+          .replaceAll('{start}', start.toString())
+          .replaceAll('{end}', end.toString());
     } else {
       final days = (604 / _pagesPerDay).ceil();
-      summary =
-          'Read ${_pagesPerDay.round()} pages daily ≈ $days days to finish';
+      summary = l
+          .t('werd_summary_daily')
+          .replaceAll('{pages}', _pagesPerDay.round().toString())
+          .replaceAll('{days}', days.toString());
     }
 
     return Container(
@@ -478,7 +486,9 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
     // Validate range
     if (_mode == WerdMode.fixedRange && start > end) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Start page must be before end page')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).t('werd_error_range')),
+        ),
       );
       return;
     }

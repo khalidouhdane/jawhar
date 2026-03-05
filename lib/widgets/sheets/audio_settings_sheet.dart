@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 // ─── Audio Settings Sheet (Functional) ───
 
@@ -20,6 +21,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final audioProvider = context.watch<AudioProvider>();
+    final l = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -43,7 +45,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Audio Settings',
+                l.t('audio_settings_title'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -65,7 +67,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Playback Speed",
+                l.t('audio_playback_speed'),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -129,7 +131,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      "Repeat Mode",
+                      l.t('audio_repeat_mode'),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -142,14 +144,14 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                 Row(
                   children: [
                     _buildRepeatChip(
-                      'Off',
+                      l.t('audio_repeat_off'),
                       AudioRepeatMode.none,
                       audioProvider,
                       theme,
                     ),
                     const SizedBox(width: 8),
                     _buildRepeatChip(
-                      'Verse',
+                      l.t('audio_repeat_verse'),
                       AudioRepeatMode.repeatVerse,
                       audioProvider,
                       theme,
@@ -171,7 +173,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Repeat times",
+                        l.t('audio_repeat_times'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

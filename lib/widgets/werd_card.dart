@@ -6,6 +6,7 @@ import 'package:quran_app/models/werd_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/widgets/sheets/werd_setup_sheet.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Home-screen card for the daily recitation (werd) feature.
 ///
@@ -21,16 +22,21 @@ class WerdCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final werd = context.watch<WerdProvider>();
+    final l = AppLocalizations.of(context);
 
     if (!werd.hasWerd) {
-      return _buildEmptyState(context, theme);
+      return _buildEmptyState(context, theme, l);
     }
-    return _buildActiveState(context, theme, werd);
+    return _buildActiveState(context, theme, werd, l);
   }
 
   // ── Empty State ──────────────────────────────────────────────────────────
 
-  Widget _buildEmptyState(BuildContext context, ThemeProvider theme) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    ThemeProvider theme,
+    AppLocalizations l,
+  ) {
     return GestureDetector(
       onTap: () => _openSetupSheet(context),
       child: Container(
@@ -62,7 +68,7 @@ class WerdCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              'Set Your Daily Werd',
+              l.t('werd_set_title'),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 15,
@@ -73,7 +79,7 @@ class WerdCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Create a daily recitation goal to\nstay consistent with your reading',
+              l.t('werd_set_desc'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Inter',
@@ -90,8 +96,8 @@ class WerdCard extends StatelessWidget {
                 color: theme.accentColor,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
-                'Get Started',
+              child: Text(
+                l.t('werd_get_started'),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -112,6 +118,7 @@ class WerdCard extends StatelessWidget {
     BuildContext context,
     ThemeProvider theme,
     WerdProvider werd,
+    AppLocalizations l,
   ) {
     final config = werd.config!;
     return Container(
@@ -153,7 +160,7 @@ class WerdCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Daily Werd',
+                      l.t('werd_daily'),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
@@ -205,8 +212,8 @@ class WerdCard extends StatelessWidget {
                         children: [
                           Text(
                             config.isComplete
-                                ? 'Masha\'Allah! 🎉'
-                                : '${config.pagesReadToday} of ${config.todayTarget} pages',
+                                ? l.t('werd_complete')
+                                : '${config.pagesReadToday} ${l.t('werd_pages_of')} ${config.todayTarget} ${l.t('werd_pages_label')}',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 15,
@@ -218,8 +225,8 @@ class WerdCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             config.isComplete
-                                ? 'You completed your daily werd'
-                                : _subtitle(config),
+                                ? l.t('werd_complete_desc')
+                                : _subtitle(config, l),
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 12,
@@ -242,8 +249,8 @@ class WerdCard extends StatelessWidget {
                                   color: theme.accentColor,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Text(
-                                  'Start Reading',
+                                child: Text(
+                                  l.t('werd_start_reading'),
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
@@ -266,12 +273,12 @@ class WerdCard extends StatelessWidget {
     );
   }
 
-  String _subtitle(WerdConfig config) {
+  String _subtitle(WerdConfig config, AppLocalizations l) {
     if (config.mode == WerdMode.fixedRange) {
-      return 'Pages ${config.startPage}–${config.endPage}';
+      return '${l.t('werd_pages_range')} ${config.startPage}–${config.endPage}';
     }
     final remaining = config.todayTarget - config.pagesReadToday;
-    return '$remaining pages remaining today';
+    return '$remaining ${l.t('werd_pages_remaining')}';
   }
 
   void _openSetupSheet(BuildContext context) {

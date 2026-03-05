@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class ReciterMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
@@ -50,6 +51,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
   Widget build(BuildContext context) {
     final audioProvider = context.watch<AudioProvider>();
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -75,7 +77,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Select Reciter',
+                      l.t('reciter_title'),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -100,7 +102,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   onChanged: (value) => setState(() => searchQuery = value),
                   style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
-                    hintText: 'Search by reciter name...',
+                    hintText: l.t('reciter_search_hint'),
                     hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
                     prefixIcon: Icon(
                       LucideIcons.search,
@@ -120,23 +122,39 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   children: _favoriteIds.isNotEmpty
                       ? [
                           _buildTab(
-                            'Favorites',
+                            l.t('reciter_tab_favorites'),
                             'favorites',
                             icon: LucideIcons.heart,
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
-                          _buildTab('Recent', 'recent', theme: theme),
-                          const SizedBox(width: 8),
-                          _buildTab('All', 'all', theme: theme),
-                        ]
-                      : [
-                          _buildTab('All', 'all', theme: theme),
-                          const SizedBox(width: 8),
-                          _buildTab('Recent', 'recent', theme: theme),
+                          _buildTab(
+                            l.t('reciter_tab_recent'),
+                            'recent',
+                            theme: theme,
+                          ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            'Favorites',
+                            l.t('reciter_tab_all'),
+                            'all',
+                            theme: theme,
+                          ),
+                        ]
+                      : [
+                          _buildTab(
+                            l.t('reciter_tab_all'),
+                            'all',
+                            theme: theme,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildTab(
+                            l.t('reciter_tab_recent'),
+                            'recent',
+                            theme: theme,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildTab(
+                            l.t('reciter_tab_favorites'),
                             'favorites',
                             icon: LucideIcons.heart,
                             theme: theme,
@@ -282,10 +300,10 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         const SizedBox(height: 12),
                         Text(
                           activeTab == 'favorites'
-                              ? 'No favorite reciters yet'
+                              ? l.t('reciter_no_favorites')
                               : activeTab == 'recent'
-                              ? 'No recent reciters'
-                              : 'No reciters found',
+                              ? l.t('reciter_no_recent')
+                              : l.t('reciter_no_found'),
                           style: TextStyle(
                             color: theme.mutedText,
                             fontSize: 14,
@@ -344,7 +362,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         ),
                       ),
                       subtitle: Text(
-                        "${reciter.style ?? 'Standard'} Recitation",
+                        "${reciter.style ?? l.t('reciter_standard')} ${l.t('reciter_recitation')}",
                         style: TextStyle(
                           fontSize: 12,
                           color: theme.mutedText,

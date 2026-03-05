@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 // ─── Nav Menu Sheet ───
 
@@ -39,6 +40,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -64,7 +66,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Index',
+                      l.t('nav_index'),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -92,46 +94,56 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Row(
-                    children: ['Surah', 'Juz', 'Bookmarks'].map((tab) {
-                      final tabKey = tab.toLowerCase();
-                      final isSelected = activeTab == tabKey;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => activeTab = tabKey),
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? theme.cardColor
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: theme.shadowColor.withValues(
-                                          alpha: 0.05,
-                                        ),
-                                        blurRadius: 2,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Text(
-                              tab,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? theme.accentColor
-                                    : theme.chipUnselectedText,
+                    children:
+                        [
+                          {'label': l.t('nav_tab_surah'), 'key': 'surah'},
+                          {'label': l.t('nav_tab_juz'), 'key': 'juz'},
+                          {
+                            'label': l.t('nav_tab_bookmarks'),
+                            'key': 'bookmarks',
+                          },
+                        ].map((tab) {
+                          final tabKey = tab['key']!;
+                          final isSelected = activeTab == tabKey;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => activeTab = tabKey),
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? theme.cardColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(30),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: theme.shadowColor.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  tab['label']!,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected
+                                        ? theme.accentColor
+                                        : theme.chipUnselectedText,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                          );
+                        }).toList(),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -140,7 +152,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                     onChanged: (v) => setState(() => searchQuery = v),
                     style: TextStyle(color: theme.primaryText),
                     decoration: InputDecoration(
-                      hintText: 'Search surah name or number...',
+                      hintText: l.t('nav_search_hint'),
                       hintStyle: TextStyle(
                         color: theme.mutedText,
                         fontSize: 14,
@@ -162,15 +174,15 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
               ],
             ),
           ),
-          Expanded(child: _buildTabContent(theme)),
+          Expanded(child: _buildTabContent(theme, l)),
         ],
       ),
     );
   }
 
-  Widget _buildTabContent(ThemeProvider theme) {
-    if (activeTab == 'surah') return _buildSurahList(theme);
-    if (activeTab == 'bookmarks') return _buildBookmarksList(theme);
+  Widget _buildTabContent(ThemeProvider theme, AppLocalizations l) {
+    if (activeTab == 'surah') return _buildSurahList(theme, l);
+    if (activeTab == 'bookmarks') return _buildBookmarksList(theme, l);
     // Juz tab
     return Center(
       child: Column(
@@ -179,7 +191,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           Icon(LucideIcons.bookOpen, size: 48, color: theme.dividerColor),
           const SizedBox(height: 12),
           Text(
-            "Juz list coming soon",
+            l.t('nav_juz_coming'),
             style: TextStyle(
               color: theme.mutedText,
               fontWeight: FontWeight.w500,
@@ -190,7 +202,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
     );
   }
 
-  Widget _buildSurahList(ThemeProvider theme) {
+  Widget _buildSurahList(ThemeProvider theme, AppLocalizations l) {
     return Consumer<QuranReadingProvider>(
       builder: (context, readingProvider, child) {
         if (readingProvider.chapters.isEmpty) {
@@ -267,7 +279,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   ),
                 ),
                 subtitle: Text(
-                  "${surah.versesCount} Ayahs",
+                  "${surah.versesCount} ${l.t('nav_ayahs')}",
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.mutedText,
@@ -306,7 +318,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
     );
   }
 
-  Widget _buildBookmarksList(ThemeProvider theme) {
+  Widget _buildBookmarksList(ThemeProvider theme, AppLocalizations l) {
     if (_bookmarks.isEmpty) {
       return Center(
         child: Column(
@@ -315,7 +327,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             Icon(LucideIcons.bookmark, size: 48, color: theme.dividerColor),
             const SizedBox(height: 12),
             Text(
-              "No bookmarks yet",
+              l.t('nav_no_bookmarks'),
               style: TextStyle(
                 color: theme.mutedText,
                 fontWeight: FontWeight.w500,
@@ -324,7 +336,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             ),
             const SizedBox(height: 4),
             Text(
-              "Tap the bookmark icon on any surah",
+              l.t('nav_bookmark_hint'),
               style: TextStyle(color: theme.mutedText, fontSize: 12),
             ),
           ],
@@ -369,7 +381,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
               ),
             ),
             subtitle: Text(
-              "Page ${entry.key}",
+              "${l.t('nav_page')} ${entry.key}",
               style: TextStyle(fontSize: 12, color: theme.mutedText),
             ),
             trailing: GestureDetector(
