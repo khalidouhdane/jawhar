@@ -8,7 +8,7 @@
 
 **Le Quran Prototype** — A Flutter desktop/mobile Quran reading app with:
 - Page-by-page Mushaf reading (604 pages of the Madani layout)
-- Word-by-word Arabic text rendering with proper line layout
+- Arabic text rendering with proper line layout
 - Audio recitation with verse-level synchronization
 - Multiple reciter support
 - Contextual overlays (verse tafsir, bookmarks, reciter selection)
@@ -21,29 +21,54 @@
 
 ```
 lib/
-├── main.dart                         # App entry, MultiProvider setup
+├── main.dart                          # App entry, MultiProvider setup
+├── l10n/
+│   └── app_localizations.dart         # i18n string lookup (English/Arabic)
 ├── models/
-│   └── quran_models.dart             # Verse, Word, Chapter, Reciter models
+│   ├── quran_models.dart              # Verse, Word, Chapter, Reciter models
+│   ├── hifz_models.dart               # Hifz memorization data models
+│   └── werd_models.dart               # WerdConfig, WerdMode (fixedRange/dailyPages)
 ├── providers/
-│   ├── audio_provider.dart           # Audio playback (full chapter audio + seek)
-│   └── quran_reading_provider.dart   # Page loading, caching, chapter/reciter lists
+│   ├── audio_provider.dart            # Audio playback (full chapter audio + seek)
+│   ├── hifz_provider.dart             # Memorization tracking and daily streaks
+│   ├── locale_provider.dart           # UI localization (English/Arabic switching)
+│   ├── navigation_provider.dart       # Controls bottom nav visibility during reading
+│   ├── quran_reading_provider.dart    # Page loading, caching, chapter/reciter lists
+│   ├── theme_provider.dart            # App aesthetics, alignments, overlay settings
+│   └── werd_provider.dart             # Daily werd state, auto-daily-reset, progress
 ├── services/
-│   └── quran_api_service.dart        # HTTP calls to quran.com API
+│   ├── local_storage_service.dart     # SharedPreferences persistence layer
+│   ├── mp3quran_service.dart          # mp3quran.net API for Warsh reciters
+│   ├── quran_api_service.dart         # HTTP calls to quran.com API (v4)
+│   ├── quran_audio_handler.dart       # audio_service handler for media controls
+│   ├── quran_auth_service.dart        # OAuth2 token management for Quran API
+│   └── warsh_text_service.dart        # CDN-based Warsh text fetching/caching
 ├── screens/
-│   └── reading_screen.dart           # Main reading screen (PageView + overlays)
+│   ├── app_shell.dart                 # Bottom nav bar scaffold (Home/Read/Audio/Hifz/Profile)
+│   ├── audio_screen.dart              # Audio library / reciter browsing
+│   ├── hifz_screen.dart               # Hifz memorization tracker screen
+│   ├── home_screen.dart               # Home screen (greeting, hero card, werd card, ayah)
+│   ├── onboarding_screen.dart         # First-launch rewaya selection + language
+│   ├── profile_screen.dart            # User profile / settings screen
+│   ├── read_index_screen.dart         # Surah/Juz index for quick navigation
+│   └── reading_screen.dart            # Main reading screen (PageView + overlays + werd tracking)
 └── widgets/
-    ├── reading_canvas.dart           # Renders Arabic text word-by-word per page
-    ├── audio_player_bridge.dart      # Audio playback UI (controls, progress bar)
-    ├── top_nav_bar.dart              # Top navigation bar overlay
-    ├── bottom_dock.dart              # Bottom navigation dock overlay
-    ├── overlays.dart                 # Barrel file exporting all sheets
-    ├── sheets/                       # Segmented bottom sheet overlays
-    │   ├── reciter_menu_sheet.dart   # Reciter selection and search
-    │   ├── audio_settings_sheet.dart # Audio controls (repeat mode, etc.)
-    │   ├── nav_menu_sheet.dart       # Surah index and bookmarks
-    │   ├── theme_picker_sheet.dart   # Appearance settings (theme, font size)
-    │   └── search_sheet.dart         # Quran text search overlay
-    └── animated_svg_icon.dart        # Custom animated icon widget
+    ├── animated_svg_icon.dart         # Custom animated icon widget
+    ├── audio_player_bridge.dart       # Audio playback UI (controls, progress bar)
+    ├── bottom_dock.dart               # Bottom navigation dock overlay (reading)
+    ├── bottom_nav_bar.dart            # App-wide bottom navigation bar
+    ├── overlays.dart                  # Barrel file exporting all sheets
+    ├── reading_canvas.dart            # Renders Arabic verse text per page
+    ├── surah_list_tile.dart           # Reusable surah list item widget
+    ├── top_nav_bar.dart               # Top navigation bar overlay (reading)
+    ├── werd_card.dart                 # Home screen werd progress card (empty + active states)
+    └── sheets/                        # Segmented bottom sheet overlays
+        ├── audio_settings_sheet.dart  # Audio controls (repeat mode, etc.)
+        ├── nav_menu_sheet.dart        # Surah index and bookmarks
+        ├── reciter_menu_sheet.dart    # Reciter selection and search
+        ├── search_sheet.dart          # Quran text search overlay
+        ├── theme_picker_sheet.dart    # Appearance settings (theme, font size)
+        └── werd_setup_sheet.dart      # Werd goal configuration (mode, pages, save/delete)
 ```
 
 ### State Management
@@ -52,14 +77,22 @@ lib/
 - `AudioProvider` — audio playback state, verse timing, reciter switching, integration with `audio_service`
 - `ThemeProvider` — app aesthetics, custom text alignments, overlay settings
 - `LocaleProvider` — UI localization (English/Arabic)
+- `NavigationProvider` — controls bottom nav bar visibility when entering/exiting the reading screen
 - `HifzProvider` — memorization tracking and daily streaks
+- `WerdProvider` — daily werd goal state, auto-daily-reset based on date, progress increment, persistence via `LocalStorageService`
 - `LocalStorageService` — persistent storage (SharedPreferences) for rewaya, werd goals, last read page
 
 ### Data Flow
 1. `QuranReadingProvider` fetches page data from quran.com API
-2. `ReadingCanvas` renders words for the current page
+2. `ReadingCanvas` renders verses for the current page
 3. `AudioProvider` fetches chapter audio + timing data (see `findings.md`)
 4. Position tracking maps playback position → active verse → UI highlighting
+
+### Werd Progress Tracking
+1. `ReadingScreen` starts a 5-second timer when the user lands on a page
+2. If the user stays on the page for 5 seconds, it calls `WerdProvider.incrementProgress(1)`
+3. A `Set<int>` tracks pages already counted in the current session to avoid double-counting
+4. Milestone Snackbars appear at 50%, 80%, 100%, and >100% of the daily goal
 
 ---
 
@@ -85,7 +118,7 @@ Key endpoints and discoveries are documented in [findings.md](./findings.md).
 Reciter ID `7` = Mishary Rashid al-Afasy (default). Users can switch reciters via the settings overlay.
 
 ### Warsh Text Rendering
-To keep the app size small, we do NOT bundle custom fonts for Warsh. Instead, we use a CDN (`fawazahmed0/quran-api`) to fetch a flat JSON array of all 6236 Warsh verses rendered in basic Unicode. The `WarshTextService` caches this in memory. `ReadingCanvas` dynamically switches between Hafs word-by-word rendering and Warsh full-verse rendering based on the user's persisted rewaya preference.
+To keep the app size small, we do NOT bundle custom fonts for Warsh. Instead, we use a CDN (`fawazahmed0/quran-api`) to fetch a flat JSON array of all 6236 Warsh verses rendered in basic Unicode. The `WarshTextService` caches this in memory. `ReadingCanvas` dynamically switches between Hafs verse rendering and Warsh verse rendering based on the user's persisted rewaya preference.
 
 ### Background Audio & Media Controls
 We use `audioplayers` for the audio engine but wrap it with `audio_service` to provide lock screen and notification media controls. The `QuranAudioHandler` syncs state between the system media session and the app's internal `AudioProvider`.
@@ -130,17 +163,22 @@ The app features a one-time onboarding flow that auto-detects the system languag
 
 - [x] Warsh text integration via CDN & Unicode rendering
 - [x] Persistent Rewaya selection with first-launch onboarding
-- [x] Daily Werd (custom reading goals tracking)
-- [x] Advanced Theme Picker (vertical alignment, justify options, page shadow toggles)
+- [x] Daily Werd with progress tracking (timer-based page counting, milestone snackbars)
+- [x] Werd setup sheet (fixed page range or daily pages mode, slider, summary preview)
+- [x] Advanced Theme Picker (vertical alignment, text alignment, page shadow toggles)
+- [x] Fullscreen overlay with dynamic page info (Juz, Hizb, Surah, Page, Book indicator)
 - [x] Lock screen / Media Notification controls via `audio_service`
-- [x] App Localization (English/Arabic)
+- [x] App Localization (English/Arabic) with auto-detection
 - [x] Search (Surahs)
 - [x] Bookmarks and reading progress persistence
-- [x] Dark mode (Implemented alongside Classic and Warm themes)
+- [x] Dark mode (alongside Classic and Warm themes)
+- [x] Home screen with greeting, resume journey hero card, quick access, Ayah of the Day
+- [x] Bottom navigation with 5 tabs (Home, Read, Audio, Hifz, Profile)
+- [x] App shell with NavigationProvider for hiding nav during reading
 
 ## Planned / Upcoming Features
 
-- [ ] Word-by-word highlighting synced with audio (using word-level `segments` data)
+- [ ] Verse-by-verse highlighting synced with audio
 - [ ] Offline audio caching
 - [ ] Translation overlay
 

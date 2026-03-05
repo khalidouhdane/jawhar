@@ -10,8 +10,13 @@ class Mp3QuranService {
   /// 2 = Warsh A'n Nafi'
   /// 3 = Qalon A'n Nafi'
   /// ... etc
-  Future<List<Reciter>> getReciters({int rewaya = 2}) async {
-    final uri = Uri.parse('$baseUrl/reciters?language=en&rewaya=$rewaya');
+  Future<List<Reciter>> getReciters({
+    int rewaya = 2,
+    String language = 'en',
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/reciters?language=$language&rewaya=$rewaya',
+    );
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
@@ -87,8 +92,11 @@ class Mp3QuranService {
   }
 
   /// Fetch reciters and mark which ones have timing data available.
-  Future<List<Reciter>> getRecitersWithTimingInfo({int rewaya = 2}) async {
-    final reciters = await getReciters(rewaya: rewaya);
+  Future<List<Reciter>> getRecitersWithTimingInfo({
+    int rewaya = 2,
+    String language = 'en',
+  }) async {
+    final reciters = await getReciters(rewaya: rewaya, language: language);
     final timingIds = await getTimingReadIds();
 
     return reciters.map((r) {

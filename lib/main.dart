@@ -49,7 +49,22 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => QuranReadingProvider(storage: storageService),
+          create: (_) {
+            // Detect initial locale for reciter names
+            final savedLocale = prefs.getString('app_locale');
+            String lang;
+            if (savedLocale != null) {
+              lang = savedLocale;
+            } else {
+              final systemLang =
+                  PlatformDispatcher.instance.locale.languageCode;
+              lang = systemLang == 'ar' ? 'ar' : 'en';
+            }
+            return QuranReadingProvider(
+              storage: storageService,
+              language: lang,
+            );
+          },
         ),
         ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
@@ -76,6 +91,9 @@ class QuranApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<ThemeProvider, LocaleProvider>(
       builder: (context, themeProvider, localeProvider, child) {
+        // Sync reciter language when locale changes
+        final readingProvider = context.read<QuranReadingProvider>();
+        readingProvider.setLanguage(localeProvider.locale.languageCode);
         return MaterialApp(
           title: 'Le Quran',
           debugShowCheckedModeBanner: false,

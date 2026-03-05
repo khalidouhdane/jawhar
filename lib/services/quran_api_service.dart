@@ -52,8 +52,10 @@ class QuranApiService {
 
   /// Fetch reciters using the new authenticated /resources/chapter_reciters
   /// endpoint which natively returns 20+ reciters including QDC exclusives.
-  Future<List<Reciter>> getReciters() async {
-    final uri = Uri.parse('$baseUrl/resources/chapter_reciters');
+  Future<List<Reciter>> getReciters({String language = 'en'}) async {
+    final uri = Uri.parse(
+      '$baseUrl/resources/chapter_reciters?language=$language',
+    );
     final headers = await _getAuthHeaders();
     final response = await http.get(uri, headers: headers);
 

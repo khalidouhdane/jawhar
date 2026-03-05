@@ -7,6 +7,8 @@ import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/screens/onboarding_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -111,6 +113,27 @@ class ProfileScreen extends StatelessWidget {
                 icon: LucideIcons.globe,
                 title: l.t('profile_data'),
                 subtitle: 'Quran.com API',
+              ),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('onboarding_complete', false);
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const OnboardingScreen(),
+                      ),
+                      (route) => false,
+                    );
+                  }
+                },
+                child: _buildSettingsTile(
+                  theme,
+                  icon: LucideIcons.refreshCw,
+                  title: l.t('profile_replay_onboarding'),
+                  subtitle: l.t('profile_replay_onboarding_desc'),
+                ),
               ),
               const SizedBox(height: 32),
             ],

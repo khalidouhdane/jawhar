@@ -66,7 +66,9 @@ class QuranReadingProvider extends ChangeNotifier {
     return _warshTextService.getVerseText(verseKey);
   }
 
-  QuranReadingProvider({LocalStorageService? storage}) : _storage = storage {
+  QuranReadingProvider({LocalStorageService? storage, String language = 'en'})
+    : _storage = storage,
+      _language = language {
     // Load persisted rewaya preference
     _selectedRewaya = storage?.savedRewaya ?? 1;
     if (_selectedRewaya == 2) {
@@ -74,6 +76,16 @@ class QuranReadingProvider extends ChangeNotifier {
     }
     loadPage(1);
     loadChapters();
+    loadReciters();
+  }
+
+  String _language;
+
+  /// Update the language used for API calls (reciter names, etc.)
+  /// and re-fetch reciters so names display in the new language.
+  void setLanguage(String language) {
+    if (_language == language) return;
+    _language = language;
     loadReciters();
   }
 
@@ -88,10 +100,11 @@ class QuranReadingProvider extends ChangeNotifier {
 
   Future<void> loadReciters() async {
     try {
-      _hafsReciters = await _apiService.getReciters();
+      _hafsReciters = await _apiService.getReciters(language: _language);
       try {
         _warshReciters = await _mp3QuranService.getRecitersWithTimingInfo(
           rewaya: 2,
+          language: _language,
         );
       } catch (e) {
         debugPrint("Failed to load Warsh reciters: $e");

@@ -110,6 +110,9 @@ class AppLocalizations {
       'profile_made_with': 'Made with love',
       'profile_companion': 'A modern Quran companion',
       'profile_data': 'Data Source',
+      'profile_replay_onboarding': 'Replay Onboarding',
+      'profile_replay_onboarding_desc':
+          'Change language and reading preference',
 
       // Reading Screen Chrome
       'reading_read': 'Read',
@@ -309,6 +312,8 @@ class AppLocalizations {
       'profile_made_with': 'صُنع بحب',
       'profile_companion': 'رفيق قرآني عصري',
       'profile_data': 'مصدر البيانات',
+      'profile_replay_onboarding': 'إعادة الإعداد الأولي',
+      'profile_replay_onboarding_desc': 'تغيير اللغة والقراءة المفضلة',
 
       // Reading Screen Chrome
       'reading_read': 'القراءة',
