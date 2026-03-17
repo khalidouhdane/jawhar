@@ -154,6 +154,7 @@ class AppLocalizations {
       'theme_spine_padding': 'Spine Padding',
       'theme_edge_padding': 'Edge Padding',
 
+
       // Daily Werd
       'werd_set_title': 'Set Your Daily Werd',
       'werd_set_desc':
@@ -192,6 +193,30 @@ class AppLocalizations {
       'nav_no_bookmarks': 'No bookmarks yet',
       'nav_bookmark_hint': 'Tap the bookmark icon on any surah',
       'nav_page': 'Page',
+      'nav_pages': 'Pages',
+      'nav_verses': 'Verses',
+      'nav_no_page_bookmarks': 'No page bookmarks yet',
+      'nav_page_bookmark_hint': 'Tap the bookmark icon in the top bar\nwhile reading to save a page',
+      'nav_no_verse_bookmarks': 'No verse bookmarks yet',
+      'nav_verse_bookmark_hint': 'Long-press any verse and tap the\nbookmark icon to save it',
+
+      // Bookmark Edit & Collections
+      'bm_edit_title': 'Edit Bookmark',
+      'bm_color': 'Color',
+      'bm_note': 'Note',
+      'bm_note_hint': 'Add a personal note...',
+      'bm_collection': 'Collection',
+      'bm_uncategorized': 'Uncategorized',
+      'bm_delete': 'Delete Bookmark',
+      'bm_all': 'All',
+      'bm_new_collection': 'New Collection',
+      'bm_collection_name_hint': 'e.g. Favorite Duas',
+      'bm_cancel': 'Cancel',
+      'bm_create': 'Create',
+      'bm_add': 'Add',
+      'bm_rename': 'Rename',
+      'bm_delete_collection': 'Delete Collection',
+      'bm_save': 'Save',
 
       // Reciter Menu Sheet
       'reciter_title': 'Select Reciter',
@@ -230,6 +255,14 @@ class AppLocalizations {
 
       // General
       'loading': 'Loading...',
+
+      // In-App Update
+      'update_available': 'Update Available',
+      'update_whats_new': 'What\'s New',
+      'update_now': 'Update Now',
+      'update_later': 'Later',
+      'update_downloading': 'Downloading...',
+      'update_error': 'Update failed. Please try again later.',
     },
 
     'ar': {
@@ -364,6 +397,7 @@ class AppLocalizations {
       'theme_spine_padding': 'حشو العمود',
       'theme_edge_padding': 'حشو الحافة',
 
+
       // Daily Werd
       'werd_set_title': 'حدد وردك اليومي',
       'werd_set_desc':
@@ -402,6 +436,30 @@ class AppLocalizations {
       'nav_no_bookmarks': 'لا توجد علامات بعد',
       'nav_bookmark_hint': 'اضغط على أيقونة العلامة في أي سورة',
       'nav_page': 'صفحة',
+      'nav_pages': 'صفحات',
+      'nav_verses': 'آيات',
+      'nav_no_page_bookmarks': 'لا توجد علامات صفحات بعد',
+      'nav_page_bookmark_hint': 'اضغط على أيقونة العلامة في الشريط العلوي\nأثناء القراءة لحفظ صفحة',
+      'nav_no_verse_bookmarks': 'لا توجد علامات آيات بعد',
+      'nav_verse_bookmark_hint': 'اضغط مطولاً على أي آية ثم اضغط\nعلى أيقونة العلامة لحفظها',
+
+      // Bookmark Edit & Collections
+      'bm_edit_title': 'تعديل العلامة',
+      'bm_color': 'اللون',
+      'bm_note': 'ملاحظة',
+      'bm_note_hint': 'أضف ملاحظة شخصية...',
+      'bm_collection': 'المجموعة',
+      'bm_uncategorized': 'بدون تصنيف',
+      'bm_delete': 'حذف العلامة',
+      'bm_all': 'الكل',
+      'bm_new_collection': 'مجموعة جديدة',
+      'bm_collection_name_hint': 'مثال: أدعية مفضلة',
+      'bm_cancel': 'إلغاء',
+      'bm_create': 'إنشاء',
+      'bm_add': 'إضافة',
+      'bm_rename': 'إعادة تسمية',
+      'bm_delete_collection': 'حذف المجموعة',
+      'bm_save': 'حفظ',
 
       // Reciter Menu Sheet
       'reciter_title': 'اختر قارئاً',
@@ -440,6 +498,14 @@ class AppLocalizations {
 
       // General
       'loading': 'جاري التحميل...',
+
+      // In-App Update
+      'update_available': 'تحديث متوفر',
+      'update_whats_new': 'الجديد في هذا التحديث',
+      'update_now': 'تحديث الآن',
+      'update_later': 'لاحقاً',
+      'update_downloading': 'جاري التحميل...',
+      'update_error': 'فشل التحديث. يرجى المحاولة لاحقاً.',
     },
   };
 }

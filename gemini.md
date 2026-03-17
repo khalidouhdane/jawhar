@@ -101,7 +101,7 @@ lib/
 ## Key Technical Decisions
 
 ### Audio: Full Chapter Audio with Verse Seeking
-**DO NOT go back to per-verse audio files.** The current approach plays a single chapter mp3 and seeks using timestamp data from the `?segments=true` API parameter. This eliminates the "tick" sound and gaps between verses. See [findings.md](./findings.md) for full details.
+**DO NOT go back to per-verse audio files.** The current approach plays a single chapter mp3 and seeks using timestamp data from the `?segments=true` API parameter. This eliminates the "tick" sound and gaps between verses. See [docs/api-reference.md](./docs/api-reference.md) for full details.
 
 ### API: Quran Foundation API (v4)
 All data comes from the new authenticated API: `https://apis.quran.foundation/content/api/v4`. 
@@ -114,7 +114,7 @@ The legacy `api.quran.com` endpoints are **deprecated** and currently returning 
 - **Client Secret:** `cKEt~daJ4tgXiJ1td0t4JwBB_z`
 - **Headers Needed:** `x-auth-token: <token>` and `x-client-id: <clientId>`
 
-Key endpoints and discoveries are documented in [findings.md](./findings.md).
+Key endpoints and discoveries are documented in [docs/api-reference.md](./docs/api-reference.md).
 
 ### Default Reciter
 Reciter ID `7` = Mishary Rashid al-Afasy (default). Users can switch reciters via the settings overlay.
@@ -190,4 +190,8 @@ The app features a one-time onboarding flow that auto-detects the system languag
 ## Reference
 
 - **API Docs**: https://api-docs.quran.com/docs/category/quran.com-api
-- **Technical Discoveries**: [findings.md](./findings.md)
+- **Technical Discoveries**: [docs/research/findings.md](./docs/research/findings.md)
+- **Architecture**: [docs/architecture.md](./docs/architecture.md)
+- **Data Models**: [docs/data-models.md](./docs/data-models.md)
+- **API Reference**: [docs/api-reference.md](./docs/api-reference.md)
+- **Roadmap**: [docs/roadmap.md](./docs/roadmap.md)

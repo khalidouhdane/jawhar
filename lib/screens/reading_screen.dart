@@ -12,6 +12,8 @@ import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/bottom_dock.dart';
 import 'package:quran_app/widgets/overlays.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
+
 import 'package:quran_app/widgets/top_nav_bar.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
@@ -82,9 +84,10 @@ class _ReadingScreenState extends State<ReadingScreen> {
     super.dispose();
   }
 
-  /// When the active verse key changes, check if we need to slide to a new page
+  /// When the active verse key changes, check if we need to slide to a new page.
   void _onAudioChanged() {
     if (!mounted) return;
+
     final verseKey = _audioProvider.activeVerseKey;
 
     if (verseKey == null || verseKey == _lastActiveVerseKey) return;
@@ -188,20 +191,11 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   void _openThemePicker() {
-    _showOverlay((ctx) => ThemePickerSheet(onClose: () => Navigator.pop(ctx)));
-  }
-
-  void _openSearch() {
     _showOverlay(
-      (ctx) => SearchSheet(
-        onClose: () => Navigator.pop(ctx),
-        onPageSelected: (page) {
-          Navigator.pop(ctx);
-          _goToPage(page);
-        },
-      ),
+      (ctx) => ThemePickerSheet(onClose: () => Navigator.pop(ctx)),
     );
   }
+
 
   void _goToPage(int page) {
     final readingProvider = context.read<QuranReadingProvider>();
@@ -344,13 +338,17 @@ class _ReadingScreenState extends State<ReadingScreen> {
       body: ExcludeSemantics(
         child: Stack(
           children: [
-            // Swipeable Reading Canvas
-            Consumer<QuranReadingProvider>(
+            // Reading Canvas — PageView for swipe navigation
+             Consumer<QuranReadingProvider>(
               builder: (context, readingProvider, child) {
-                return PageView.builder(
+                // Force LTR so swipe direction is always consistent:
+                // drag left→right = next page. Our index math already
+                // handles the Quran's RTL page ordering.
+                return Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: PageView.builder(
                   controller: _pageController,
                   reverse: false,
-                  // RTL: swiping right goes to next page (higher index = lower page)
                   itemCount: _totalPages,
                   onPageChanged: (index) {
                     final page = _totalPages - index;
@@ -369,6 +367,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       onCanvasTapped: _toggleFullScreen,
                     );
                   },
+                ),
                 );
               },
             ),
@@ -386,7 +385,43 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   readMode: readMode,
                   onReadModeChanged: (mode) => setState(() => readMode = mode),
                   onThemeTapped: _openThemePicker,
-                  onSearchTapped: _openSearch,
+                  onNavMenuTapped: _openNavMenu,
+                  isBookmarked: context.watch<BookmarkProvider>().isPageBookmarked(
+                    context.watch<QuranReadingProvider>().activePage,
+                  ),
+                  onBookmarkTapped: () {
+                    final rp = context.read<QuranReadingProvider>();
+                    final l = AppLocalizations.of(context);
+                    String sName = '';
+                    if (rp.verses.isNotEmpty && rp.chapters.isNotEmpty) {
+                      final chId = int.tryParse(rp.verses.first.verseKey.split(':')[0]) ?? 1;
+                      try {
+                        final ch = rp.chapters.firstWhere((c) => c.id == chId);
+                        sName = l.locale.languageCode == 'ar' ? ch.nameArabic : ch.nameSimple;
+                      } catch (_) {
+                        sName = 'Surah $chId';
+                      }
+                    }
+                    final added = context.read<BookmarkProvider>().togglePageBookmark(
+                      pageNumber: rp.activePage,
+                      surahName: sName,
+                    );
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          added
+                              ? '${l.t('home_page')} ${rp.activePage} bookmarked'
+                              : 'Bookmark removed',
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 13),
+                        ),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -396,13 +431,13 @@ class _ReadingScreenState extends State<ReadingScreen> {
               builder: (context, readingProvider, audioProvider, child) {
                 final l = AppLocalizations.of(context);
                 String surahName = l.t('loading');
-                String juzName = '...';
+                String hizbName = '...';
 
                 if (readingProvider.verses.isNotEmpty &&
                     readingProvider.chapters.isNotEmpty) {
                   final firstVerse = readingProvider.verses.first;
-                  juzName =
-                      '${l.t('reading_juz')} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
+                  hizbName =
+                      '${l.t('reading_hizb')} ${firstVerse.hizbNumber}';
 
                   int chapterId =
                       int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
@@ -475,6 +510,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     (v) => v.verseKey == audioProvider.activeVerseKey,
                   );
 
+
+
                   if (!isViewingPlayingPage) {
                     final parts = audioProvider.activeVerseKey!.split(':');
                     if (parts.length == 2) {
@@ -544,9 +581,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
                             (index) => index + 1,
                           ),
                           surahName: surahName,
-                          juzName: juzName,
+                          hizbName: hizbName,
                           onPageSelected: _goToPage,
-                          onNavMenuTapped: _openNavMenu,
                         ),
                       ],
                     ),
@@ -595,7 +631,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   Alignment? hizbAlignment;
                   Alignment? indicatorAlignment;
 
-                  if (theme.showBookIconIndicator) {
+                  final effectiveShowBookIcon = theme.showBookIconIndicator;
+
+                  if (effectiveShowBookIcon) {
                     // Indicator is always bottom center
                     indicatorAlignment = Alignment.bottomCenter;
 
@@ -724,18 +762,18 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                 width: double.infinity,
                                 child: Stack(
                                   children: [
-                                    Align(
-                                      alignment: pageNumberAlignment,
-                                      child: _OverlayText(
-                                        text: '${readingProvider.activePage}',
-                                      ),
-                                    ),
-                                    if (hizbAlignment != null)
                                       Align(
-                                        alignment: hizbAlignment,
-                                        child: _OverlayText(text: juzName),
+                                        alignment: pageNumberAlignment,
+                                        child: _OverlayText(
+                                          text: '${readingProvider.activePage}',
+                                        ),
                                       ),
-                                    if (indicatorAlignment != null)
+                                      if (hizbAlignment != null)
+                                        Align(
+                                          alignment: hizbAlignment,
+                                          child: _OverlayText(text: juzName),
+                                        ),
+                                    if (indicatorAlignment != null && effectiveShowBookIcon)
                                       Align(
                                         alignment: indicatorAlignment,
                                         child: _BookSideIndicator(

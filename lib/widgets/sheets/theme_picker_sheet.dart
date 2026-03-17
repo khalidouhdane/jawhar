@@ -128,7 +128,7 @@ class ThemePickerSheet extends StatelessWidget {
                   ),
                   value: theme.fitScreenHeight,
                   onChanged: (v) => theme.setFitScreenHeight(v),
-                  activeColor: theme.accentColor,
+                  activeThumbColor: theme.accentColor,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -158,8 +158,9 @@ class ThemePickerSheet extends StatelessWidget {
                               step: 1,
                               displayFormat: (v) => v.round().toString(),
                               onChanged: (v) {
-                                if (!theme.fitScreenHeight)
+                                if (!theme.fitScreenHeight) {
                                   theme.setQuranFontSize(v);
+                                }
                               },
                               theme: theme,
                             ),
@@ -366,7 +367,8 @@ class ThemePickerSheet extends StatelessWidget {
                           child: Switch.adaptive(
                             value: theme.showBookIconIndicator,
                             activeColor: theme.accentColor,
-                            onChanged: (v) => theme.setShowBookIconIndicator(v),
+                            onChanged: (v) =>
+                                theme.setShowBookIconIndicator(v),
                           ),
                         ),
                       ],
@@ -425,58 +427,70 @@ class ThemePickerSheet extends StatelessWidget {
                         children: [
                           const SizedBox(height: 16),
                           // ── Indicator Style ──
-                          SizedBox(
-                            width: double.infinity,
-                            child:
-                                CupertinoSlidingSegmentedControl<
-                                  PageIndicatorEffect
-                                >(
-                                  groupValue: theme.pageIndicatorEffect,
-                                  backgroundColor: Colors.black.withOpacity(
-                                    0.05,
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              // During sheet open/close animation the width
+                              // can be 0, which makes the segmented control
+                              // produce negative child widths. Skip rendering
+                              // until the sheet has a usable width.
+                              if (constraints.maxWidth < 50) {
+                                return const SizedBox.shrink();
+                              }
+                              return SizedBox(
+                                width: double.infinity,
+                                child: ExcludeSemantics(
+                                  child: CupertinoSlidingSegmentedControl<
+                                      PageIndicatorEffect>(
+                                    groupValue: theme.pageIndicatorEffect,
+                                    backgroundColor: Colors.black.withOpacity(
+                                      0.05,
+                                    ),
+                                    thumbColor: theme.canvasBackground,
+                                    children: {
+                                      PageIndicatorEffect.center: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
+                                        child: Text(
+                                          l.t('theme_center_spine'),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight:
+                                                theme.pageIndicatorEffect ==
+                                                        PageIndicatorEffect.center
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                            color: theme.primaryText,
+                                          ),
+                                        ),
+                                      ),
+                                      PageIndicatorEffect.edge: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
+                                        child: Text(
+                                          l.t('theme_outer_edge'),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight:
+                                                theme.pageIndicatorEffect ==
+                                                        PageIndicatorEffect.edge
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                            color: theme.primaryText,
+                                          ),
+                                        ),
+                                      ),
+                                    },
+                                    onValueChanged: (v) {
+                                      if (v != null) {
+                                        theme.setPageIndicatorEffect(v);
+                                      }
+                                    },
                                   ),
-                                  thumbColor: theme.canvasBackground,
-                                  children: {
-                                    PageIndicatorEffect.center: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                      ),
-                                      child: Text(
-                                        l.t('theme_center_spine'),
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight:
-                                              theme.pageIndicatorEffect ==
-                                                  PageIndicatorEffect.center
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          color: theme.primaryText,
-                                        ),
-                                      ),
-                                    ),
-                                    PageIndicatorEffect.edge: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                      ),
-                                      child: Text(
-                                        l.t('theme_outer_edge'),
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight:
-                                              theme.pageIndicatorEffect ==
-                                                  PageIndicatorEffect.edge
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          color: theme.primaryText,
-                                        ),
-                                      ),
-                                    ),
-                                  },
-                                  onValueChanged: (v) {
-                                    if (v != null)
-                                      theme.setPageIndicatorEffect(v);
-                                  },
                                 ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 20),
                           _DebouncedSliderControl(

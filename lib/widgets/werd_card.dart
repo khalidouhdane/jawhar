@@ -354,7 +354,7 @@ class _ProgressRingState extends State<_ProgressRing>
     final color = widget.isComplete ? widget.completeColor : widget.accentColor;
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) {
+      builder: (_, _) {
         final value = _prev + (_anim.value * (widget.progress - _prev));
         return SizedBox(
           width: 68,

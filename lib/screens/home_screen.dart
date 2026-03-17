@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/widgets/werd_card.dart';
+import 'package:quran_app/widgets/sheets/nav_menu_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -347,7 +349,25 @@ class _HomeScreenState extends State<HomeScreen> {
           theme,
           icon: LucideIcons.bookmark,
           label: l.t('home_bookmarks'),
-          onTap: () {}, // Phase 5
+          badge: context.watch<BookmarkProvider>().count,
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => FractionallySizedBox(
+                heightFactor: 0.75,
+                child: NavMenuSheet(
+                  initialTab: 'bookmarks',
+                  onClose: () => Navigator.pop(ctx),
+                  onPageSelected: (page) {
+                    Navigator.pop(ctx);
+                    _openReadingScreen(page);
+                  },
+                ),
+              ),
+            );
+          },
         ),
         const SizedBox(width: 12),
         _quickAccessItem(
@@ -377,6 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    int badge = 0,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -390,7 +411,33 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Column(
             children: [
-              Icon(icon, size: 22, color: theme.accentColor),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(icon, size: 22, color: theme.accentColor),
+                  if (badge > 0)
+                    Positioned(
+                      top: -6,
+                      right: -10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: theme.accentColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$badge',
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               const SizedBox(height: 8),
               Text(
                 label,

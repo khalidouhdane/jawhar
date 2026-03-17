@@ -4,10 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
 import 'package:quran_app/providers/locale_provider.dart';
+import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/screens/onboarding_screen.dart';
+import 'package:quran_app/screens/reading_screen.dart';
+import 'package:quran_app/widgets/sheets/nav_menu_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -58,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── Reading Stats ──
-              _buildStatsCard(theme, hifz, lastRead, l),
+              _buildStatsCard(context, theme, hifz, lastRead, l),
               const SizedBox(height: 20),
 
               // ── Language Selector ──
@@ -82,13 +86,7 @@ class ProfileScreen extends StatelessWidget {
               // ── Bookmarks ──
               _buildSectionLabel(theme, l.t('profile_bookmarks_title')),
               const SizedBox(height: 10),
-              _buildPlaceholderCard(
-                theme,
-                icon: LucideIcons.bookmark,
-                title: l.t('profile_bookmarks_title'),
-                subtitle: l.t('profile_bookmarks_desc'),
-                badge: l.t('profile_soon'),
-              ),
+              _buildBookmarksCard(context, theme, l),
               const SizedBox(height: 24),
 
               // ── About ──
@@ -289,6 +287,7 @@ class ProfileScreen extends StatelessWidget {
 
   // ── Stats Card ──
   Widget _buildStatsCard(
+    BuildContext context,
     ThemeProvider theme,
     HifzProvider hifz,
     LastReadPosition? lastRead,
@@ -337,6 +336,13 @@ class ProfileScreen extends StatelessWidget {
                 label: l.t('profile_last_page'),
                 icon: LucideIcons.bookOpen,
               ),
+              _statDivider(theme),
+              _statItem(
+                theme,
+                value: '${context.watch<BookmarkProvider>().count}',
+                label: l.t('profile_bookmarks_title'),
+                icon: LucideIcons.bookmark,
+              ),
             ],
           ),
         ],
@@ -381,6 +387,117 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _statDivider(ThemeProvider theme) {
     return Container(width: 1, height: 36, color: theme.dividerColor);
+  }
+
+  // ── Bookmarks Card ──
+  Widget _buildBookmarksCard(
+    BuildContext context,
+    ThemeProvider theme,
+    AppLocalizations l,
+  ) {
+    final bp = context.watch<BookmarkProvider>();
+    final count = bp.count;
+
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (ctx) => FractionallySizedBox(
+            heightFactor: 0.75,
+            child: NavMenuSheet(
+              initialTab: 'bookmarks',
+              onClose: () => Navigator.pop(ctx),
+              onPageSelected: (page) {
+                Navigator.pop(ctx);
+                final nav = context.read<NavigationProvider>();
+                nav.enterReadingView();
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (_) => ReadingScreen(initialPage: page),
+                      ),
+                    )
+                    .then((_) => nav.exitReadingView());
+              },
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.accentColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(LucideIcons.bookmark, size: 20, color: theme.accentColor),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.t('profile_bookmarks_title'),
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.primaryText,
+                    ),
+                  ),
+                  Text(
+                    count > 0
+                        ? '$count ${count == 1 ? 'bookmark' : 'bookmarks'}'
+                        : l.t('profile_bookmarks_desc'),
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (count > 0)
+              Icon(
+                LucideIcons.chevronRight,
+                size: 18,
+                color: theme.mutedText,
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.pillBackground,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '0',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: theme.mutedText,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── Theme Selector ──
@@ -501,78 +618,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Placeholder Card ──
-  Widget _buildPlaceholderCard(
-    ThemeProvider theme, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String badge,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: theme.accentColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 20, color: theme.accentColor),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: theme.primaryText,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12,
-                    color: theme.mutedText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: theme.pillBackground,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              badge,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: theme.mutedText,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ── Settings Tile ──
   Widget _buildSettingsTile(

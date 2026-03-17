@@ -10,14 +10,18 @@ class TopNavBar extends StatelessWidget {
   final String readMode;
   final ValueChanged<String> onReadModeChanged;
   final VoidCallback onThemeTapped;
-  final VoidCallback onSearchTapped;
+  final VoidCallback onNavMenuTapped;
+  final VoidCallback? onBookmarkTapped;
+  final bool isBookmarked;
 
   const TopNavBar({
     super.key,
     required this.readMode,
     required this.onReadModeChanged,
     required this.onThemeTapped,
-    required this.onSearchTapped,
+    required this.onNavMenuTapped,
+    this.onBookmarkTapped,
+    this.isBookmarked = false,
   });
 
   @override
@@ -108,7 +112,7 @@ class TopNavBar extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               GestureDetector(
-                onTap: onSearchTapped,
+                onTap: onNavMenuTapped,
                 child: Icon(
                   LucideIcons.search,
                   size: 24,
@@ -116,36 +120,12 @@ class TopNavBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Container(
-                padding: const EdgeInsets.only(
-                  left: 10,
-                  right: 6,
-                  top: 8,
-                  bottom: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      'FR',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                        color: theme.iconColor,
-                        height: 1.085,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    Icon(
-                      LucideIcons.arrowRightLeft,
-                      size: 20,
-                      color: theme.iconColor,
-                    ),
-                  ],
+              GestureDetector(
+                onTap: onBookmarkTapped,
+                child: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  size: 24,
+                  color: isBookmarked ? theme.accentColor : theme.iconColor,
                 ),
               ),
             ],

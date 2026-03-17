@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
 class ReadingCanvas extends StatefulWidget {
@@ -25,12 +26,22 @@ class ReadingCanvas extends StatefulWidget {
   });
 
   @override
-  State<ReadingCanvas> createState() => _ReadingCanvasState();
+  State<ReadingCanvas> createState() => ReadingCanvasState();
 }
 
-class _ReadingCanvasState extends State<ReadingCanvas> {
+class ReadingCanvasState extends State<ReadingCanvas> {
   final Map<int, GlobalKey> _verseKeys = {};
   OverlayEntry? _menuOverlay;
+
+  /// Returns the RenderBox of a verse marker, or null if not found.
+  /// Used by ScrollableReadingCanvas for accurate verse-level center lock.
+  RenderBox? getVerseRenderBox(int verseId) {
+    final key = _verseKeys[verseId];
+    if (key?.currentContext == null) return null;
+    final renderBox = key!.currentContext!.findRenderObject() as RenderBox?;
+    if (renderBox == null || !renderBox.hasSize) return null;
+    return renderBox;
+  }
 
   @override
   void dispose() {
@@ -83,6 +94,7 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
               child: _ContextualMenu(
                 verse: verse,
                 verses: widget.verses,
+                pageNumber: widget.pageNumber,
                 onDismiss: () {
                   widget.onVerseSelected(null);
                 },
@@ -135,7 +147,8 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
 
       final isSelected = widget.selectedVerseId == verse.id;
       final isPlaying = audioProvider.activeVerseKey == verse.verseKey;
-      final isHighlighted = isSelected || isPlaying;
+      final isFlashHighlight = context.watch<BookmarkProvider>().highlightVerseKey == verse.verseKey;
+      final isHighlighted = isSelected || isPlaying || isFlashHighlight;
 
       // Try to get Warsh text for this verse
       String? warshText;
@@ -169,7 +182,7 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
           verseNumber: verse.verseNumber,
           isHighlighted: isHighlighted,
         );
-        if (isSelected) {
+        if (isSelected || isPlaying) {
           marker = KeyedSubtree(key: _getKeyForVerse(verse.id), child: marker);
         }
         spans.add(
@@ -196,7 +209,7 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
               verseNumber: verse.verseNumber,
               isHighlighted: isHighlighted,
             );
-            if (isSelected) {
+            if (isSelected || isPlaying) {
               marker = KeyedSubtree(
                 key: _getKeyForVerse(verse.id),
                 child: marker,
@@ -380,8 +393,7 @@ class _ReadingCanvasState extends State<ReadingCanvas> {
                             .clamp(14.0, 30.0)
                             .floorToDouble();
 
-                        // Push the dynamically calculated font size to the theme so sliders update visually
-                        // using microtask to avoid dirty build state exception
+                        // Push to theme so the slider updates visually.
                         if (isActivePage &&
                             theme.quranFontSize != calculatedFontSize) {
                           Future.microtask(
@@ -540,11 +552,13 @@ class _VerseMarker extends StatelessWidget {
 class _ContextualMenu extends StatelessWidget {
   final Verse verse;
   final List<Verse> verses;
+  final int pageNumber;
   final VoidCallback onDismiss;
 
   const _ContextualMenu({
     required this.verse,
     required this.verses,
+    required this.pageNumber,
     required this.onDismiss,
   });
 
@@ -583,7 +597,30 @@ class _ContextualMenu extends StatelessWidget {
             const SizedBox(width: 16),
             _ActionIcon(icon: LucideIcons.copy, onTap: () {}),
             const SizedBox(width: 16),
-            _ActionIcon(icon: LucideIcons.bookmark, onTap: () {}),
+            Builder(
+              builder: (ctx) {
+                final bookmarkProv = ctx.watch<BookmarkProvider>();
+                final isBookmarked = bookmarkProv.isVerseBookmarked(verse.verseKey);
+                // Look up surah name from reading provider
+                final readingProv = ctx.read<QuranReadingProvider>();
+                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
+                String surahName = 'Surah $chapterId';
+                try {
+                  surahName = readingProv.chapters.firstWhere((c) => c.id == chapterId).nameSimple;
+                } catch (_) {}
+                return _ActionIcon(
+                  icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  onTap: () {
+                    bookmarkProv.toggleVerseBookmark(
+                      verseKey: verse.verseKey,
+                      pageNumber: pageNumber,
+                      surahName: surahName,
+                    );
+                    onDismiss();
+                  },
+                );
+              },
+            ),
             const SizedBox(width: 16),
             _ActionIcon(icon: LucideIcons.share, onTap: () {}),
             const SizedBox(width: 16),

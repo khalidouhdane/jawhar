@@ -3,6 +3,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
+import 'package:quran_app/models/bookmark_model.dart';
+import 'package:quran_app/widgets/sheets/bookmark_edit_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 
 // ─── Nav Menu Sheet ───
@@ -10,11 +13,13 @@ import 'package:quran_app/l10n/app_localizations.dart';
 class NavMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
   final ValueChanged<int> onPageSelected;
+  final String initialTab;
 
   const NavMenuSheet({
     super.key,
     required this.onClose,
     required this.onPageSelected,
+    this.initialTab = 'surah',
   });
 
   @override
@@ -22,19 +27,15 @@ class NavMenuSheet extends StatefulWidget {
 }
 
 class _NavMenuSheetState extends State<NavMenuSheet> {
-  String activeTab = 'surah';
+  late String activeTab;
   String searchQuery = '';
-  // Simple in-memory bookmarks (page number -> surah name)
-  static final Map<int, String> _bookmarks = {};
+  String _bookmarkFilter = 'pages'; // 'pages' or 'verses'
+  String? _selectedCollectionId; // null = show all
 
-  void _toggleBookmark(int page, String name) {
-    setState(() {
-      if (_bookmarks.containsKey(page)) {
-        _bookmarks.remove(page);
-      } else {
-        _bookmarks[page] = name;
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    activeTab = widget.initialTab;
   }
 
   @override
@@ -234,7 +235,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             final surah = chapters[index];
             final surahPage = _getFirstPage(surah.id);
             final isCurrent = surahPage == currentPage;
-            final isBookmarked = _bookmarks.containsKey(surahPage);
+            final isBookmarked = context.watch<BookmarkProvider>().isPageBookmarked(surahPage);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -290,7 +291,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     GestureDetector(
-                      onTap: () => _toggleBookmark(surahPage, surah.nameSimple),
+                      onTap: () => context.read<BookmarkProvider>().togglePageBookmark(pageNumber: surahPage, surahName: surah.nameSimple),
                       child: Icon(
                         isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                         size: 20,
@@ -319,82 +320,553 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
   }
 
   Widget _buildBookmarksList(ThemeProvider theme, AppLocalizations l) {
-    if (_bookmarks.isEmpty) {
-      return Center(
-        child: Column(
+    final bookmarkProvider = context.watch<BookmarkProvider>();
+    final collections = bookmarkProvider.collections;
+
+    // Filter by collection first, then by type
+    final collectionBookmarks = _selectedCollectionId == null
+        ? bookmarkProvider.getAll()
+        : bookmarkProvider.getByCollection(_selectedCollectionId);
+    final pageBookmarks = collectionBookmarks.where((b) => b.type == BookmarkType.page).toList();
+    final verseBookmarks = collectionBookmarks.where((b) => b.type == BookmarkType.verse).toList();
+    final filteredBookmarks = _bookmarkFilter == 'pages' ? pageBookmarks : verseBookmarks;
+
+    return Column(
+      children: [
+        // ── Collection chips (horizontal scroll) ──
+        if (collections.isNotEmpty) ...[
+          SizedBox(
+            height: 34,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                _collectionChip(theme, l.t('bm_all'), null),
+                const SizedBox(width: 8),
+                ...collections.map((col) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _collectionChip(theme, col.name, col.id),
+                )),
+                _addCollectionChip(theme, l),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+
+        // ── Segmented switcher ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: theme.pillBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      _bookmarkSegment(
+                        theme, l,
+                        label: l.t('nav_pages'),
+                        key: 'pages',
+                        count: pageBookmarks.length,
+                      ),
+                      const SizedBox(width: 4),
+                      _bookmarkSegment(
+                        theme, l,
+                        label: l.t('nav_verses'),
+                        key: 'verses',
+                        count: verseBookmarks.length,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (filteredBookmarks.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => bookmarkProvider.shareBookmarks(
+                    collectionId: _selectedCollectionId,
+                  ),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      LucideIcons.share2,
+                      size: 16,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // ── Filtered list ──
+        Expanded(
+          child: filteredBookmarks.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _bookmarkFilter == 'pages'
+                            ? LucideIcons.fileText
+                            : LucideIcons.type,
+                        size: 48,
+                        color: theme.dividerColor,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _bookmarkFilter == 'pages'
+                            ? l.t('nav_no_page_bookmarks')
+                            : l.t('nav_no_verse_bookmarks'),
+                        style: TextStyle(
+                          color: theme.mutedText,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _bookmarkFilter == 'pages'
+                            ? l.t('nav_page_bookmark_hint')
+                            : l.t('nav_verse_bookmark_hint'),
+                        style: TextStyle(color: theme.mutedText, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: filteredBookmarks.length,
+                  itemBuilder: (context, index) {
+                    final bookmark = filteredBookmarks[index];
+                    final isVerse = bookmark.type == BookmarkType.verse;
+
+                    // Subtitle: verse key or page, plus collection name if assigned
+                    String subtitle = isVerse
+                        ? '${bookmark.verseKey} · ${l.t('nav_page')} ${bookmark.pageNumber}'
+                        : '${l.t('nav_page')} ${bookmark.pageNumber}';
+                    if (bookmark.collectionId != null) {
+                      final col = bookmarkProvider.getCollection(bookmark.collectionId!);
+                      if (col != null) subtitle += ' · ${col.name}';
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          if (isVerse && bookmark.verseKey != null) {
+                            bookmarkProvider.setHighlight(bookmark.verseKey!);
+                          }
+                          widget.onPageSelected(bookmark.pageNumber);
+                        },
+                        leading: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: theme.accentColor.withValues(alpha: 0.08),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                isVerse ? LucideIcons.type : LucideIcons.fileText,
+                                size: 18,
+                                color: theme.accentColor,
+                              ),
+                            ),
+                            // Color dot
+                            if (bookmark.colorIndex != null)
+                              Positioned(
+                                right: -2,
+                                top: -2,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: Color(BookmarkColors.palette[bookmark.colorIndex!]),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: theme.cardColor, width: 2),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        title: Text(
+                          bookmark.surahName,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              subtitle,
+                              style: TextStyle(fontSize: 12, color: theme.mutedText),
+                            ),
+                            if (bookmark.note != null && bookmark.note!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  bookmark.note!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                    color: theme.mutedText.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        trailing: GestureDetector(
+                          onTap: () => _openEditSheet(bookmark.id),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              LucideIcons.moreHorizontal,
+                              size: 18,
+                              color: theme.mutedText,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  void _openEditSheet(String bookmarkId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BookmarkEditSheet(
+        bookmarkId: bookmarkId,
+        onClose: () => Navigator.pop(ctx),
+      ),
+    );
+  }
+
+  void _showCreateCollectionDialog(ThemeProvider theme, AppLocalizations l) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.scaffoldBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l.t('bm_new_collection'),
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: theme.primaryText,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: TextStyle(fontFamily: 'Inter', color: theme.primaryText),
+          decoration: InputDecoration(
+            hintText: l.t('bm_collection_name_hint'),
+            hintStyle: TextStyle(fontFamily: 'Inter', color: theme.mutedText),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: theme.dividerColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: theme.accentColor),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.t('bm_cancel'),
+                style: TextStyle(color: theme.mutedText)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                context.read<BookmarkProvider>().createCollection(
+                  controller.text.trim(),
+                );
+                Navigator.pop(ctx);
+              }
+            },
+            child: Text(l.t('bm_create'),
+                style: TextStyle(color: theme.accentColor)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _collectionChip(ThemeProvider theme, String label, String? collectionId) {
+    final isActive = _selectedCollectionId == collectionId;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedCollectionId = collectionId),
+      onLongPress: collectionId != null
+          ? () => _showCollectionOptions(theme, collectionId)
+          : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive
+              ? theme.accentColor.withValues(alpha: 0.12)
+              : theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? theme.accentColor : theme.dividerColor,
+            width: isActive ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? theme.accentColor : theme.primaryText,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _addCollectionChip(ThemeProvider theme, AppLocalizations l) {
+    return GestureDetector(
+      onTap: () => _showCreateCollectionDialog(theme, l),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.dividerColor, style: BorderStyle.solid),
+        ),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(LucideIcons.bookmark, size: 48, color: theme.dividerColor),
-            const SizedBox(height: 12),
+            Icon(LucideIcons.plus, size: 14, color: theme.mutedText),
+            const SizedBox(width: 4),
             Text(
-              l.t('nav_no_bookmarks'),
+              l.t('bm_add'),
               style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
                 color: theme.mutedText,
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l.t('nav_bookmark_hint'),
-              style: TextStyle(color: theme.mutedText, fontSize: 12),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    final entries = _bookmarks.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
+  void _showCollectionOptions(ThemeProvider theme, String collectionId) {
+    final bp = context.read<BookmarkProvider>();
+    final col = bp.getCollection(collectionId);
+    if (col == null) return;
+    final l = AppLocalizations.of(context);
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: entries.length,
-      itemBuilder: (context, index) {
-        final entry = entries[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            onTap: () {
-              widget.onPageSelected(entry.key);
-            },
-            leading: Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: theme.pillBackground,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                LucideIcons.bookmark,
-                size: 18,
-                color: theme.accentColor,
-              ),
-            ),
-            title: Text(
-              entry.value,
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              col.name,
               style: TextStyle(
+                fontFamily: 'Inter',
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: theme.primaryText,
               ),
             ),
-            subtitle: Text(
-              "${l.t('nav_page')} ${entry.key}",
-              style: TextStyle(fontSize: 12, color: theme.mutedText),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Icon(LucideIcons.pencil, color: theme.accentColor),
+              title: Text(l.t('bm_rename'),
+                  style: TextStyle(color: theme.primaryText)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showRenameDialog(theme, l, collectionId, col.name);
+              },
             ),
-            trailing: GestureDetector(
-              onTap: () => _toggleBookmark(entry.key, entry.value),
-              child: Icon(
-                LucideIcons.trash2,
-                size: 18,
-                color: Colors.red.shade400,
-              ),
+            ListTile(
+              leading: Icon(LucideIcons.trash2, color: Colors.red.shade400),
+              title: Text(l.t('bm_delete_collection'),
+                  style: TextStyle(color: Colors.red.shade400)),
+              onTap: () {
+                Navigator.pop(ctx);
+                bp.deleteCollection(collectionId);
+                if (_selectedCollectionId == collectionId) {
+                  setState(() => _selectedCollectionId = null);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRenameDialog(
+    ThemeProvider theme,
+    AppLocalizations l,
+    String collectionId,
+    String currentName,
+  ) {
+    final controller = TextEditingController(text: currentName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.scaffoldBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l.t('bm_rename'),
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: theme.primaryText,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: TextStyle(fontFamily: 'Inter', color: theme.primaryText),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: theme.dividerColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: theme.accentColor),
             ),
           ),
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.t('bm_cancel'),
+                style: TextStyle(color: theme.mutedText)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                context.read<BookmarkProvider>().renameCollection(
+                  collectionId,
+                  controller.text.trim(),
+                );
+                Navigator.pop(ctx);
+              }
+            },
+            child: Text(l.t('bm_save'),
+                style: TextStyle(color: theme.accentColor)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bookmarkSegment(
+    ThemeProvider theme,
+    AppLocalizations l, {
+    required String label,
+    required String key,
+    required int count,
+  }) {
+    final isActive = _bookmarkFilter == key;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _bookmarkFilter = key),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? theme.cardColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: theme.shadowColor.withValues(alpha: 0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isActive ? theme.accentColor : theme.chipUnselectedText,
+                ),
+              ),
+              if (count > 0) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? theme.accentColor.withValues(alpha: 0.12)
+                        : theme.pillBackground,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isActive ? theme.accentColor : theme.mutedText,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

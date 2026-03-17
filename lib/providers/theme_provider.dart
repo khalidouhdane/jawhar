@@ -10,6 +10,8 @@ enum QuranContentAlignment { top, center, bottom }
 
 enum QuranTextAlign { right, center, justify }
 
+
+
 /// Provides theme colors for the entire app.
 /// Classic = Original brand colors (white surfaces, teal accents) — DEFAULT
 /// Warm = Parchment/beige background with teal accents
@@ -28,7 +30,7 @@ class ThemeProvider extends ChangeNotifier {
 
   // Alignment settings
   QuranContentAlignment _contentAlignment = QuranContentAlignment.top;
-  QuranTextAlign _quranTextAlign = QuranTextAlign.center;
+  QuranTextAlign _quranTextAlign = QuranTextAlign.justify;
 
   // Spine effect (page shadow) settings
   bool _spineEffectEnabled = false;

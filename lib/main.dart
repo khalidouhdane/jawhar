@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:device_preview/device_preview.dart';
@@ -16,6 +15,8 @@ import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/providers/hifz_provider.dart';
 import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/providers/locale_provider.dart';
+import 'package:quran_app/providers/update_provider.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -99,12 +100,17 @@ void main() async {
         ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
         ChangeNotifierProvider(create: (_) => WerdProvider(storageService)),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => UpdateProvider()),
+        ChangeNotifierProvider(create: (_) => BookmarkProvider(storageService)),
         Provider.value(value: storageService),
       ],
       child: DevicePreview(
         enabled:
             !kReleaseMode &&
-            (Platform.isWindows || Platform.isMacOS || Platform.isLinux),
+            !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.windows ||
+             defaultTargetPlatform == TargetPlatform.macOS ||
+             defaultTargetPlatform == TargetPlatform.linux),
         builder: (context) => const QuranApp(),
       ),
     ),

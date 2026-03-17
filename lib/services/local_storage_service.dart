@@ -11,6 +11,10 @@ class LocalStorageService {
   static const _keyWerdConfig = 'werd_config';
   static const _keyRewaya = 'user_rewaya';
   static const _keyOnboardingComplete = 'onboarding_complete';
+  static const _keyReadingMode = 'reading_mode';
+  static const _keyCenterLock = 'center_lock_enabled';
+  static const _keyAutoScrollSpeed = 'auto_scroll_speed';
+  static const _keyBookmarks = 'bookmarks';
 
   final SharedPreferences _prefs;
 
@@ -81,6 +85,44 @@ class LocalStorageService {
   void clearWerdConfig() {
     _prefs.remove(_keyWerdConfig);
   }
+
+  // ── Reading Mode Settings ──
+
+  /// Save the user's reading mode ('page' or 'scroll').
+  void saveReadingMode(String mode) => _prefs.setString(_keyReadingMode, mode);
+
+  /// Returns the saved reading mode, or null if not set.
+  String? get savedReadingMode => _prefs.getString(_keyReadingMode);
+
+  /// Save center lock preference.
+  void saveCenterLock(bool enabled) => _prefs.setBool(_keyCenterLock, enabled);
+
+  /// Returns center lock preference (default true).
+  bool get savedCenterLock => _prefs.getBool(_keyCenterLock) ?? true;
+
+  /// Save auto-scroll speed.
+  void saveAutoScrollSpeed(double speed) =>
+      _prefs.setDouble(_keyAutoScrollSpeed, speed);
+
+  /// Returns saved auto-scroll speed (default 1.0).
+  double get savedAutoScrollSpeed =>
+      _prefs.getDouble(_keyAutoScrollSpeed) ?? 1.0;
+
+  // ── Bookmarks ──
+
+  /// Save bookmarks as a JSON string.
+  void saveBookmarks(String json) => _prefs.setString(_keyBookmarks, json);
+
+  /// Returns the saved bookmarks JSON, or null if none.
+  String? getBookmarks() => _prefs.getString(_keyBookmarks);
+
+  // ── Bookmark Collections ──
+  static const _keyBookmarkCollections = 'bookmark_collections';
+
+  void saveCollections(String json) =>
+      _prefs.setString(_keyBookmarkCollections, json);
+
+  String? getCollections() => _prefs.getString(_keyBookmarkCollections);
 }
 
 /// Simple data class for last read position.

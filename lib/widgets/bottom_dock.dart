@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
@@ -7,21 +6,17 @@ class BottomDock extends StatefulWidget {
   final int activePage;
   final List<int> paginationArray;
   final ValueChanged<int> onPageSelected;
-  final VoidCallback onNavMenuTapped;
   final String surahName;
-  final String juzName;
+  final String hizbName;
 
   const BottomDock({
     super.key,
     required this.activePage,
     required this.paginationArray,
     required this.onPageSelected,
-    required this.onNavMenuTapped,
     required this.surahName,
-    required this.juzName,
-  });
-
-  @override
+    required this.hizbName,
+  });  @override
   State<BottomDock> createState() => _BottomDockState();
 }
 
@@ -53,7 +48,7 @@ class _BottomDockState extends State<BottomDock> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Surah name + Juz label
+            // Surah name + Hizb label
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -67,7 +62,7 @@ class _BottomDockState extends State<BottomDock> {
                   ),
                 ),
                 Text(
-                  widget.juzName,
+                  widget.hizbName,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -78,65 +73,36 @@ class _BottomDockState extends State<BottomDock> {
               ],
             ),
             const SizedBox(height: 8),
-            // Nav icon + pagination + bookmark
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: widget.onNavMenuTapped,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: theme.pillBackground,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.list,
-                      size: 20,
-                      color: theme.accentColor,
-                    ),
-                  ),
+            // Pagination strip (full width)
+            ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black,
+                    Colors.black,
+                    Colors.transparent,
+                  ],
+                  stops: [0.0, 0.05, 0.92, 1.0],
+                ).createShader(bounds);
+              },
+              blendMode: BlendMode.dstIn,
+              child: SizedBox(
+                height: 48,
+                child: PaginationSlider(
+                  activePage: widget.activePage,
+                  paginationArray: widget.paginationArray,
+                  onPageSelected: widget.onPageSelected,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: PaginationSlider(
-                      activePage: widget.activePage,
-                      paginationArray: widget.paginationArray,
-                      onPageSelected: widget.onPageSelected,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.dividerColor),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.shadowColor.withValues(alpha: 0.02),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    LucideIcons.bookmark,
-                    size: 18,
-                    color: theme.accentColor,
-                  ),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 8),
-            // Full-width smooth slider
+            // Full-width page slider
             SizedBox(
+              key: const ValueKey('page_slider'),
               height: 20,
-              // Negative horizontal margin to pull the slider track exactly to the container edges
-              // (which are padded by 16px). Or instead use a custom track shape.
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 6,
