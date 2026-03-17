@@ -147,18 +147,20 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     // "None" option
-                    _colorCircle(theme, null, bm.colorIndex == null, bp),
-                    const SizedBox(width: 10),
+                    _colorCircle(theme, null, bm.colorIndex == null && bm.customColor == null, bp),
+                    // Preset palette
                     ...List.generate(BookmarkColors.palette.length, (i) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: _colorCircle(
-                            theme, i, bm.colorIndex == i, bp),
+                      return _colorCircle(
+                        theme, i, bm.colorIndex == i && bm.customColor == null, bp,
                       );
                     }),
+                    // Custom color circle
+                    _customColorCircle(theme, bm, bp),
                   ],
                 ),
               ],
@@ -326,6 +328,193 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
             ? Icon(LucideIcons.x, size: 14, color: theme.mutedText)
             : null,
       ),
+    );
+  }
+
+  Widget _customColorCircle(
+    ThemeProvider theme,
+    Bookmark bm,
+    BookmarkProvider bp,
+  ) {
+    final hasCustom = bm.customColor != null;
+    final color = hasCustom ? Color(bm.customColor!) : theme.accentColor;
+
+    return GestureDetector(
+      onTap: () => _showHexColorDialog(theme, bm, bp),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: hasCustom ? theme.primaryText : theme.dividerColor,
+            width: hasCustom ? 2.5 : 1.5,
+          ),
+          color: hasCustom ? color : Colors.transparent,
+        ),
+        child: hasCustom
+            ? null
+            : Icon(LucideIcons.pipette, size: 14, color: theme.mutedText),
+      ),
+    );
+  }
+
+  void _showHexColorDialog(
+    ThemeProvider theme,
+    Bookmark bm,
+    BookmarkProvider bp,
+  ) {
+    final hexController = TextEditingController(
+      text: bm.customColor != null
+          ? bm.customColor!.toRadixString(16).substring(2).toUpperCase()
+          : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        Color preview = bm.customColor != null
+            ? Color(bm.customColor!)
+            : theme.accentColor;
+
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              backgroundColor: theme.scaffoldBackground,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: Text(
+                'Custom Color',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: theme.primaryText,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Preview circle
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: preview,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: theme.dividerColor, width: 2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Hex input
+                  TextField(
+                    controller: hexController,
+                    maxLength: 6,
+                    textCapitalization: TextCapitalization.characters,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: theme.primaryText,
+                      letterSpacing: 2,
+                    ),
+                    decoration: InputDecoration(
+                      prefixText: '#',
+                      prefixStyle: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: theme.mutedText,
+                      ),
+                      hintText: 'FF5733',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Inter',
+                        color: theme.mutedText.withValues(alpha: 0.3),
+                      ),
+                      counterText: '',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(color: theme.dividerColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(color: theme.accentColor),
+                      ),
+                    ),
+                    onChanged: (val) {
+                      if (val.length == 6) {
+                        final parsed = int.tryParse('FF$val', radix: 16);
+                        if (parsed != null) {
+                          setDialogState(
+                              () => preview = Color(parsed));
+                        }
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  // Quick palette row
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      0xFFFF5733, 0xFF33FF57, 0xFF3357FF,
+                      0xFFFF33A8, 0xFF33FFF5, 0xFFFFC300,
+                      0xFF8E44AD, 0xFF1ABC9C,
+                    ].map((c) {
+                      return GestureDetector(
+                        onTap: () {
+                          setDialogState(() => preview = Color(c));
+                          hexController.text =
+                              c.toRadixString(16).substring(2).toUpperCase();
+                        },
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Color(c),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    if (bm.customColor != null) {
+                      bp.updateCustomColor(widget.bookmarkId, null);
+                    }
+                    Navigator.pop(ctx);
+                  },
+                  child: Text('Clear',
+                      style: TextStyle(color: theme.mutedText)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final hex = hexController.text.trim();
+                    if (hex.length == 6) {
+                      final parsed =
+                          int.tryParse('FF$hex', radix: 16);
+                      if (parsed != null) {
+                        bp.updateCustomColor(
+                            widget.bookmarkId, parsed);
+                      }
+                    }
+                    Navigator.pop(ctx);
+                  },
+                  child: Text('Apply',
+                      style: TextStyle(color: theme.accentColor)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

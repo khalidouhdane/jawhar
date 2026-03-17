@@ -5,7 +5,7 @@ import 'package:quran_app/models/bookmark_model.dart';
 import 'package:quran_app/models/bookmark_collection.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 
-/// Predefined bookmark color palette (6 colors).
+/// Predefined bookmark color palette (12 colors).
 class BookmarkColors {
   static const List<int> palette = [
     0xFF26A69A, // teal
@@ -14,6 +14,12 @@ class BookmarkColors {
     0xFF5C6BC0, // indigo
     0xFF66BB6A, // emerald
     0xFFFF7043, // orange
+    0xFF8D6E63, // brown
+    0xFFAB47BC, // purple
+    0xFF42A5F5, // sky blue
+    0xFFEC407A, // pink
+    0xFF78909C, // slate
+    0xFFD4E157, // lime
   ];
 }
 
@@ -172,13 +178,27 @@ class BookmarkProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update a bookmark's color.
+  /// Update a bookmark's color from the palette (clears any custom color).
   void updateColor(String bookmarkId, int? colorIndex) {
     final idx = _bookmarks.indexWhere((b) => b.id == bookmarkId);
     if (idx == -1) return;
     _bookmarks[idx] = _bookmarks[idx].copyWith(
       colorIndex: colorIndex,
       clearColor: colorIndex == null,
+      clearCustomColor: true,
+    );
+    _save();
+    notifyListeners();
+  }
+
+  /// Set a custom ARGB color (clears palette colorIndex).
+  void updateCustomColor(String bookmarkId, int? argb) {
+    final idx = _bookmarks.indexWhere((b) => b.id == bookmarkId);
+    if (idx == -1) return;
+    _bookmarks[idx] = _bookmarks[idx].copyWith(
+      customColor: argb,
+      clearCustomColor: argb == null,
+      clearColor: true,
     );
     _save();
     notifyListeners();

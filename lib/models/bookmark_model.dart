@@ -13,7 +13,8 @@ class Bookmark {
   final DateTime createdAt;
   final String? collectionId;  // links to BookmarkCollection (null = uncategorized)
   final String? note;          // personal note
-  final int? colorIndex;       // index into 6-color palette (null = no color)
+  final int? colorIndex;       // index into color palette (null = no color)
+  final int? customColor;      // ARGB int for custom-picked color (overrides colorIndex)
 
   const Bookmark({
     required this.id,
@@ -25,15 +26,18 @@ class Bookmark {
     this.collectionId,
     this.note,
     this.colorIndex,
+    this.customColor,
   });
 
   Bookmark copyWith({
     String? collectionId,
     String? note,
     int? colorIndex,
+    int? customColor,
     bool clearCollection = false,
     bool clearNote = false,
     bool clearColor = false,
+    bool clearCustomColor = false,
   }) => Bookmark(
     id: id,
     type: type,
@@ -44,6 +48,7 @@ class Bookmark {
     collectionId: clearCollection ? null : (collectionId ?? this.collectionId),
     note: clearNote ? null : (note ?? this.note),
     colorIndex: clearColor ? null : (colorIndex ?? this.colorIndex),
+    customColor: clearCustomColor ? null : (customColor ?? this.customColor),
   );
 
   /// Generate a unique ID from the current timestamp.
@@ -60,6 +65,7 @@ class Bookmark {
         if (collectionId != null) 'collectionId': collectionId,
         if (note != null) 'note': note,
         if (colorIndex != null) 'colorIndex': colorIndex,
+        if (customColor != null) 'customColor': customColor,
       };
 
   factory Bookmark.fromJson(Map<String, dynamic> json) => Bookmark(
@@ -74,6 +80,7 @@ class Bookmark {
         collectionId: json['collectionId'] as String?,
         note: json['note'] as String?,
         colorIndex: json['colorIndex'] as int?,
+        customColor: json['customColor'] as int?,
       );
 
   /// Encode the full list to a JSON string for SharedPreferences.
