@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,9 @@ import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
+import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/widgets/context/tafsir_sheet.dart';
 
 class ReadingCanvas extends StatefulWidget {
   final List<Verse> verses;
@@ -562,6 +565,13 @@ class _ContextualMenu extends StatelessWidget {
     required this.onDismiss,
   });
 
+  String get _verseText {
+    return verse.words
+        .where((w) => w.charTypeName != 'end')
+        .map((w) => w.textUthmani)
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
@@ -583,6 +593,7 @@ class _ContextualMenu extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Play
             _ActionIcon(
               icon: LucideIcons.play,
               onTap: () {
@@ -595,13 +606,34 @@ class _ContextualMenu extends StatelessWidget {
               },
             ),
             const SizedBox(width: 16),
-            _ActionIcon(icon: LucideIcons.copy, onTap: () {}),
+            // Copy verse text to clipboard
+            _ActionIcon(
+              icon: LucideIcons.copy,
+              onTap: () {
+                Clipboard.setData(ClipboardData(
+                  text: '${_verseText}\n[${verse.verseKey}]',
+                ));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Verse ${verse.verseKey} copied',
+                      style: const TextStyle(fontFamily: 'Inter'),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                );
+                onDismiss();
+              },
+            ),
             const SizedBox(width: 16),
+            // Bookmark
             Builder(
               builder: (ctx) {
                 final bookmarkProv = ctx.watch<BookmarkProvider>();
                 final isBookmarked = bookmarkProv.isVerseBookmarked(verse.verseKey);
-                // Look up surah name from reading provider
                 final readingProv = ctx.read<QuranReadingProvider>();
                 final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
                 String surahName = 'Surah $chapterId';
@@ -622,16 +654,76 @@ class _ContextualMenu extends StatelessWidget {
               },
             ),
             const SizedBox(width: 16),
-            _ActionIcon(icon: LucideIcons.share, onTap: () {}),
+            // Share
+            _ActionIcon(
+              icon: LucideIcons.share,
+              onTap: () {
+                Clipboard.setData(ClipboardData(
+                  text: '${_verseText}\n\n— ${verse.verseKey}',
+                ));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Verse copied for sharing',
+                      style: TextStyle(fontFamily: 'Inter'),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                );
+                onDismiss();
+              },
+            ),
             const SizedBox(width: 16),
             Container(
               width: 1,
               height: 16,
               color: Colors.white.withValues(alpha: 0.2),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
+            // Translate — toggles inline translation for the verse
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                final ctx = context.read<ContextProvider>();
+                ctx.loadTranslation(verse.verseKey);
+                ctx.enableTranslation();
+                onDismiss();
+              },
+              child: const Text(
+                'Translate',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              width: 1,
+              height: 16,
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
+            const SizedBox(width: 12),
+            // Tafsir — opens the tafsir bottom sheet
+            GestureDetector(
+              onTap: () {
+                onDismiss();
+                // Look up surah name
+                final readingProv = context.read<QuranReadingProvider>();
+                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
+                String? surahName;
+                try {
+                  surahName = readingProv.chapters.firstWhere((c) => c.id == chapterId).nameSimple;
+                } catch (_) {}
+                showTafsirSheet(
+                  context,
+                  verseKey: verse.verseKey,
+                  surahName: surahName,
+                );
+              },
               child: const Text(
                 'Tafsir',
                 style: TextStyle(

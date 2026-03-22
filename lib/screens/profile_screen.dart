@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
-import 'package:quran_app/providers/hifz_provider.dart';
+import 'package:quran_app/providers/hifz_profile_provider.dart';
+import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/screens/onboarding_screen.dart';
 import 'package:quran_app/screens/reading_screen.dart';
+import 'package:quran_app/screens/hifz/assessment_screen.dart';
 import 'package:quran_app/widgets/sheets/nav_menu_sheet.dart';
+import 'package:quran_app/widgets/sheets/notification_settings_sheet.dart';
+import 'package:quran_app/screens/hifz/accountability_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -20,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
-    final hifz = context.watch<HifzProvider>();
+    final hifzProfile = context.watch<HifzProfileProvider>();
     final locale = context.watch<LocaleProvider>();
     final reading = context.watch<QuranReadingProvider>();
     final l = AppLocalizations.of(context);
@@ -62,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── Reading Stats ──
-              _buildStatsCard(context, theme, hifz, lastRead, l),
+              _buildStatsCard(context, theme, hifzProfile, lastRead, l),
               const SizedBox(height: 20),
 
               // ── Language Selector ──
@@ -88,6 +93,88 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               _buildBookmarksCard(context, theme, l),
               const SizedBox(height: 24),
+
+              // ── Notifications ──
+              _buildSectionLabel(theme, 'Notifications'),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const NotificationSettingsSheet(),
+                  );
+                },
+                child: _buildSettingsTile(
+                  theme,
+                  icon: LucideIcons.bell,
+                  title: 'Session Reminders',
+                  subtitle: 'Daily notification for your Hifz session',
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ── Social & Accountability ──
+              _buildSectionLabel(theme, 'Social & Sharing'),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AccountabilityScreen(),
+                    ),
+                  );
+                },
+                child: _buildSettingsTile(
+                  theme,
+                  icon: LucideIcons.users,
+                  title: 'Accountability & Sharing',
+                  subtitle: 'Share progress with friends and teachers',
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ── Hifz Profile Management (CE-11) ──
+              if (hifzProfile.hasActiveProfile) ...[
+                _buildSectionLabel(theme, 'Hifz Profile'),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AssessmentScreen()),
+                    );
+                  },
+                  child: _buildSettingsTile(
+                    theme,
+                    icon: LucideIcons.refreshCw,
+                    title: 'Retake Assessment',
+                    subtitle: 'Update your memory profile settings',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => _showResetProgressDialog(context, theme, hifzProfile),
+                  child: _buildSettingsTile(
+                    theme,
+                    icon: LucideIcons.trash2,
+                    title: 'Reset Progress',
+                    subtitle: 'Erase all sessions & progress, keep profile',
+                    danger: true,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => _showDeleteProfileDialog(context, theme, hifzProfile),
+                  child: _buildSettingsTile(
+                    theme,
+                    icon: LucideIcons.userX,
+                    title: 'Delete Profile',
+                    subtitle: 'Remove everything and start over',
+                    danger: true,
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
 
               // ── About ──
               _buildSectionLabel(theme, l.t('profile_about')),
@@ -289,10 +376,11 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildStatsCard(
     BuildContext context,
     ThemeProvider theme,
-    HifzProvider hifz,
+    HifzProfileProvider hifzProfile,
     LastReadPosition? lastRead,
     AppLocalizations l,
   ) {
+    final activeDays = hifzProfile.streak.totalActiveDays;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -318,14 +406,14 @@ class ProfileScreen extends StatelessWidget {
             children: [
               _statItem(
                 theme,
-                value: '${hifz.totalMemorized}',
+                value: '$activeDays',
                 label: l.t('profile_memorized'),
                 icon: LucideIcons.brain,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
-                value: '${hifz.streak.currentStreak}',
+                value: '${hifzProfile.streak.totalActiveDays}',
                 label: l.t('hifz_day_streak'),
                 icon: LucideIcons.flame,
               ),
@@ -625,17 +713,20 @@ class ProfileScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    bool danger = false,
   }) {
+    final iconColor = danger ? Colors.red.shade400 : theme.accentColor;
+    final titleColor = danger ? Colors.red.shade400 : theme.primaryText;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor),
+        border: Border.all(color: danger ? Colors.red.withValues(alpha: 0.2) : theme.dividerColor),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: theme.accentColor),
+          Icon(icon, size: 18, color: iconColor),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -647,7 +738,7 @@ class ProfileScreen extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: theme.primaryText,
+                    color: titleColor,
                   ),
                 ),
                 Text(
@@ -660,6 +751,92 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── CE-11: Dialog methods ──
+
+  void _showResetProgressDialog(
+      BuildContext context, ThemeProvider theme, HifzProfileProvider hifz) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Reset Progress?',
+            style: TextStyle(fontFamily: 'Inter', color: theme.primaryText)),
+        content: Text(
+          'This will erase all your sessions, page progress, and plans. '
+          'Your profile and assessment results will be kept.',
+          style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.secondaryText),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: theme.mutedText)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final db = context.read<HifzDatabaseService>();
+              await db.resetProgress(hifz.activeProfile!.id);
+              // Clear the plan so it regenerates fresh
+              if (context.mounted) {
+                context.read<PlanProvider>().clearPlan();
+              }
+              await hifz.refresh();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Progress reset successfully')),
+                );
+              }
+            },
+            child: Text('Reset', style: TextStyle(color: Colors.red.shade400)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteProfileDialog(
+      BuildContext context, ThemeProvider theme, HifzProfileProvider hifz) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete Profile?',
+            style: TextStyle(fontFamily: 'Inter', color: theme.primaryText)),
+        content: Text(
+          'This will permanently delete your profile and all associated data. '
+          'This action cannot be undone.',
+          style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.secondaryText),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: theme.mutedText)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final profileId = hifz.activeProfile!.id;
+              // Use provider's deleteProfile which handles switching to next profile
+              await hifz.deleteProfile(profileId);
+              // Clear old plan so it doesn't linger
+              if (context.mounted) {
+                final planProvider = context.read<PlanProvider>();
+                planProvider.clearPlan();
+                // If there's still an active profile, load its plan
+                if (hifz.hasActiveProfile) {
+                  planProvider.loadOrGeneratePlan(hifz.activeProfile!);
+                }
+              }
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red.shade400)),
           ),
         ],
       ),
