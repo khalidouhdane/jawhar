@@ -8,19 +8,20 @@ import 'package:quran_app/providers/theme_provider.dart';
 class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({super.key});
 
+  // Dashboard / Practice / Read / Listen / Profile
   static const _icons = [
     LucideIcons.home,
+    LucideIcons.layers,
     LucideIcons.bookOpen,
     LucideIcons.headphones,
-    LucideIcons.brain,
     LucideIcons.user,
   ];
 
   static const _labelKeys = [
-    'nav_home',
+    'nav_dashboard',
+    'nav_practice',
     'nav_read',
-    'nav_audio',
-    'nav_hifz',
+    'nav_listen',
     'nav_profile',
   ];
 

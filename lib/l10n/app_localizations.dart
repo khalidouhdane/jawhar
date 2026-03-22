@@ -24,7 +24,10 @@ class AppLocalizations {
     'en': {
       // Bottom Nav
       'nav_home': 'Home',
+      'nav_dashboard': 'Dashboard',
+      'nav_practice': 'Practice',
       'nav_read': 'Read',
+      'nav_listen': 'Listen',
       'nav_audio': 'Audio',
       'nav_hifz': 'Hifz',
       'nav_profile': 'Profile',
@@ -253,6 +256,14 @@ class AppLocalizations {
       'reading_playing': 'Playing...',
       'reading_page_na': 'Page not available',
 
+      // Practice Screen
+      'practice_title': 'Practice',
+      'practice_subtitle': 'Strengthen your memorization',
+      'practice_coming_title': 'Coming Soon',
+      'practice_coming_desc': 'Flashcards and mutashabihat drills to reinforce your memorization journey.',
+      'practice_flashcards': 'Flashcards',
+      'practice_mutashabihat': 'Mutashabihat',
+
       // General
       'loading': 'Loading...',
 
@@ -268,7 +279,10 @@ class AppLocalizations {
     'ar': {
       // Bottom Nav
       'nav_home': 'الرئيسية',
+      'nav_dashboard': 'الرئيسية',
+      'nav_practice': 'التدريب',
       'nav_read': 'القراءة',
+      'nav_listen': 'الاستماع',
       'nav_audio': 'الاستماع',
       'nav_hifz': 'الحفظ',
       'nav_profile': 'الإعدادات',
@@ -495,6 +509,14 @@ class AppLocalizations {
       'reading_verse': 'الآية',
       'reading_playing': 'يتم التشغيل...',
       'reading_page_na': 'الصفحة غير متوفرة',
+
+      // Practice Screen
+      'practice_title': 'التدريب',
+      'practice_subtitle': 'عزز حفظك',
+      'practice_coming_title': 'قريباً',
+      'practice_coming_desc': 'بطاقات تدريب وتمارين المتشابهات لتعزيز رحلة حفظك.',
+      'practice_flashcards': 'بطاقات تدريب',
+      'practice_mutashabihat': 'المتشابهات',
 
       // General
       'loading': 'جاري التحميل...',

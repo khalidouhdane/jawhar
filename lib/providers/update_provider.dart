@@ -1,4 +1,4 @@
-import 'dart:io';
+
 
 import 'package:flutter/foundation.dart';
 import 'package:quran_app/services/update_service.dart';
@@ -32,8 +32,6 @@ class UpdateProvider extends ChangeNotifier {
   /// Check GitHub Releases for a new version.
   /// Returns `true` if an update is available.
   Future<bool> checkForUpdate() async {
-    // Only check on mobile (Android). On desktop, updates are manual.
-    if (!Platform.isAndroid) return false;
 
     _status = UpdateStatus.checking;
     notifyListeners();

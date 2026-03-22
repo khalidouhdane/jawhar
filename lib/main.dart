@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:device_preview/device_preview.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
@@ -12,22 +14,59 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/app_shell.dart';
 import 'package:quran_app/services/local_storage_service.dart';
-import 'package:quran_app/providers/hifz_provider.dart';
+import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/providers/hifz_profile_provider.dart';
+import 'package:quran_app/providers/plan_provider.dart';
+import 'package:quran_app/providers/session_provider.dart';
+import 'package:quran_app/providers/flashcard_provider.dart';
+import 'package:quran_app/services/mutashabihat_import_service.dart';
 import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/providers/update_provider.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
+import 'package:quran_app/providers/analytics_provider.dart';
+import 'package:quran_app/services/analytics_service.dart';
+import 'package:quran_app/services/notification_service.dart';
+import 'package:quran_app/providers/context_provider.dart';
+import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
+import 'package:quran_app/providers/notification_provider.dart';
+import 'package:quran_app/providers/social_provider.dart';
+import 'package:quran_app/services/push_notification_service.dart';
+import 'package:quran_app/services/sharing_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:quran_app/screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize SQLite FFI for desktop platforms (Windows, macOS, Linux)
+  if (!kIsWeb &&
+      (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
   // Initialize local storage
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
+
+  // Initialize Hifz database
+  final hifzDb = HifzDatabaseService();
+  // Trigger DB creation/migration early
+  await hifzDb.database;
+
+  // Import mutashabihat dataset if needed (non-blocking)
+  MutashabihatImportService(hifzDb).importIfNeeded();
+
+  // Import asbab al-nuzul dataset if needed (non-blocking)
+  final asbabService = AsbabNuzulService();
+  asbabService.importIfNeeded();
+
+  // Initialize push notification service
+  final pushNotifService = PushNotificationService();
+  await pushNotifService.initialize();
 
   // Initialize audio_service — creates a foreground service for media notification
   final audioHandler = await AudioService.init(
@@ -70,8 +109,8 @@ void main() async {
     }
   }
 
-  // Default tab: Home (0) if user has reading history, else Read (1)
-  final defaultTab = storageService.hasReadingHistory ? 0 : 1;
+  // Default tab: Dashboard (0) if user has reading history, else Read (2)
+  final defaultTab = storageService.hasReadingHistory ? 0 : 2;
 
   runApp(
     MultiProvider(
@@ -97,12 +136,28 @@ void main() async {
         ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
-        ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => HifzProfileProvider(hifzDb)),
+        ChangeNotifierProvider(create: (_) => PlanProvider(hifzDb)),
+        ChangeNotifierProvider(create: (_) => SessionProvider(hifzDb)),
+        ChangeNotifierProvider(create: (_) => FlashcardProvider(hifzDb)),
         ChangeNotifierProvider(create: (_) => WerdProvider(storageService)),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => UpdateProvider()),
         ChangeNotifierProvider(create: (_) => BookmarkProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => NotificationProvider(pushNotifService, prefs)),
+        ChangeNotifierProvider(create: (_) => SocialProvider(SharingService(), hifzDb)),
+        ChangeNotifierProvider(create: (_) {
+          final analyticsService = AnalyticsService(hifzDb);
+          final notificationService = NotificationService(analyticsService);
+          return AnalyticsProvider(analyticsService, notificationService);
+        }),
+        ChangeNotifierProvider(
+          create: (_) => ContextProvider(
+            asbabService: asbabService,
+          ),
+        ),
         Provider.value(value: storageService),
+        Provider.value(value: hifzDb),
       ],
       child: DevicePreview(
         enabled:
