@@ -6,9 +6,15 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/session_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
+import 'package:quran_app/providers/flashcard_provider.dart';
+import 'package:quran_app/providers/notification_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
+import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
+import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
+import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/widgets/hifz/session_reading_view.dart';
+import 'package:quran/quran.dart' as quran;
 
 /// Full-screen Hifz session experience.
 /// Phases: Pre-session → Active session → Self-assessment → Complete.
@@ -27,6 +33,8 @@ class _SessionScreenState extends State<SessionScreen> {
   int _coverageEndPage = 0; // for "more than planned" picker
   int _lastVerseLearned = 5; // CE-9: verse picker default
   int _totalVersesOnPage = 15; // CE-9: default (typical Quran page)
+  bool _hasMutashabihat = false; // Integration trigger: alert banner
+  bool _mutBannerDismissed = false;
 
   @override
   void initState() {
@@ -35,7 +43,40 @@ class _SessionScreenState extends State<SessionScreen> {
       context.read<SessionProvider>().startSession(widget.plan);
       _coverageEndPage = widget.plan.sabaqPage;
       _startTimer();
+      _checkMutashabihat();
     });
+  }
+
+  Future<void> _checkMutashabihat() async {
+    try {
+      final db = context.read<HifzDatabaseService>();
+      // Check if any verse on the sabaq page has mutashabihat
+      final page = widget.plan.sabaqPage;
+      // Quick check: query groups whose source verse key starts with common surahs on this page
+      final all = await db.getAllMutashabihat();
+      // Check if any group's source or mut verse is on the current page
+      final hasMatch = all.any((g) {
+        final srcPage = _verseKeyToPage(g.sourceVerseKey);
+        if (srcPage == page) return true;
+        return g.similarVerses.any((v) => _verseKeyToPage(v.verseKey) == page);
+      });
+      if (hasMatch && mounted) {
+        setState(() => _hasMutashabihat = true);
+      }
+    } catch (_) {}
+  }
+
+  int _verseKeyToPage(String key) {
+    final parts = key.split(':');
+    if (parts.length != 2) return 0;
+    final surah = int.tryParse(parts[0]);
+    final verse = int.tryParse(parts[1]);
+    if (surah == null || verse == null) return 0;
+    try {
+      return quran.getPageNumber(surah, verse);
+    } catch (_) {
+      return 0;
+    }
   }
 
   void _startTimer() {
@@ -88,6 +129,58 @@ class _SessionScreenState extends State<SessionScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
+          // Mutashabihat alert banner (integration trigger)
+          if (_hasMutashabihat && !_mutBannerDismissed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Text('⚠️', style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'This page has similar verses elsewhere',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const MutashabihatPracticeScreen(),
+                        ),
+                      ),
+                      child: Text(
+                        'Practice',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFF59E0B),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => setState(() => _mutBannerDismissed = true),
+                      child: Icon(LucideIcons.x, size: 14, color: theme.mutedText),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           // Top bar
           Row(
             children: [
@@ -972,10 +1065,60 @@ class _SessionScreenState extends State<SessionScreen> {
             },
           ),
 
+          // Practice Flashcards CTA (Phase 2)
+          Builder(
+            builder: (_) {
+              final fc = context.read<FlashcardProvider>();
+              final due = fc.dueCardCount;
+              if (due <= 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const FlashcardReviewScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: theme.accentColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('🃏', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Practice $due Flashcards',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: theme.accentColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+
           // Back to Dashboard
           GestureDetector(
             onTap: () async {
               await session.completeSession();
+              // Phase 1.9: Smart-skip today's notification
+              if (mounted) {
+                context.read<NotificationProvider>().onSessionCompleted();
+              }
               // CE-7.2: Mark plan as completed — do NOT regenerate here.
               // The dashboard will show the "Plan Complete" card.
               // A new plan will be generated only if the user taps "Start Extra Session".

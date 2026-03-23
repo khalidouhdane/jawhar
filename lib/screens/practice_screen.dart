@@ -7,6 +7,7 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_screen.dart';
+import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 
 /// Practice tab — flashcard category hub + mutashabihat practice.
 class PracticeScreen extends StatefulWidget {
@@ -227,6 +228,36 @@ class _PracticeScreenState extends State<PracticeScreen> {
             Expanded(
               child: _categoryCard(
                 theme: theme,
+                emoji: '⏮️',
+                title: 'Previous Verse',
+                subtitle: 'ما قبلها؟',
+                dueCount: fc.getDueCountForType(FlashcardType.previousVerse),
+                color: const Color(0xFF06B6D4), // cyan
+                onTap: () => _openReview(type: FlashcardType.previousVerse),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _categoryCard(
+                theme: theme,
+                emoji: '📝',
+                title: 'Complete It',
+                subtitle: 'أكمل الآية',
+                dueCount:
+                    fc.getDueCountForType(FlashcardType.verseCompletion),
+                color: const Color(0xFF10B981), // emerald
+                onTap: () =>
+                    _openReview(type: FlashcardType.verseCompletion),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _categoryCard(
+                theme: theme,
                 emoji: '🔍',
                 title: 'Surah Detective',
                 subtitle: 'من أي سورة؟',
@@ -243,6 +274,20 @@ class _PracticeScreenState extends State<PracticeScreen> {
             Expanded(
               child: _categoryCard(
                 theme: theme,
+                emoji: '🔗',
+                title: 'Sequence',
+                subtitle: 'رتب الآيات',
+                dueCount:
+                    fc.getDueCountForType(FlashcardType.connectSequence),
+                color: const Color(0xFFF59E0B), // amber
+                onTap: () =>
+                    _openReview(type: FlashcardType.connectSequence),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _categoryCard(
+                theme: theme,
                 emoji: '⚔️',
                 title: 'Mutashabihat',
                 subtitle: 'آيات متشابهة',
@@ -253,12 +298,10 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     _openReview(type: FlashcardType.mutashabihatDuel),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _browseMutashabihatCard(theme),
-            ),
           ],
         ),
+        const SizedBox(height: 12),
+        _browseMutashabihatCard(theme),
       ],
     );
   }
@@ -353,57 +396,115 @@ class _PracticeScreenState extends State<PracticeScreen> {
   }
 
   Widget _browseMutashabihatCard(ThemeProvider theme) {
-    return GestureDetector(
-      onTap: () => Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const MutashabihatScreen())),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Center(
-                      child: Text('📿', style: TextStyle(fontSize: 16))),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const Spacer(),
-                Icon(LucideIcons.chevronRight,
-                    size: 16, color: theme.mutedText),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Similar Verses',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: theme.primaryText,
+                child: const Center(
+                    child: Text('📿', style: TextStyle(fontSize: 16))),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Browse & study',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 11,
-                color: theme.mutedText,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mutashabihat (Similar Verses)',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: theme.primaryText,
+                      ),
+                    ),
+                    Text(
+                      'Browse, study & practice',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 11,
+                        color: theme.mutedText,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const MutashabihatScreen()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '📚 Browse',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: theme.accentColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MutashabihatPracticeScreen(),
+                    ),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '🎯 Practice',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

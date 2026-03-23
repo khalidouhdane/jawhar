@@ -5,6 +5,7 @@ import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/mutashabihat_import_service.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 import 'package:quran/quran.dart' as quran;
 import 'package:google_fonts/google_fonts.dart';
 
@@ -92,6 +93,15 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: Icon(LucideIcons.play, color: theme.accentColor, size: 18),
+            tooltip: 'Practice',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const MutashabihatPracticeScreen(),
+              ),
+            ),
+          ),
           IconButton(
             icon: Icon(LucideIcons.refreshCw, color: theme.secondaryText, size: 18),
             tooltip: 'Re-import dataset',

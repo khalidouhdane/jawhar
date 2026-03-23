@@ -23,6 +23,7 @@ class FlashcardProvider extends ChangeNotifier {
   // Dashboard stats
   Map<String, int> _stats = {'total': 0, 'due': 0};
   Map<String, dynamic> _accuracy = {'total': 0, 'correct': 0, 'accuracy': 0};
+  bool _lastWeakWasMutashabihat = false;
 
   // Per-type stats: {FlashcardType.index: {total: X, due: Y}}
   Map<int, Map<String, int>> _statsByType = {};
@@ -50,6 +51,11 @@ class FlashcardProvider extends ChangeNotifier {
   int get totalCards => _stats['total'] ?? 0;
   int get dueCardCount => _stats['due'] ?? 0;
   int get accuracyPercent => _accuracy['accuracy'] as int? ?? 0;
+  bool get lastWeakWasMutashabihat => _lastWeakWasMutashabihat;
+  void clearMutashabihatFlag() {
+    _lastWeakWasMutashabihat = false;
+    notifyListeners();
+  }
 
   /// Get due count for a specific card type.
   int getDueCountForType(FlashcardType type) {
@@ -197,7 +203,26 @@ class FlashcardProvider extends ChangeNotifier {
     // Advance
     _currentIndex++;
     _isRevealed = false;
+
+    // Integration trigger: check if weak/forgot card is a mutashabihat verse
+    if (rating == FlashcardRating.weak || rating == FlashcardRating.forgot) {
+      _checkMutashabihatForVerse(updated.verseKey);
+    } else {
+      _lastWeakWasMutashabihat = false;
+    }
+
     notifyListeners();
+  }
+
+  /// Check if a verse key has associated mutashabihat groups.
+  Future<void> _checkMutashabihatForVerse(String verseKey) async {
+    try {
+      final groups = await _db.getMutashabihatForVerse(verseKey);
+      _lastWeakWasMutashabihat = groups.isNotEmpty;
+      notifyListeners();
+    } catch (_) {
+      _lastWeakWasMutashabihat = false;
+    }
   }
 
   /// Skip the current card (don't change SRS state).

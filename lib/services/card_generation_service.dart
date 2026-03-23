@@ -56,13 +56,20 @@ class CardGenerationService {
     int created = 0;
     final budget = _maxDueCards - dueCount;
 
-    // Split budget across types proportionally
-    final nvBudget = (budget * 0.4).ceil();   // ~40% Next Verse
-    final sdBudget = (budget * 0.4).ceil();   // ~40% Surah Detective
-    final mdBudget = budget - nvBudget - sdBudget; // remainder Mutashabihat
+    // Split budget across 6 types
+    final perType = (budget / 6).ceil();
+    final nvBudget = perType;
+    final sdBudget = perType;
+    final vcBudget = perType;
+    final pvBudget = perType;
+    final csBudget = perType;
+    final mdBudget = (budget - nvBudget - sdBudget - vcBudget - pvBudget - csBudget).clamp(0, budget);
 
     created += await _generateNextVerseCards(profileId, verses, random, max: nvBudget);
     created += await _generateSurahDetectiveCards(profileId, verses, random, max: sdBudget);
+    created += await _generateVerseCompletionCards(profileId, verses, random, max: vcBudget);
+    created += await _generatePreviousVerseCards(profileId, verses, random, max: pvBudget);
+    created += await _generateConnectSequenceCards(profileId, verses, random, max: csBudget);
     created += await _generateMutashabihatDuelCards(profileId, max: mdBudget);
 
     debugPrint('[Flashcard Gen] Total created: $created new flashcards');
@@ -238,6 +245,208 @@ class CardGenerationService {
       created++;
 
       if (created >= 5) break;
+    }
+    return created;
+  }
+
+  /// Verse Completion: show partial verse with blanked words, ask user to recall.
+  Future<int> _generateVerseCompletionCards(
+    String profileId,
+    List<_VerseRef> verses,
+    Random random, {
+    int max = 6,
+  }) async {
+    if (max <= 0) return 0;
+    int created = 0;
+    // Need verses with at least 5 words to blank meaningfully
+    final eligible = verses.where((v) {
+      final text = quran.getVerse(v.surah, v.verse);
+      return text.split(' ').length >= 5;
+    }).toList();
+    if (eligible.isEmpty) return 0;
+
+    eligible.shuffle(random);
+    final sampleSize = min(max, eligible.length);
+
+    for (int i = 0; i < sampleSize; i++) {
+      final v = eligible[i];
+      final verseKey = '${v.surah}:${v.verse}';
+
+      final exists = await _db.flashcardExists(
+        profileId, verseKey, FlashcardType.verseCompletion,
+      );
+      if (exists) continue;
+
+      final fullText = quran.getVerse(v.surah, v.verse);
+      final words = fullText.split(' ');
+      // Blank out last ~30% of words
+      final visibleCount = (words.length * 0.7).round().clamp(2, words.length - 1);
+      final visibleText = words.sublist(0, visibleCount).join(' ');
+      final blankedText = '$visibleText ${'___ ' * (words.length - visibleCount)}'.trim();
+      final surahName = quran.getSurahNameArabic(v.surah);
+
+      final card = Flashcard(
+        id: '${profileId}_vc_${v.surah}_${v.verse}_${DateTime.now().millisecondsSinceEpoch + i}',
+        type: FlashcardType.verseCompletion,
+        profileId: profileId,
+        verseKey: verseKey,
+        questionData: {
+          'instruction': 'أكمل الآية',
+          'blankedText': blankedText,
+          'surah': v.surah,
+          'verse': v.verse,
+          'surahName': surahName,
+          'page': v.page,
+        },
+        answerData: {
+          'verseText': fullText,
+          'surah': v.surah,
+          'verse': v.verse,
+          'surahName': surahName,
+        },
+        dueDate: DateTime.now(),
+      );
+
+      await _db.saveFlashcard(card);
+      created++;
+      if (created >= max) break;
+    }
+    return created;
+  }
+
+  /// Previous Verse: show a verse, ask what came before it.
+  Future<int> _generatePreviousVerseCards(
+    String profileId,
+    List<_VerseRef> verses,
+    Random random, {
+    int max = 6,
+  }) async {
+    if (max <= 0) return 0;
+    int created = 0;
+    // Must not be the first verse of a surah
+    final eligible = verses.where((v) => v.verse > 1).toList();
+    if (eligible.isEmpty) return 0;
+
+    eligible.shuffle(random);
+    final sampleSize = min(max, eligible.length);
+
+    for (int i = 0; i < sampleSize; i++) {
+      final v = eligible[i];
+      final verseKey = '${v.surah}:${v.verse}';
+
+      final exists = await _db.flashcardExists(
+        profileId, verseKey, FlashcardType.previousVerse,
+      );
+      if (exists) continue;
+
+      final questionText = quran.getVerse(v.surah, v.verse);
+      final answerText = quran.getVerse(v.surah, v.verse - 1);
+      final surahName = quran.getSurahNameArabic(v.surah);
+
+      final card = Flashcard(
+        id: '${profileId}_pv_${v.surah}_${v.verse}_${DateTime.now().millisecondsSinceEpoch + i}',
+        type: FlashcardType.previousVerse,
+        profileId: profileId,
+        verseKey: verseKey,
+        questionData: {
+          'instruction': 'ما الآية السابقة؟',
+          'verseText': questionText,
+          'surah': v.surah,
+          'verse': v.verse,
+          'surahName': surahName,
+          'page': v.page,
+        },
+        answerData: {
+          'verseText': answerText,
+          'surah': v.surah,
+          'verse': v.verse - 1,
+          'surahName': surahName,
+        },
+        dueDate: DateTime.now(),
+      );
+
+      await _db.saveFlashcard(card);
+      created++;
+      if (created >= max) break;
+    }
+    return created;
+  }
+
+  /// Connect Sequence: scramble 3 consecutive verses, user reorders.
+  Future<int> _generateConnectSequenceCards(
+    String profileId,
+    List<_VerseRef> verses,
+    Random random, {
+    int max = 4,
+  }) async {
+    if (max <= 0) return 0;
+    int created = 0;
+
+    // Group verses by surah so we can pick consecutive sequences
+    final bySurah = <int, List<_VerseRef>>{};
+    for (final v in verses) {
+      bySurah.putIfAbsent(v.surah, () => []).add(v);
+    }
+
+    // Find surahs with at least 3 consecutive memorized verses
+    final candidates = <List<_VerseRef>>[];
+    for (final entry in bySurah.entries) {
+      final sorted = List<_VerseRef>.from(entry.value)
+        ..sort((a, b) => a.verse.compareTo(b.verse));
+      for (int i = 0; i < sorted.length - 2; i++) {
+        if (sorted[i].verse + 1 == sorted[i + 1].verse &&
+            sorted[i + 1].verse + 1 == sorted[i + 2].verse) {
+          candidates.add([sorted[i], sorted[i + 1], sorted[i + 2]]);
+        }
+      }
+    }
+
+    if (candidates.isEmpty) return 0;
+    candidates.shuffle(random);
+
+    for (final seq in candidates) {
+      if (created >= max) break;
+      final anchorKey = '${seq[0].surah}:${seq[0].verse}-${seq[2].verse}';
+
+      final exists = await _db.flashcardExists(
+        profileId, anchorKey, FlashcardType.connectSequence,
+      );
+      if (exists) continue;
+
+      final surahName = quran.getSurahNameArabic(seq[0].surah);
+      // Build verse data in correct order
+      final correctOrder = seq.map((v) => {
+        'surah': v.surah,
+        'verse': v.verse,
+        'text': quran.getVerse(v.surah, v.verse),
+      }).toList();
+
+      // Create a shuffled index order
+      final indices = [0, 1, 2];
+      indices.shuffle(random);
+
+      final card = Flashcard(
+        id: '${profileId}_cs_${seq[0].surah}_${seq[0].verse}_${DateTime.now().millisecondsSinceEpoch}',
+        type: FlashcardType.connectSequence,
+        profileId: profileId,
+        verseKey: anchorKey,
+        questionData: {
+          'instruction': '\u0631\u062a\u0628 \u0627\u0644\u0622\u064a\u0627\u062a',
+          'surahName': surahName,
+          'surah': seq[0].surah,
+          'page': seq[0].page,
+          'shuffledIndices': indices,
+          'verses': correctOrder,
+        },
+        answerData: {
+          'correctOrder': [0, 1, 2],
+          'verses': correctOrder,
+        },
+        dueDate: DateTime.now(),
+      );
+
+      await _db.saveFlashcard(card);
+      created++;
     }
     return created;
   }

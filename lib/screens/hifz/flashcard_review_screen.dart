@@ -174,8 +174,17 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
         return _buildSurahDetectiveCard(theme, fc, card);
       case FlashcardType.mutashabihatDuel:
         return _buildMutashabihatCard(theme, fc, card);
-      default:
-        return _buildGenericCard(theme, fc, card);
+      case FlashcardType.verseCompletion:
+        return _buildVerseCompletionCard(theme, fc, card);
+      case FlashcardType.previousVerse:
+        return _buildPreviousVerseCard(theme, fc, card);
+      case FlashcardType.connectSequence:
+        return _ConnectSequenceCard(
+          theme: theme, fc: fc, card: card,
+          verseWithMarker: _verseWithMarker,
+          referenceBadge: _referenceBadge,
+          cardDecoration: _cardDecoration,
+        );
     }
   }
 
@@ -406,10 +415,17 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     );
   }
 
-  // ── Generic fallback ──
+  // ── Verse Completion Card ──
 
-  Widget _buildGenericCard(
+  Widget _buildVerseCompletionCard(
       ThemeProvider theme, FlashcardProvider fc, Flashcard card) {
+    final blankedText = card.questionData['blankedText'] as String? ?? '';
+    final surahName = card.questionData['surahName'] as String? ?? '';
+    final surah = card.questionData['surah'];
+    final verse = card.questionData['verse'];
+    final page = card.questionData['page'];
+    final fullVerse = card.answerData['verseText'] as String? ?? '';
+
     return GestureDetector(
       onTap: () => fc.isRevealed ? null : fc.reveal(),
       child: Container(
@@ -420,26 +436,108 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              card.questionData['instruction'] ?? 'Review',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: 'Inter', fontSize: 14, color: theme.mutedText),
-            ),
+            _referenceBadge(theme, '$surahName  ($surah:$verse) · p.$page'),
             const SizedBox(height: 16),
+
+            // Instruction
             Text(
-              card.verseKey,
+              '\u0623\u0643\u0645\u0644 \u0627\u0644\u0622\u064a\u0629',
+              textDirection: TextDirection.rtl,
               style: TextStyle(
                 fontFamily: 'Inter',
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: theme.primaryText,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: theme.accentColor,
               ),
             ),
             const SizedBox(height: 16),
-            if (!fc.isRevealed) _revealPrompt(theme),
-            if (fc.isRevealed)
-              Icon(LucideIcons.check, color: theme.accentColor, size: 28),
+
+            // Blanked verse text
+            ExcludeSemantics(
+              child: Text(
+                blankedText,
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(
+                  fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                  fontSize: 22,
+                  height: 2.0,
+                  color: theme.primaryText,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            if (!fc.isRevealed)
+              _revealPrompt(theme)
+            else
+              Column(
+                children: [
+                  Container(width: 60, height: 1, color: theme.dividerColor),
+                  const SizedBox(height: 16),
+                  _verseWithMarker(theme, fullVerse, verse is int ? verse : 0, Colors.green.shade700),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Previous Verse Card ──
+
+  Widget _buildPreviousVerseCard(
+      ThemeProvider theme, FlashcardProvider fc, Flashcard card) {
+    final questionVerse = card.questionData['verseText'] as String? ?? '';
+    final surahName = card.questionData['surahName'] as String? ?? '';
+    final surah = card.questionData['surah'];
+    final verse = card.questionData['verse'];
+    final page = card.questionData['page'];
+    final answerVerse = card.answerData['verseText'] as String? ?? '';
+    final answerVNum = card.answerData['verse'];
+
+    return GestureDetector(
+      onTap: () => fc.isRevealed ? null : fc.reveal(),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(minHeight: 200),
+        decoration: _cardDecoration(theme),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _referenceBadge(theme, '$surahName  ($surah:$verse) · p.$page'),
+            const SizedBox(height: 16),
+
+            // Question verse
+            _verseWithMarker(theme, questionVerse, verse is int ? verse : 0, theme.primaryText),
+            const SizedBox(height: 16),
+
+            // Instruction
+            Text(
+              '\u0645\u0627 \u0627\u0644\u0622\u064a\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629\u061f',
+              textDirection: TextDirection.rtl,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: theme.accentColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            if (!fc.isRevealed)
+              _revealPrompt(theme)
+            else
+              Column(
+                children: [
+                  Container(width: 60, height: 1, color: theme.dividerColor),
+                  const SizedBox(height: 16),
+                  _referenceBadge(theme, '$surahName  ($surah:$answerVNum)'),
+                  const SizedBox(height: 12),
+                  _verseWithMarker(theme, answerVerse, answerVNum is int ? answerVNum : 0, Colors.green.shade700),
+                ],
+              ),
           ],
         ),
       ),
@@ -777,5 +875,218 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
       case FlashcardType.connectSequence:
         return '🔗 Connect Sequence';
     }
+  }
+}
+
+/// Tap-to-order card for Connect Sequence flashcard type.
+class _ConnectSequenceCard extends StatefulWidget {
+  final ThemeProvider theme;
+  final FlashcardProvider fc;
+  final Flashcard card;
+  final Widget Function(ThemeProvider, String, int, Color, {double fontSize}) verseWithMarker;
+  final Widget Function(ThemeProvider, String) referenceBadge;
+  final BoxDecoration Function(ThemeProvider) cardDecoration;
+
+  const _ConnectSequenceCard({
+    required this.theme,
+    required this.fc,
+    required this.card,
+    required this.verseWithMarker,
+    required this.referenceBadge,
+    required this.cardDecoration,
+  });
+
+  @override
+  State<_ConnectSequenceCard> createState() => _ConnectSequenceCardState();
+}
+
+class _ConnectSequenceCardState extends State<_ConnectSequenceCard> {
+  final List<int> _selectedOrder = []; // indices the user has tapped
+  int? _wrongTap; // flash red momentarily
+
+  @override
+  void didUpdateWidget(covariant _ConnectSequenceCard old) {
+    super.didUpdateWidget(old);
+    if (old.card.id != widget.card.id) {
+      _selectedOrder.clear();
+      _wrongTap = null;
+    }
+  }
+
+  void _onTapVerse(int shuffledIdx) {
+    if (widget.fc.isRevealed) return;
+    // The correct next original index to pick
+    final verses = widget.card.questionData['verses'] as List<dynamic>;
+    final shuffledIndices = (widget.card.questionData['shuffledIndices'] as List<dynamic>)
+        .map((e) => (e as num).toInt())
+        .toList();
+    final displayIdx = shuffledIdx; // position in the displayed list
+    final originalIdx = shuffledIndices[displayIdx];
+
+    // Already selected?
+    if (_selectedOrder.contains(displayIdx)) return;
+
+    // Check if this is the correct next verse
+    final expectedOriginalIdx = _selectedOrder.length; // 0, 1, 2
+    if (originalIdx == expectedOriginalIdx) {
+      setState(() {
+        _selectedOrder.add(displayIdx);
+        _wrongTap = null;
+      });
+      // If all selected, auto-reveal
+      if (_selectedOrder.length == verses.length) {
+        widget.fc.reveal();
+      }
+    } else {
+      setState(() => _wrongTap = displayIdx);
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) setState(() => _wrongTap = null);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = widget.theme;
+    final card = widget.card;
+    final verses = card.questionData['verses'] as List<dynamic>;
+    final shuffledIndices = (card.questionData['shuffledIndices'] as List<dynamic>)
+        .map((e) => (e as num).toInt())
+        .toList();
+    final surahName = card.questionData['surahName'] as String? ?? '';
+    final page = card.questionData['page'];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      constraints: const BoxConstraints(minHeight: 200),
+      decoration: widget.cardDecoration(theme),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          widget.referenceBadge(theme, '$surahName · p.$page'),
+          const SizedBox(height: 12),
+          Text(
+            '\u0631\u062a\u0628 \u0627\u0644\u0622\u064a\u0627\u062a',
+            textDirection: TextDirection.rtl,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: theme.accentColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Render each verse in shuffled order
+          for (int i = 0; i < shuffledIndices.length; i++) ...[
+            _buildVerseTile(theme, i, shuffledIndices, verses),
+            if (i < shuffledIndices.length - 1) const SizedBox(height: 8),
+          ],
+          if (widget.fc.isRevealed) ...[
+            const SizedBox(height: 12),
+            Icon(Icons.check_circle, color: Colors.green.shade600, size: 28),
+            const SizedBox(height: 4),
+            Text(
+              'Correct order!',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.green.shade600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerseTile(
+    ThemeProvider theme,
+    int displayIdx,
+    List<int> shuffledIndices,
+    List<dynamic> verses,
+  ) {
+    final originalIdx = shuffledIndices[displayIdx];
+    final verse = verses[originalIdx] as Map<String, dynamic>;
+    final text = verse['text'] as String? ?? '';
+    final isSelected = _selectedOrder.contains(displayIdx);
+    final isWrong = _wrongTap == displayIdx;
+    final orderNum = isSelected ? _selectedOrder.indexOf(displayIdx) + 1 : null;
+
+    Color borderColor = theme.dividerColor;
+    Color bgColor = Colors.transparent;
+    if (isSelected) {
+      borderColor = Colors.green.shade400;
+      bgColor = Colors.green.withValues(alpha: 0.05);
+    } else if (isWrong) {
+      borderColor = Colors.red.shade400;
+      bgColor = Colors.red.withValues(alpha: 0.05);
+    }
+
+    return GestureDetector(
+      onTap: () => _onTapVerse(displayIdx),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: isSelected || isWrong ? 2 : 1),
+        ),
+        child: Row(
+          children: [
+            // Order number or empty circle
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.green.shade400
+                    : theme.accentColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: isSelected
+                    ? Text(
+                        '$orderNum',
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        '?',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: theme.mutedText,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ExcludeSemantics(
+                child: Text(
+                  text,
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(
+                    fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                    fontSize: 16,
+                    height: 1.8,
+                    color: isSelected ? Colors.green.shade700 : theme.primaryText,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

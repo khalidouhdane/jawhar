@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/analytics_provider.dart';
+import 'package:quran_app/providers/flashcard_provider.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
@@ -52,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<PlanProvider>().loadOrGeneratePlan(profile.activeProfile!);
       // Phase 5: Load analytics when dashboard loads
       context.read<AnalyticsProvider>().loadAnalytics(profile.activeProfile!);
+      // Phase 2: Load flashcard due counts for dashboard indicator
+      context.read<FlashcardProvider>().loadDueCards(profile.activeProfile!.id);
     }
   }
 
@@ -152,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     plan: plan.todayPlan!,
                     theme: theme,
                     profile: profile.activeProfile,
+                    flashcardsDue: context.watch<FlashcardProvider>().dueCardCount,
                     onStartSession: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(

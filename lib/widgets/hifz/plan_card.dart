@@ -10,6 +10,7 @@ class PlanCard extends StatelessWidget {
   final ThemeProvider theme;
   final VoidCallback onStartSession;
   final MemoryProfile? profile;
+  final int flashcardsDue;
 
   const PlanCard({
     super.key,
@@ -17,6 +18,7 @@ class PlanCard extends StatelessWidget {
     required this.theme,
     required this.onStartSession,
     this.profile,
+    this.flashcardsDue = 0,
   });
 
   @override
@@ -155,6 +157,33 @@ class PlanCard extends StatelessWidget {
               ],
             ),
           ),
+          if (flashcardsDue > 0) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🃏', style: TextStyle(fontSize: 12)),
+                  const SizedBox(width: 6),
+                  Text(
+                    '$flashcardsDue flashcards due',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 14),
 
           // Start Session button

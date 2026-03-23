@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
+import 'package:quran_app/providers/notification_provider.dart';
+import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/update_provider.dart';
 import 'package:quran_app/screens/home_screen.dart';
@@ -23,7 +25,10 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     // Check for updates after the first frame renders
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdate();
+      _ensureNotifications();
+    });
   }
 
   Future<void> _checkForUpdate() async {
@@ -33,6 +38,13 @@ class _AppShellState extends State<AppShell> {
     if (hasUpdate && mounted) {
       UpdateDialog.show(context);
     }
+  }
+
+  void _ensureNotifications() {
+    if (!mounted) return;
+    final plan = context.read<PlanProvider>();
+    final notif = context.read<NotificationProvider>();
+    notif.ensureScheduled(sessionCompletedToday: plan.isPlanCompleted);
   }
 
   @override
