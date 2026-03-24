@@ -2,13 +2,14 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/flashcard_models.dart';
+import 'package:quran_app/models/session_recipe_models.dart';
 
 /// Central SQLite database service for the Hifz program.
 /// Manages profiles, page progress, session history, daily plans,
 /// flashcards, and mutashabihat groups.
 class HifzDatabaseService {
   static const _dbName = 'hifz_data.db';
-  static const _dbVersion = 3;
+  static const _dbVersion = 6;
 
   Database? _db;
 
@@ -50,7 +51,11 @@ class HifzDatabaseService {
         defaultReciterSource INTEGER DEFAULT 0,
         startingPage INTEGER DEFAULT 582,
         startDate TEXT NOT NULL,
-        isActive INTEGER DEFAULT 0
+        isActive INTEGER DEFAULT 0,
+        age INTEGER DEFAULT 25,
+        activeDays TEXT DEFAULT '0,1,2,3,4,5,6',
+        pacePreference INTEGER DEFAULT 1,
+        hifzExperience INTEGER DEFAULT 0
       )
     ''');
 
@@ -112,6 +117,8 @@ class HifzDatabaseService {
         sabqiDoneOffline INTEGER DEFAULT 0,
         manzilDoneOffline INTEGER DEFAULT 0,
         isCompleted INTEGER DEFAULT 0,
+        isAiGenerated INTEGER DEFAULT 0,
+        aiReasoning TEXT,
         sabaqStartVerse INTEGER,
         FOREIGN KEY (profileId) REFERENCES profiles(id) ON DELETE CASCADE
       )
@@ -141,6 +148,9 @@ class HifzDatabaseService {
 
     // ── Phase 2: Flashcards table ──
     await _createFlashcardTables(db);
+
+    // ── AI Plan Generation: Session recipes table ──
+    await _createSessionRecipesTable(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -152,6 +162,24 @@ class HifzDatabaseService {
       await db.execute('ALTER TABLE page_progress ADD COLUMN lastVerseLearned INTEGER');
       await db.execute('ALTER TABLE page_progress ADD COLUMN totalVersesOnPage INTEGER');
       await db.execute('ALTER TABLE daily_plans ADD COLUMN sabaqStartVerse INTEGER');
+    }
+    if (oldVersion < 4) {
+      // AI Plan Generation: new profile fields
+      await db.execute("ALTER TABLE profiles ADD COLUMN age INTEGER DEFAULT 25");
+      await db.execute("ALTER TABLE profiles ADD COLUMN activeDays TEXT DEFAULT '0,1,2,3,4,5,6'");
+      await db.execute('ALTER TABLE profiles ADD COLUMN pacePreference INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE profiles ADD COLUMN hifzExperience INTEGER DEFAULT 0');
+    }
+    if (oldVersion < 5) {
+      // AI Plan Generation: plan metadata columns
+      await db.execute('ALTER TABLE daily_plans ADD COLUMN isAiGenerated INTEGER DEFAULT 0');
+      await db.execute('ALTER TABLE daily_plans ADD COLUMN aiReasoning TEXT');
+      // Session recipes table
+      await _createSessionRecipesTable(db);
+    }
+    if (oldVersion < 6) {
+      // Ensure session_recipes table exists (was missing for some v5 users)
+      await _createSessionRecipesTable(db);
     }
   }
 
@@ -343,6 +371,7 @@ class HifzDatabaseService {
   }
 
   /// Get today's plan for a profile, if it exists.
+  /// Returns the LATEST plan for today (important for regeneration).
   Future<DailyPlan?> getTodayPlan(String profileId) async {
     final db = await database;
     final today = DateTime.now();
@@ -351,10 +380,23 @@ class HifzDatabaseService {
       'daily_plans',
       where: 'profileId = ? AND date = ?',
       whereArgs: [profileId, dateStr],
+      orderBy: 'id DESC',
       limit: 1,
     );
     if (results.isEmpty) return null;
     return DailyPlan.fromMap(results.first);
+  }
+
+  /// Delete all plans for today (used before regeneration to prevent duplicates).
+  Future<void> deleteTodayPlans(String profileId) async {
+    final db = await database;
+    final today = DateTime.now();
+    final dateStr = DateTime(today.year, today.month, today.day).toIso8601String();
+    await db.delete(
+      'daily_plans',
+      where: 'profileId = ? AND date = ?',
+      whereArgs: [profileId, dateStr],
+    );
   }
 
   /// Update an existing plan (e.g., mark offline, override).
@@ -464,8 +506,9 @@ class HifzDatabaseService {
     );
   }
 
-  /// Get the number of missed days since last activity.
-  Future<int> getMissedDays(String profileId) async {
+  /// Get the number of missed *active* days since last activity.
+  /// Only counts days the user was supposed to be active (not rest days).
+  Future<int> getMissedDays(String profileId, {List<int> activeDays = const [0,1,2,3,4,5,6]}) async {
     final streak = await getStreak(profileId);
     if (streak.lastActiveDate == null) return 0;
     final today = DateTime.now();
@@ -475,7 +518,23 @@ class HifzDatabaseService {
       streak.lastActiveDate!.month,
       streak.lastActiveDate!.day,
     );
-    return todayDate.difference(lastDate).inDays;
+
+    // If all days are active, simple diff
+    if (activeDays.length >= 7) {
+      return todayDate.difference(lastDate).inDays;
+    }
+
+    // Count only active days between lastDate and today (exclusive of lastDate, inclusive of today)
+    int missedActiveDays = 0;
+    DateTime d = lastDate.add(const Duration(days: 1));
+    while (d.isBefore(todayDate) || d.isAtSameMomentAs(todayDate)) {
+      final dayIndex = d.weekday - 1; // 0=Mon..6=Sun
+      if (activeDays.contains(dayIndex)) {
+        missedActiveDays++;
+      }
+      d = d.add(const Duration(days: 1));
+    }
+    return missedActiveDays;
   }
 
   // ════════════════════════════════════════════
@@ -811,5 +870,58 @@ class HifzDatabaseService {
       await db.close();
       _db = null;
     }
+  }
+
+  // ════════════════════════════════════════════
+  // SESSION RECIPES (AI Plan Generation)
+  // ════════════════════════════════════════════
+
+  static Future<void> _createSessionRecipesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS session_recipes (
+        id TEXT PRIMARY KEY,
+        planId TEXT NOT NULL,
+        phase TEXT NOT NULL,
+        stepsJson TEXT DEFAULT '[]',
+        estimatedMinutes INTEGER DEFAULT 0,
+        tipsJson TEXT DEFAULT '[]',
+        FOREIGN KEY (planId) REFERENCES daily_plans(id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  /// Save recipes for a plan (typically 3: sabaq, sabqi, manzil).
+  Future<void> saveRecipes(List<SessionRecipe> recipes) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final recipe in recipes) {
+      batch.insert(
+        'session_recipes',
+        recipe.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Get all recipes for a plan.
+  Future<List<SessionRecipe>> getRecipesForPlan(String planId) async {
+    final db = await database;
+    final results = await db.query(
+      'session_recipes',
+      where: 'planId = ?',
+      whereArgs: [planId],
+    );
+    return results.map((r) => SessionRecipe.fromMap(r)).toList();
+  }
+
+  /// Delete recipes for a plan.
+  Future<void> deleteRecipesForPlan(String planId) async {
+    final db = await database;
+    await db.delete(
+      'session_recipes',
+      where: 'planId = ?',
+      whereArgs: [planId],
+    );
   }
 }

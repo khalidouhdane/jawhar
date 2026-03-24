@@ -217,7 +217,8 @@ class CardGenerationService {
         final simSurah = int.parse(simParts[0]);
         final simVerse = int.parse(simParts[1]);
         similarText = quran.getVerse(simSurah, simVerse);
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[Flashcard Gen] Failed to parse mutashabihat verse: $e');
         continue;
       }
 

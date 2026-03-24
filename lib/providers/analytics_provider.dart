@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/services/ai_calibration_service.dart';
 import 'package:quran_app/services/analytics_service.dart';
 import 'package:quran_app/services/notification_service.dart';
 
@@ -8,6 +9,7 @@ import 'package:quran_app/services/notification_service.dart';
 class AnalyticsProvider extends ChangeNotifier {
   final AnalyticsService _analyticsService;
   final NotificationService _notificationService;
+  final AICalibrationService? _calibrationService;
 
   WeeklySnapshot? _currentWeek;
   WeeklySnapshot? _previousWeek;
@@ -15,8 +17,13 @@ class AnalyticsProvider extends ChangeNotifier {
   Map<String, dynamic>? _paceData;
   bool _isLoading = false;
   String? _error;
+  bool _lastCalibrationWasAI = false;
 
-  AnalyticsProvider(this._analyticsService, this._notificationService);
+  AnalyticsProvider(
+    this._analyticsService,
+    this._notificationService, {
+    AICalibrationService? calibrationService,
+  }) : _calibrationService = calibrationService;
 
   // ── Getters ──
 
@@ -29,12 +36,13 @@ class AnalyticsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasSuggestions => activeSuggestions.isNotEmpty;
+  bool get lastCalibrationWasAI => _lastCalibrationWasAI;
 
   // ── Load Analytics ──
 
   /// Load all analytics data for a profile.
   /// Call this when the dashboard loads or when the user opens analytics.
-  Future<void> loadAnalytics(MemoryProfile profile) async {
+  Future<void> loadAnalytics(MemoryProfile profile, {int totalSessionCount = 0}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -64,12 +72,40 @@ class AnalyticsProvider extends ChangeNotifier {
         prevWeekEnd,
       );
 
-      // Generate adaptive suggestions
-      final calibrationSuggestions = _analyticsService.generateSuggestions(
-        profile,
-        _currentWeek!,
-        previous: _previousWeek,
-      );
+      // Generate suggestions — try AI first, fall back to deterministic
+      List<Suggestion> calibrationSuggestions;
+      _lastCalibrationWasAI = false;
+
+      final calService = _calibrationService;
+      if (calService != null &&
+          calService.isCalibrationDue(totalSessionCount) &&
+          _currentWeek!.hasEnoughData) {
+        // AI calibration
+        final aiSuggestions = await calService.generateCalibration(
+          profile: profile,
+          currentWeek: _currentWeek!,
+          previousWeek: _previousWeek,
+          totalSessionCount: totalSessionCount,
+        );
+        if (aiSuggestions.isNotEmpty) {
+          calibrationSuggestions = aiSuggestions;
+          _lastCalibrationWasAI = true;
+        } else {
+          // AI returned empty or failed → deterministic fallback
+          calibrationSuggestions = _analyticsService.generateSuggestions(
+            profile,
+            _currentWeek!,
+            previous: _previousWeek,
+          );
+        }
+      } else {
+        // Deterministic (not enough sessions or no AI service)
+        calibrationSuggestions = _analyticsService.generateSuggestions(
+          profile,
+          _currentWeek!,
+          previous: _previousWeek,
+        );
+      }
 
       // Generate smart notifications
       final smartNotifications =
@@ -86,6 +122,24 @@ class AnalyticsProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Force an AI calibration regardless of session count.
+  Future<void> forceAICalibration(MemoryProfile profile) async {
+    if (_calibrationService == null || _currentWeek == null) return;
+
+    final aiSuggestions = await _calibrationService!.generateCalibration(
+      profile: profile,
+      currentWeek: _currentWeek!,
+      previousWeek: _previousWeek,
+      totalSessionCount: 999, // bypass threshold
+    );
+
+    if (aiSuggestions.isNotEmpty) {
+      _lastCalibrationWasAI = true;
+      _mergeSuggestions(aiSuggestions);
       notifyListeners();
     }
   }

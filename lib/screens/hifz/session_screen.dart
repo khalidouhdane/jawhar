@@ -13,7 +13,10 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/services/plan_generation_service.dart';
+import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/hifz/session_reading_view.dart';
+import 'package:quran_app/widgets/hifz/recipe_guide_widget.dart';
 import 'package:quran/quran.dart' as quran;
 
 /// Full-screen Hifz session experience.
@@ -40,11 +43,51 @@ class _SessionScreenState extends State<SessionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SessionProvider>().startSession(widget.plan);
+      final session = context.read<SessionProvider>();
+      session.startSession(widget.plan);
+      // Initialize countdown from the first active phase's allocated minutes
+      // (not total — each phase gets its own countdown)
+      final firstPhaseMinutes = widget.plan.sabaqTargetMinutes > 0
+          ? widget.plan.sabaqTargetMinutes
+          : widget.plan.estimatedMinutes;
+      if (firstPhaseMinutes > 0) {
+        session.setTargetTime(firstPhaseMinutes);
+      }
       _coverageEndPage = widget.plan.sabaqPage;
       _startTimer();
       _checkMutashabihat();
+      _loadRecipes();
     });
+  }
+
+  Future<void> _loadRecipes() async {
+    final session = context.read<SessionProvider>();
+    List<SessionRecipe> recipes = [];
+
+    // Layer 1: Try loading from database
+    try {
+      final db = context.read<HifzDatabaseService>();
+      recipes = await db.getRecipesForPlan(widget.plan.id);
+    } catch (e) {
+      debugPrint('Recipe DB load failed: $e');
+    }
+
+    // Layer 2: Try PlanProvider's in-memory recipes
+    if (recipes.isEmpty) {
+      try {
+        final planProvider = context.read<PlanProvider>();
+        recipes = planProvider.todayRecipes;
+      } catch (_) {}
+    }
+
+    // Layer 3: Generate defaults inline as last resort
+    if (recipes.isEmpty) {
+      recipes = PlanGenerationService.generateDefaultRecipes(widget.plan);
+    }
+
+    if (recipes.isNotEmpty && mounted) {
+      session.loadRecipes(recipes);
+    }
   }
 
   Future<void> _checkMutashabihat() async {
@@ -125,11 +168,179 @@ class _SessionScreenState extends State<SessionScreen> {
   // ════════════════════════════════
 
   Widget _buildActiveView(ThemeProvider theme, SessionProvider session) {
+    final isCountdown = session.targetSeconds > 0;
+    final isOvertime = session.isOvertime;
+    final displaySeconds = isCountdown
+        ? (isOvertime
+            ? session.elapsedSeconds - session.targetSeconds
+            : session.remainingSeconds)
+        : session.elapsedSeconds;
+    final timerPrefix = isOvertime ? '+' : '';
+    final timerColor = isOvertime
+        ? const Color(0xFFF59E0B)
+        : theme.primaryText;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
-          // Mutashabihat alert banner (integration trigger)
+          // ── Top bar: close + phase badge + pause/digital ──
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => _exitSession(context, session),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
+                ),
+              ),
+              const Spacer(),
+              // Phase indicator
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(session.currentPhaseEmoji, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${session.currentPhaseLabel} · ${session.currentStepNumber}/${session.activePhaseCount}',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: theme.accentColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              // Pause button
+              GestureDetector(
+                onTap: () => session.togglePause(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: session.isPaused
+                        ? theme.accentColor.withValues(alpha: 0.15)
+                        : theme.cardColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: session.isPaused
+                          ? theme.accentColor.withValues(alpha: 0.4)
+                          : theme.dividerColor,
+                    ),
+                  ),
+                  child: Icon(
+                    session.isPaused ? LucideIcons.play : LucideIcons.pause,
+                    size: 18,
+                    color: session.isPaused ? theme.accentColor : theme.primaryText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── Phase detail text ──
+          Text(
+            _phaseDetailText(session),
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13,
+              color: theme.secondaryText,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── BIG countdown timer ──
+          Text(
+            '$timerPrefix${_formatTime(displaySeconds)}',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 56,
+              fontWeight: FontWeight.w200,
+              color: timerColor,
+              letterSpacing: 2,
+            ),
+          ),
+          if (session.isPaused)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'PAUSED',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 3,
+                  color: theme.accentColor,
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 8),
+
+          // ── ±1 minute time adjustment ──
+          if (isCountdown)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () => session.adjustTime(-1),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: theme.dividerColor),
+                    ),
+                    child: Icon(LucideIcons.minus, size: 14, color: theme.secondaryText),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    '${(session.targetSeconds / 60).ceil()} min',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => session.adjustTime(1),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: theme.dividerColor),
+                    ),
+                    child: Icon(LucideIcons.plus, size: 14, color: theme.secondaryText),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 16),
+
+          // ── Mutashabihat alert banner ──
           if (_hasMutashabihat && !_mutBannerDismissed)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -147,7 +358,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'This page has similar verses elsewhere',
+                        'This page has similar verses',
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
@@ -181,54 +392,100 @@ class _SessionScreenState extends State<SessionScreen> {
                 ),
               ),
             ),
-          // Top bar
+
+          // ── Guided/Free toggle ──
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
-                onTap: () => _exitSession(context, session),
+                onTap: () => session.setGuidedMode(true),
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.dividerColor),
-                  ),
-                  child: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
-                ),
-              ),
-              const Spacer(),
-              // Phase indicator with step number
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(session.currentPhaseEmoji, style: const TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${session.currentPhaseLabel} · ${session.currentStepNumber}/${session.activePhaseCount}',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: theme.accentColor,
-                      ),
+                    color: session.isGuidedMode && session.hasRecipes
+                        ? theme.accentColor.withValues(alpha: 0.12)
+                        : Colors.transparent,
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
+                    border: Border.all(
+                      color: session.isGuidedMode && session.hasRecipes
+                          ? theme.accentColor.withValues(alpha: 0.3)
+                          : theme.dividerColor,
                     ),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        LucideIcons.bookOpen,
+                        size: 13,
+                        color: session.isGuidedMode && session.hasRecipes
+                            ? theme.accentColor
+                            : theme.mutedText,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Guided',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: session.isGuidedMode && session.hasRecipes
+                              ? theme.accentColor
+                              : theme.mutedText,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const Spacer(),
-              // Phase 4: Physical ↔ Digital mode toggle
+              GestureDetector(
+                onTap: () => session.setGuidedMode(false),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: !session.isGuidedMode
+                        ? theme.accentColor.withValues(alpha: 0.12)
+                        : Colors.transparent,
+                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+                    border: Border.all(
+                      color: !session.isGuidedMode
+                          ? theme.accentColor.withValues(alpha: 0.3)
+                          : theme.dividerColor,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        LucideIcons.move,
+                        size: 13,
+                        color: !session.isGuidedMode
+                            ? theme.accentColor
+                            : theme.mutedText,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Free',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: !session.isGuidedMode
+                              ? theme.accentColor
+                              : theme.mutedText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Physical ↔ Digital mode toggle
               GestureDetector(
                 onTap: () => setState(() => _isDigitalMode = !_isDigitalMode),
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: _isDigitalMode
                         ? theme.accentColor.withValues(alpha: 0.15)
@@ -242,151 +499,106 @@ class _SessionScreenState extends State<SessionScreen> {
                   ),
                   child: Icon(
                     _isDigitalMode ? LucideIcons.hand : LucideIcons.bookOpen,
-                    size: 18,
-                    color: _isDigitalMode ? theme.accentColor : theme.primaryText,
+                    size: 16,
+                    color: _isDigitalMode ? theme.accentColor : theme.secondaryText,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const Spacer(),
-
-          // Phase info
-          Text(
-            session.currentPhaseEmoji,
-            style: const TextStyle(fontSize: 48),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            session.currentPhaseLabel,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _phaseDetailText(session),
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              color: theme.secondaryText,
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Timer display
-          Text(
-            _formatTime(session.elapsedSeconds),
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 48,
-              fontWeight: FontWeight.w200,
-              color: theme.primaryText,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Rep counter with target
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Reps: ',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    color: theme.secondaryText,
-                  ),
-                ),
-                Text(
-                  '${session.repCount}',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: theme.accentColor,
-                  ),
-                ),
-                if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
-                  Text(
-                    ' / ${session.plan!.sabaqRepetitionTarget}',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: theme.mutedText,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const Spacer(),
-
-          // Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Skip
-              _controlButton(
-                theme,
-                icon: LucideIcons.skipForward,
-                label: 'Skip',
-                onTap: () => session.skipPhase(),
-              ),
-              // Rep counter
-              GestureDetector(
-                onTap: () => session.countRep(),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: theme.accentColor,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.accentColor.withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(LucideIcons.plus, size: 28, color: Colors.white),
-                ),
-              ),
-              // Done
-              _controlButton(
-                theme,
-                icon: LucideIcons.check,
-                label: 'Done',
-                onTap: () => session.finishPhase(),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Pause
-          GestureDetector(
-            onTap: () => session.togglePause(),
-            child: Text(
-              session.isPaused ? '▶ Resume' : '⏸ Pause',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: theme.mutedText,
-              ),
-            ),
+          // ── Guided recipe view OR Free-mode rep counter ──
+          Expanded(
+            child: session.isGuidedMode && session.hasRecipes
+                ? const SingleChildScrollView(
+                    child: RecipeGuideWidget(),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Rep counter with target
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: theme.dividerColor),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Reps: ',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 14,
+                                color: theme.secondaryText,
+                              ),
+                            ),
+                            Text(
+                              '${session.repCount}',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: theme.accentColor,
+                              ),
+                            ),
+                            if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
+                              Text(
+                                ' / ${session.plan!.sabaqRepetitionTarget}',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.mutedText,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+
+                      // Controls
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _controlButton(
+                            theme,
+                            icon: LucideIcons.skipForward,
+                            label: 'Skip',
+                            onTap: () => session.skipPhase(),
+                          ),
+                          GestureDetector(
+                            onTap: () => session.countRep(),
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: theme.accentColor,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: theme.accentColor.withValues(alpha: 0.3),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(LucideIcons.plus, size: 28, color: Colors.white),
+                            ),
+                          ),
+                          _controlButton(
+                            theme,
+                            icon: LucideIcons.check,
+                            label: 'Done',
+                            onTap: () => session.finishPhase(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
           ),
           const SizedBox(height: 16),
         ],
@@ -966,7 +1178,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Masha\'Allah! Great work today.',
+            _getCompletionMessage(),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -1119,13 +1331,16 @@ class _SessionScreenState extends State<SessionScreen> {
               if (mounted) {
                 context.read<NotificationProvider>().onSessionCompleted();
               }
-              // CE-7.2: Mark plan as completed — do NOT regenerate here.
-              // The dashboard will show the "Plan Complete" card.
-              // A new plan will be generated only if the user taps "Start Extra Session".
+              // Mark the CURRENT plan as completed first,
+              // then regenerate so the next session picks up
+              // the advanced page/line range.
               if (mounted) {
                 final profile = context.read<HifzProfileProvider>();
                 final planProvider = context.read<PlanProvider>();
                 await planProvider.completePlan();
+                if (profile.activeProfile != null) {
+                  await planProvider.regeneratePlan(profile.activeProfile!);
+                }
                 await profile.refresh();
                 if (mounted) Navigator.of(context).pop();
               }
@@ -1241,6 +1456,41 @@ class _SessionScreenState extends State<SessionScreen> {
       return '📖 Page $nextPage · 🔁 Review today\'s pages';
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Get a personalized session completion message.
+  String _getCompletionMessage() {
+    try {
+      final session = context.read<SessionProvider>();
+      final minutes = session.elapsedSeconds ~/ 60;
+      final reps = session.totalRepCount;
+
+      // Time-based encouragement
+      if (minutes >= 30) {
+        return 'Masha\'Allah! $minutes minutes of focused memorization. Your dedication is inspiring! 💪';
+      }
+      if (minutes >= 15) {
+        return 'Masha\'Allah! A solid $minutes-minute session. Consistency builds mountains! 🌟';
+      }
+
+      // Assessment-based
+      final sabaq = session.sabaqAssessment;
+      if (sabaq == SelfAssessment.strong) {
+        return 'Excellent! You rated this page as strong — great foundation! 🎯';
+      }
+      if (sabaq == SelfAssessment.needsWork) {
+        return 'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪';
+      }
+
+      // Rep-based
+      if (reps >= 20) {
+        return 'Masha\'Allah! $reps repetitions — building rock-solid memory! 🧠';
+      }
+
+      return 'Masha\'Allah! Great work today. Every session counts! ✨';
+    } catch (_) {
+      return 'Masha\'Allah! Great work today.';
     }
   }
 }

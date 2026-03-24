@@ -12,15 +12,17 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/analytics_screen.dart';
 import 'package:quran_app/screens/hifz/assessment_screen.dart';
-import 'package:quran_app/screens/hifz/pre_session_screen.dart';
 import 'package:quran_app/screens/hifz/progress_detail_screen.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/widgets/hifz/plan_card.dart';
 import 'package:quran_app/widgets/hifz/progress_card.dart';
 import 'package:quran_app/widgets/hifz/hifz_cta_card.dart';
 import 'package:quran_app/widgets/hifz/suggestion_card.dart';
+import 'package:quran_app/widgets/hifz/pre_session_sheet.dart';
 import 'package:quran_app/widgets/werd_card.dart';
 import 'package:quran_app/screens/hifz/session_history_screen.dart';
+import 'package:quran_app/services/break_recovery_service.dart';
+import 'package:quran_app/services/motivational_messages_service.dart';
 
 /// Dashboard screen — the primary home of the app.
 /// Shows either the Hifz plan (if profile exists) or a CTA card.
@@ -61,17 +63,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _checkMissedDays() async {
     final profile = context.read<HifzProfileProvider>();
     if (!profile.hasActiveProfile) return;
-    final missed = await profile.getMissedDays();
-    if (missed > 1 && mounted) {
+
+    // Use BreakRecoveryService for enhanced detection
+    final recoveryService = context.read<BreakRecoveryService>();
+    final missedDays = await recoveryService.detectBreak(profile.activeProfile!);
+
+    if (missedDays > 0 && mounted) {
       final theme = context.read<ThemeProvider>();
+      final recoveryMsg = recoveryService.getRecoveryMessage(missedDays);
       if (mounted) {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => _MissedDaySheet(
-            missedDays: missed,
+            missedDays: missedDays,
             theme: theme,
+            recoveryMessage: recoveryMsg,
           ),
         );
       }
@@ -144,6 +152,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   theme: theme,
                   onTap: () => _openAssessment(context),
                 ),
+              ] else if (plan.isLoading && plan.aiProgress != AiProgress.idle) ...[
+                // AI is actively generating — show animated progress card
+                _buildAiProgressCard(theme, plan.aiProgress),
               ] else if (plan.hasPlan) ...[
                 // Plan completed → show extra session CTA (CE-2)
                 if (plan.isPlanCompleted) ...[
@@ -156,12 +167,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     theme: theme,
                     profile: profile.activeProfile,
                     flashcardsDue: context.watch<FlashcardProvider>().dueCardCount,
-                    onStartSession: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PreSessionScreen(),
-                        ),
-                      ).then((_) => _loadPlanIfNeeded());
+                    recipes: plan.todayRecipes,
+                    sessionCount: plan.todaySessionCount,
+                    onStartSession: () async {
+                      await PreSessionSheet.show(context);
+                      _loadPlanIfNeeded();
                     },
                   ),
                   const SizedBox(height: 16),
@@ -239,6 +249,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
               const SizedBox(height: 20),
+
+              // ── Motivational Message (AI integration) ──
+              if (profile.hasActiveProfile) _buildMotivationalCard(theme, profile),
 
               // ── Adaptive Suggestions (Phase 5) ──
               if (profile.hasActiveProfile) _buildSuggestionCards(theme),
@@ -380,6 +393,52 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Motivational Message Card ──
+
+  Widget _buildMotivationalCard(
+      ThemeProvider theme, HifzProfileProvider profileProvider) {
+    final profile = profileProvider.activeProfile!;
+    final motivational = context.read<MotivationalMessagesService>();
+    final msg = motivational.getDashboardMessage(
+      profile: profile,
+      streak: profileProvider.streak,
+      totalPagesMemorized: profileProvider.streak.totalActiveDays,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.accentColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: theme.accentColor.withValues(alpha: 0.15),
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(msg.emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                msg.text,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: theme.primaryText,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _openAssessment(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const AssessmentScreen()),
@@ -431,11 +490,8 @@ class _HomeScreenState extends State<HomeScreen> {
               if (profile.hasActiveProfile) {
                 await plan.generateExtraSession(profile.activeProfile!);
                 if (mounted) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PreSessionScreen(),
-                    ),
-                  ).then((_) => _loadPlanIfNeeded());
+                  await PreSessionSheet.show(context);
+                  _loadPlanIfNeeded();
                 }
               }
             },
@@ -884,17 +940,151 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  /// Animated AI progress card shown while AI is generating the plan.
+  Widget _buildAiProgressCard(ThemeProvider theme, AiProgress progress) {
+    final steps = [
+      (AiProgress.analyzing, '📊', 'Analyzing your progress'),
+      (AiProgress.generating, '✨', 'Generating your plan'),
+      (AiProgress.validating, '✅', 'Validating & optimizing'),
+    ];
+
+    // Determine which step is active
+    int activeIndex;
+    switch (progress) {
+      case AiProgress.analyzing:
+        activeIndex = 0;
+        break;
+      case AiProgress.generating:
+        activeIndex = 1;
+        break;
+      case AiProgress.validating:
+        activeIndex = 2;
+        break;
+      default:
+        activeIndex = 0;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.accentColor.withValues(alpha: 0.15),
+            theme.accentColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.accentColor.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(theme.accentColor),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'AI is preparing your plan',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: theme.primaryText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Step indicators
+          ...List.generate(steps.length, (i) {
+            final (_, emoji, label) = steps[i];
+            final isDone = i < activeIndex;
+            final isActive = i == activeIndex;
+            final isFuture = i > activeIndex;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                children: [
+                  if (isDone)
+                    Icon(LucideIcons.checkCircle, size: 18,
+                        color: theme.accentColor)
+                  else if (isActive) ...[
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(theme.accentColor),
+                      ),
+                    ),
+                  ] else
+                    Icon(LucideIcons.circle, size: 18,
+                        color: theme.dividerColor),
+                  const SizedBox(width: 10),
+                  Text(emoji, style: const TextStyle(fontSize: 14)),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                      color: isFuture
+                          ? theme.mutedText
+                          : (isDone
+                              ? theme.secondaryText
+                              : theme.primaryText),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
 }
 
-/// Simple missed-day bottom sheet.
+/// Missed-day bottom sheet with recovery message support.
 class _MissedDaySheet extends StatelessWidget {
   final int missedDays;
   final ThemeProvider theme;
+  final RecoveryMessage? recoveryMessage;
 
-  const _MissedDaySheet({required this.missedDays, required this.theme});
+  const _MissedDaySheet({
+    required this.missedDays,
+    required this.theme,
+    this.recoveryMessage,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final msg = recoveryMessage;
+    final emoji = msg?.emoji ?? '🌅';
+    final title = msg?.title ?? 'Welcome back!';
+    final message = msg?.message ??
+        (missedDays <= 3
+            ? 'It\'s been $missedDays days. Let\'s ease back in!'
+            : 'It\'s been $missedDays days. Every return is a fresh start! 🌱');
+    final encouragement = msg?.encouragement;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -912,10 +1102,10 @@ class _MissedDaySheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('🌅', style: TextStyle(fontSize: 48)),
+          Text(emoji, style: const TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
           Text(
-            'Welcome back!',
+            title,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 22,
@@ -925,9 +1115,7 @@ class _MissedDaySheet extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            missedDays <= 3
-                ? 'It\'s been $missedDays days. Let\'s ease back in!'
-                : 'It\'s been $missedDays days. Every return is a fresh start! 🌱',
+            message,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Inter',
@@ -935,6 +1123,19 @@ class _MissedDaySheet extends StatelessWidget {
               color: theme.secondaryText,
             ),
           ),
+          if (encouragement != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              encouragement,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: theme.secondaryText.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
@@ -963,6 +1164,7 @@ class _MissedDaySheet extends StatelessWidget {
     );
   }
 }
+
 
 /// Helper data class for enriched ProgressCard.
 class _ProgressData {

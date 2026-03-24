@@ -10,6 +10,7 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/services/ai_plan_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/screens/onboarding_screen.dart';
 import 'package:quran_app/screens/reading_screen.dart';
@@ -141,7 +142,7 @@ class ProfileScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AssessmentScreen()),
+                      MaterialPageRoute(builder: (_) => const AssessmentScreen(isRetake: true)),
                     );
                   },
                   child: _buildSettingsTile(
@@ -152,6 +153,34 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
+                // AI Model selector (dev testing)
+                Builder(
+                  builder: (ctx) {
+                    return FutureBuilder<SharedPreferences>(
+                      future: SharedPreferences.getInstance(),
+                      builder: (ctx, snap) {
+                        final prefs = snap.data;
+                        final currentModel = prefs?.getString('ai_model') ?? AIPlanService.modelFlash;
+                        final isFlash = currentModel.contains('flash');
+                        return GestureDetector(
+                          onTap: () async {
+                            if (prefs == null) return;
+                            final newModel = isFlash ? AIPlanService.modelPro : AIPlanService.modelFlash;
+                            await prefs.setString('ai_model', newModel);
+                            // Trigger rebuild
+                            (ctx as Element).markNeedsBuild();
+                          },
+                          child: _buildSettingsTile(
+                            theme,
+                            icon: LucideIcons.cpu,
+                            title: 'AI Model',
+                            subtitle: isFlash ? 'Gemini 3.1 Flash (fast)' : 'Gemini 3.1 Pro (smart)',
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
                 GestureDetector(
                   onTap: () => _showResetProgressDialog(context, theme, hifzProfile),
                   child: _buildSettingsTile(

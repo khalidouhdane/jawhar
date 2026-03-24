@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find '/c/Users/khali/OneDrive/Bureau/Quran App/lib/features' -type f -name *.dart)",
+      "Bash(grep -E \".dart$\")",
+      "Bash(xargs wc:*)",
+      "Bash(find '/c/Users/khali/OneDrive/Bureau/Quran App/docs' -name *hifz* -o -name *plan*)"
+    ]
+  }
+}

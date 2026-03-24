@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/session_screen.dart';
@@ -39,11 +40,28 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
 
   bool get _allDone => _sabaqOffline && _sabqiOffline && _manzilOffline;
 
+  /// Generate a motivational message based on streak and time of day.
+  String _getMotivationalMessage(int streak) {
+    final hour = DateTime.now().hour;
+    if (streak >= 7) {
+      return '🔥 $streak-day streak! You\'re building an incredible habit.';
+    } else if (streak >= 3) {
+      return '💪 $streak days in a row — keep the momentum going!';
+    } else if (hour < 12) {
+      return '🌅 Starting your morning with Quran — what a blessing!';
+    } else if (hour < 17) {
+      return '📖 Taking time to memorize — every ayah counts!';
+    } else {
+      return '🌙 Evening session — a beautiful way to end the day.';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final planProvider = context.watch<PlanProvider>();
     final plan = planProvider.todayPlan;
+    final profileProvider = context.read<HifzProfileProvider>();
 
     if (plan == null) {
       return Scaffold(
@@ -71,6 +89,9 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
     ];
     final dateStr =
         '${dayNames[today.weekday - 1]}, ${monthNames[today.month - 1]} ${today.day}';
+
+    // Get streak for motivational message
+    final streak = profileProvider.streak.totalActiveDays;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
@@ -103,7 +124,9 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Today\'s Plan',
+                          planProvider.todaySessionCount > 0
+                              ? 'Extra Session #${planProvider.todaySessionCount + 1}'
+                              : 'Today\'s Plan',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 18,
@@ -124,7 +147,77 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // ── AI Reasoning / Motivational Banner ──
+              if (plan.isAiGenerated && plan.aiReasoning != null && plan.aiReasoning!.isNotEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.accentColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: theme.accentColor.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('✨', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'AI-optimized plan',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: theme.accentColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              plan.aiReasoning!,
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 12,
+                                color: theme.secondaryText,
+                                height: 1.4,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Text(
+                    _getMotivationalMessage(streak),
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      color: theme.secondaryText,
+                    ),
+                  ),
+                ),
 
               // ── Phase Cards ──
               Expanded(
@@ -137,7 +230,9 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                         theme,
                         emoji: '📖',
                         title: 'Sabaq · New Memorization',
-                        detail: 'Page ${plan.sabaqPage}',
+                        detail: plan.sabaqStartVerse != null
+                            ? 'Page ${plan.sabaqPage} · from verse ${plan.sabaqStartVerse}'
+                            : 'Page ${plan.sabaqPage} · Lines ${plan.sabaqLineStart}–${plan.sabaqLineEnd}',
                         timeDetail: '~${plan.sabaqTargetMinutes} min · ${plan.sabaqRepetitionTarget} reps target',
                         isDone: _sabaqOffline,
                         isEmpty: false,

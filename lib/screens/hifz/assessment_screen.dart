@@ -6,11 +6,13 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
-/// 9-screen assessment wizard for creating a Hifz memory profile.
-/// Collects: name/avatar → age → learning pref → encoding speed →
-/// retention → schedule+goal → reciter → starting point → summary.
+/// 11-screen assessment wizard for creating a Hifz memory profile.
+/// Collects: name/avatar → age → experience → learning pref → encoding speed →
+/// retention → schedule+time → active days → goal+pace → reciter → starting point → summary.
 class AssessmentScreen extends StatefulWidget {
-  const AssessmentScreen({super.key});
+  final bool isRetake;
+
+  const AssessmentScreen({super.key, this.isRetake = false});
 
   @override
   State<AssessmentScreen> createState() => _AssessmentScreenState();
@@ -19,50 +21,62 @@ class AssessmentScreen extends StatefulWidget {
 class _AssessmentScreenState extends State<AssessmentScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  static const _totalPages = 9;
+  static const _totalPages = 12;
 
   // ── Collected data ──
   String _name = '';
   int _avatarIndex = 0;
-  AgeGroup _ageGroup = AgeGroup.adult;
+  int _age = 25;
+  AgeGroup _ageGroup = AgeGroup.youngAdult;
+  HifzExperience _hifzExperience = HifzExperience.fresh;
   LearningPreference _learningPref = LearningPreference.visual;
   EncodingSpeed _encodingSpeed = EncodingSpeed.moderate;
   RetentionStrength _retention = RetentionStrength.moderate;
   int _dailyMinutes = 30;
   StudyTimeOfDay _timeOfDay = StudyTimeOfDay.fajr;
+  List<int> _activeDays = [0, 1, 2, 3, 4, 5, 6]; // All days active
   HifzGoal _goal = HifzGoal.fullQuran;
   List<int> _goalDetails = [];
+  PacePreference _pacePreference = PacePreference.steady;
   int _startingPage = 582; // Juz 30
   int _selectedReciterId = 7; // Mishary al-Afasy (default)
 
   final _nameController = TextEditingController();
+  final _ageController = TextEditingController(text: '25');
   String? _existingProfileId;
   DateTime? _existingCreatedAt;
 
   @override
   void initState() {
     super.initState();
-    // Pre-populate from existing profile if retaking assessment
+    // Pre-populate from existing profile ONLY if retaking assessment
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profileProvider = context.read<HifzProfileProvider>();
-      if (profileProvider.hasActiveProfile) {
-        final p = profileProvider.activeProfile!;
-        setState(() {
-          _existingProfileId = p.id;
-          _existingCreatedAt = p.createdAt;
-          _name = p.name;
-          _nameController.text = p.name;
-          _avatarIndex = p.avatarIndex;
-          _ageGroup = p.ageGroup;
-          _learningPref = p.learningPreference;
-          _encodingSpeed = p.encodingSpeed;
-          _retention = p.retentionStrength;
-          _dailyMinutes = p.dailyTimeMinutes;
-          _timeOfDay = p.preferredTimeOfDay;
-          _goal = p.goal;
-          _goalDetails = p.goalDetails;
-          _startingPage = p.startingPage;
-        });
+      if (widget.isRetake) {
+        final profileProvider = context.read<HifzProfileProvider>();
+        if (profileProvider.hasActiveProfile) {
+          final p = profileProvider.activeProfile!;
+          setState(() {
+            _existingProfileId = p.id;
+            _existingCreatedAt = p.createdAt;
+            _name = p.name;
+            _nameController.text = p.name;
+            _avatarIndex = p.avatarIndex;
+            _age = p.age;
+            _ageController.text = '${p.age}';
+            _ageGroup = p.ageGroup;
+            _hifzExperience = p.hifzExperience;
+            _learningPref = p.learningPreference;
+            _encodingSpeed = p.encodingSpeed;
+            _retention = p.retentionStrength;
+            _dailyMinutes = p.dailyTimeMinutes;
+            _timeOfDay = p.preferredTimeOfDay;
+            _activeDays = List<int>.from(p.activeDays);
+            _goal = p.goal;
+            _goalDetails = p.goalDetails;
+            _pacePreference = p.pacePreference;
+            _startingPage = p.startingPage;
+          });
+        }
       }
     });
   }
@@ -71,6 +85,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
@@ -104,6 +119,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       name: _name.trim(),
       avatarIndex: _avatarIndex,
       createdAt: _existingCreatedAt ?? now,
+      age: _age,
       ageGroup: _ageGroup,
       encodingSpeed: _encodingSpeed,
       retentionStrength: _retention,
@@ -117,6 +133,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       startingPage: _startingPage,
       startDate: _existingCreatedAt ?? now,
       isActive: true,
+      activeDays: _activeDays,
+      pacePreference: _pacePreference,
+      hifzExperience: _hifzExperience,
     );
     if (_existingProfileId != null) {
       // Retake: update existing profile, keep all progress
@@ -145,15 +164,18 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 children: [
-                  _buildWelcomePage(theme),
-                  _buildAgeGroupPage(theme),
-                  _buildLearningPrefPage(theme),
-                  _buildEncodingSpeedPage(theme),
-                  _buildRetentionPage(theme),
-                  _buildScheduleGoalPage(theme),
-                  _buildReciterPage(theme),
-                  _buildStartingPointPage(theme),
-                  _buildSummaryPage(theme),
+                  _buildWelcomePage(theme),        // 0
+                  _buildAgePage(theme),             // 1 — age number input
+                  _buildExperiencePage(theme),      // 2 — NEW: hifz experience
+                  _buildLearningPrefPage(theme),    // 3
+                  _buildEncodingSpeedPage(theme),   // 4
+                  _buildRetentionPage(theme),       // 5
+                  _buildScheduleTimePage(theme),    // 6 — time + time-of-day
+                  _buildWeeklySchedulePage(theme),  // 7 — NEW: active days
+                  _buildGoalPacePage(theme),        // 8 — goal + pace
+                  _buildReciterPage(theme),         // 9
+                  _buildStartingPointPage(theme),   // 10
+                  _buildSummaryPage(theme),          // 11
                 ],
               ),
             ),
@@ -343,25 +365,135 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   ];
 
   // ════════════════════════════════
-  // PAGE 2: AGE GROUP
+  // PAGE 2: AGE (Number Input)
   // ════════════════════════════════
 
-  Widget _buildAgeGroupPage(ThemeProvider theme) {
+  Widget _buildAgePage(ThemeProvider theme) {
+
+    // Human-friendly age group label
+    final groupLabel = switch (_ageGroup) {
+      AgeGroup.child => '🧒 Child (7-12)',
+      AgeGroup.teen => '🧑 Teen (13-17)',
+      AgeGroup.youngAdult => '💪 Young Adult (18-30)',
+      AgeGroup.adult => '🧔 Adult (31-45)',
+      AgeGroup.middleAged => '🌟 Middle-Aged (46-55)',
+      AgeGroup.senior => '📿 Senior (56-70)',
+      AgeGroup.elderly => '🤲 Elderly (71+)',
+    };
+
     return _pageWrapper(
       theme,
       icon: LucideIcons.users,
       title: 'How old are you?',
-      subtitle: 'This helps us tailor the experience',
+      subtitle: 'This helps us tailor session length, load, and pace',
       child: Column(
         children: [
-          _optionCard(theme, '🧒', 'Child', '7-12 years',
-              _ageGroup == AgeGroup.child, () => setState(() => _ageGroup = AgeGroup.child)),
+          // Age number input
+          SizedBox(
+            width: 140,
+            child: TextField(
+              controller: _ageController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                color: theme.primaryText,
+              ),
+              decoration: InputDecoration(
+                hintText: '25',
+                hintStyle: TextStyle(color: theme.mutedText),
+                filled: true,
+                fillColor: theme.cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: theme.dividerColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: theme.dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: theme.accentColor, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              onChanged: (v) {
+                final age = int.tryParse(v);
+                if (age != null && age >= 7 && age <= 100) {
+                  setState(() {
+                    _age = age;
+                    _ageGroup = MemoryProfile.ageGroupFromAge(age);
+                  });
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Auto-mapped group label
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              key: ValueKey(_ageGroup),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.accentColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.accentColor.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                groupLabel,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: theme.accentColor,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your age group is auto-detected',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 12,
+              color: theme.mutedText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════
+  // PAGE 3: HIFZ EXPERIENCE (NEW)
+  // ════════════════════════════════
+
+  Widget _buildExperiencePage(ThemeProvider theme) {
+    return _pageWrapper(
+      theme,
+      icon: LucideIcons.compass,
+      title: 'Where are you in your Hifz journey?',
+      subtitle: 'This shapes your starting plan',
+      child: Column(
+        children: [
+          _optionCard(theme, '🌱', 'Starting fresh',
+              'I haven\'t memorized before or starting over',
+              _hifzExperience == HifzExperience.fresh,
+              () => setState(() => _hifzExperience = HifzExperience.fresh)),
           const SizedBox(height: 12),
-          _optionCard(theme, '🧑', 'Teen', '13-17 years',
-              _ageGroup == AgeGroup.teen, () => setState(() => _ageGroup = AgeGroup.teen)),
+          _optionCard(theme, '🔄', 'Resuming',
+              'I memorized some before and want to continue',
+              _hifzExperience == HifzExperience.resuming,
+              () => setState(() => _hifzExperience = HifzExperience.resuming)),
           const SizedBox(height: 12),
-          _optionCard(theme, '🧔', 'Adult', '18+',
-              _ageGroup == AgeGroup.adult, () => setState(() => _ageGroup = AgeGroup.adult)),
+          _optionCard(theme, '📖', 'Reviewing',
+              'I\'ve memorized a lot and need to strengthen it',
+              _hifzExperience == HifzExperience.reviewing,
+              () => setState(() => _hifzExperience = HifzExperience.reviewing)),
         ],
       ),
     );
@@ -466,15 +598,15 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   }
 
   // ════════════════════════════════
-  // PAGE 6: SCHEDULE + GOAL
+  // PAGE 7: SCHEDULE + TIME
   // ════════════════════════════════
 
-  Widget _buildScheduleGoalPage(ThemeProvider theme) {
+  Widget _buildScheduleTimePage(ThemeProvider theme) {
     return _pageWrapper(
       theme,
       icon: LucideIcons.clock,
       title: 'Your daily commitment',
-      subtitle: 'How much time and what\'s your goal?',
+      subtitle: 'How much time can you dedicate each day?',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -543,7 +675,132 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════
+  // PAGE 8: WEEKLY SCHEDULE (NEW)
+  // ════════════════════════════════
+
+  static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _dayEmojis = ['🌙', '🌙', '🌙', '🌙', '🕌', '☀️', '☀️'];
+
+  Widget _buildWeeklySchedulePage(ThemeProvider theme) {
+    return _pageWrapper(
+      theme,
+      icon: LucideIcons.calendarDays,
+      title: 'Which days will you study?',
+      subtitle: 'Tap to toggle — rest days are important too!',
+      child: Column(
+        children: [
+          // 7-day grid
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(7, (i) {
+              final isActive = _activeDays.contains(i);
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (isActive) {
+                      // Don't allow deactivating all days
+                      if (_activeDays.length > 1) {
+                        _activeDays.remove(i);
+                      }
+                    } else {
+                      _activeDays.add(i);
+                      _activeDays.sort();
+                    }
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 44,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? theme.accentColor.withValues(alpha: 0.15)
+                        : theme.cardColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isActive ? theme.accentColor : theme.dividerColor,
+                      width: isActive ? 2 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _dayEmojis[i],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isActive ? null : theme.mutedText,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _dayLabels[i],
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                          color: isActive ? theme.accentColor : theme.mutedText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 20),
+          // Active count
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: theme.accentColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${_activeDays.length} active day${_activeDays.length != 1 ? 's' : ''} / week',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: theme.accentColor,
+              ),
+            ),
+          ),
+          if (_activeDays.length < 7) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${7 - _activeDays.length} rest day${(7 - _activeDays.length) != 1 ? 's' : ''} — great for retention!',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                color: theme.mutedText,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════
+  // PAGE 9: GOAL + PACE
+  // ════════════════════════════════
+
+  Widget _buildGoalPacePage(ThemeProvider theme) {
+    return _pageWrapper(
+      theme,
+      icon: LucideIcons.target,
+      title: 'Your goal & pace',
+      subtitle: 'What do you want to memorize and how fast?',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           // Goal selection
           Text(
             'What\'s your aim?',
@@ -566,6 +823,32 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           _optionCard(theme, '📄', 'Specific Surahs', 'Pick individual surahs',
               _goal == HifzGoal.specificSurahs,
               () => setState(() => _goal = HifzGoal.specificSurahs)),
+          const SizedBox(height: 24),
+          // Pace preference
+          Text(
+            'How fast do you want to go?',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: theme.primaryText,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _optionCard(theme, '🚀', 'Push me',
+              'Higher load, faster progression',
+              _pacePreference == PacePreference.aggressive,
+              () => setState(() => _pacePreference = PacePreference.aggressive)),
+          const SizedBox(height: 10),
+          _optionCard(theme, '⚖️', 'Steady',
+              'Balanced and consistent',
+              _pacePreference == PacePreference.steady,
+              () => setState(() => _pacePreference = PacePreference.steady)),
+          const SizedBox(height: 10),
+          _optionCard(theme, '🌿', 'Gentle',
+              'Lighter load, focus on retention',
+              _pacePreference == PacePreference.gentle,
+              () => setState(() => _pacePreference = PacePreference.gentle)),
         ],
       ),
     );
@@ -866,6 +1149,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _paramRow(theme, '🎂', 'Age', '$_age (${_ageGroup.name})'),
+                const SizedBox(height: 10),
+                _paramRow(theme, '🌱', 'Experience', _hifzExperience.name),
+                const SizedBox(height: 10),
+                _paramRow(theme, '📅', 'Active days', '${_activeDays.length}/7 days'),
+                const SizedBox(height: 10),
+                _paramRow(theme, '⚡', 'Pace', _pacePreference.name),
+                const SizedBox(height: 10),
                 _paramRow(theme, '📖', 'Daily new material', load),
                 const SizedBox(height: 10),
                 _paramRow(theme, '🔁', 'Target repetitions',
@@ -1122,31 +1413,56 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   // ── Plan Calculations (from plan-generation.md § Step 2) ──
 
   /// Daily load using the full time × encoding speed table.
+  /// Daily load as a fixed amount (not a range) — pace determines the value.
+  /// Steady = base amount, aggressive = higher, gentle = lower.
   String _computeDailyLoad() {
+    // Base lines from time × encoding speed
+    int baseLines;
     if (_dailyMinutes <= 30) {
-      return switch (_encodingSpeed) {
-        EncodingSpeed.fast => '5-8 lines',
-        EncodingSpeed.moderate => '3-5 lines',
-        EncodingSpeed.slow => '2-3 lines',
+      baseLines = switch (_encodingSpeed) {
+        EncodingSpeed.fast => 8,
+        EncodingSpeed.moderate => 5,
+        EncodingSpeed.slow => 3,
       };
     } else if (_dailyMinutes <= 60) {
-      return switch (_encodingSpeed) {
-        EncodingSpeed.fast => '½ – 1 page',
-        EncodingSpeed.moderate => '5-8 lines',
-        EncodingSpeed.slow => '3-5 lines',
+      baseLines = switch (_encodingSpeed) {
+        EncodingSpeed.fast => 15,
+        EncodingSpeed.moderate => 8,
+        EncodingSpeed.slow => 5,
       };
     } else if (_dailyMinutes <= 120) {
-      return switch (_encodingSpeed) {
-        EncodingSpeed.fast => '1-2 pages',
-        EncodingSpeed.moderate => '½ – 1 page',
-        EncodingSpeed.slow => '5-8 lines',
+      baseLines = switch (_encodingSpeed) {
+        EncodingSpeed.fast => 30,
+        EncodingSpeed.moderate => 15,
+        EncodingSpeed.slow => 8,
       };
     } else {
-      return switch (_encodingSpeed) {
-        EncodingSpeed.fast => '2-3 pages',
-        EncodingSpeed.moderate => '1-2 pages',
-        EncodingSpeed.slow => '½ – 1 page',
+      baseLines = switch (_encodingSpeed) {
+        EncodingSpeed.fast => 45,
+        EncodingSpeed.moderate => 30,
+        EncodingSpeed.slow => 15,
       };
+    }
+
+    // Pace adjustment
+    switch (_pacePreference) {
+      case PacePreference.aggressive:
+        baseLines = (baseLines * 1.3).round();
+        break;
+      case PacePreference.gentle:
+        baseLines = (baseLines * 0.7).round();
+        break;
+      case PacePreference.steady:
+        break; // Use base
+    }
+
+    // Format as pages or lines
+    if (baseLines >= 30) {
+      return '${(baseLines / 15).toStringAsFixed(0)} pages';
+    } else if (baseLines >= 15) {
+      return '1 page (15 lines)';
+    } else {
+      return '$baseLines lines';
     }
   }
 
@@ -1155,7 +1471,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     final sabaq = (_dailyMinutes * 0.45).round();
     final sabqi = (_dailyMinutes * 0.30).round();
     final manzil = _dailyMinutes - sabaq - sabqi;
-    return '${sabaq}m new / ${sabqi}m review / ${manzil}m manzil';
+    return '${sabaq}m / ${sabqi}m / ${manzil}m';
   }
 
   /// Estimated timeline based on goal + daily load.
@@ -1194,7 +1510,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         break;
     }
 
-    final totalDays = totalPages / pagesPerDay;
+    // Account for active days per week
+    final activeDaysPerWeek = _activeDays.length.clamp(1, 7);
+    final totalDays = totalPages / (pagesPerDay * activeDaysPerWeek / 7);
     final months = totalDays / 30;
 
     String goalLabel;
@@ -1220,19 +1538,22 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     }
   }
 
+  /// Research-based repetition targets — real hifz pedagogy requires
+  /// high repetitions for lasting memorization.
   String _targetRepsDescription() {
     if (_encodingSpeed == EncodingSpeed.slow || _retention == RetentionStrength.fragile) {
-      return '15+ per section';
+      return '30+ per section';
     }
     if (_encodingSpeed == EncodingSpeed.fast && _retention == RetentionStrength.strong) {
-      return '5-7 per section';
+      return '15 per section';
     }
-    return '10 per section';
+    return '20 per section';
   }
 
 
   Widget _paramRow(ThemeProvider theme, String emoji, String label, String value) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(emoji, style: const TextStyle(fontSize: 18)),
         const SizedBox(width: 10),
@@ -1246,13 +1567,17 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: theme.primaryText,
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: theme.primaryText,
+            ),
           ),
         ),
       ],

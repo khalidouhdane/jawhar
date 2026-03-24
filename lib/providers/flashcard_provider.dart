@@ -220,7 +220,8 @@ class FlashcardProvider extends ChangeNotifier {
       final groups = await _db.getMutashabihatForVerse(verseKey);
       _lastWeakWasMutashabihat = groups.isNotEmpty;
       notifyListeners();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Flashcard] Mutashabihat check failed for $verseKey: $e');
       _lastWeakWasMutashabihat = false;
     }
   }

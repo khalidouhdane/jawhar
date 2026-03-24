@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/card_generation_service.dart';
 
@@ -15,6 +16,7 @@ class SessionProvider extends ChangeNotifier {
 
   // Timer state (managed by the UI Stopwatch, not a Dart Timer)
   int _elapsedSeconds = 0;
+  int _targetSeconds = 0; // Countdown target (0 = no countdown, count up)
   int _repCount = 0;
   int _totalSessionReps = 0; // Accumulated across all phases
 
@@ -37,6 +39,12 @@ class SessionProvider extends ChangeNotifier {
   int? _lastVerseLearned;     // CE-9: verse-level coverage
   int? _totalVersesOnPage;    // CE-9: total verses on the page
 
+  // ── Recipe-guided mode ──
+  bool _isGuidedMode = true;
+  Map<String, SessionRecipe> _recipes = {}; // keyed by phase name
+  int _currentStepIndex = 0;
+  int _stepRepCount = 0; // rep count for current step
+
   SessionProvider(this._db);
 
   // ── Getters ──
@@ -46,7 +54,14 @@ class SessionProvider extends ChangeNotifier {
   bool get isActive => _isActive;
   bool get isPaused => _isPaused;
   int get elapsedSeconds => _elapsedSeconds;
+  int get targetSeconds => _targetSeconds;
   int get repCount => _repCount;
+
+  /// Seconds remaining on the countdown (negative = overtime).
+  int get remainingSeconds => _targetSeconds > 0 ? _targetSeconds - _elapsedSeconds : 0;
+
+  /// Whether the user has gone past the allocated time.
+  bool get isOvertime => _targetSeconds > 0 && _elapsedSeconds > _targetSeconds;
   bool get showingAssessment => _showingAssessment;
   bool get showingCoverageDialog => _showingCoverageDialog;
   List<int> get actualPagesCovered => _actualPagesCovered;
@@ -60,6 +75,35 @@ class SessionProvider extends ChangeNotifier {
   SelfAssessment? get manzilAssessment => _manzilAssessment;
 
   int get totalRepCount => _totalSessionReps;
+
+  // Recipe-guided mode getters
+  bool get isGuidedMode => _isGuidedMode;
+  int get currentStepIndex => _currentStepIndex;
+  int get stepRepCount => _stepRepCount;
+
+  /// Get the recipe for the current phase (may be null/empty).
+  SessionRecipe? get currentRecipe {
+    final key = _currentPhase.name; // 'sabaq', 'sabqi', 'manzil'
+    return _recipes[key];
+  }
+
+  /// Get the current step from the active recipe (null if no recipe or past end).
+  RecipeStep? get currentStep {
+    final recipe = currentRecipe;
+    if (recipe == null || recipe.isEmpty) return null;
+    if (_currentStepIndex >= recipe.steps.length) return null;
+    return recipe.steps[_currentStepIndex];
+  }
+
+  /// Whether the current step target has been met.
+  bool get isStepComplete {
+    final step = currentStep;
+    if (step == null) return false;
+    return _stepRepCount >= step.target;
+  }
+
+  /// Whether there are recipes loaded and guided mode makes sense.
+  bool get hasRecipes => _recipes.values.any((r) => r.isNotEmpty);
 
   bool get isSessionComplete => _sabaqDone && _sabqiDone && _manzilDone;
 
@@ -120,6 +164,7 @@ class SessionProvider extends ChangeNotifier {
     _isActive = true;
     _isPaused = false;
     _elapsedSeconds = 0;
+    _targetSeconds = 0;
     _repCount = 0;
     _totalSessionReps = 0;
     _sabaqAssessment = null;
@@ -141,6 +186,33 @@ class SessionProvider extends ChangeNotifier {
       _currentPhase = SessionPhase.manzil;
     }
 
+    // Reset guided mode state
+    _currentStepIndex = 0;
+    _stepRepCount = 0;
+
+    notifyListeners();
+  }
+
+  /// Load recipes for the current session (call after startSession).
+  void loadRecipes(List<SessionRecipe> recipes) {
+    _recipes = {};
+    for (final r in recipes) {
+      _recipes[r.phase] = r;
+    }
+    _currentStepIndex = 0;
+    _stepRepCount = 0;
+    notifyListeners();
+  }
+
+  /// Toggle between guided and free mode.
+  void toggleGuidedMode() {
+    _isGuidedMode = !_isGuidedMode;
+    notifyListeners();
+  }
+
+  /// Set guided mode explicitly.
+  void setGuidedMode(bool guided) {
+    _isGuidedMode = guided;
     notifyListeners();
   }
 
@@ -155,12 +227,25 @@ class SessionProvider extends ChangeNotifier {
   void countRep() {
     _repCount++;
     _totalSessionReps++;
+    _stepRepCount++;
     notifyListeners();
   }
 
   /// Reset rep counter to 0.
   void resetReps() {
     _repCount = 0;
+    notifyListeners();
+  }
+
+  /// Set the countdown target in minutes.
+  void setTargetTime(int minutes) {
+    _targetSeconds = minutes * 60;
+    notifyListeners();
+  }
+
+  /// Adjust countdown target by delta minutes (e.g., +1 or -1).
+  void adjustTime(int deltaMinutes) {
+    _targetSeconds = (_targetSeconds + deltaMinutes * 60).clamp(60, 7200);
     notifyListeners();
   }
 
@@ -237,12 +322,39 @@ class SessionProvider extends ChangeNotifier {
       case SessionPhase.flashcards: break;
     }
     _repCount = 0;
+    _stepRepCount = 0;
+    _currentStepIndex = 0;
     _showingAssessment = false;
 
     if (!isSessionComplete) {
       _advanceToNextPhase();
     }
     notifyListeners();
+  }
+
+  /// Advance to next step in the recipe (guided mode).
+  void nextStep() {
+    final recipe = currentRecipe;
+    if (recipe == null || recipe.isEmpty) return;
+    if (_currentStepIndex < recipe.steps.length - 1) {
+      _currentStepIndex++;
+      _stepRepCount = 0;
+      notifyListeners();
+    }
+  }
+
+  /// Go back to previous step in the recipe (guided mode).
+  void previousStep() {
+    if (_currentStepIndex > 0) {
+      _currentStepIndex--;
+      _stepRepCount = 0;
+      notifyListeners();
+    }
+  }
+
+  /// Skip the current recipe step (guided mode).
+  void skipStep() {
+    nextStep();
   }
 
   void _advanceToNextPhase() {
@@ -252,6 +364,29 @@ class SessionProvider extends ChangeNotifier {
       _currentPhase = SessionPhase.sabqi;
     } else if (!_manzilDone) {
       _currentPhase = SessionPhase.manzil;
+    }
+    // Reset step tracking for the new phase
+    _currentStepIndex = 0;
+    _stepRepCount = 0;
+
+    // Reset timer for the new phase's allocated minutes
+    _elapsedSeconds = 0;
+    if (_plan != null) {
+      int phaseMinutes;
+      switch (_currentPhase) {
+        case SessionPhase.sabaq:
+          phaseMinutes = _plan!.sabaqTargetMinutes;
+          break;
+        case SessionPhase.sabqi:
+          phaseMinutes = _plan!.sabqiTargetMinutes;
+          break;
+        case SessionPhase.manzil:
+          phaseMinutes = _plan!.manzilTargetMinutes;
+          break;
+        default:
+          phaseMinutes = 0;
+      }
+      _targetSeconds = phaseMinutes * 60;
     }
   }
 
@@ -366,6 +501,7 @@ class SessionProvider extends ChangeNotifier {
     _isPaused = false;
     _plan = null;
     _elapsedSeconds = 0;
+    _targetSeconds = 0;
     _repCount = 0;
     _totalSessionReps = 0;
     _showingAssessment = false;
@@ -373,6 +509,9 @@ class SessionProvider extends ChangeNotifier {
     _actualPagesCovered = [];
     _lastVerseLearned = null;
     _totalVersesOnPage = null;
+    _recipes = {};
+    _currentStepIndex = 0;
+    _stepRepCount = 0;
     notifyListeners();
   }
 }

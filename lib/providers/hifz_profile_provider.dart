@@ -115,10 +115,13 @@ class HifzProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Get missed days for the current profile.
+  /// Get missed days for the current profile (excluding rest days).
   Future<int> getMissedDays() async {
     if (_activeProfile == null) return 0;
-    return _db.getMissedDays(_activeProfile!.id);
+    return _db.getMissedDays(
+      _activeProfile!.id,
+      activeDays: _activeProfile!.activeDays,
+    );
   }
 
   // ── Convenience ──

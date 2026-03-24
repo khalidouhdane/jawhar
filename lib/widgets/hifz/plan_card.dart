@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
 /// Dashboard card showing today's Hifz plan with full daily goal info.
 /// CE-8: Rich plan card showing what the user needs to do today.
-class PlanCard extends StatelessWidget {
+class PlanCard extends StatefulWidget {
   final DailyPlan plan;
   final ThemeProvider theme;
   final VoidCallback onStartSession;
   final MemoryProfile? profile;
   final int flashcardsDue;
+  final List<SessionRecipe> recipes;
+  final int sessionCount;
 
   const PlanCard({
     super.key,
@@ -19,10 +22,24 @@ class PlanCard extends StatelessWidget {
     required this.onStartSession,
     this.profile,
     this.flashcardsDue = 0,
+    this.recipes = const [],
+    this.sessionCount = 0,
   });
 
   @override
+  State<PlanCard> createState() => _PlanCardState();
+}
+
+class _PlanCardState extends State<PlanCard> {
+  bool _showReasoning = false;
+
+  @override
   Widget build(BuildContext context) {
+    final plan = widget.plan;
+    final theme = widget.theme;
+    final profile = widget.profile;
+    final flashcardsDue = widget.flashcardsDue;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -52,15 +69,45 @@ class PlanCard extends StatelessWidget {
             children: [
               const Icon(LucideIcons.calendarCheck, size: 18, color: Colors.white),
               const SizedBox(width: 8),
-              const Text(
-                'Today\'s Plan',
-                style: TextStyle(
+              Text(
+                widget.sessionCount > 0
+                    ? 'Extra Session #${widget.sessionCount + 1}'
+                    : 'Today\'s Plan',
+                style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
+              // AI badge
+              if (plan.isAiGenerated) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('✨', style: TextStyle(fontSize: 10)),
+                      SizedBox(width: 3),
+                      Text(
+                        'AI',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const Spacer(),
               // Daily goal badge (CE-8.4)
               if (profile != null)
@@ -184,11 +231,69 @@ class PlanCard extends StatelessWidget {
               ),
             ),
           ],
+          // AI reasoning section
+          if (plan.isAiGenerated && plan.aiReasoning != null && plan.aiReasoning!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => setState(() => _showReasoning = !_showReasoning),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.lightbulb, size: 12, color: Colors.white70),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Why this plan?',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          _showReasoning ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                          size: 14,
+                          color: Colors.white54,
+                        ),
+                      ],
+                    ),
+                    if (_showReasoning) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        plan.aiReasoning!,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          color: Colors.white70,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+          // Recipe step preview
+          if (widget.recipes.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildRecipePreview(theme),
+          ],
           const SizedBox(height: 14),
 
           // Start Session button
           GestureDetector(
-            onTap: plan.isCompleted ? null : onStartSession,
+            onTap: plan.isCompleted ? null : widget.onStartSession,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -210,7 +315,7 @@ class PlanCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    plan.isCompleted ? 'Completed ✨' : 'Start Session',
+                    plan.isCompleted ? 'Completed \u2728' : 'Start Session',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -223,6 +328,83 @@ class PlanCard extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecipePreview(ThemeProvider theme) {
+    // Show sabaq recipe steps as a compact icon row
+    final sabaqRecipe = widget.recipes.where((r) => r.phase == 'sabaq').toList();
+    if (sabaqRecipe.isEmpty || sabaqRecipe.first.isEmpty) return const SizedBox.shrink();
+
+    final steps = sabaqRecipe.first.steps;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(LucideIcons.listChecks, size: 12, color: Colors.white70),
+              SizedBox(width: 6),
+              Text(
+                'Session steps',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Step icons row
+          Row(
+            children: List.generate(steps.length, (i) {
+              final step = steps[i];
+              final isLast = i == steps.length - 1;
+              return Expanded(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(step.icon, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${step.target}${step.unit == StepUnit.minutes ? 'm' : '×'}',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white60,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!isLast)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Icon(
+                          LucideIcons.chevronRight,
+                          size: 10,
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
           ),
         ],
       ),
@@ -289,15 +471,15 @@ class PlanCard extends StatelessWidget {
   // ── Helpers ──
 
   String _goalBadgeText() {
-    if (profile == null) return '~${plan.estimatedMinutes} min';
-    final goal = profile!.goal;
+    if (widget.profile == null) return '~${widget.plan.estimatedMinutes} min';
+    final goal = widget.profile!.goal;
     switch (goal) {
       case HifzGoal.fullQuran:
         return 'Full Quran';
       case HifzGoal.specificJuz:
-        return '${profile!.goalDetails}';
+        return '${widget.profile!.goalDetails}';
       case HifzGoal.specificSurahs:
-        return '${profile!.goalDetails}';
+        return '${widget.profile!.goalDetails}';
     }
   }
 
@@ -310,22 +492,22 @@ class PlanCard extends StatelessWidget {
 
   bool _hasMultiplePhases() {
     int active = 0;
-    if (!plan.sabaqDoneOffline) active++;
-    if (!plan.sabqiDoneOffline && plan.sabqiPages.isNotEmpty) active++;
-    if (!plan.manzilDoneOffline && plan.manzilPages.isNotEmpty) active++;
+    if (!widget.plan.sabaqDoneOffline) active++;
+    if (!widget.plan.sabqiDoneOffline && widget.plan.sabqiPages.isNotEmpty) active++;
+    if (!widget.plan.manzilDoneOffline && widget.plan.manzilPages.isNotEmpty) active++;
     return active > 1;
   }
 
   String _timeBreakdown() {
     final parts = <String>[];
-    if (!plan.sabaqDoneOffline && plan.sabaqTargetMinutes > 0) {
-      parts.add('${plan.sabaqTargetMinutes}m new');
+    if (!widget.plan.sabaqDoneOffline && widget.plan.sabaqTargetMinutes > 0) {
+      parts.add('${widget.plan.sabaqTargetMinutes}m new');
     }
-    if (!plan.sabqiDoneOffline && plan.sabqiTargetMinutes > 0) {
-      parts.add('${plan.sabqiTargetMinutes}m review');
+    if (!widget.plan.sabqiDoneOffline && widget.plan.sabqiTargetMinutes > 0) {
+      parts.add('${widget.plan.sabqiTargetMinutes}m review');
     }
-    if (!plan.manzilDoneOffline && plan.manzilTargetMinutes > 0) {
-      parts.add('${plan.manzilTargetMinutes}m revision');
+    if (!widget.plan.manzilDoneOffline && widget.plan.manzilTargetMinutes > 0) {
+      parts.add('${widget.plan.manzilTargetMinutes}m revision');
     }
     return parts.join(' / ');
   }

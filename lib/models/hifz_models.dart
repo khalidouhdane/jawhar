@@ -3,12 +3,22 @@
 
 // ── Enums ──
 
-/// Age group — affects session length and UI tone.
+/// Age group — affects session length, daily load ceiling, and UI tone.
 enum AgeGroup {
-  child,  // 7-12
-  teen,   // 13-17
-  adult,  // 18+
+  child,       // 7-12: fastest absorption, short attention span
+  teen,        // 13-17: strong memory, moderate attention
+  youngAdult,  // 18-30: peak cognitive, can handle aggressive plans
+  adult,       // 31-45: good memory, busier schedules
+  middleAged,  // 46-55: slower encoding, stronger discipline
+  senior,      // 56-70: noticeably slower, shorter sessions
+  elderly,     // 71+: fragile retention, very gentle pace
 }
+
+/// Pace preference — how aggressively the user wants to progress.
+enum PacePreference { aggressive, steady, gentle }
+
+/// Prior hifz experience — affects initial plan strategy.
+enum HifzExperience { fresh, resuming, reviewing }
 
 /// How quickly the user encodes new material — from assessment.
 enum EncodingSpeed { fast, moderate, slow }
@@ -45,6 +55,7 @@ class MemoryProfile {
   final String name;
   final int avatarIndex;
   final DateTime createdAt;
+  final int age; // Actual age (7-100)
   final AgeGroup ageGroup;
   final EncodingSpeed encodingSpeed;
   final RetentionStrength retentionStrength;
@@ -58,13 +69,17 @@ class MemoryProfile {
   final int startingPage;
   final DateTime startDate;
   final bool isActive;
+  final List<int> activeDays; // 0=Mon..6=Sun, which days are active
+  final PacePreference pacePreference;
+  final HifzExperience hifzExperience;
 
   const MemoryProfile({
     required this.id,
     required this.name,
     this.avatarIndex = 0,
     required this.createdAt,
-    this.ageGroup = AgeGroup.adult,
+    this.age = 25,
+    this.ageGroup = AgeGroup.youngAdult,
     this.encodingSpeed = EncodingSpeed.moderate,
     this.retentionStrength = RetentionStrength.moderate,
     this.learningPreference = LearningPreference.visual,
@@ -77,13 +92,28 @@ class MemoryProfile {
     this.startingPage = 582, // Juz 30 start
     required this.startDate,
     this.isActive = true,
+    this.activeDays = const [0, 1, 2, 3, 4, 5, 6], // All days active by default
+    this.pacePreference = PacePreference.steady,
+    this.hifzExperience = HifzExperience.fresh,
   });
+
+  /// Maps an actual age to the appropriate AgeGroup.
+  static AgeGroup ageGroupFromAge(int age) {
+    if (age <= 12) return AgeGroup.child;
+    if (age <= 17) return AgeGroup.teen;
+    if (age <= 30) return AgeGroup.youngAdult;
+    if (age <= 45) return AgeGroup.adult;
+    if (age <= 55) return AgeGroup.middleAged;
+    if (age <= 70) return AgeGroup.senior;
+    return AgeGroup.elderly;
+  }
 
   MemoryProfile copyWith({
     String? id,
     String? name,
     int? avatarIndex,
     DateTime? createdAt,
+    int? age,
     AgeGroup? ageGroup,
     EncodingSpeed? encodingSpeed,
     RetentionStrength? retentionStrength,
@@ -97,12 +127,16 @@ class MemoryProfile {
     int? startingPage,
     DateTime? startDate,
     bool? isActive,
+    List<int>? activeDays,
+    PacePreference? pacePreference,
+    HifzExperience? hifzExperience,
   }) {
     return MemoryProfile(
       id: id ?? this.id,
       name: name ?? this.name,
       avatarIndex: avatarIndex ?? this.avatarIndex,
       createdAt: createdAt ?? this.createdAt,
+      age: age ?? this.age,
       ageGroup: ageGroup ?? this.ageGroup,
       encodingSpeed: encodingSpeed ?? this.encodingSpeed,
       retentionStrength: retentionStrength ?? this.retentionStrength,
@@ -116,6 +150,9 @@ class MemoryProfile {
       startingPage: startingPage ?? this.startingPage,
       startDate: startDate ?? this.startDate,
       isActive: isActive ?? this.isActive,
+      activeDays: activeDays ?? this.activeDays,
+      pacePreference: pacePreference ?? this.pacePreference,
+      hifzExperience: hifzExperience ?? this.hifzExperience,
     );
   }
 
@@ -125,6 +162,7 @@ class MemoryProfile {
     'name': name,
     'avatarIndex': avatarIndex,
     'createdAt': createdAt.toIso8601String(),
+    'age': age,
     'ageGroup': ageGroup.index,
     'encodingSpeed': encodingSpeed.index,
     'retentionStrength': retentionStrength.index,
@@ -138,16 +176,26 @@ class MemoryProfile {
     'startingPage': startingPage,
     'startDate': startDate.toIso8601String(),
     'isActive': isActive ? 1 : 0,
+    'activeDays': activeDays.join(','),
+    'pacePreference': pacePreference.index,
+    'hifzExperience': hifzExperience.index,
   };
 
   /// Create from a SQLite row.
   factory MemoryProfile.fromMap(Map<String, dynamic> map) {
+    // Handle backward compatibility: old ageGroup index 2 was 'adult',
+    // in the new 7-value enum index 2 is 'youngAdult' — map old 'adult' (2) to new 'youngAdult' (2)
+    // which is a reasonable default for existing users.
+    final ageGroupIndex = (map['ageGroup'] as int?) ?? 2;
+    final safeAgeGroupIndex = ageGroupIndex.clamp(0, AgeGroup.values.length - 1);
+
     return MemoryProfile(
       id: map['id'] as String,
       name: map['name'] as String,
       avatarIndex: map['avatarIndex'] as int? ?? 0,
       createdAt: DateTime.parse(map['createdAt'] as String),
-      ageGroup: AgeGroup.values[(map['ageGroup'] as int?) ?? 2],
+      age: map['age'] as int? ?? 25,
+      ageGroup: AgeGroup.values[safeAgeGroupIndex],
       encodingSpeed: EncodingSpeed.values[(map['encodingSpeed'] as int?) ?? 1],
       retentionStrength: RetentionStrength.values[(map['retentionStrength'] as int?) ?? 1],
       learningPreference: LearningPreference.values[(map['learningPreference'] as int?) ?? 0],
@@ -162,6 +210,11 @@ class MemoryProfile {
       startingPage: map['startingPage'] as int? ?? 582,
       startDate: DateTime.parse(map['startDate'] as String),
       isActive: (map['isActive'] as int?) == 1,
+      activeDays: (map['activeDays'] as String?)?.isNotEmpty == true
+          ? (map['activeDays'] as String).split(',').map(int.parse).toList()
+          : [0, 1, 2, 3, 4, 5, 6],
+      pacePreference: PacePreference.values[(map['pacePreference'] as int?) ?? 1],
+      hifzExperience: HifzExperience.values[(map['hifzExperience'] as int?) ?? 0],
     );
   }
 }
@@ -267,6 +320,10 @@ class DailyPlan {
   final bool manzilDoneOffline;
   final bool isCompleted;
 
+  // AI generation metadata
+  final bool isAiGenerated;
+  final String? aiReasoning;
+
   const DailyPlan({
     required this.id,
     required this.profileId,
@@ -287,6 +344,8 @@ class DailyPlan {
     this.sabqiDoneOffline = false,
     this.manzilDoneOffline = false,
     this.isCompleted = false,
+    this.isAiGenerated = false,
+    this.aiReasoning,
   });
 
   /// Estimated total session time in minutes.
@@ -306,6 +365,8 @@ class DailyPlan {
     int? sabqiTargetMinutes,
     int? manzilTargetMinutes,
     int? sabaqRepetitionTarget,
+    bool? isAiGenerated,
+    String? aiReasoning,
   }) {
     return DailyPlan(
       id: id,
@@ -327,6 +388,8 @@ class DailyPlan {
       sabqiDoneOffline: sabqiDoneOffline ?? this.sabqiDoneOffline,
       manzilDoneOffline: manzilDoneOffline ?? this.manzilDoneOffline,
       isCompleted: isCompleted ?? this.isCompleted,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
+      aiReasoning: aiReasoning ?? this.aiReasoning,
     );
   }
 
@@ -350,6 +413,8 @@ class DailyPlan {
     'sabqiDoneOffline': sabqiDoneOffline ? 1 : 0,
     'manzilDoneOffline': manzilDoneOffline ? 1 : 0,
     'isCompleted': isCompleted ? 1 : 0,
+    'isAiGenerated': isAiGenerated ? 1 : 0,
+    'aiReasoning': aiReasoning,
   };
 
   factory DailyPlan.fromMap(Map<String, dynamic> map) {
@@ -377,6 +442,8 @@ class DailyPlan {
       sabqiDoneOffline: (map['sabqiDoneOffline'] as int?) == 1,
       manzilDoneOffline: (map['manzilDoneOffline'] as int?) == 1,
       isCompleted: (map['isCompleted'] as int?) == 1,
+      isAiGenerated: (map['isAiGenerated'] as int?) == 1,
+      aiReasoning: map['aiReasoning'] as String?,
     );
   }
 }

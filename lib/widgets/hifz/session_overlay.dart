@@ -7,6 +7,7 @@ import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/session_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/hifz/verse_highlighter.dart';
 import 'package:quran_app/widgets/overlays.dart';
@@ -263,48 +264,107 @@ class _SessionOverlayState extends State<SessionOverlay> {
                         height: 1,
                         color: theme.dividerColor.withValues(alpha: 0.3),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
+
+                      // Recipe step instruction banner (guided mode)
+                      if (session.isGuidedMode && session.currentStep != null)
+                        _buildRecipeStepBanner(theme, session),
+
                       // Row 2: Skip · +REP (large) · Done
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _ActionButton(
-                            icon: LucideIcons.skipForward,
-                            label: 'Skip',
-                            theme: theme,
-                            onTap: widget.onSkip ?? () {},
-                          ),
-                          GestureDetector(
-                            onTap: widget.onRepTap,
-                            child: Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: theme.accentColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: theme.accentColor
-                                        .withValues(alpha: 0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                LucideIcons.plus,
-                                size: 22,
-                                color: Colors.white,
+                          if (session.isGuidedMode && session.currentStep != null) ...[
+                            // In guided mode: Prev · +REP · Next/Finish
+                            _ActionButton(
+                              icon: LucideIcons.chevronLeft,
+                              label: 'Prev',
+                              theme: theme,
+                              onTap: () => session.previousStep(),
+                            ),
+                            GestureDetector(
+                              onTap: widget.onRepTap,
+                              child: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: session.isStepComplete
+                                      ? const Color(0xFF10B981)
+                                      : theme.accentColor,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (session.isStepComplete
+                                              ? const Color(0xFF10B981)
+                                              : theme.accentColor)
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  session.isStepComplete ? LucideIcons.check : LucideIcons.plus,
+                                  size: 22,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                          _ActionButton(
-                            icon: LucideIcons.check,
-                            label: 'Done',
-                            theme: theme,
-                            isPrimary: true,
-                            onTap: widget.onDone,
-                          ),
+                            if (session.currentStepIndex < (session.currentRecipe?.steps.length ?? 1) - 1)
+                              _ActionButton(
+                                icon: LucideIcons.chevronRight,
+                                label: session.isStepComplete ? 'Next' : 'Skip',
+                                theme: theme,
+                                onTap: () => session.nextStep(),
+                              )
+                            else
+                              _ActionButton(
+                                icon: LucideIcons.checkCircle,
+                                label: 'Finish',
+                                theme: theme,
+                                isPrimary: true,
+                                onTap: widget.onDone,
+                              ),
+                          ] else ...[
+                            // Free mode: Skip · +REP · Done
+                            _ActionButton(
+                              icon: LucideIcons.skipForward,
+                              label: 'Skip',
+                              theme: theme,
+                              onTap: widget.onSkip ?? () {},
+                            ),
+                            GestureDetector(
+                              onTap: widget.onRepTap,
+                              child: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: theme.accentColor,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: theme.accentColor
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  LucideIcons.plus,
+                                  size: 22,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            _ActionButton(
+                              icon: LucideIcons.check,
+                              label: 'Done',
+                              theme: theme,
+                              isPrimary: true,
+                              onTap: widget.onDone,
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -348,6 +408,66 @@ class _SessionOverlayState extends State<SessionOverlay> {
               onJumpBackward: () => audioProvider.seekBackward(10),
               onRepeatToggle: () => audioProvider.toggleRepeatMode(),
               onSeek: (val) => audioProvider.seekToFraction(val),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecipeStepBanner(ThemeProvider theme, SessionProvider session) {
+    final step = session.currentStep!;
+    final recipe = session.currentRecipe!;
+    final totalSteps = recipe.steps.length;
+    final unitLabel = step.unit == StepUnit.minutes ? 'min' : '×';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.accentColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Text(step.icon, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                step.instruction,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 11,
+                  color: theme.secondaryText,
+                  height: 1.3,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Step progress badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: session.isStepComplete
+                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                    : theme.cardColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${session.currentStepIndex + 1}/$totalSteps · ${session.stepRepCount}/${step.target}$unitLabel',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: session.isStepComplete
+                      ? const Color(0xFF10B981)
+                      : theme.accentColor,
+                ),
+              ),
             ),
           ],
         ),

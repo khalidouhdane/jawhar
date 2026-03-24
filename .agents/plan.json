@@ -1,0 +1,350 @@
+{
+  "project_name": "AI-Powered Hifz Plan Generation",
+  "description": "Replace hard-coded plan generation with Gemini 3.1-powered personalized plans, step-by-step session recipes, and adaptive calibration. Enhance assessment flow with richer data collection.",
+  "tech_stack": {
+    "mobile": "Flutter 3.x + Dart 3.x",
+    "database": "SQLite (sqflite / sqflite_common_ffi)",
+    "ai": "Gemini 3.1 Flash / Pro (google_generative_ai package)",
+    "state": "Provider (ChangeNotifier)"
+  },
+  "architecture_decisions": [
+    {
+      "decision": "Bundled Gemini API key for development phase",
+      "rationale": "Simplifies dev/testing. Move to backend proxy before public distribution.",
+      "alternatives_considered": ["Backend proxy from day 1", "Firebase Extensions"]
+    },
+    {
+      "decision": "AI generates both plan AND session recipes in a single call",
+      "rationale": "Reduces API calls and ensures coherent plan+recipe alignment. One call per day.",
+      "alternatives_considered": ["Separate calls for plan vs recipes", "Pre-built recipe templates only"]
+    },
+    {
+      "decision": "Offline fallback to deterministic math + template recipes",
+      "rationale": "AI enhances but never blocks. No internet = still functional app.",
+      "alternatives_considered": ["Require internet for plan generation", "Cache-only mode"]
+    },
+    {
+      "decision": "System prompt stored as versioned asset file",
+      "rationale": "Easy iteration without code changes. Can A/B test prompt versions.",
+      "alternatives_considered": ["Hard-coded in Dart", "Remote config"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-1",
+      "agent": "mobile",
+      "title": "Expand MemoryProfile model + database schema",
+      "description": "Add new fields to MemoryProfile: age (int), expanded AgeGroup enum (7 values), activeDays (List<int>), pacePreference enum, hifzExperience enum. Update SQLite schema with migration for existing profiles (sensible defaults).",
+      "priority": 1,
+      "dependencies": [],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "AgeGroup enum has 7 values: child, teen, youngAdult, adult, middleAged, senior, elderly",
+        "MemoryProfile has: age (int), activeDays (List<int>), pacePreference, hifzExperience fields",
+        "PacePreference enum: aggressive, steady, gentle",
+        "HifzExperience enum: fresh, resuming, reviewing",
+        "SQLite migration adds columns with defaults (age=25, activeDays=[0-6], pace=steady, experience=fresh)",
+        "Existing profiles load without crash",
+        "toMap() and fromMap() serialize/deserialize all new fields"
+      ]
+    },
+    {
+      "id": "task-2",
+      "agent": "mobile",
+      "title": "Enhanced assessment wizard screens",
+      "description": "Update the 9-screen assessment wizard to 11 screens. Add: age number input with auto-group mapping, weekly schedule day picker, pace preference selector, prior experience selector. Reorder screens for natural flow.",
+      "priority": 2,
+      "dependencies": ["task-1"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Screen 2: Age number picker (7-100) with auto-mapped group label shown for confirmation",
+        "Screen 3 (NEW): Hifz experience selector (fresh/resuming/reviewing) with descriptions",
+        "Screen 8 (NEW): Weekly schedule picker - 7-day grid, tap to toggle active/rest, shows active day count",
+        "Screen 9 (UPDATED): Goal + pace preference combined - pace selector (aggressive/steady/gentle) with clear descriptions",
+        "Summary screen displays all new fields",
+        "Existing assessment flow still works for editing profiles",
+        "11 screens total in correct order"
+      ]
+    },
+    {
+      "id": "task-3",
+      "agent": "mobile",
+      "title": "Rest days integration across app",
+      "description": "Wire activeDays into the rest of the app: PlanProvider skips sabaq on rest days (review-only option), NotificationProvider silences on rest days, MissedDayDialog excludes rest days, timeline calculation accounts for active days/week.",
+      "priority": 2,
+      "dependencies": ["task-1"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "PlanProvider.loadOrGeneratePlan() checks if today is a rest day",
+        "Rest days get NO plan or a review-only plan (configurable)",
+        "NotificationProvider skips scheduling on rest days",
+        "MissedDayDialog does not trigger for rest days",
+        "Assessment summary timeline uses activeDays/week in calculation",
+        "Dashboard shows 'Rest day' indicator on rest days"
+      ]
+    },
+    {
+      "id": "task-4",
+      "agent": "mobile",
+      "title": "AIPlanService + Gemini integration",
+      "description": "Create AIPlanService class. Add google_generative_ai package. Implement Gemini 3.1 Flash/Pro API calls with structured JSON output. Build profile context assembler (profile + progress + session history → JSON). Add model switcher in profile settings.",
+      "priority": 2,
+      "dependencies": ["task-1"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "google_generative_ai package added to pubspec.yaml",
+        "AIPlanService class with bundled API key",
+        "Supports gemini-3.1-flash (default) and gemini-3.1-pro",
+        "Profile settings has 'AI Model' toggle (Flash / Pro)",
+        "buildUserContext() assembles profile + progress snapshot + last 7 sessions as JSON",
+        "generatePlan() calls Gemini and returns parsed response",
+        "Structured JSON output schema enforced via response_mime_type",
+        "Error handling: timeout, rate limit, invalid response"
+      ]
+    },
+    {
+      "id": "task-5",
+      "agent": "mobile",
+      "title": "System prompt design + versioned asset",
+      "description": "Craft the comprehensive system prompt and store as a versioned asset file in assets/prompts/. Include: framework rules, age guidelines, traditional method knowledge (from research docs), safety rails, feature inventory, JSON output schema.",
+      "priority": 2,
+      "dependencies": ["task-1"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "assets/prompts/plan_system_prompt_v1.md exists with full prompt",
+        "Prompt includes Sabaq/Sabqi/Manzil framework rules",
+        "Prompt includes age-group-specific load ceilings and rep ranges",
+        "Prompt includes traditional method knowledge: 3×3, Rabt linking, audio-first, visual tracking, overlap, Mauritanian",
+        "Prompt includes safety rails: page range 1-604, rep range 1-50, time clamping",
+        "Prompt includes strict JSON output schema definition",
+        "Prompt loadable from assets at runtime via rootBundle"
+      ]
+    },
+    {
+      "id": "task-6",
+      "agent": "mobile",
+      "title": "Plan validation layer + SQLite pipeline",
+      "description": "Build the validation layer between AI response and SQLite save. Validate pages (1-604, goal-scoped), clamp reps/time, check required fields, handle malformed responses. Save validated plan to SQLite. Store AI reasoning text.",
+      "priority": 3,
+      "dependencies": ["task-4", "task-5"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "Validation clamps pages to 1-604 (or goal-specific range for specificJuz/specificSurahs)",
+        "Reps clamped to 1-50",
+        "Phase times sum <= dailyTimeMinutes",
+        "Missing required fields filled with sensible defaults",
+        "Malformed JSON response triggers fallback (not crash)",
+        "AI reasoning text stored alongside DailyPlan in SQLite",
+        "Validated plan saved via HifzDatabaseService.saveDailyPlan()"
+      ]
+    },
+    {
+      "id": "task-7",
+      "agent": "mobile",
+      "title": "Offline fallback system",
+      "description": "Implement graceful degradation when AI is unavailable. Cache last AI framework params. Fall back to deterministic _getFrameworkParams() math. Generate template recipes from learningPreference. Show offline indicator.",
+      "priority": 3,
+      "dependencies": ["task-4", "task-6"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "Last successful AI framework params cached in SharedPreferences",
+        "AI call failure (no internet, timeout, error) → uses cached params",
+        "If no cache → falls back to current PlanGenerationService._getFrameworkParams()",
+        "Template-based recipe generation for each learningPreference (4 templates)",
+        "Plan card shows '📴 Using offline plan' indicator when in fallback mode",
+        "No UI crash or empty state when offline"
+      ]
+    },
+    {
+      "id": "task-8",
+      "agent": "mobile",
+      "title": "SessionRecipe model + recipe storage",
+      "description": "Create SessionRecipe and RecipeStep data models. Define actions vocabulary. Add SQLite table for recipes (linked to DailyPlan). Implement serialization.",
+      "priority": 3,
+      "dependencies": ["task-6"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "SessionRecipe model: phase, steps[], estimatedMinutes, tips[]",
+        "RecipeStep model: stepNumber, action, instruction, target, unit, icon",
+        "Actions enum: listen, readAlong, readSolo, reciteMemory, linkPractice, write, reviewMeaning, selfTest",
+        "SQLite table 'session_recipes' linked to DailyPlan by planId",
+        "toMap()/fromMap() serialization working",
+        "Recipes loaded alongside DailyPlan in PlanProvider"
+      ]
+    },
+    {
+      "id": "task-9",
+      "agent": "mobile",
+      "title": "Guided session UI — step-by-step view",
+      "description": "Redesign SessionScreen from raw rep counter to step-by-step guided view. Show current step instruction, per-step rep target, step progress indicator, prev/next navigation, skip step button. Add 'Free mode' toggle for advanced users.",
+      "priority": 4,
+      "dependencies": ["task-8"],
+      "estimated_complexity": "very-high",
+      "acceptance_criteria": [
+        "Session screen shows current step: icon + instruction text + rep target",
+        "Per-step rep counter (e.g., '2 / 3') instead of global counter",
+        "Step progress indicator (numbered pills or dots)",
+        "Previous/Next step navigation buttons",
+        "Skip step button (flexibility preserved)",
+        "Timer continues across all steps (total phase time visible)",
+        "All steps complete → auto-trigger self-assessment",
+        "'Free mode' toggle switches back to classic timer + rep counter",
+        "Works in both physical and digital mode",
+        "Sabqi/manzil phases show assigned page list"
+      ]
+    },
+    {
+      "id": "task-10",
+      "agent": "mobile",
+      "title": "Digital mode recipe integration",
+      "description": "Sync recipe steps with digital reading canvas. Listen steps auto-play audio. Read solo steps show text. Recite from memory steps hide text. Audio controls context-aware per step.",
+      "priority": 4,
+      "dependencies": ["task-9"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "'Listen' steps → auto-play audio when step becomes active",
+        "'Read solo' steps → show text, pause audio",
+        "'Recite from memory' steps → hide/blur text, show blank page prompt",
+        "Audio controls (play/pause/seek) context-aware per step type",
+        "SessionReadingView responds to step transitions",
+        "SessionOverlay shows current step info in digital mode"
+      ]
+    },
+    {
+      "id": "task-11",
+      "agent": "mobile",
+      "title": "Plan card enhancement + AI reasoning display",
+      "description": "Enhance dashboard PlanCard to show AI reasoning summary (expandable), per-phase time estimates, and recipe preview text.",
+      "priority": 4,
+      "dependencies": ["task-6", "task-8"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "Plan card shows per-phase time estimates (e.g., 'Sabaq: 25 min')",
+        "Expandable 'Why this plan?' section shows AI reasoning text",
+        "Recipe preview shown (e.g., 'Listen 3x → Read 3x → Recite 3x')",
+        "Graceful when no reasoning (offline plan) — section hidden"
+      ]
+    },
+    {
+      "id": "task-12",
+      "agent": "mobile",
+      "title": "Weekly AI calibration + adaptive suggestions",
+      "description": "Implement weekly AI calibration trigger. Feed full session history to AI for analysis. Generate adjustment suggestions with reasoning. Surface as SuggestionCards. Include progressive difficulty and smart rest day suggestions.",
+      "priority": 5,
+      "dependencies": ["task-6", "task-9"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Weekly calibration triggers after 7 completed sessions",
+        "AI receives full week's session history (assessments, times, completion, skips)",
+        "AI generates adjustment suggestions with clear reasoning",
+        "Suggestions surfaced as SuggestionCard on dashboard",
+        "Progressive load increase suggested after 3 consecutive 'strong' assessments",
+        "Smart rest day suggestions based on day-of-week patterns"
+      ]
+    },
+    {
+      "id": "task-13",
+      "agent": "mobile",
+      "title": "Break recovery plan",
+      "description": "Detect 3+ day gap since last session. Trigger AI re-evaluation with 'welcome back' mode. Generate review-first recovery plan with lighter load and compassionate messaging.",
+      "priority": 5,
+      "dependencies": ["task-6"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "Gap of 3+ days detected on app open",
+        "AI called with 'recovery mode' flag in context",
+        "Recovery plan: review-only for first 2-3 days, then gradual ramp-up",
+        "Compassionate messaging: 'Welcome back!' not 'You missed X days'",
+        "Dashboard shows recovery plan indicator",
+        "After recovery period, normal plan generation resumes"
+      ]
+    },
+    {
+      "id": "task-14",
+      "agent": "mobile",
+      "title": "Contextual tips + difficulty prediction",
+      "description": "AI generates page-specific tips (mutashabihat alerts, page bridge warnings, notable verses) and difficulty predictions based on content density and user history.",
+      "priority": 6,
+      "dependencies": ["task-9"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Tips generated per page in plan output",
+        "Tips shown at session start and between steps",
+        "Difficulty prediction considers: verse count, mutashabihat presence, user past performance",
+        "Hard pages get pre-warning: 'This page might take longer'",
+        "Recipe targets adjusted for predicted difficulty"
+      ]
+    },
+    {
+      "id": "task-15",
+      "agent": "mobile",
+      "title": "Personalized motivational messages",
+      "description": "AI generates contextual encouragement: milestone proximity, post-session feedback, streak celebrations. Culturally appropriate with optional hadith/scholar advice.",
+      "priority": 6,
+      "dependencies": ["task-12"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "Milestone approaching messages (e.g., '3 more pages until Juz 29!')",
+        "Post-session encouragement based on assessment",
+        "Streak celebration messages",
+        "Messages culturally appropriate (optional hadith integration)",
+        "Messages shown on dashboard and at session completion"
+      ]
+    }
+  ],
+  "data_models": [
+    {
+      "entity": "MemoryProfile (updated)",
+      "fields": {
+        "age": "int (actual age, 7-100)",
+        "ageGroup": "AgeGroup (7 values)",
+        "activeDays": "List<int> (0=Mon..6=Sun)",
+        "pacePreference": "PacePreference (aggressive/steady/gentle)",
+        "hifzExperience": "HifzExperience (fresh/resuming/reviewing)"
+      }
+    },
+    {
+      "entity": "SessionRecipe (new)",
+      "fields": {
+        "planId": "String (FK to DailyPlan)",
+        "phase": "SessionPhase",
+        "steps": "List<RecipeStep> (JSON array)",
+        "estimatedMinutes": "int",
+        "tips": "List<String> (JSON array)"
+      }
+    },
+    {
+      "entity": "RecipeStep (new)",
+      "fields": {
+        "stepNumber": "int",
+        "action": "RecipeAction enum",
+        "instruction": "String",
+        "target": "int",
+        "unit": "String (times/minutes)",
+        "icon": "String (emoji)"
+      }
+    }
+  ],
+  "non_functional_requirements": {
+    "security": [
+      "Gemini API key bundled in app (dev phase only)",
+      "Move to backend proxy before public distribution",
+      "No user PII sent to AI (only anonymous profile data)"
+    ],
+    "performance": [
+      "AI call timeout: 15 seconds max",
+      "Plan generation should not block app launch (async with loading state)",
+      "Offline fallback activates within 1 second of network failure"
+    ],
+    "reliability": [
+      "AI failures never crash the app or produce empty dashboards",
+      "Validation layer catches all malformed AI responses",
+      "Cached plan serves as guaranteed fallback"
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "Validation layer, model serialization, offline fallback logic",
+    "integration_tests": "AI call → validate → save pipeline, assessment flow end-to-end",
+    "manual_tests": "Session recipe UX on Windows, model comparison (Flash vs Pro)"
+  }
+}

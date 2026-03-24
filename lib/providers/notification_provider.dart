@@ -87,11 +87,15 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Reschedule notifications (called on app start).
   /// If notifications are enabled and session isn't completed, ensure scheduled.
-  Future<void> ensureScheduled({bool sessionCompletedToday = false}) async {
+  /// Also skips notifications on rest days.
+  Future<void> ensureScheduled({
+    bool sessionCompletedToday = false,
+    bool isRestDay = false,
+  }) async {
     if (!_enabled || !_service.isSupported) return;
 
-    if (sessionCompletedToday) {
-      // Smart skip: don't notify if session is already done
+    if (sessionCompletedToday || isRestDay) {
+      // Smart skip: don't notify if session done or it's a rest day
       await _service.cancelDaily();
     } else {
       await _service.scheduleDaily(_reminderTime);

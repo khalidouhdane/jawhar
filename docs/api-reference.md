@@ -149,3 +149,49 @@ Returns a flat JSON array of all 6236 Warsh verses in Unicode. No custom fonts n
 | Word layout | Each word has a `line_number` for positioning within the page |
 | Word types | `"word"` (Arabic text) and `"end"` (verse number marker) |
 | Verse key format | `"chapter:verse"` (e.g., `"2:255"`) |
+
+---
+
+## 7. Translations & Tafsir
+
+> **IMPORTANT:** The `/quran/translations/{id}` and `/quran/tafsirs/{id}` endpoints return **empty arrays** in v4.
+> Always use the `/verses/` endpoints with query parameters instead.
+
+### Single Verse Translation
+
+```
+GET /verses/by_key/{verse_key}?translations={translation_id}
+```
+
+### Page Batch Translations (used by TranslationOverlay)
+
+```
+GET /verses/by_page/{page}?translations={translation_id}&per_page=50
+```
+
+### Single Verse Tafsir
+
+```
+GET /verses/by_key/{verse_key}?tafsirs={tafsir_id}
+```
+
+### Verified Resource IDs
+
+| ID | Resource | Type | Language |
+|----|----------|------|----------|
+| 85 | Abdel Haleem | Translation | English |
+| 1014 | Tafsir Al-Muyasser | Translation | Arabic |
+| 169 | Ibn Kathir Abridged | Tafsir (Brief) | English |
+| 168 | Ma'arif al-Qur'an | Tafsir (Detailed) | English |
+| 16 | Muyassar | Tafsir (Brief) | Arabic |
+| 14 | Ibn Kathir | Tafsir (Detailed) | Arabic |
+
+### Resource Discovery
+
+```
+GET /resources/translations   — list all available translation resources
+GET /resources/tafsirs        — list all available tafsir resources
+```
+
+> Resource IDs auto-switch by locale in `ContextProvider.setLocale()`.
+

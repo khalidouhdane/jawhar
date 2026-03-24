@@ -35,6 +35,11 @@ import 'package:quran_app/providers/notification_provider.dart';
 import 'package:quran_app/providers/social_provider.dart';
 import 'package:quran_app/services/push_notification_service.dart';
 import 'package:quran_app/services/sharing_service.dart';
+import 'package:quran_app/services/ai_plan_service.dart';
+import 'package:quran_app/services/ai_calibration_service.dart';
+import 'package:quran_app/services/break_recovery_service.dart';
+import 'package:quran_app/services/contextual_tips_service.dart';
+import 'package:quran_app/services/motivational_messages_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:quran_app/screens/onboarding_screen.dart';
 
@@ -112,6 +117,13 @@ void main() async {
   // Default tab: Dashboard (0) if user has reading history, else Read (2)
   final defaultTab = storageService.hasReadingHistory ? 0 : 2;
 
+  // Initialize AI services
+  final aiPlanService = AIPlanService();
+  final aiCalibrationService = AICalibrationService(aiPlanService);
+  final breakRecoveryService = BreakRecoveryService(hifzDb, aiService: aiPlanService);
+  final contextualTipsService = ContextualTipsService();
+  final motivationalService = MotivationalMessagesService();
+
   runApp(
     MultiProvider(
       providers: [
@@ -137,7 +149,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
         ChangeNotifierProvider(create: (_) => HifzProfileProvider(hifzDb)),
-        ChangeNotifierProvider(create: (_) => PlanProvider(hifzDb)),
+        ChangeNotifierProvider(create: (_) => PlanProvider(hifzDb, aiPlanService: aiPlanService)),
         ChangeNotifierProvider(create: (_) => SessionProvider(hifzDb)),
         ChangeNotifierProvider(create: (_) => FlashcardProvider(hifzDb)),
         ChangeNotifierProvider(create: (_) => WerdProvider(storageService)),
@@ -149,7 +161,11 @@ void main() async {
         ChangeNotifierProvider(create: (_) {
           final analyticsService = AnalyticsService(hifzDb);
           final notificationService = NotificationService(analyticsService);
-          return AnalyticsProvider(analyticsService, notificationService);
+          return AnalyticsProvider(
+            analyticsService,
+            notificationService,
+            calibrationService: aiCalibrationService,
+          );
         }),
         ChangeNotifierProvider(
           create: (_) => ContextProvider(
@@ -158,6 +174,10 @@ void main() async {
         ),
         Provider.value(value: storageService),
         Provider.value(value: hifzDb),
+        Provider.value(value: aiPlanService),
+        Provider.value(value: breakRecoveryService),
+        Provider.value(value: contextualTipsService),
+        Provider.value(value: motivationalService),
       ],
       child: DevicePreview(
         enabled:
