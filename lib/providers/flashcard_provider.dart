@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/flashcard_models.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/srs_engine.dart';
 import 'package:quran_app/services/card_generation_service.dart';
@@ -7,6 +9,8 @@ import 'package:quran_app/services/card_generation_service.dart';
 /// State management for flashcard review sessions.
 class FlashcardProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
+  final AuthService _auth;
+  final CloudSyncService _sync;
 
   List<Flashcard> _dueCards = [];
   int _currentIndex = 0;
@@ -28,7 +32,7 @@ class FlashcardProvider extends ChangeNotifier {
   // Per-type stats: {FlashcardType.index: {total: X, due: Y}}
   Map<int, Map<String, int>> _statsByType = {};
 
-  FlashcardProvider(this._db);
+  FlashcardProvider(this._db, this._auth, this._sync);
 
   // ── Getters ──
 
@@ -209,6 +213,12 @@ class FlashcardProvider extends ChangeNotifier {
       _checkMutashabihatForVerse(updated.verseKey);
     } else {
       _lastWeakWasMutashabihat = false;
+    }
+
+    // Cloud sync (fire-and-forget)
+    if (_auth.isSignedIn) {
+      _sync.syncFlashcard(_auth.uid!, updated);
+      _sync.syncFlashcardReview(_auth.uid!, review);
     }
 
     notifyListeners();

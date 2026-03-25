@@ -36,6 +36,7 @@
 - Practice tools — Flashcards (6 types, SRS-powered), Mutashabihat practice (4 modes)
 - **Adaptive Intelligence** — Weekly reports, suggestion cards, smart notifications, pace projection
 - **Social & Accountability** — Milestone sharing, accountability partners, teacher mode
+- **Cloud Sync** — Firebase Auth (Google Sign-In), Firestore data sync, offline-first architecture
 - Multiple reciter support, Arabic text rendering
 
 **Target platforms**: Windows (primary dev), Android, iOS, Web, macOS, Linux
@@ -46,7 +47,8 @@
 
 ```
 lib/
-├── main.dart                          # App entry, MultiProvider setup, SQLite init
+├── main.dart                          # App entry, MultiProvider setup, SQLite + Firebase init
+├── firebase_options.dart              # FlutterFire auto-generated config
 ├── l10n/
 │   └── app_localizations.dart         # i18n string lookup (English/Arabic)
 ├── models/
@@ -58,22 +60,25 @@ lib/
 ├── providers/
 │   ├── analytics_provider.dart        # Weekly snapshots, performance analytics, pace projection
 │   ├── audio_provider.dart            # Audio playback (full chapter audio + seek)
-│   ├── bookmark_provider.dart         # Bookmark CRUD, 12 colors + custom hex picker
+│   ├── bookmark_provider.dart         # Bookmark CRUD, 12 colors + custom hex → syncs settings
 │   ├── context_provider.dart          # Translation, tafsir, asbab al-nuzul state; language-aware switching
-│   ├── flashcard_provider.dart        # Flashcard review session state, SRS integration
-│   ├── hifz_profile_provider.dart     # Active profile, CRUD, streak tracking (SQLite)
+│   ├── flashcard_provider.dart        # Flashcard review sessions, SRS → syncs cards + reviews
+│   ├── hifz_profile_provider.dart     # Active profile, CRUD, streak → syncs profile + streak
 │   ├── hifz_provider.dart             # [STUBBED] Legacy — replaced by hifz_profile_provider
 │   ├── locale_provider.dart           # UI localization (English/Arabic switching)
 │   ├── navigation_provider.dart       # Controls bottom nav visibility during reading
 │   ├── notification_provider.dart     # Daily reminder toggle, time, smart skip, mobile-only check
-│   ├── plan_provider.dart             # Today's DailyPlan state, generation, completion
+│   ├── plan_provider.dart             # Today's DailyPlan state, generation → syncs plans
 │   ├── quran_reading_provider.dart    # Page loading, caching, chapter/reciter lists
-│   ├── session_provider.dart          # Active session: timer, reps, phase progression
+│   ├── session_provider.dart          # Active session: timer, reps, phases → syncs sessions + progress
 │   ├── social_provider.dart           # Milestone sharing, accountability partners
 │   ├── theme_provider.dart            # App aesthetics, alignments, overlay settings
 │   ├── update_provider.dart           # In-app self-update state
 │   └── werd_provider.dart             # Daily werd state, progress
 ├── services/
+│   ├── auth_service.dart              # Firebase Auth + Google Sign-In (mobile + desktop)
+│   ├── cloud_sync_service.dart        # SQLite ↔ Firestore sync engine (ChangeNotifier)
+│   ├── desktop_google_auth.dart       # Desktop OAuth loopback flow (PKCE + client_secret)
 │   ├── analytics_service.dart         # Computes WeeklySnapshot from session history data
 │   ├── asbab_nuzul_service.dart       # GitHub dataset import, verse-key lookup for occasions of revelation
 │   ├── card_generation_service.dart   # Generates flashcards from memorized content (6 types)
@@ -206,6 +211,29 @@ lib/
 3. A `Set<int>` tracks pages already counted in the current session to avoid double-counting
 4. Milestone Snackbars appear at 50%, 80%, 100%, and >100% of the daily goal
 
+### Cloud Sync Data Flow
+1. Auth is **optional** — app works fully offline without sign-in
+2. All writes go to SQLite first, then pushed to Firestore in the background (fire-and-forget)
+3. On sign-in, `CloudSyncService.performInitialSync(uid)` checks for existing cloud data
+4. Merge strategy: Cloud wins for profile/settings, additive/max-status for progress
+5. Auto-sync triggers: session completion, profile update, plan regeneration, bookmark change, flashcard review
+6. Retry: exponential backoff (1s → 2s → 4s, 3 attempts)
+7. `CloudSyncService` extends `ChangeNotifier` — UI reacts to `SyncStatus` (idle/syncing/synced/error)
+
+```
+┌─────────────┐     fire-and-forget      ┌──────────────────────┐
+│   SQLite     │  ──────────────────────► │     Firestore        │
+│ (source of   │                          │  /users/{uid}        │
+│   truth)     │  ◄────────────────────── │    ├─ meta/settings  │
+└─────────────┘     initial sync /        │    ├─ meta/streak    │
+                    new device pull       │    ├─ progress/      │
+                                          │    ├─ sessions/      │
+                                          │    ├─ plans/         │
+                                          │    ├─ flashcards/    │
+                                          │    └─ flashcard_reviews/ │
+                                          └──────────────────────┘
+```
+
 ---
 
 ## Key Technical Decisions
@@ -250,6 +278,16 @@ Uses `flutter_local_notifications` + `android_alarm_manager_plus` for scheduled 
 ### Rewaya & Onboarding
 The app features a one-time onboarding flow that auto-detects the system language and prompts the user to select their preferred *Rewaya* (Hafs vs Warsh). This preference is persisted via `SharedPreferences`. The reciter selection menu automatically filters to show reciters matching the saved rewaya first.
 
+### Firebase Cloud Backend
+- **Firebase Project:** `quran-app-e5e86`
+- **Auth:** Google Sign-In (mobile via `google_sign_in`, desktop via loopback OAuth with PKCE + client_secret)
+- **Desktop OAuth Client ID:** `556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com`
+- **Desktop OAuth Client Secret:** `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` (non-confidential for installed apps)
+- **Firestore Rules:** Per-user isolation (`/users/{uid}/**` — read/write only if `auth.uid == uid`)
+- **Sync Service:** `CloudSyncService` extends `ChangeNotifier` with `SyncStatus` enum (idle/syncing/synced/error)
+- **Delete Account:** Wipes all Firestore data + Firebase Auth user
+- **Sync triggers:** session completion, profile/streak update, plan regeneration, bookmark change, flashcard review
+
 ### In-App Self-Update (GitHub Releases)
 The app uses **GitHub Releases** as a free update server for sideloaded APK distribution. On Android, `AppShell.initState` triggers `UpdateProvider.checkForUpdate()` which calls `https://api.github.com/repos/khalidouhdane/le-quran/releases/latest` (public, no auth). It compares the release `tag_name` (e.g., `v1.1.0`) against the running app version via `package_info_plus`. If newer, a premium `UpdateDialog` shows release notes + download progress. The APK downloads via `dio` and installs via `open_filex`. Android permissions required: `REQUEST_INSTALL_PACKAGES` + a `FileProvider` in the manifest.
 
@@ -284,6 +322,11 @@ The app uses **GitHub Releases** as a free update server for sideloaded APK dist
 | `android_alarm_manager_plus` | Scheduled notification alarms (Android) |
 | `share_plus` | System share sheet for milestone cards |
 | `quran` | Offline verse text, surah metadata |
+| `firebase_core` | Firebase initialization |
+| `firebase_auth` | Firebase Authentication |
+| `cloud_firestore` | Cloud Firestore database |
+| `google_sign_in` | Google Sign-In (mobile/web) |
+| `crypto` | PKCE code challenge (SHA-256) for desktop OAuth |
 
 ---
 
@@ -302,6 +345,9 @@ The app uses **GitHub Releases** as a free update server for sideloaded APK dist
 11. **Don't push or build until confirmed** — Do NOT push to GitHub or build APKs until the user has confirmed fixes.
 12. **Tafsir API quirk** — Use `/verses/by_key/` endpoints with `?tafsirs=` or `?translations=` params. The `/quran/tafsirs/{id}` and `/quran/translations/{id}` endpoints return empty arrays.
 13. **Context resources are locale-aware** — Always call `ContextProvider.setLocale()` when locale changes. Resource IDs auto-switch between English and Arabic sources.
+14. **Cloud sync is optional** — Auth is not required. App must work fully offline.
+15. **Sync triggers are fire-and-forget** — Never block UI on sync operations.
+16. **Desktop OAuth needs client_secret** — Web-type OAuth client IDs require it even with PKCE.
 
 ---
 
@@ -313,6 +359,7 @@ The app uses **GitHub Releases** as a free update server for sideloaded APK dist
 - [x] **Hifz Phase 4** — Digital session mode (scoped ReadingCanvas), session overlays (top phase bar + bottom controls + AudioPlayerBridge), mode switching (physical ↔ digital, state persists), verse-level audio sync (SessionAudioHelper)
 - [x] **Hifz Phase 5** — Adaptive calibration (7 suggestion types), smart notifications (daily reminders, smart skip, neglected juz), performance analytics (weekly reports, pace projection, period comparison)
 - [x] **Hifz Phase 6** — Accountability partners, teacher mode (shareable progress reports), community milestones (shareable juz/khatm/streak cards)
+- [x] **Hifz Phase 7** — Cloud Backend (Firebase Auth + Google Sign-In, Firestore sync, desktop OAuth, delete account, flashcard sync, retry with backoff)
 - [x] Bottom navigation: Dashboard / Practice / Read / Listen / Profile
 - [x] Warsh text integration via CDN & Unicode rendering
 - [x] Persistent Rewaya selection with first-launch onboarding
@@ -324,7 +371,7 @@ The app uses **GitHub Releases** as a free update server for sideloaded APK dist
 
 ## Current Phase
 
-**Phase 6 complete.** Next: Phase 7 — Advanced Features (AI assessment, cloud sync, Ramadan mode, story mode).
+**Phase 7 complete.** Next: Phase 8 — Advanced Features (AI assessment, Ramadan mode, story mode).
 See [hifz-roadmap.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/hifz-roadmap.md) for full details.
 
 ---

@@ -42,6 +42,10 @@ import 'package:quran_app/services/contextual_tips_service.dart';
 import 'package:quran_app/services/motivational_messages_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:quran_app/screens/onboarding_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:quran_app/firebase_options.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +65,25 @@ void main() async {
   final hifzDb = HifzDatabaseService();
   // Trigger DB creation/migration early
   await hifzDb.database;
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Initialize auth service
+  final authService = AuthService();
+  authService.init();
+
+  // Initialize cloud sync service
+  final cloudSyncService = CloudSyncService(hifzDb);
+
+  // Auto-sync on sign-in
+  authService.addListener(() {
+    if (authService.isSignedIn && authService.uid != null) {
+      cloudSyncService.performInitialSync(authService.uid!);
+    }
+  });
 
   // Import mutashabihat dataset if needed (non-blocking)
   MutashabihatImportService(hifzDb).importIfNeeded();
@@ -148,14 +171,14 @@ void main() async {
         ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
-        ChangeNotifierProvider(create: (_) => HifzProfileProvider(hifzDb)),
-        ChangeNotifierProvider(create: (_) => PlanProvider(hifzDb, aiPlanService: aiPlanService)),
-        ChangeNotifierProvider(create: (_) => SessionProvider(hifzDb)),
-        ChangeNotifierProvider(create: (_) => FlashcardProvider(hifzDb)),
+        ChangeNotifierProvider(create: (_) => HifzProfileProvider(hifzDb, authService, cloudSyncService)),
+        ChangeNotifierProvider(create: (_) => PlanProvider(hifzDb, authService, cloudSyncService, aiPlanService: aiPlanService)),
+        ChangeNotifierProvider(create: (_) => SessionProvider(hifzDb, authService, cloudSyncService)),
+        ChangeNotifierProvider(create: (_) => FlashcardProvider(hifzDb, authService, cloudSyncService)),
         ChangeNotifierProvider(create: (_) => WerdProvider(storageService)),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => UpdateProvider()),
-        ChangeNotifierProvider(create: (_) => BookmarkProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => BookmarkProvider(storageService, authService, cloudSyncService)),
         ChangeNotifierProvider(create: (_) => NotificationProvider(pushNotifService, prefs)),
         ChangeNotifierProvider(create: (_) => SocialProvider(SharingService(), hifzDb)),
         ChangeNotifierProvider(create: (_) {
@@ -178,6 +201,8 @@ void main() async {
         Provider.value(value: breakRecoveryService),
         Provider.value(value: contextualTipsService),
         Provider.value(value: motivationalService),
+        ChangeNotifierProvider.value(value: authService),
+        ChangeNotifierProvider.value(value: cloudSyncService),
       ],
       child: DevicePreview(
         enabled:

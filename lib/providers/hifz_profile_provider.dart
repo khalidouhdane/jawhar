@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 
 /// Manages the active Hifz profile and profile CRUD operations.
 /// Replaces the old HifzProvider (which tracked surah-level progress).
 class HifzProfileProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
+  final AuthService _auth;
+  final CloudSyncService _sync;
 
   MemoryProfile? _activeProfile;
   List<MemoryProfile> _allProfiles = [];
   StreakData _streakData = const StreakData();
   bool _isLoading = true;
 
-  HifzProfileProvider(this._db) {
+  HifzProfileProvider(this._db, this._auth, this._sync) {
     _init();
   }
 
@@ -86,6 +90,11 @@ class HifzProfileProvider extends ChangeNotifier {
     }
     _allProfiles = await _db.getAllProfiles();
     notifyListeners();
+
+    // Cloud sync (fire-and-forget)
+    if (_auth.isSignedIn) {
+      _sync.syncProfile(_auth.uid!, updatedProfile);
+    }
   }
 
   /// Delete a profile. If it's the active one, try to activate another.
@@ -113,6 +122,11 @@ class HifzProfileProvider extends ChangeNotifier {
     await _db.recordActiveDay(_activeProfile!.id);
     _streakData = await _db.getStreak(_activeProfile!.id);
     notifyListeners();
+
+    // Cloud sync (fire-and-forget)
+    if (_auth.isSignedIn) {
+      _sync.syncStreak(_auth.uid!, _streakData);
+    }
   }
 
   /// Get missed days for the current profile (excluding rest days).

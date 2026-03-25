@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:quran_app/models/bookmark_model.dart';
 import 'package:quran_app/models/bookmark_collection.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 
 /// Predefined bookmark color palette (12 colors).
@@ -26,10 +28,12 @@ class BookmarkColors {
 /// Manages bookmarks and collections state with persistence.
 class BookmarkProvider extends ChangeNotifier {
   final LocalStorageService _storage;
+  final AuthService _auth;
+  final CloudSyncService _sync;
   List<Bookmark> _bookmarks = [];
   List<BookmarkCollection> _collections = [];
 
-  BookmarkProvider(this._storage) {
+  BookmarkProvider(this._storage, this._auth, this._sync) {
     _load();
   }
 
@@ -299,9 +303,17 @@ class BookmarkProvider extends ChangeNotifier {
 
   void _save() {
     _storage.saveBookmarks(Bookmark.encodeList(_bookmarks));
+    // Cloud sync (fire-and-forget)
+    if (_auth.isSignedIn) {
+      _sync.syncSettings(_auth.uid!);
+    }
   }
 
   void _saveCollections() {
     _storage.saveCollections(BookmarkCollection.encodeList(_collections));
+    // Cloud sync (fire-and-forget)
+    if (_auth.isSignedIn) {
+      _sync.syncSettings(_auth.uid!);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
@@ -18,6 +19,8 @@ import 'package:quran_app/screens/hifz/assessment_screen.dart';
 import 'package:quran_app/widgets/sheets/nav_menu_sheet.dart';
 import 'package:quran_app/widgets/sheets/notification_settings_sheet.dart';
 import 'package:quran_app/screens/hifz/accountability_screen.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -204,6 +207,12 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
               ],
+
+              // ── Cloud & Account ──
+              _buildSectionLabel(theme, 'Cloud & Account'),
+              const SizedBox(height: 10),
+              _buildCloudAccountCard(context, theme),
+              const SizedBox(height: 24),
 
               // ── About ──
               _buildSectionLabel(theme, l.t('profile_about')),
@@ -717,6 +726,359 @@ class ProfileScreen extends StatelessWidget {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ── Cloud Account Card ──
+  Widget _buildCloudAccountCard(BuildContext context, ThemeProvider theme) {
+    final auth = context.watch<AuthService>();
+
+    if (auth.isSignedIn) {
+      // Signed-in state: show user info + sync status + sign out
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                // User avatar
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: theme.accentColor.withValues(alpha: 0.1),
+                  backgroundImage: auth.photoUrl != null
+                      ? NetworkImage(auth.photoUrl!)
+                      : null,
+                  child: auth.photoUrl == null
+                      ? Icon(LucideIcons.user, size: 20, color: theme.accentColor)
+                      : null,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        auth.displayName ?? 'Signed In',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                      Text(
+                        auth.email ?? '',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          color: theme.mutedText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Live sync indicator
+                Consumer<CloudSyncService>(
+                  builder: (_, sync, __) {
+                    final Color color;
+                    final IconData icon;
+                    final String label;
+                    switch (sync.status) {
+                      case SyncStatus.syncing:
+                        color = Colors.orange;
+                        icon = LucideIcons.refreshCw;
+                        label = 'Syncing…';
+                        break;
+                      case SyncStatus.synced:
+                        color = const Color(0xFF4CAF50);
+                        icon = LucideIcons.cloud;
+                        label = 'Synced';
+                        break;
+                      case SyncStatus.error:
+                        color = Colors.red;
+                        icon = LucideIcons.cloudOff;
+                        label = 'Error';
+                        break;
+                      case SyncStatus.idle:
+                        color = theme.mutedText;
+                        icon = LucideIcons.cloud;
+                        label = 'Idle';
+                        break;
+                    }
+                    return GestureDetector(
+                      onTap: auth.isSignedIn && !sync.isSyncing
+                          ? () => sync.syncAll(auth.uid!)
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, size: 12, color: color),
+                            const SizedBox(width: 4),
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Sign-out button
+            GestureDetector(
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: theme.cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Text(
+                      'Sign Out?',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        color: theme.primaryText,
+                      ),
+                    ),
+                    content: Text(
+                      'Your data will remain saved locally and in the cloud. You can sign back in anytime.',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: theme.secondaryText),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text(
+                          'Sign Out',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && context.mounted) {
+                  await auth.signOut();
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: theme.dividerColor),
+                ),
+                child: Center(
+                  child: Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: theme.secondaryText,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Delete Account button
+            GestureDetector(
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: theme.cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Text(
+                      'Delete Account?',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        color: Colors.red,
+                      ),
+                    ),
+                    content: Text(
+                      'This will permanently delete your cloud data and Google account link. Your local data will remain on this device.',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: theme.secondaryText),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && context.mounted) {
+                  final sync = Provider.of<CloudSyncService>(context, listen: false);
+                  try {
+                    await sync.deleteAccount(auth.uid!);
+                    if (context.mounted) {
+                      await auth.signOut();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Account deleted successfully')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
+                    }
+                  }
+                }
+              },
+              child: Text(
+                'Delete Account',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: Colors.red.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Signed-out state: Google Sign-In button
+    return GestureDetector(
+      onTap: auth.isLoading
+          ? null
+          : () async {
+              final success = await auth.signInWithGoogle();
+              if (success && auth.uid != null && context.mounted) {
+                // Trigger initial sync
+                final syncService = context.read<CloudSyncService>();
+                syncService.performInitialSync(auth.uid!);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Syncing your data to the cloud...'),
+                      backgroundColor: theme.accentColor,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } else if (auth.error != null && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(auth.error!),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.accentColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: auth.isLoading
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.accentColor,
+                        ),
+                      )
+                    : Icon(LucideIcons.cloud, size: 20, color: theme.accentColor),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sign in with Google',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.primaryText,
+                    ),
+                  ),
+                  Text(
+                    'Back up and sync your data across devices',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(LucideIcons.chevronRight, size: 18, color: theme.mutedText),
+          ],
         ),
       ),
     );

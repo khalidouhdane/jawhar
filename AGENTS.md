@@ -32,6 +32,7 @@
 - Practice tools — Flashcards (6 types, SRS-powered), Mutashabihat practice (4 modes)
 - **Adaptive Intelligence** — Weekly reports, suggestion cards, smart notifications, pace projection
 - **Social & Accountability** — Milestone sharing, accountability partners, teacher mode
+- **Cloud Sync** — Firebase Auth (Google Sign-In), Firestore data sync, offline-first architecture
 - Multiple reciter support, Arabic text rendering
 
 **Target platforms**: Windows (primary dev), Android, iOS, Web, macOS, Linux
@@ -42,7 +43,8 @@
 
 ```
 lib/
-├── main.dart                          # App entry, MultiProvider setup, SQLite init
+├── main.dart                          # App entry, MultiProvider setup, SQLite + Firebase init
+├── firebase_options.dart              # FlutterFire auto-generated config
 ├── models/
 │   ├── quran_models.dart              # Verse, Word, Chapter, Reciter
 │   ├── hifz_models.dart               # MemoryProfile, DailyPlan, PageProgress, SessionRecord
@@ -51,16 +53,19 @@ lib/
 ├── providers/                         # ChangeNotifier-based state management
 │   ├── analytics_provider.dart        # Weekly snapshots, pace projection
 │   ├── audio_provider.dart            # Audio playback (full chapter + seek)
-│   ├── bookmark_provider.dart         # Bookmark CRUD, 12 colors + custom hex
+│   ├── bookmark_provider.dart         # Bookmark CRUD, 12 colors + custom hex → syncs settings
 │   ├── context_provider.dart          # Translation, tafsir, asbab al-nuzul
-│   ├── flashcard_provider.dart        # Flashcard review sessions, SRS
-│   ├── hifz_profile_provider.dart     # Active profile, CRUD, streak (SQLite)
-│   ├── plan_provider.dart             # Today's DailyPlan, generation, completion
-│   ├── session_provider.dart          # Active session: timer, reps, phases
+│   ├── flashcard_provider.dart        # Flashcard review sessions, SRS → syncs cards + reviews
+│   ├── hifz_profile_provider.dart     # Active profile, CRUD, streak → syncs profile + streak
+│   ├── plan_provider.dart             # Today's DailyPlan, generation → syncs plans
+│   ├── session_provider.dart          # Active session: timer, reps, phases → syncs sessions + progress
 │   ├── notification_provider.dart     # Daily reminders, smart skip
 │   ├── social_provider.dart           # Milestones, accountability partners
 │   └── ...                            # theme, locale, navigation, werd, update
 ├── services/                          # Business logic layer
+│   ├── auth_service.dart              # Firebase Auth + Google Sign-In (mobile + desktop)
+│   ├── cloud_sync_service.dart        # SQLite ↔ Firestore sync engine (ChangeNotifier)
+│   ├── desktop_google_auth.dart       # Desktop OAuth loopback flow (PKCE + client_secret)
 │   ├── hifz_database_service.dart     # SQLite (9+ tables)
 │   ├── plan_generation_service.dart   # Profile → daily plan pipeline
 │   ├── srs_engine.dart                # SM-2 spaced repetition
@@ -83,6 +88,29 @@ lib/
 2. **Context:** Verse tap → ContextProvider → Translation/Tafsir/Asbab al-Nuzul
 3. **Digital Session:** SessionScreen toggle → SessionReadingView (scoped single-page) → SessionOverlay
 4. **Analytics:** SessionHistory → WeeklySnapshot → SuggestionCards
+5. **Cloud Sync:** SQLite (source of truth) → fire-and-forget push → Firestore; new device login → pull from Firestore → merge into SQLite
+
+### Cloud Sync Architecture
+```
+┌─────────────┐     fire-and-forget      ┌──────────────────────┐
+│   SQLite     │  ──────────────────────► │     Firestore        │
+│ (source of   │                          │  /users/{uid}        │
+│   truth)     │  ◄────────────────────── │    ├─ meta/settings  │
+└─────────────┘     initial sync /        │    ├─ meta/streak    │
+                    new device pull       │    ├─ progress/      │
+                                          │    ├─ sessions/      │
+                                          │    ├─ plans/         │
+                                          │    ├─ flashcards/    │
+                                          │    └─ flashcard_reviews/ │
+                                          └──────────────────────┘
+```
+
+**Sync rules:**
+- Auth is **optional** — app works fully offline without sign-in
+- All writes go to SQLite first, then pushed to Firestore in the background
+- Merge strategy: Cloud wins for profile/settings, additive/max-status for progress
+- Auto-sync triggers: session completion, profile update, plan regeneration, bookmark change, flashcard review
+- Retry: exponential backoff (1s → 2s → 4s, 3 attempts)
 
 ---
 
@@ -103,6 +131,14 @@ The legacy `api.quran.com` endpoints are **deprecated**.
 - **Headers:** `x-auth-token: <token>` and `x-client-id: <clientId>`
 
 Key endpoints in [docs/api-reference.md](docs/api-reference.md).
+
+### Firebase Cloud Backend
+- **Firebase Project:** `quran-app-e5e86`
+- **Auth:** Google Sign-In (mobile via `google_sign_in`, desktop via loopback OAuth with PKCE)
+- **Desktop OAuth Client ID:** `556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com`
+- **Firestore Rules:** Per-user isolation (`/users/{uid}/**` — read/write only if `auth.uid == uid`)
+- **Sync Service:** `CloudSyncService` extends `ChangeNotifier` with `SyncStatus` enum (idle/syncing/synced/error)
+- **Delete Account:** Wipes all Firestore data + Firebase Auth user
 
 ### Other Decisions
 - **Tafsir API:** Use `/verses/by_key/` with `?tafsirs=`/`?translations=` params (NOT `/quran/tafsirs/`)
@@ -128,6 +164,9 @@ Key endpoints in [docs/api-reference.md](docs/api-reference.md).
 9. **First-time users get sabaq-only** — sabqi/manzil phases auto-skipped.
 10. **Tafsir API quirk** — `/quran/tafsirs/{id}` returns empty arrays in v4.
 11. **Context resources are locale-aware** — Always call `ContextProvider.setLocale()` on locale change.
+12. **Cloud sync is optional** — Auth is not required. App must work fully offline.
+13. **Sync triggers are fire-and-forget** — Never block UI on sync operations.
+14. **Desktop OAuth needs client_secret** — Web-type OAuth client IDs require it even with PKCE.
 
 ---
 
@@ -145,13 +184,19 @@ Key endpoints in [docs/api-reference.md](docs/api-reference.md).
 | `flutter_local_notifications` | Push notifications |
 | `share_plus` | System share sheet |
 | `quran` | Offline verse text, surah metadata |
+| `firebase_core` | Firebase initialization |
+| `firebase_auth` | Firebase Authentication |
+| `cloud_firestore` | Cloud Firestore database |
+| `google_sign_in` | Google Sign-In (mobile/web) |
+| `crypto` | PKCE code challenge (SHA-256) for desktop OAuth |
 
 ---
 
 ## Completed Phases & Current State
 
 - [x] **Phase 1-6** — All complete (Profile, Dashboard, Plans, Sessions, Flashcards, SRS, Context, Digital Mode, Analytics, Notifications, Social)
-- **Phase 7 NEXT** — Advanced Features (AI assessment, cloud sync, Ramadan mode, story mode)
+- [x] **Phase 7** — Cloud Backend (Firebase Auth, Firestore sync, desktop OAuth, delete account, flashcard sync)
+- **Phase 8 NEXT** — Advanced Features (AI assessment, Ramadan mode, story mode)
 
 See [hifz-roadmap.md](docs/features/hifz/hifz-roadmap.md) for details.
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/card_generation_service.dart';
 
@@ -8,6 +10,8 @@ import 'package:quran_app/services/card_generation_service.dart';
 /// Tracks timer, rep counts, phase progression, and self-assessments.
 class SessionProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
+  final AuthService _auth;
+  final CloudSyncService _sync;
 
   DailyPlan? _plan;
   SessionPhase _currentPhase = SessionPhase.sabaq;
@@ -45,7 +49,7 @@ class SessionProvider extends ChangeNotifier {
   int _currentStepIndex = 0;
   int _stepRepCount = 0; // rep count for current step
 
-  SessionProvider(this._db);
+  SessionProvider(this._db, this._auth, this._sync);
 
   // ── Getters ──
 
@@ -488,6 +492,21 @@ class SessionProvider extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Flashcard generation after session failed: $e');
+      }
+    }
+
+    // ── Cloud sync (fire-and-forget) ──
+    if (_auth.isSignedIn && _plan != null) {
+      final uid = _auth.uid!;
+      _sync.syncSession(uid, record);
+      _sync.syncStreak(uid, await _db.getStreak(_plan!.profileId));
+      // Sync all progress pages involved
+      final allProgress = await _db.getAllPageProgress(_plan!.profileId);
+      for (final page in coveredPages) {
+        final p = allProgress[page];
+        if (p != null) {
+          _sync.syncProgress(uid, page, p.toMap());
+        }
       }
     }
 

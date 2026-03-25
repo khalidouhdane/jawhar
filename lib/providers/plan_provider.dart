@@ -3,6 +3,8 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/services/ai_plan_service.dart';
 import 'package:quran_app/services/ai_plan_validator.dart';
+import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/plan_generation_service.dart';
 
@@ -15,6 +17,8 @@ class PlanProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
   final PlanGenerationService _planService;
   final AIPlanService? _aiService;
+  final AuthService _auth;
+  final CloudSyncService _sync;
 
   DailyPlan? _todayPlan;
   bool _isLoading = false;
@@ -26,7 +30,7 @@ class PlanProvider extends ChangeNotifier {
   String? _aiReasoning;
   AiProgress _aiProgress = AiProgress.idle;
 
-  PlanProvider(this._db, {AIPlanService? aiPlanService})
+  PlanProvider(this._db, this._auth, this._sync, {AIPlanService? aiPlanService})
       : _planService = PlanGenerationService(_db),
         _aiService = aiPlanService;
 
@@ -144,6 +148,11 @@ class PlanProvider extends ChangeNotifier {
   Future<void> regeneratePlan(MemoryProfile profile) async {
     _todaySessionCount++;
     await loadOrGeneratePlan(profile, forceRegenerate: true);
+
+    // Cloud sync (fire-and-forget)
+    if (_auth.isSignedIn && _todayPlan != null) {
+      _sync.syncPlan(_auth.uid!, _todayPlan!);
+    }
   }
 
   /// Generate a fresh extra session plan (CE-2).

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "556087735735",
+    "project_id": "quran-app-e5e86",
+    "storage_bucket": "quran-app-e5e86.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556087735735:android:b3d8266d65b5c7d5512432",
+        "android_client_info": {
+          "package_name": "com.example.quran_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9d4HJfmx3fGPto0L0zbQT3GHGJ8ecy40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "556087735735-p830tt489j0bl0bp8iruecoh72pqj6ek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.quranApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
