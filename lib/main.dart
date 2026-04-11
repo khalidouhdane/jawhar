@@ -221,7 +221,8 @@ void main() async {
         builder: (context) => const QuranApp(),
       ),
     ),
-  );
+  ),
+);
 }
 
 class QuranApp extends StatelessWidget {
