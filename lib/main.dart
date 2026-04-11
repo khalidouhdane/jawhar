@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
@@ -96,6 +97,10 @@ void main() async {
   // Initialize push notification service
   final pushNotifService = PushNotificationService();
   await pushNotifService.initialize();
+
+  // Initialize AudioSession for iOS background stability and interruption control
+  final session = await AudioSession.instance;
+  await session.configure(const AudioSessionConfiguration.music());
 
   // Initialize audio_service — creates a foreground service for media notification
   final audioHandler = await AudioService.init(

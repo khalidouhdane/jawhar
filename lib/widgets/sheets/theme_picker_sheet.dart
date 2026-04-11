@@ -323,7 +323,7 @@ class ThemePickerSheet extends StatelessWidget {
                           height: 24,
                           child: Switch.adaptive(
                             value: theme.dynamicPageInfoEnabled,
-                            activeColor: theme.accentColor,
+                            activeTrackColor: theme.accentColor,
                             onChanged: (v) =>
                                 theme.setDynamicPageInfoEnabled(v),
                           ),
@@ -345,7 +345,7 @@ class ThemePickerSheet extends StatelessWidget {
                           height: 24,
                           child: Switch.adaptive(
                             value: theme.showJuzInfo,
-                            activeColor: theme.accentColor,
+                            activeTrackColor: theme.accentColor,
                             onChanged: (v) => theme.setShowHizbInfo(v),
                           ),
                         ),
@@ -366,7 +366,7 @@ class ThemePickerSheet extends StatelessWidget {
                           height: 24,
                           child: Switch.adaptive(
                             value: theme.showBookIconIndicator,
-                            activeColor: theme.accentColor,
+                            activeTrackColor: theme.accentColor,
                             onChanged: (v) =>
                                 theme.setShowBookIconIndicator(v),
                           ),
@@ -412,7 +412,7 @@ class ThemePickerSheet extends StatelessWidget {
                           height: 28,
                           child: Switch.adaptive(
                             value: theme.spineEffectEnabled,
-                            activeColor: theme.accentColor,
+                            activeTrackColor: theme.accentColor,
                             onChanged: (v) => theme.setSpineEffectEnabled(v),
                           ),
                         ),
@@ -442,8 +442,8 @@ class ThemePickerSheet extends StatelessWidget {
                                   child: CupertinoSlidingSegmentedControl<
                                       PageIndicatorEffect>(
                                     groupValue: theme.pageIndicatorEffect,
-                                    backgroundColor: Colors.black.withOpacity(
-                                      0.05,
+                                    backgroundColor: Colors.black.withValues(
+                                      alpha: 0.05,
                                     ),
                                     thumbColor: theme.canvasBackground,
                                     children: {
