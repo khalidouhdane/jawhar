@@ -43,7 +43,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '556087735735',
     projectId: 'quran-app-e5e86',
     storageBucket: 'quran-app-e5e86.firebasestorage.app',
-    iosBundleId: 'com.example.quranApp',
+    iosBundleId: 'com.memorize.quran.ai',
   );
 
   static const FirebaseOptions web = FirebaseOptions(

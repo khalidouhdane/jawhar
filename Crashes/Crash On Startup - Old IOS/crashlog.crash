@@ -1,0 +1,176 @@
+Incident Identifier: ACC58DA3-6E46-4E9A-AF36-C8714B9D406C
+Distributor ID:      com.apple.TestFlight
+Hardware Model:      iPhone16,2
+Process:             Runner [17296]
+Path:                /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Runner
+Identifier:          com.memorize.quran.ai
+Version:             1.5.0 (8)
+AppStoreTools:       17E187
+AppVariant:          1:iPhone16,2:26
+Beta:                YES
+Code Type:           ARM-64 (Native)
+Role:                Foreground
+Parent Process:      launchd [1]
+Coalition:           com.memorize.quran.ai [3582]
+
+Date/Time:           2026-04-09 13:59:44.1188 +0100
+Launch Time:         2026-04-09 13:59:44.0143 +0100
+OS Version:          iPhone OS 26.2.1 (23C71)
+Release Type:        User
+Baseband Version:    3.20.03
+Report Version:      104
+
+Exception Type:  EXC_BAD_ACCESS (SIGSEGV)
+Exception Subtype: KERN_INVALID_ADDRESS at 0x0000000000000000
+Exception Codes: 0x0000000000000001, 0x0000000000000000
+VM Region Info: 0 is not in any region.  Bytes before following region: 4371300352
+      REGION TYPE                 START - END      [ VSIZE] PRT/MAX SHRMOD  REGION DETAIL
+      UNUSED SPACE AT START
+--->  
+      __TEXT                   1048cc000-1048d0000 [   16K] r-x/r-x SM=COW  /var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Runner
+Termination Reason: SIGNAL 11 Segmentation fault: 11
+Terminating Process: exc handler [17296]
+
+Triggered by Thread:  0
+
+
+Thread 0 name:
+Thread 0 Crashed:
+0   Flutter                       	0x000000010a1730f8 0x10a0ec000 + 553208
+1   Flutter                       	0x000000010a15db8c 0x10a0ec000 + 465804
+2   Flutter                       	0x000000010a15b6f8 0x10a0ec000 + 456440
+3   UIKitCore                     	0x00000001963a5ef0 -[UIViewController _sendViewDidLoadWithAppearanceProxyObjectTaggingEnabled] + 84 (UIViewController.m:3125)
+4   UIKitCore                     	0x000000019639711c -[UIViewController loadViewIfRequired] + 944 (UIViewController.m:5056)
+5   UIKitCore                     	0x0000000196396d4c -[UIViewController view] + 24 (UIViewController.m:5078)
+6   UIKitCore                     	0x00000001963dc53c -[UIWindow addRootViewControllerViewIfPossible] + 136 (UIWindow.m:2530)
+7   UIKitCore                     	0x00000001977e3ee8 -[UIWindow _updateLayerOrderingAndSetLayerHidden:actionBlock:] + 172 (UIWindow.m:2427)
+8   UIKitCore                     	0x00000001977e428c -[UIWindow _setHidden:forced:] + 260 (UIWindow.m:2673)
+9   UIKitCore                     	0x00000001963ef434 -[UIWindow _mainQueue_makeKeyAndVisible] + 40 (UIWindow.m:7228)
+10  UIKitCore                     	0x000000019646b284 -[UIWindowScene _performDeferredInitialWindowUpdateForConnection] + 208 (UIWindowScene.m:1693)
+11  UIKitCore                     	0x0000000196c05f44 +[UIScene _sceneForFBSScene:create:withSession:connectionOptions:] + 1180 (UIScene.m:1566)
+12  UIKitCore                     	0x00000001977b3510 -[UIApplication _connectUISceneFromFBSScene:transitionContext:] + 1168 (UIApplication.m:4344)
+13  UIKitCore                     	0x00000001977b38c0 -[UIApplication workspace:didCreateScene:withTransitionContext:completion:] + 308 (UIApplication.m:4371)
+14  UIKitCore                     	0x0000000197264adc -[UIApplicationSceneClientAgent scene:didInitializeWithEvent:completion:] + 288 (UIApplicationSceneClientAgent.m:46)
+15  FrontBoardServices            	0x00000001b0b2c388 __95-[FBSScene _callOutQueue_didCreateWithTransitionContext:alternativeCreationCallout:completion:]_block_invoke + 364 (FBSScene.m:670)
+16  FrontBoardServices            	0x00000001b0b2c840 -[FBSScene _callOutQueue_maybeCoalesceClientSettingsUpdates:] + 128 (FBSScene.m:738)
+17  FrontBoardServices            	0x00000001b0b2c1a0 -[FBSScene _callOutQueue_didCreateWithTransitionContext:alternativeCreationCallout:completion:] + 436 (FBSScene.m:655)
+18  FrontBoardServices            	0x00000001b0b9ab34 __93-[FBSWorkspaceScenesClient _callOutQueue_sendDidCreateForScene:transitionContext:completion:]_block_invoke.341 + 288 (FBSWorkspaceScenesClient.m:1131)
+19  FrontBoardServices            	0x00000001b0b39f00 -[FBSWorkspace _calloutQueue_executeCalloutFromSource:withBlock:] + 168 (FBSWorkspace.m:579)
+20  FrontBoardServices            	0x00000001b0b56d98 -[FBSWorkspaceScenesClient _callOutQueue_sendDidCreateForScene:transitionContext:completion:] + 480 (FBSWorkspaceScenesClient.m:1128)
+21  FrontBoardServices            	0x00000001b0b586fc __92-[FBSWorkspaceScenesClient createSceneWithIdentity:parameters:transitionContext:completion:]_block_invoke_2 + 268 (FBSWorkspaceScenesClient.m:835)
+22  FrontBoardServices            	0x00000001b0b39f00 -[FBSWorkspace _calloutQueue_executeCalloutFromSource:withBlock:] + 168 (FBSWorkspace.m:579)
+23  libdispatch.dylib             	0x00000001c95797fc _dispatch_client_callout + 16 (client_callout.mm:85)
+24  libdispatch.dylib             	0x00000001c9564bb4 _dispatch_block_invoke_direct + 284 (queue.c:539)
+25  BoardServices                 	0x00000001a82201d4 __BSSERVICEMAINRUNLOOPQUEUE_IS_CALLING_OUT_TO_A_BLOCK__ + 52 (BSServiceQueue.m:307)
+26  BoardServices                 	0x00000001a8220054 BSServiceMainRunLoopSourceHandler + 224 (BSServiceQueue.m:215)
+27  CoreFoundation                	0x0000000190a9ff10 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28 (CFRunLoop.c:2021)
+28  CoreFoundation                	0x0000000190a9fe84 __CFRunLoopDoSource0 + 172 (CFRunLoop.c:2065)
+29  CoreFoundation                	0x0000000190a7db30 __CFRunLoopDoSources0 + 332 (CFRunLoop.c:2110)
+30  CoreFoundation                	0x0000000190a546d8 __CFRunLoopRun + 820 (CFRunLoop.c:2983)
+31  CoreFoundation                	0x0000000190a53a6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
+32  GraphicsServices              	0x0000000232688498 GSEventRunModal + 120 (GSEvent.c:2049)
+33  UIKitCore                     	0x000000019642edf8 -[UIApplication _run] + 792 (UIApplication.m:3904)
+34  UIKitCore                     	0x00000001963d7e54 UIApplicationMain + 336 (UIApplication.m:5579)
+35  UIKitCore                     	0x0000000196503820 UIApplicationMain(_:_:_:_:) + 104 (UIApplication.swift:13)
+36  Runner                        	0x00000001048d0a7c 0x1048cc000 + 19068
+37  Runner                        	0x00000001048d09ec 0x1048cc000 + 18924
+38  Runner                        	0x00000001048d0af8 0x1048cc000 + 19192
+39  dyld                          	0x000000018da66e28 start + 7116 (dyldMain.cpp:1477)
+
+Thread 1:
+
+Thread 2:
+
+Thread 3:
+
+Thread 4:
+
+Thread 5:
+
+Thread 6:
+
+Thread 7 name:
+Thread 7:
+0   libsystem_kernel.dylib        	0x000000023b7f6cd4 mach_msg2_trap + 8 (:-1)
+1   libsystem_kernel.dylib        	0x000000023b7fa2f8 mach_msg2_internal + 76 (mach_msg.c:201)
+2   libsystem_kernel.dylib        	0x000000023b7fa214 mach_msg_overwrite + 428 (mach_msg.c:0)
+3   libsystem_kernel.dylib        	0x000000023b7fa05c mach_msg + 24 (mach_msg.c:323)
+4   CoreFoundation                	0x0000000190a7d868 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2650)
+5   CoreFoundation                	0x0000000190a54848 __CFRunLoopRun + 1188 (CFRunLoop.c:3035)
+6   CoreFoundation                	0x0000000190a53a6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
+7   Foundation                    	0x000000018ea4adf8 -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 212 (NSRunLoop.m:375)
+8   Foundation                    	0x000000018ea4afd0 -[NSRunLoop(NSRunLoop) runUntilDate:] + 64 (NSRunLoop.m:422)
+9   UIKitCore                     	0x0000000196404094 -[UIEventFetcher threadMain] + 408 (UIEventFetcher.m:1333)
+10  Foundation                    	0x000000018e10a21c __NSThread__start__ + 732 (NSThread.m:997)
+11  libsystem_pthread.dylib       	0x00000001ed32344c _pthread_start + 136 (pthread.c:931)
+12  libsystem_pthread.dylib       	0x00000001ed31f8cc thread_start + 8 (:-1)
+
+Thread 8:
+
+Thread 9:
+
+Thread 10:
+
+
+Thread 0 crashed with ARM Thread State (64-bit):
+    x0: 0x0000000111228880   x1: 0x03000001fb127fd1   x2: 0xffffed4b01ee8396   x3: 0x0000000fffffc088
+    x4: 0x0000000000000000   x5: 0x0000000000000000   x6: 0x0000000000000000   x7: 0x0000000000000000
+    x8: 0x000000010c0558b0   x9: 0x0000000000000002  x10: 0x0000000000000000  x11: 0x0000000000000002
+   x12: 0x0000000000000000  x13: 0x0000000000000000  x14: 0x02000001fb127fd1  x15: 0x00000001fb127fd0
+   x16: 0x03000001fb127fd1  x17: 0x04000001fb127fd1  x18: 0x0000000000000000  x19: 0x000000011124ac00
+   x20: 0x0000000000000000  x21: 0x0000000111228880  x22: 0x000000016b531038  x23: 0x000000010c0ed000
+   x24: 0x000000011124ac00  x25: 0x000000010cc00a90  x26: 0x000000002b8704b0  x27: 0x00000001fcdd5790
+   x28: 0x000000010cc00a90   fp: 0x000000016b531090   lr: 0x000000010a1730e4
+    sp: 0x000000016b531020   pc: 0x000000010a1730f8 cpsr: 0x60001000
+   esr: 0x92000006 (Data Abort) byte read Translation fault
+
+
+Binary Images:
+        0x1048cc000 -         0x10494ffff Runner arm64  <4af3d30fe6373579b9677ae7d22efb28> /var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Runner
+        0x104a34000 -         0x104a5ffff AppAuth arm64  <9110d32e3dc838fbb9ed8646d42b2b6d> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/AppAuth.framework/AppAuth
+        0x104a94000 -         0x104ab7fff AppCheckCore arm64  <04e56cc2d610331f8ee7d2d930edb993> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/AppCheckCore.framework/AppCheckCore
+        0x104af0000 -         0x104b07fff FBLPromises arm64  <fdd6c6f107ec3e828334b8f63c5f792a> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FBLPromises.framework/FBLPromises
+        0x104b24000 -         0x104b2bfff FirebaseAppCheckInterop arm64  <bf1cd7a65a0139069e75c680ed152798> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop
+        0x104b3c000 -         0x104b43fff FirebaseAuthInterop arm64  <f9fd9e0462523333b847ad8e62805a55> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseAuthInterop.framework/FirebaseAuthInterop
+        0x104b54000 -         0x104b6bfff FirebaseCore arm64  <841e46638d553e448a626a82e83fe3ce> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseCore.framework/FirebaseCore
+        0x104b8c000 -         0x104b93fff FirebaseCoreExtension arm64  <e02516dd97123579968a270dde268332> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseCoreExtension.framework/FirebaseCoreExtension
+        0x104ba0000 -         0x104bcffff FirebaseCoreInternal arm64  <fd5db7fbe76f34e9834d8b571f2a103c> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseCoreInternal.framework/FirebaseCoreInternal
+        0x104ccc000 -         0x104cd3fff RecaptchaInterop arm64  <7beda96448243fba8aed859924f17b3f> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/RecaptchaInterop.framework/RecaptchaInterop
+        0x104ce0000 -         0x104cebfff audio_service arm64  <06edee079c4c3247b613069f700ba11f> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/audio_service.framework/audio_service
+        0x104d64000 -         0x104ef7fff FirebaseAuth arm64  <24f1716703b6347b9b3da945f36b921b> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseAuth.framework/FirebaseAuth
+        0x105140000 -         0x10516ffff FirebaseFirestore arm64  <79aeb7782c9237e795fc5e9aaf3f0abf> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseFirestore.framework/FirebaseFirestore
+        0x1051c4000 -         0x105697fff FirebaseFirestoreInternal arm64  <deecec0c286230dcafb9af9cf7b68f71> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseFirestoreInternal.framework/FirebaseFirestoreInternal
+        0x1063e4000 -         0x106433fff FirebaseSharedSwift arm64  <1712da768f0130c5a51e2641b5857934> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/FirebaseSharedSwift.framework/FirebaseSharedSwift
+        0x10649c000 -         0x1064c3fff GTMAppAuth arm64  <0fde76e5ce9d30b280183358a95802ee> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/GTMAppAuth.framework/GTMAppAuth
+        0x106500000 -         0x106557fff GTMSessionFetcher arm64  <8f0a842bb42f3c5eb2be9bdea21419aa> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/GTMSessionFetcher.framework/GTMSessionFetcher
+        0x1065a4000 -         0x1065cbfff GoogleSignIn arm64  <089561019f253ad0a0ac684fbd76894c> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/GoogleSignIn.framework/GoogleSignIn
+        0x1065f8000 -         0x10661ffff GoogleUtilities arm64  <88e6bf1670dc328babe0a0efb2c3f47f> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/GoogleUtilities.framework/GoogleUtilities
+        0x106648000 -         0x10678ffff absl arm64  <0a237b0aa7263d3e8e78412f412f052a> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/absl.framework/absl
+        0x1069b4000 -         0x1069c7fff audio_session arm64  <fbe63a07fb5a3e20b2cf5db81f2e7edf> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/audio_session.framework/audio_session
+        0x1069e0000 -         0x106a0bfff audioplayers_darwin arm64  <185e67a7fcd3303f89be8a3e99489c4c> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/audioplayers_darwin.framework/audioplayers_darwin
+        0x106a50000 -         0x106a63fff flutter_local_notifications arm64  <98c33d35474b34879075bd8b78f2785c> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/flutter_local_notifications.framework/flutter_local_notifications
+        0x106a7c000 -         0x107727fff grpc arm64  <457c5660ea0739d59af9c2ca062f2b2d> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/grpc.framework/grpc
+        0x109818000 -         0x1098e7fff grpcpp arm64  <6a18fb485a573708a5c5c57c8065f8c7> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/grpcpp.framework/grpcpp
+        0x109b64000 -         0x109b7ffff just_audio arm64  <35cd1478c7833abfb1dab886fa630308> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/just_audio.framework/just_audio
+        0x109b9c000 -         0x109c07fff leveldb arm64  <32864c1c4e98315b96f0e56a0d6406e2> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/leveldb.framework/leveldb
+        0x109cb4000 -         0x109cbffff nanopb arm64  <82b3163e9a4533de880ff3f5009f0e28> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/nanopb.framework/nanopb
+        0x109cd0000 -         0x109cd7fff open_filex arm64  <05235162c3b83869a674415d04783e7a> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/open_filex.framework/open_filex
+        0x109ce8000 -         0x109eb3fff openssl_grpc arm64  <2232cfb281673a85bd541598df89b269> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/openssl_grpc.framework/openssl_grpc
+        0x10a020000 -         0x10a027fff package_info_plus arm64  <2b05e3343f363b4792d9e12c66c13be2> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/package_info_plus.framework/package_info_plus
+        0x10a038000 -         0x10a043fff share_plus arm64  <9809981df9583b8ebeeb464e0e6a444b> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/share_plus.framework/share_plus
+        0x10a058000 -         0x10a06ffff shared_preferences_foundation arm64  <5bc5805c4f6a3b9898c06f4da6661c1d> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/shared_preferences_foundation.framework/shared_preferences_foundation
+        0x10a09c000 -         0x10a0bffff sqflite_darwin arm64  <f40e456fa6fc303489eda49e0caa4dbc> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/sqflite_darwin.framework/sqflite_darwin
+        0x10a0ec000 -         0x10c053fff Flutter arm64  <4c4c448155553144a10ccf742b372f8a> /private/var/containers/Bundle/Application/61B0F891-58D4-4107-9066-4C67CA6E9EDC/Runner.app/Frameworks/Flutter.framework/Flutter
+        0x111828000 -         0x111833fff libobjc-trampolines.dylib arm64e  <ed3ce61e93863ea097ab5406bf5531a9> /private/preboot/Cryptexes/OS/usr/lib/libobjc-trampolines.dylib
+        0x18da62000 -         0x18db00b2f dyld arm64e  <dbbf981322cc39fc8d40581143766ff6> /usr/lib/dyld
+        0x18e0a8000 -         0x18eeee81f Foundation arm64e  <75d11b2911a6350787f7487aceb1476a> /System/Library/Frameworks/Foundation.framework/Foundation
+        0x190a37000 -         0x190fbd73f CoreFoundation arm64e  <bd79fbf583c835f5a0d54ca56e602111> /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+        0x196391000 -         0x1987edf3f UIKitCore arm64e  <2708bb8a4e1b36c18385ddfc612cdda5> /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+        0x1a8217000 -         0x1a829987f BoardServices arm64e  <02b7e4d67a8c3791bcc60edbc03e1913> /System/Library/PrivateFrameworks/BoardServices.framework/BoardServices
+        0x1b0b0e000 -         0x1b0bf213f FrontBoardServices arm64e  <cb628621122f3b689124624d8f473494> /System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices
+        0x1c955e000 -         0x1c95a421f libdispatch.dylib arm64e  <654f736a691d3c6abd8169bc65b9b8ed> /usr/lib/system/libdispatch.dylib
+        0x1ed31f000 -         0x1ed32b44f libsystem_pthread.dylib arm64e  <36408bf3c2b337c8abc20251f88e8724> /usr/lib/system/libsystem_pthread.dylib
+        0x232687000 -         0x23268f7ff GraphicsServices arm64e  <a0cf2b0ae26e32f6a585582766c557aa> /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+        0x23b7f6000 -         0x23b830d2b libsystem_kernel.dylib arm64e  <99b78925f0633b62ad223986a636020d> /usr/lib/system/libsystem_kernel.dylib
+
+EOF

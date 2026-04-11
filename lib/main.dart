@@ -46,6 +46,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:quran_app/firebase_options.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -147,8 +148,14 @@ void main() async {
   final contextualTipsService = ContextualTipsService();
   final motivationalService = MotivationalMessagesService();
 
-  runApp(
-    MultiProvider(
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = 'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704';
+      options.tracesSampleRate = 1.0;
+      options.profilesSampleRate = 1.0;
+    },
+    appRunner: () => runApp(
+      MultiProvider(
       providers: [
         ChangeNotifierProvider(
           create: (_) {
