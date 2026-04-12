@@ -671,21 +671,28 @@ class AudioProvider extends ChangeNotifier {
   final Map<int, Uri> _artUriCache = {};
 
   /// Copy asset image to temp file and return a file:// URI.
-  Future<Uri> _getReciterArtUri(int reciterId) async {
-    if (_artUriCache.containsKey(reciterId)) {
-      return _artUriCache[reciterId]!;
+  /// Returns null if the asset doesn't exist or any I/O error occurs —
+  /// the notification will simply have no artwork.
+  Future<Uri?> _getReciterArtUri(int reciterId) async {
+    try {
+      if (_artUriCache.containsKey(reciterId)) {
+        return _artUriCache[reciterId]!;
+      }
+      final dir = await path_provider.getTemporaryDirectory();
+      final file = File('${dir.path}/reciter_$reciterId.jpg');
+      if (!file.existsSync()) {
+        final data = await rootBundle.load(
+          'assets/images/reciters/$reciterId.jpg',
+        );
+        await file.writeAsBytes(data.buffer.asUint8List());
+      }
+      final uri = Uri.file(file.path);
+      _artUriCache[reciterId] = uri;
+      return uri;
+    } catch (_) {
+      // Asset not bundled for this reciter ID, or temp dir unavailable.
+      return null;
     }
-    final dir = await path_provider.getTemporaryDirectory();
-    final file = File('${dir.path}/reciter_$reciterId.jpg');
-    if (!file.existsSync()) {
-      final data = await rootBundle.load(
-        'assets/images/reciters/$reciterId.jpg',
-      );
-      await file.writeAsBytes(data.buffer.asUint8List());
-    }
-    final uri = Uri.file(file.path);
-    _artUriCache[reciterId] = uri;
-    return uri;
   }
 
   @override

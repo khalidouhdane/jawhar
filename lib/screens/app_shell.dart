@@ -33,6 +33,8 @@ class _AppShellState extends State<AppShell> {
 
   Future<void> _checkForUpdate() async {
     if (!mounted) return;
+    // Skip on iOS — updates are delivered via TestFlight / App Store, not APK.
+    if (Theme.of(context).platform == TargetPlatform.iOS) return;
     final updateProvider = context.read<UpdateProvider>();
     final hasUpdate = await updateProvider.checkForUpdate();
     if (hasUpdate && mounted) {

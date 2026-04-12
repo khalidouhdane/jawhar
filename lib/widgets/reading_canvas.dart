@@ -35,6 +35,8 @@ class ReadingCanvas extends StatefulWidget {
 class ReadingCanvasState extends State<ReadingCanvas> {
   final Map<int, GlobalKey> _verseKeys = {};
   OverlayEntry? _menuOverlay;
+  /// Tracks gesture recognizers so they can be disposed to prevent memory leaks.
+  final List<GestureRecognizer> _recognizers = [];
 
   /// Returns the RenderBox of a verse marker, or null if not found.
   /// Used by ScrollableReadingCanvas for accurate verse-level center lock.
@@ -46,9 +48,18 @@ class ReadingCanvasState extends State<ReadingCanvas> {
     return renderBox;
   }
 
+  /// Dispose all tracked gesture recognizers to free native resources.
+  void _disposeRecognizers() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+  }
+
   @override
   void dispose() {
     _removeOverlay();
+    _disposeRecognizers();
     super.dispose();
   }
 
@@ -68,6 +79,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
 
   void _removeOverlay() {
     _menuOverlay?.remove();
+    _menuOverlay?.dispose();
     _menuOverlay = null;
   }
 
@@ -108,6 +120,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
       },
     );
 
+    if (!mounted) return;
     Overlay.of(context).insert(_menuOverlay!);
   }
 
@@ -121,6 +134,8 @@ class ReadingCanvasState extends State<ReadingCanvas> {
     QuranReadingProvider readingProvider,
     double fontSize,
   ) {
+    // Dispose previous recognizers before creating new ones to prevent leaks.
+    _disposeRecognizers();
     final spans = <InlineSpan>[];
     final isWarsh = readingProvider.selectedRewaya == 2;
 
@@ -165,6 +180,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
           ..onLongPress = () {
             widget.onVerseSelected(isSelected ? null : verse.id);
           };
+        _recognizers.add(recognizer);
 
         spans.add(
           TextSpan(
@@ -238,6 +254,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
               ..onLongPress = () {
                 widget.onVerseSelected(isSelected ? null : verse.id);
               };
+            _recognizers.add(recognizer);
 
             spans.add(
               TextSpan(
