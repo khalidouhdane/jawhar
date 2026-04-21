@@ -55,7 +55,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             children: [
               // Header
               Text(
-                'Practice',
+                AppLocalizations.of(context)!.pracPracticeTab,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 28,
@@ -290,7 +290,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               child: _categoryCard(
                 theme: theme,
                 emoji: '⚔️',
-                title: 'Mutashabihat',
+                title: AppLocalizations.of(context)!.pracMutashabihat,
                 subtitle: AppLocalizations.of(context)!.pracMutArabic,
                 dueCount:
                     fc.getDueCountForType(FlashcardType.mutashabihatDuel),
@@ -517,7 +517,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
       children: [
         _statChip(theme, '${fc.totalCards}', AppLocalizations.of(context)!.pracTotalCards),
         const SizedBox(width: 10),
-        _statChip(theme, '${fc.accuracyPercent}%', 'Accuracy'),
+        _statChip(theme, '${fc.accuracyPercent}%', AppLocalizations.of(context)!.pracAccuracy),
       ],
     );
   }

@@ -531,7 +531,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Icon(LucideIcons.activity, size: 16, color: theme.accentColor),
           const SizedBox(width: 8),
           Text(
-            'Today: $count session${count > 1 ? 's' : ''} completed',
+            count > 1 
+                ? AppLocalizations.of(context)!.homeSessionsCompleted(count)
+                : AppLocalizations.of(context)!.homeSessionCompleted(count),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 12,
@@ -613,7 +615,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final streak = profile.streak.totalActiveDays;
     if (streak > 0) {
-      return '$streak active days — keep it up! 🔥';
+      return AppLocalizations.of(context)!.homeActiveDaysKeepItUp(streak);
     }
     return AppLocalizations.of(context)!.homeJourneyAwaits;
   }
@@ -816,7 +818,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const Text('📖', style: TextStyle(fontSize: 32)),
           const SizedBox(height: 12),
           Text(
-            'Ready to start, ${profile.activeProfile!.name}?',
+            AppLocalizations.of(context)!.homeReadyToStart(profile.activeProfile!.name),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 16,

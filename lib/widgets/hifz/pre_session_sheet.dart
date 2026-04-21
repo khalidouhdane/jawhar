@@ -5,7 +5,7 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/session_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Lightweight bottom sheet that replaces the old full-page pre-session screen.
 /// Shows active phases with offline-skip toggles and a prominent Start button.

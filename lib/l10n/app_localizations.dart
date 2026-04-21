@@ -2383,6 +2383,642 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vs'**
   String get actionVs;
+
+  /// No description provided for @profileNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get profileNotificationsTitle;
+
+  /// No description provided for @profileSessionReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Reminders'**
+  String get profileSessionReminders;
+
+  /// No description provided for @profileSessionRemindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily notification for your Hifz session'**
+  String get profileSessionRemindersDesc;
+
+  /// No description provided for @profileSocialSharingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Social & Sharing'**
+  String get profileSocialSharingSection;
+
+  /// No description provided for @profileAccountabilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accountability & Sharing'**
+  String get profileAccountabilityTitle;
+
+  /// No description provided for @profileAccountabilityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Share progress with friends and teachers'**
+  String get profileAccountabilityDesc;
+
+  /// No description provided for @profileHifzSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Hifz Profile'**
+  String get profileHifzSection;
+
+  /// No description provided for @profileRetakeAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake Assessment'**
+  String get profileRetakeAssessment;
+
+  /// No description provided for @profileRetakeAssessmentDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your memory profile settings'**
+  String get profileRetakeAssessmentDesc;
+
+  /// No description provided for @profileAiModel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model'**
+  String get profileAiModel;
+
+  /// No description provided for @profileAiModelFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini 3.1 Flash (fast)'**
+  String get profileAiModelFlash;
+
+  /// No description provided for @profileAiModelPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini 3.1 Pro (smart)'**
+  String get profileAiModelPro;
+
+  /// No description provided for @profileResetProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Progress'**
+  String get profileResetProgress;
+
+  /// No description provided for @profileResetProgressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase all sessions & progress, keep profile'**
+  String get profileResetProgressDesc;
+
+  /// No description provided for @profileDeleteProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Profile'**
+  String get profileDeleteProfile;
+
+  /// No description provided for @profileDeleteProfileDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove everything and start over'**
+  String get profileDeleteProfileDesc;
+
+  /// No description provided for @profileCloudAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud & Account'**
+  String get profileCloudAccountSection;
+
+  /// No description provided for @profileSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get profileSignOut;
+
+  /// No description provided for @profileSignOutDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out?'**
+  String get profileSignOutDialogTitle;
+
+  /// No description provided for @profileSignOutDialogDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data will remain saved locally and in the cloud. You can sign back in anytime.'**
+  String get profileSignOutDialogDesc;
+
+  /// No description provided for @profileActionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profileActionCancel;
+
+  /// No description provided for @profileDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get profileDeleteAccount;
+
+  /// No description provided for @profileDeleteAccountDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account?'**
+  String get profileDeleteAccountDialogTitle;
+
+  /// No description provided for @profileDeleteAccountDialogDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete your cloud data and Google account link. Your local data will remain on this device.'**
+  String get profileDeleteAccountDialogDesc;
+
+  /// No description provided for @profileSignInGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get profileSignInGoogle;
+
+  /// No description provided for @profileSignInGoogleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up and sync your data across devices'**
+  String get profileSignInGoogleDesc;
+
+  /// No description provided for @pracPracticeTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get pracPracticeTab;
+
+  /// No description provided for @pracAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy'**
+  String get pracAccuracy;
+
+  /// No description provided for @progYourProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Progress'**
+  String get progYourProgress;
+
+  /// No description provided for @progOfQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'of Quran'**
+  String get progOfQuran;
+
+  /// No description provided for @progPages.
+  ///
+  /// In en, this message translates to:
+  /// **'pages'**
+  String get progPages;
+
+  /// No description provided for @progMemorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorized'**
+  String get progMemorized;
+
+  /// No description provided for @progReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get progReviewing;
+
+  /// No description provided for @progLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get progLearning;
+
+  /// No description provided for @progActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Days'**
+  String get progActiveDays;
+
+  /// No description provided for @progPagesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'pages/wk'**
+  String get progPagesPerWeek;
+
+  /// No description provided for @progAssStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'💪 Strong'**
+  String get progAssStrong;
+
+  /// No description provided for @progAssOkay.
+  ///
+  /// In en, this message translates to:
+  /// **'🤔 Okay'**
+  String get progAssOkay;
+
+  /// No description provided for @progAssNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'😬 Needs Work'**
+  String get progAssNeedsWork;
+
+  /// No description provided for @homeReadyToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to start, {name}?'**
+  String homeReadyToStart(Object name);
+
+  /// No description provided for @homeActiveDaysKeepItUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} active days — keep it up! 🔥'**
+  String homeActiveDaysKeepItUp(Object days);
+
+  /// No description provided for @homeSessionCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {count} session completed'**
+  String homeSessionCompleted(Object count);
+
+  /// No description provided for @homeSessionsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {count} sessions completed'**
+  String homeSessionsCompleted(Object count);
+
+  /// No description provided for @planFullQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Quran'**
+  String get planFullQuran;
+
+  /// No description provided for @planTodaysPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Plan'**
+  String get planTodaysPlan;
+
+  /// No description provided for @planExtraSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Session #{count}'**
+  String planExtraSession(Object count);
+
+  /// No description provided for @planSabaqNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Sabaq · New'**
+  String get planSabaqNew;
+
+  /// No description provided for @planSabqiReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Sabqi · Review'**
+  String get planSabqiReview;
+
+  /// No description provided for @planManzilRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Manzil · Revision'**
+  String get planManzilRevision;
+
+  /// No description provided for @planNoReviewYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No review yet'**
+  String get planNoReviewYet;
+
+  /// No description provided for @planNotStartedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started yet'**
+  String get planNotStartedYet;
+
+  /// No description provided for @planPageLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} · Lines {start}–{end}'**
+  String planPageLines(Object end, Object page, Object start);
+
+  /// No description provided for @planPageFromVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} · from verse {verse}'**
+  String planPageFromVerse(Object page, Object verse);
+
+  /// No description provided for @planPagesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pages'**
+  String planPagesCount(Object count);
+
+  /// No description provided for @planPagesList.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages {pages}'**
+  String planPagesList(Object pages);
+
+  /// No description provided for @planPagesListMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages {pages}… (+{more})'**
+  String planPagesListMore(Object more, Object pages);
+
+  /// No description provided for @planJuzPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz {juz} · {count} pages'**
+  String planJuzPages(Object count, Object juz);
+
+  /// No description provided for @planEstimatedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'~{minutes} min total'**
+  String planEstimatedTotal(Object minutes);
+
+  /// No description provided for @planTimeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m new'**
+  String planTimeNew(Object minutes);
+
+  /// No description provided for @planTimeReview.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m review'**
+  String planTimeReview(Object minutes);
+
+  /// No description provided for @planTimeRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m revision'**
+  String planTimeRevision(Object minutes);
+
+  /// No description provided for @planFlashcardsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} flashcards due'**
+  String planFlashcardsDue(Object count);
+
+  /// No description provided for @planSessionSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Session steps'**
+  String get planSessionSteps;
+
+  /// No description provided for @planStartSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Session'**
+  String get planStartSession;
+
+  /// No description provided for @planCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed ✨'**
+  String get planCompleted;
+
+  /// No description provided for @planWhyThisPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this plan?'**
+  String get planWhyThisPlan;
+
+  /// No description provided for @preSessionDoneOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Done any offline?'**
+  String get preSessionDoneOffline;
+
+  /// No description provided for @preSessionCheckPhases.
+  ///
+  /// In en, this message translates to:
+  /// **'Check phases you\'ve already completed to skip them'**
+  String get preSessionCheckPhases;
+
+  /// No description provided for @preSessionMarkDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Session as Done'**
+  String get preSessionMarkDone;
+
+  /// No description provided for @sessionHowDidItGo.
+  ///
+  /// In en, this message translates to:
+  /// **'How did it go?'**
+  String get sessionHowDidItGo;
+
+  /// No description provided for @sessionRatePerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your {phase} performance'**
+  String sessionRatePerformance(Object phase);
+
+  /// No description provided for @sessionAssessmentStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get sessionAssessmentStrong;
+
+  /// No description provided for @sessionAssessmentStrongDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I nailed it — confident'**
+  String get sessionAssessmentStrongDesc;
+
+  /// No description provided for @sessionAssessmentOkay.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay'**
+  String get sessionAssessmentOkay;
+
+  /// No description provided for @sessionAssessmentOkayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Got through it, some mistakes'**
+  String get sessionAssessmentOkayDesc;
+
+  /// No description provided for @sessionAssessmentNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Work'**
+  String get sessionAssessmentNeedsWork;
+
+  /// No description provided for @sessionAssessmentNeedsWorkDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I struggled — need more practice'**
+  String get sessionAssessmentNeedsWorkDesc;
+
+  /// No description provided for @coverageHowMuch.
+  ///
+  /// In en, this message translates to:
+  /// **'How much did you cover?'**
+  String get coverageHowMuch;
+
+  /// No description provided for @coveragePlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned: Page {page} · {lines}'**
+  String coveragePlanned(Object lines, Object page);
+
+  /// No description provided for @coverageAllLines.
+  ///
+  /// In en, this message translates to:
+  /// **'All planned lines'**
+  String get coverageAllLines;
+
+  /// No description provided for @coverageAllLinesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I completed page {page} ({lines})'**
+  String coverageAllLinesDesc(Object lines, Object page);
+
+  /// No description provided for @coveragePartOfPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of the page'**
+  String get coveragePartOfPage;
+
+  /// No description provided for @coveragePartOfPageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll specify which verses I covered'**
+  String get coveragePartOfPageDesc;
+
+  /// No description provided for @coverageMoreThanPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'More than planned'**
+  String get coverageMoreThanPlanned;
+
+  /// No description provided for @coverageMoreThanPlannedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I covered extra pages!'**
+  String get coverageMoreThanPlannedDesc;
+
+  /// No description provided for @completeSessionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Complete!'**
+  String get completeSessionComplete;
+
+  /// No description provided for @completeTimeSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Time spent'**
+  String get completeTimeSpent;
+
+  /// No description provided for @completeTotalReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Total reps'**
+  String get completeTotalReps;
+
+  /// No description provided for @completeTomorrowsPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s preview'**
+  String get completeTomorrowsPreview;
+
+  /// No description provided for @completePracticeFlashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice {count} Flashcards'**
+  String completePracticeFlashcards(Object count);
+
+  /// No description provided for @completeBackToDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Dashboard'**
+  String get completeBackToDashboard;
+
+  /// No description provided for @overlayNewMemorization.
+  ///
+  /// In en, this message translates to:
+  /// **'New Memorization'**
+  String get overlayNewMemorization;
+
+  /// No description provided for @overlayReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get overlayReview;
+
+  /// No description provided for @overlayRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get overlayRevision;
+
+  /// No description provided for @overlayPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get overlayPractice;
+
+  /// No description provided for @overlaySimilarVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'This page has similar verses'**
+  String get overlaySimilarVerses;
+
+  /// No description provided for @overlayFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get overlayFree;
+
+  /// No description provided for @overlayGuided.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided'**
+  String get overlayGuided;
+
+  /// No description provided for @overlayListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get overlayListen;
+
+  /// No description provided for @overlayListenDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to the page being recited. Focus on the melody and pronunciation'**
+  String get overlayListenDesc;
+
+  /// No description provided for @overlayTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'target × {count}'**
+  String overlayTarget(Object count);
+
+  /// No description provided for @overlaySkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get overlaySkip;
+
+  /// No description provided for @overlayPrev.
+  ///
+  /// In en, this message translates to:
+  /// **'Prev'**
+  String get overlayPrev;
+
+  /// No description provided for @overlayNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get overlayNext;
+
+  /// No description provided for @overlayFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get overlayFinish;
+
+  /// No description provided for @overlayDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get overlayDone;
 }
 
 class _AppLocalizationsDelegate

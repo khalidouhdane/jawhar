@@ -3,7 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Dashboard card showing today's Hifz plan with full daily goal info.
 /// CE-8: Rich plan card showing what the user needs to do today.

@@ -11,7 +11,7 @@ import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/hifz/verse_highlighter.dart';
 import 'package:quran_app/widgets/overlays.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Floating session controls overlay for the digital reading mode (Phase 4).
 ///

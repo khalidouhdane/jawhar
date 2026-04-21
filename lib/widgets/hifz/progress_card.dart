@@ -60,7 +60,7 @@ class ProgressCard extends StatelessWidget {
                 Icon(LucideIcons.trendingUp, size: 16, color: theme.accentColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Your Progress',
+                  AppLocalizations.of(context)!.progYourProgress,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 14,
@@ -135,7 +135,7 @@ class ProgressCard extends StatelessWidget {
             const SizedBox(height: 6),
             // Percentage label
             Text(
-              '${(total / 604 * 100).toStringAsFixed(1)}% of Quran · $total/604 pages',
+              '${(total / 604 * 100).toStringAsFixed(1)}% ${AppLocalizations.of(context)!.progOfQuran} · $total/604 ${AppLocalizations.of(context)!.progPages}',
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 10,
@@ -148,16 +148,16 @@ class ProgressCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _statItem('$memorized', 'Memorized', Colors.green),
+                _statItem('$memorized', AppLocalizations.of(context)!.progMemorized, Colors.green),
                 _statDivider(),
-                _statItem('$reviewing', 'Reviewing', Colors.blue),
+                _statItem('$reviewing', AppLocalizations.of(context)!.progReviewing, Colors.blue),
                 _statDivider(),
-                _statItem('$learning', 'Learning', Colors.orange),
+                _statItem('$learning', AppLocalizations.of(context)!.progLearning, Colors.orange),
                 _statDivider(),
                 if (pagesPerWeek != null) ...[
-                  _statItem('${pagesPerWeek!.toStringAsFixed(1)}', 'pages/wk', theme.accentColor),
+                  _statItem('${pagesPerWeek!.toStringAsFixed(1)}', AppLocalizations.of(context)!.progPagesPerWeek, theme.accentColor),
                 ] else ...[
-                  _statItem('$activeDays', 'Active Days', theme.accentColor),
+                  _statItem('$activeDays', AppLocalizations.of(context)!.progActiveDays, theme.accentColor),
                 ],
               ],
             ),
@@ -230,7 +230,7 @@ class ProgressCard extends StatelessWidget {
     final time = '${session.date.hour.toString().padLeft(2, '0')}:'
         '${session.date.minute.toString().padLeft(2, '0')}';
     final assessment = session.sabaqAssessment != null
-        ? _assessmentText(session.sabaqAssessment!)
+        ? _assessmentText(context, session.sabaqAssessment!)
         : '';
 
     return Container(
@@ -278,11 +278,11 @@ class ProgressCard extends StatelessWidget {
     );
   }
 
-  String _assessmentText(SelfAssessment a) {
+  String _assessmentText(BuildContext context, SelfAssessment a) {
     return switch (a) {
-      SelfAssessment.strong => '💪 Strong',
-      SelfAssessment.okay => '🤔 Okay',
-      SelfAssessment.needsWork => '😬 Needs Work',
+      SelfAssessment.strong => AppLocalizations.of(context)!.progAssStrong,
+      SelfAssessment.okay => AppLocalizations.of(context)!.progAssOkay,
+      SelfAssessment.needsWork => AppLocalizations.of(context)!.progAssNeedsWork,
     };
   }
 

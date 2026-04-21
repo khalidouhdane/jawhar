@@ -99,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── Notifications ──
-              _buildSectionLabel(theme, 'Notifications'),
+              _buildSectionLabel(theme, AppLocalizations.of(context)!.profileNotificationsTitle),
               const SizedBox(height: 10),
               GestureDetector(
                 onTap: () {
@@ -112,14 +112,14 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildSettingsTile(
                   theme,
                   icon: LucideIcons.bell,
-                  title: 'Session Reminders',
-                  subtitle: 'Daily notification for your Hifz session',
+                  title: AppLocalizations.of(context)!.profileSessionReminders,
+                  subtitle: AppLocalizations.of(context)!.profileSessionRemindersDesc,
                 ),
               ),
               const SizedBox(height: 24),
 
               // ── Social & Accountability ──
-              _buildSectionLabel(theme, 'Social & Sharing'),
+              _buildSectionLabel(theme, AppLocalizations.of(context)!.profileSocialSharingSection),
               const SizedBox(height: 10),
               GestureDetector(
                 onTap: () {
@@ -132,15 +132,15 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildSettingsTile(
                   theme,
                   icon: LucideIcons.users,
-                  title: 'Accountability & Sharing',
-                  subtitle: 'Share progress with friends and teachers',
+                  title: AppLocalizations.of(context)!.profileAccountabilityTitle,
+                  subtitle: AppLocalizations.of(context)!.profileAccountabilityDesc,
                 ),
               ),
               const SizedBox(height: 24),
 
               // ── Hifz Profile Management (CE-11) ──
               if (hifzProfile.hasActiveProfile) ...[
-                _buildSectionLabel(theme, 'Hifz Profile'),
+                _buildSectionLabel(theme, AppLocalizations.of(context)!.profileHifzSection),
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: () {
@@ -151,8 +151,8 @@ class ProfileScreen extends StatelessWidget {
                   child: _buildSettingsTile(
                     theme,
                     icon: LucideIcons.refreshCw,
-                    title: 'Retake Assessment',
-                    subtitle: 'Update your memory profile settings',
+                    title: AppLocalizations.of(context)!.profileRetakeAssessment,
+                    subtitle: AppLocalizations.of(context)!.profileRetakeAssessmentDesc,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -176,8 +176,8 @@ class ProfileScreen extends StatelessWidget {
                           child: _buildSettingsTile(
                             theme,
                             icon: LucideIcons.cpu,
-                            title: 'AI Model',
-                            subtitle: isFlash ? 'Gemini 3.1 Flash (fast)' : 'Gemini 3.1 Pro (smart)',
+                            title: AppLocalizations.of(context)!.profileAiModel,
+                            subtitle: isFlash ? AppLocalizations.of(context)!.profileAiModelFlash : AppLocalizations.of(context)!.profileAiModelPro,
                           ),
                         );
                       },
@@ -189,8 +189,8 @@ class ProfileScreen extends StatelessWidget {
                   child: _buildSettingsTile(
                     theme,
                     icon: LucideIcons.trash2,
-                    title: 'Reset Progress',
-                    subtitle: 'Erase all sessions & progress, keep profile',
+                    title: AppLocalizations.of(context)!.profileResetProgress,
+                    subtitle: AppLocalizations.of(context)!.profileResetProgressDesc,
                     danger: true,
                   ),
                 ),
@@ -200,8 +200,8 @@ class ProfileScreen extends StatelessWidget {
                   child: _buildSettingsTile(
                     theme,
                     icon: LucideIcons.userX,
-                    title: 'Delete Profile',
-                    subtitle: 'Remove everything and start over',
+                    title: AppLocalizations.of(context)!.profileDeleteProfile,
+                    subtitle: AppLocalizations.of(context)!.profileDeleteProfileDesc,
                     danger: true,
                   ),
                 ),
@@ -209,7 +209,7 @@ class ProfileScreen extends StatelessWidget {
               ],
 
               // ── Cloud & Account ──
-              _buildSectionLabel(theme, 'Cloud & Account'),
+              _buildSectionLabel(theme, AppLocalizations.of(context)!.profileCloudAccountSection),
               const SizedBox(height: 10),
               _buildCloudAccountCard(context, theme),
               const SizedBox(height: 24),
@@ -857,14 +857,14 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     title: Text(
-                      'Sign Out?',
+                      AppLocalizations.of(context)!.profileSignOutDialogTitle,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         color: theme.primaryText,
                       ),
                     ),
                     content: Text(
-                      'Your data will remain saved locally and in the cloud. You can sign back in anytime.',
+                      AppLocalizations.of(context)!.profileSignOutDialogDesc,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,
@@ -875,14 +875,14 @@ class ProfileScreen extends StatelessWidget {
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
                         child: Text(
-                          'Cancel',
+                          AppLocalizations.of(context)!.profileActionCancel,
                           style: TextStyle(color: theme.secondaryText),
                         ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text(
-                          'Sign Out',
+                        child: Text(
+                          AppLocalizations.of(context)!.profileSignOut,
                           style: TextStyle(color: Colors.red),
                         ),
                       ),
@@ -902,7 +902,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    'Sign Out',
+                    AppLocalizations.of(context)!.profileSignOut,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -925,14 +925,14 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     title: Text(
-                      'Delete Account?',
+                      AppLocalizations.of(context)!.profileDeleteAccountDialogTitle,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         color: Colors.red,
                       ),
                     ),
                     content: Text(
-                      'This will permanently delete your cloud data and Google account link. Your local data will remain on this device.',
+                      AppLocalizations.of(context)!.profileDeleteAccountDialogDesc,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,
@@ -943,14 +943,14 @@ class ProfileScreen extends StatelessWidget {
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
                         child: Text(
-                          'Cancel',
+                          AppLocalizations.of(context)!.profileActionCancel,
                           style: TextStyle(color: theme.secondaryText),
                         ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text(
-                          'Delete',
+                        child: Text(
+                          AppLocalizations.of(context)!.actionDelete,
                           style: TextStyle(
                             color: Colors.red,
                             fontWeight: FontWeight.w600,
@@ -980,7 +980,7 @@ class ProfileScreen extends StatelessWidget {
                 }
               },
               child: Text(
-                'Delete Account',
+                AppLocalizations.of(context)!.profileDeleteAccount,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -1058,7 +1058,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sign in with Google',
+                    AppLocalizations.of(context)!.profileSignInGoogle,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -1067,7 +1067,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Back up and sync your data across devices',
+                    AppLocalizations.of(context)!.profileSignInGoogleDesc,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -1157,11 +1157,10 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: theme.cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Reset Progress?',
+        title: Text(AppLocalizations.of(context)!.profileResetProgress,
             style: TextStyle(fontFamily: 'Inter', color: theme.primaryText)),
         content: Text(
-          'This will erase all your sessions, page progress, and plans. '
-          'Your profile and assessment results will be kept.',
+          AppLocalizations.of(context)!.profileResetProgressDesc,
           style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.secondaryText),
         ),
         actions: [
@@ -1199,11 +1198,10 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: theme.cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Delete Profile?',
+        title: Text(AppLocalizations.of(context)!.profileDeleteProfile,
             style: TextStyle(fontFamily: 'Inter', color: theme.primaryText)),
         content: Text(
-          'This will permanently delete your profile and all associated data. '
-          'This action cannot be undone.',
+          AppLocalizations.of(context)!.profileDeleteProfileDesc,
           style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.secondaryText),
         ),
         actions: [

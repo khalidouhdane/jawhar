@@ -1161,4 +1161,370 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get actionVs => 'ضد';
+
+  @override
+  String get profileNotificationsTitle => 'الإشعارات';
+
+  @override
+  String get profileSessionReminders => 'تذكيرات الجلسة';
+
+  @override
+  String get profileSessionRemindersDesc => 'تنبيه يومي لجلسة الحفظ الخاصة بك';
+
+  @override
+  String get profileSocialSharingSection => 'المجتمع والمشاركة';
+
+  @override
+  String get profileAccountabilityTitle => 'المساءلة والمشاركة';
+
+  @override
+  String get profileAccountabilityDesc => 'شارك تقدمك مع الأصدقاء والمعلمين';
+
+  @override
+  String get profileHifzSection => 'الملف الشخصي للحفظ';
+
+  @override
+  String get profileRetakeAssessment => 'إعادة التقييم';
+
+  @override
+  String get profileRetakeAssessmentDesc =>
+      'تحديث إعدادات ملف الذاكرة الخاص بك';
+
+  @override
+  String get profileAiModel => 'نموذج الذكاء الاصطناعي';
+
+  @override
+  String get profileAiModelFlash => 'Gemini 3.1 Flash (سريع)';
+
+  @override
+  String get profileAiModelPro => 'Gemini 3.1 Pro (ذكي)';
+
+  @override
+  String get profileResetProgress => 'إعادة ضبط التقدم';
+
+  @override
+  String get profileResetProgressDesc =>
+      'مسح جميع الجلسات والتقدم، مع الاحتفاظ بالملف';
+
+  @override
+  String get profileDeleteProfile => 'حذف الملف الشخصي';
+
+  @override
+  String get profileDeleteProfileDesc => 'مسح كل شيء والبدء من جديد';
+
+  @override
+  String get profileCloudAccountSection => 'السحابة والحساب';
+
+  @override
+  String get profileSignOut => 'تسجيل الخروج';
+
+  @override
+  String get profileSignOutDialogTitle => 'تسجيل الخروج؟';
+
+  @override
+  String get profileSignOutDialogDesc =>
+      'ستبقى بياناتك محفوظة محلياً وفي السحابة. يمكنك تسجيل الدخول مرة أخرى في أي وقت.';
+
+  @override
+  String get profileActionCancel => 'إلغاء';
+
+  @override
+  String get profileDeleteAccount => 'حذف الحساب';
+
+  @override
+  String get profileDeleteAccountDialogTitle => 'حذف الحساب؟';
+
+  @override
+  String get profileDeleteAccountDialogDesc =>
+      'سيؤدي هذا إلى حذف بياناتك السحابية وارتباط حساب Google نهائياً. ستبقى بياناتك المحلية على هذا الجهاز.';
+
+  @override
+  String get profileSignInGoogle => 'تسجيل الدخول باستخدام Google';
+
+  @override
+  String get profileSignInGoogleDesc =>
+      'قم بعمل نسخة احتياطية ومزامنة بياناتك عبر الأجهزة';
+
+  @override
+  String get pracPracticeTab => 'التدريب';
+
+  @override
+  String get pracAccuracy => 'الدقة';
+
+  @override
+  String get progYourProgress => 'تقدمك';
+
+  @override
+  String get progOfQuran => 'من القرآن';
+
+  @override
+  String get progPages => 'صفحات';
+
+  @override
+  String get progMemorized => 'تم الحفظ';
+
+  @override
+  String get progReviewing => 'قيد المراجعة';
+
+  @override
+  String get progLearning => 'قيد التعلم';
+
+  @override
+  String get progActiveDays => 'أيام نشطة';
+
+  @override
+  String get progPagesPerWeek => 'صفحة/أسبوع';
+
+  @override
+  String get progAssStrong => '💪 قوي';
+
+  @override
+  String get progAssOkay => '🤔 متوسط';
+
+  @override
+  String get progAssNeedsWork => '😬 يحتاج مراجعة';
+
+  @override
+  String homeReadyToStart(Object name) {
+    return 'مستعد للبدء، $name؟';
+  }
+
+  @override
+  String homeActiveDaysKeepItUp(Object days) {
+    return '$days أيام نشطة — واصل تقدمك! 🔥';
+  }
+
+  @override
+  String homeSessionCompleted(Object count) {
+    return 'اليوم: تم إكمال $count جلسة';
+  }
+
+  @override
+  String homeSessionsCompleted(Object count) {
+    return 'اليوم: تم إكمال $count جلسات';
+  }
+
+  @override
+  String get planFullQuran => 'القرآن كاملاً';
+
+  @override
+  String get planTodaysPlan => 'خطة اليوم';
+
+  @override
+  String planExtraSession(Object count) {
+    return 'جلسة إضافية #$count';
+  }
+
+  @override
+  String get planSabaqNew => 'سبق · جديد';
+
+  @override
+  String get planSabqiReview => 'سبقي · مراجعة';
+
+  @override
+  String get planManzilRevision => 'منزل · مراجعة كبرى';
+
+  @override
+  String get planNoReviewYet => 'لا توجد مراجعة بعد';
+
+  @override
+  String get planNotStartedYet => 'لم تبدأ بعد';
+
+  @override
+  String planPageLines(Object end, Object page, Object start) {
+    return 'صفحة $page · الأسطر $start–$end';
+  }
+
+  @override
+  String planPageFromVerse(Object page, Object verse) {
+    return 'صفحة $page · من الآية $verse';
+  }
+
+  @override
+  String planPagesCount(Object count) {
+    return '$count صفحات';
+  }
+
+  @override
+  String planPagesList(Object pages) {
+    return 'الصفحات $pages';
+  }
+
+  @override
+  String planPagesListMore(Object more, Object pages) {
+    return 'الصفحات $pages… (+$more)';
+  }
+
+  @override
+  String planJuzPages(Object count, Object juz) {
+    return 'الجزء $juz · $count صفحات';
+  }
+
+  @override
+  String planEstimatedTotal(Object minutes) {
+    return '~$minutes دقيقة تقريباً';
+  }
+
+  @override
+  String planTimeNew(Object minutes) {
+    return '$minutesد جديد';
+  }
+
+  @override
+  String planTimeReview(Object minutes) {
+    return '$minutesد مراجعة';
+  }
+
+  @override
+  String planTimeRevision(Object minutes) {
+    return '$minutesد تلاوة';
+  }
+
+  @override
+  String planFlashcardsDue(Object count) {
+    return '$count بطاقات مستحقة';
+  }
+
+  @override
+  String get planSessionSteps => 'خطوات الجلسة';
+
+  @override
+  String get planStartSession => 'بدء الجلسة';
+
+  @override
+  String get planCompleted => 'مكتملة ✨';
+
+  @override
+  String get planWhyThisPlan => 'لماذا هذه الخطة؟';
+
+  @override
+  String get preSessionDoneOffline => 'هل أنجزت شيئاً خارج التطبيق؟';
+
+  @override
+  String get preSessionCheckPhases => 'حدد المراحل التي أكملتها مسبقاً لتخطيها';
+
+  @override
+  String get preSessionMarkDone => 'تحديد الجلسة كمكتملة';
+
+  @override
+  String get sessionHowDidItGo => 'كيف كان أداؤك؟';
+
+  @override
+  String sessionRatePerformance(Object phase) {
+    return 'قيّم أداءك في $phase';
+  }
+
+  @override
+  String get sessionAssessmentStrong => 'ممتاز';
+
+  @override
+  String get sessionAssessmentStrongDesc => 'أتقنته — واثق جداً';
+
+  @override
+  String get sessionAssessmentOkay => 'جيد';
+
+  @override
+  String get sessionAssessmentOkayDesc => 'أكملته، مع بعض الأخطاء';
+
+  @override
+  String get sessionAssessmentNeedsWork => 'يحتاج تدريب';
+
+  @override
+  String get sessionAssessmentNeedsWorkDesc =>
+      'واجهت صعوبة — أحتاج لمزيد من التدريب';
+
+  @override
+  String get coverageHowMuch => 'ما المقدار الذي أنجزته؟';
+
+  @override
+  String coveragePlanned(Object lines, Object page) {
+    return 'المخطط: صفحة $page · $lines';
+  }
+
+  @override
+  String get coverageAllLines => 'جميع الأسطر المخططة';
+
+  @override
+  String coverageAllLinesDesc(Object lines, Object page) {
+    return 'أكملت الصفحة $page ($lines)';
+  }
+
+  @override
+  String get coveragePartOfPage => 'جزء من الصفحة';
+
+  @override
+  String get coveragePartOfPageDesc => 'سأحدد الآيات التي أنجزتها';
+
+  @override
+  String get coverageMoreThanPlanned => 'أكثر من المخطط';
+
+  @override
+  String get coverageMoreThanPlannedDesc => 'أنجزت صفحات إضافية!';
+
+  @override
+  String get completeSessionComplete => 'اكتملت الجلسة!';
+
+  @override
+  String get completeTimeSpent => 'الوقت المستغرق';
+
+  @override
+  String get completeTotalReps => 'إجمالي التكرار';
+
+  @override
+  String get completeTomorrowsPreview => 'معاينة الغد';
+
+  @override
+  String completePracticeFlashcards(Object count) {
+    return 'تدرب على $count بطاقات';
+  }
+
+  @override
+  String get completeBackToDashboard => 'العودة للرئيسية';
+
+  @override
+  String get overlayNewMemorization => 'حفظ جديد';
+
+  @override
+  String get overlayReview => 'مراجعة';
+
+  @override
+  String get overlayRevision => 'تلاوة';
+
+  @override
+  String get overlayPractice => 'تدريب';
+
+  @override
+  String get overlaySimilarVerses => 'هذه الصفحة تحتوي على آيات متشابهة';
+
+  @override
+  String get overlayFree => 'حُر';
+
+  @override
+  String get overlayGuided => 'مُوجّه';
+
+  @override
+  String get overlayListen => 'استماع';
+
+  @override
+  String get overlayListenDesc => 'استمع للصفحة المقروءة. ركز على اللحن والنطق';
+
+  @override
+  String overlayTarget(Object count) {
+    return 'الهدف × $count';
+  }
+
+  @override
+  String get overlaySkip => 'تخطي';
+
+  @override
+  String get overlayPrev => 'السابق';
+
+  @override
+  String get overlayNext => 'التالي';
+
+  @override
+  String get overlayFinish => 'إنهاء';
+
+  @override
+  String get overlayDone => 'تم';
 }

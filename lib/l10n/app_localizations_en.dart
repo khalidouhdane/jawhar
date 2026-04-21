@@ -1173,4 +1173,374 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionVs => 'Vs';
+
+  @override
+  String get profileNotificationsTitle => 'Notifications';
+
+  @override
+  String get profileSessionReminders => 'Session Reminders';
+
+  @override
+  String get profileSessionRemindersDesc =>
+      'Daily notification for your Hifz session';
+
+  @override
+  String get profileSocialSharingSection => 'Social & Sharing';
+
+  @override
+  String get profileAccountabilityTitle => 'Accountability & Sharing';
+
+  @override
+  String get profileAccountabilityDesc =>
+      'Share progress with friends and teachers';
+
+  @override
+  String get profileHifzSection => 'Hifz Profile';
+
+  @override
+  String get profileRetakeAssessment => 'Retake Assessment';
+
+  @override
+  String get profileRetakeAssessmentDesc =>
+      'Update your memory profile settings';
+
+  @override
+  String get profileAiModel => 'AI Model';
+
+  @override
+  String get profileAiModelFlash => 'Gemini 3.1 Flash (fast)';
+
+  @override
+  String get profileAiModelPro => 'Gemini 3.1 Pro (smart)';
+
+  @override
+  String get profileResetProgress => 'Reset Progress';
+
+  @override
+  String get profileResetProgressDesc =>
+      'Erase all sessions & progress, keep profile';
+
+  @override
+  String get profileDeleteProfile => 'Delete Profile';
+
+  @override
+  String get profileDeleteProfileDesc => 'Remove everything and start over';
+
+  @override
+  String get profileCloudAccountSection => 'Cloud & Account';
+
+  @override
+  String get profileSignOut => 'Sign Out';
+
+  @override
+  String get profileSignOutDialogTitle => 'Sign Out?';
+
+  @override
+  String get profileSignOutDialogDesc =>
+      'Your data will remain saved locally and in the cloud. You can sign back in anytime.';
+
+  @override
+  String get profileActionCancel => 'Cancel';
+
+  @override
+  String get profileDeleteAccount => 'Delete Account';
+
+  @override
+  String get profileDeleteAccountDialogTitle => 'Delete Account?';
+
+  @override
+  String get profileDeleteAccountDialogDesc =>
+      'This will permanently delete your cloud data and Google account link. Your local data will remain on this device.';
+
+  @override
+  String get profileSignInGoogle => 'Sign in with Google';
+
+  @override
+  String get profileSignInGoogleDesc =>
+      'Back up and sync your data across devices';
+
+  @override
+  String get pracPracticeTab => 'Practice';
+
+  @override
+  String get pracAccuracy => 'Accuracy';
+
+  @override
+  String get progYourProgress => 'Your Progress';
+
+  @override
+  String get progOfQuran => 'of Quran';
+
+  @override
+  String get progPages => 'pages';
+
+  @override
+  String get progMemorized => 'Memorized';
+
+  @override
+  String get progReviewing => 'Reviewing';
+
+  @override
+  String get progLearning => 'Learning';
+
+  @override
+  String get progActiveDays => 'Active Days';
+
+  @override
+  String get progPagesPerWeek => 'pages/wk';
+
+  @override
+  String get progAssStrong => '💪 Strong';
+
+  @override
+  String get progAssOkay => '🤔 Okay';
+
+  @override
+  String get progAssNeedsWork => '😬 Needs Work';
+
+  @override
+  String homeReadyToStart(Object name) {
+    return 'Ready to start, $name?';
+  }
+
+  @override
+  String homeActiveDaysKeepItUp(Object days) {
+    return '$days active days — keep it up! 🔥';
+  }
+
+  @override
+  String homeSessionCompleted(Object count) {
+    return 'Today: $count session completed';
+  }
+
+  @override
+  String homeSessionsCompleted(Object count) {
+    return 'Today: $count sessions completed';
+  }
+
+  @override
+  String get planFullQuran => 'Full Quran';
+
+  @override
+  String get planTodaysPlan => 'Today\'s Plan';
+
+  @override
+  String planExtraSession(Object count) {
+    return 'Extra Session #$count';
+  }
+
+  @override
+  String get planSabaqNew => 'Sabaq · New';
+
+  @override
+  String get planSabqiReview => 'Sabqi · Review';
+
+  @override
+  String get planManzilRevision => 'Manzil · Revision';
+
+  @override
+  String get planNoReviewYet => 'No review yet';
+
+  @override
+  String get planNotStartedYet => 'Not started yet';
+
+  @override
+  String planPageLines(Object end, Object page, Object start) {
+    return 'Page $page · Lines $start–$end';
+  }
+
+  @override
+  String planPageFromVerse(Object page, Object verse) {
+    return 'Page $page · from verse $verse';
+  }
+
+  @override
+  String planPagesCount(Object count) {
+    return '$count pages';
+  }
+
+  @override
+  String planPagesList(Object pages) {
+    return 'Pages $pages';
+  }
+
+  @override
+  String planPagesListMore(Object more, Object pages) {
+    return 'Pages $pages… (+$more)';
+  }
+
+  @override
+  String planJuzPages(Object count, Object juz) {
+    return 'Juz $juz · $count pages';
+  }
+
+  @override
+  String planEstimatedTotal(Object minutes) {
+    return '~$minutes min total';
+  }
+
+  @override
+  String planTimeNew(Object minutes) {
+    return '${minutes}m new';
+  }
+
+  @override
+  String planTimeReview(Object minutes) {
+    return '${minutes}m review';
+  }
+
+  @override
+  String planTimeRevision(Object minutes) {
+    return '${minutes}m revision';
+  }
+
+  @override
+  String planFlashcardsDue(Object count) {
+    return '$count flashcards due';
+  }
+
+  @override
+  String get planSessionSteps => 'Session steps';
+
+  @override
+  String get planStartSession => 'Start Session';
+
+  @override
+  String get planCompleted => 'Completed ✨';
+
+  @override
+  String get planWhyThisPlan => 'Why this plan?';
+
+  @override
+  String get preSessionDoneOffline => 'Done any offline?';
+
+  @override
+  String get preSessionCheckPhases =>
+      'Check phases you\'ve already completed to skip them';
+
+  @override
+  String get preSessionMarkDone => 'Mark Session as Done';
+
+  @override
+  String get sessionHowDidItGo => 'How did it go?';
+
+  @override
+  String sessionRatePerformance(Object phase) {
+    return 'Rate your $phase performance';
+  }
+
+  @override
+  String get sessionAssessmentStrong => 'Strong';
+
+  @override
+  String get sessionAssessmentStrongDesc => 'I nailed it — confident';
+
+  @override
+  String get sessionAssessmentOkay => 'Okay';
+
+  @override
+  String get sessionAssessmentOkayDesc => 'Got through it, some mistakes';
+
+  @override
+  String get sessionAssessmentNeedsWork => 'Needs Work';
+
+  @override
+  String get sessionAssessmentNeedsWorkDesc =>
+      'I struggled — need more practice';
+
+  @override
+  String get coverageHowMuch => 'How much did you cover?';
+
+  @override
+  String coveragePlanned(Object lines, Object page) {
+    return 'Planned: Page $page · $lines';
+  }
+
+  @override
+  String get coverageAllLines => 'All planned lines';
+
+  @override
+  String coverageAllLinesDesc(Object lines, Object page) {
+    return 'I completed page $page ($lines)';
+  }
+
+  @override
+  String get coveragePartOfPage => 'Part of the page';
+
+  @override
+  String get coveragePartOfPageDesc => 'I\'ll specify which verses I covered';
+
+  @override
+  String get coverageMoreThanPlanned => 'More than planned';
+
+  @override
+  String get coverageMoreThanPlannedDesc => 'I covered extra pages!';
+
+  @override
+  String get completeSessionComplete => 'Session Complete!';
+
+  @override
+  String get completeTimeSpent => 'Time spent';
+
+  @override
+  String get completeTotalReps => 'Total reps';
+
+  @override
+  String get completeTomorrowsPreview => 'Tomorrow\'s preview';
+
+  @override
+  String completePracticeFlashcards(Object count) {
+    return 'Practice $count Flashcards';
+  }
+
+  @override
+  String get completeBackToDashboard => 'Back to Dashboard';
+
+  @override
+  String get overlayNewMemorization => 'New Memorization';
+
+  @override
+  String get overlayReview => 'Review';
+
+  @override
+  String get overlayRevision => 'Revision';
+
+  @override
+  String get overlayPractice => 'Practice';
+
+  @override
+  String get overlaySimilarVerses => 'This page has similar verses';
+
+  @override
+  String get overlayFree => 'Free';
+
+  @override
+  String get overlayGuided => 'Guided';
+
+  @override
+  String get overlayListen => 'Listen';
+
+  @override
+  String get overlayListenDesc =>
+      'Listen to the page being recited. Focus on the melody and pronunciation';
+
+  @override
+  String overlayTarget(Object count) {
+    return 'target × $count';
+  }
+
+  @override
+  String get overlaySkip => 'Skip';
+
+  @override
+  String get overlayPrev => 'Prev';
+
+  @override
+  String get overlayNext => 'Next';
+
+  @override
+  String get overlayFinish => 'Finish';
+
+  @override
+  String get overlayDone => 'Done';
 }
