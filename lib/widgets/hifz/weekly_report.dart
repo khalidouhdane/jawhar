@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -47,7 +48,7 @@ class WeeklyReportWidget extends StatelessWidget {
         if (previousSnapshot != null && previousSnapshot!.hasEnoughData) ...[
           _buildSectionHeader('Compared to Last Week'),
           const SizedBox(height: 12),
-          _buildComparison(),
+          _buildComparison(context),
           const SizedBox(height: 24),
         ],
 
@@ -294,7 +295,7 @@ class WeeklyReportWidget extends StatelessWidget {
   }
 
   // ── Period Comparison ──
-  Widget _buildComparison() {
+  Widget _buildComparison(BuildContext context) {
     final prev = previousSnapshot!;
 
     return Container(
@@ -307,16 +308,19 @@ class WeeklyReportWidget extends StatelessWidget {
       child: Row(
         children: [
           _buildCompareItem(
+            context,
             'Sessions',
             snapshot.totalSessions,
             prev.totalSessions,
           ),
           _buildCompareItem(
+            context,
             'Pages',
             snapshot.pagesMemorized,
             prev.pagesMemorized,
           ),
           _buildCompareItem(
+            context,
             'Completion',
             (snapshot.completionRate * 100).round(),
             (prev.completionRate * 100).round(),
@@ -328,6 +332,7 @@ class WeeklyReportWidget extends StatelessWidget {
   }
 
   Widget _buildCompareItem(
+    BuildContext context,
     String label,
     int current,
     int previous, {
@@ -366,7 +371,7 @@ class WeeklyReportWidget extends StatelessWidget {
             )
           else
             Text(
-              '— same',
+              '— ${AppLocalizations.of(context)!.reportSame}',
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 11,

@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +65,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Strengthen your memorization',
+                AppLocalizations.of(context)!.pracStrengthen,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -100,7 +101,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       }
                     },
                     child: Text(
-                      '🔄 Regenerate all cards',
+                      AppLocalizations.of(context)!.pracRegenCards,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
@@ -170,8 +171,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 children: [
                   Text(
                     hasDue
-                        ? 'Mixed Review'
-                        : 'All caught up! ✨',
+                        ? AppLocalizations.of(context)!.pracMixedReview
+                        : AppLocalizations.of(context)!.pracAllCaughtUp,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 17,
@@ -183,7 +184,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   Text(
                     hasDue
                         ? '$totalDue cards · ~${fc.estimatedMinutes} min · All types'
-                        : 'No flashcards due right now',
+                        : AppLocalizations.of(context)!.pracNoFlashcards,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -217,7 +218,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               child: _categoryCard(
                 theme: theme,
                 emoji: '⏭️',
-                title: 'Next Verse',
+                title: AppLocalizations.of(context)!.pracNextVerse,
                 subtitle: 'ما بعدها؟',
                 dueCount: fc.getDueCountForType(FlashcardType.nextVerse),
                 color: const Color(0xFF3B82F6), // blue
@@ -229,7 +230,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               child: _categoryCard(
                 theme: theme,
                 emoji: '⏮️',
-                title: 'Previous Verse',
+                title: AppLocalizations.of(context)!.pracPrevVerse,
                 subtitle: 'ما قبلها؟',
                 dueCount: fc.getDueCountForType(FlashcardType.previousVerse),
                 color: const Color(0xFF06B6D4), // cyan
@@ -245,7 +246,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               child: _categoryCard(
                 theme: theme,
                 emoji: '📝',
-                title: 'Complete It',
+                title: AppLocalizations.of(context)!.pracCompleteIt,
                 subtitle: 'أكمل الآية',
                 dueCount:
                     fc.getDueCountForType(FlashcardType.verseCompletion),
@@ -259,7 +260,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               child: _categoryCard(
                 theme: theme,
                 emoji: '🔍',
-                title: 'Surah Detective',
+                title: AppLocalizations.of(context)!.pracSurahDetective,
                 subtitle: 'من أي سورة؟',
                 dueCount: fc.getDueCountForType(FlashcardType.surahDetective),
                 color: const Color(0xFF8B5CF6), // purple
@@ -275,7 +276,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               child: _categoryCard(
                 theme: theme,
                 emoji: '🔗',
-                title: 'Sequence',
+                title: AppLocalizations.of(context)!.pracSequence,
                 subtitle: 'رتب الآيات',
                 dueCount:
                     fc.getDueCountForType(FlashcardType.connectSequence),
@@ -290,7 +291,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 theme: theme,
                 emoji: '⚔️',
                 title: 'Mutashabihat',
-                subtitle: 'آيات متشابهة',
+                subtitle: AppLocalizations.of(context)!.pracMutArabic,
                 dueCount:
                     fc.getDueCountForType(FlashcardType.mutashabihatDuel),
                 color: const Color(0xFFEF4444), // red
@@ -425,7 +426,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mutashabihat (Similar Verses)',
+                      AppLocalizations.of(context)!.pracMutSimilar,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
@@ -434,7 +435,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       ),
                     ),
                     Text(
-                      'Browse, study & practice',
+                      AppLocalizations.of(context)!.pracBrowseStudy,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11,
@@ -462,7 +463,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        '📚 Browse',
+                        AppLocalizations.of(context)!.pracBrowse,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
@@ -488,9 +489,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       color: theme.accentColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Center(
-                      child: Text(
-                        '🎯 Practice',
+                    child: Center(child: Text(AppLocalizations.of(context)!.pracPractice,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
@@ -516,7 +515,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
   Widget _buildStatsRow(ThemeProvider theme, FlashcardProvider fc) {
     return Row(
       children: [
-        _statChip(theme, '${fc.totalCards}', 'Total cards'),
+        _statChip(theme, '${fc.totalCards}', AppLocalizations.of(context)!.pracTotalCards),
         const SizedBox(width: 10),
         _statChip(theme, '${fc.accuracyPercent}%', 'Accuracy'),
       ],
@@ -575,7 +574,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
           Icon(LucideIcons.layers, size: 32, color: theme.mutedText),
           const SizedBox(height: 8),
           Text(
-            'Create a Hifz profile to unlock flashcards',
+            AppLocalizations.of(context)!.pracCreateProfileUnlock,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Inter',

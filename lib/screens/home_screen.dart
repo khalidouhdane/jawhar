@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
 
               // ── Greeting ──
-              _buildGreeting(theme, profile, l),
+              _buildGreeting(theme, profile, l!),
               const SizedBox(height: 24),
 
               // ── Hifz Section ──
@@ -261,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
 
               // ── Ayah of the Day ──
-              _buildAyahCard(theme, l),
+              _buildAyahCard(theme, l!),
               const SizedBox(height: 32),
             ],
           ),
@@ -380,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Icon(LucideIcons.barChart3, size: 14, color: theme.accentColor),
           const SizedBox(width: 6),
           Text(
-            'Weekly Insights →',
+            AppLocalizations.of(context)!.homeWeeklyInsights,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 13,
@@ -467,7 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const Text('🌟', style: TextStyle(fontSize: 32)),
           const SizedBox(height: 8),
           Text(
-            'Great work today!',
+            AppLocalizations.of(context)!.homeGreatWork,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 18,
@@ -477,7 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Your plan is complete. Want to keep going?',
+            AppLocalizations.of(context)!.homePlanComplete,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 13,
@@ -501,8 +501,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: theme.accentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
-                'Start Extra Session ▶',
+              child: Text(
+                AppLocalizations.of(context)!.homeStartExtra,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -550,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppLocalizations l,
   ) {
     final name = profile.hasActiveProfile ? profile.activeProfile!.name : '';
-    final greeting = l.t('home_greeting');
+    final greeting = l!.homeGreeting;
     final displayName = name.isNotEmpty ? ', $name' : '';
 
     return Row(
@@ -609,13 +609,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getSubGreeting(HifzProfileProvider profile) {
     if (!profile.hasActiveProfile) {
-      return 'Begin your memorization journey today';
+      return AppLocalizations.of(context)!.homeBeginJourney;
     }
     final streak = profile.streak.totalActiveDays;
     if (streak > 0) {
       return '$streak active days — keep it up! 🔥';
     }
-    return 'Your journey awaits';
+    return AppLocalizations.of(context)!.homeJourneyAwaits;
   }
 
   void _showProfileSwitcher(
@@ -649,7 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Switch Profile',
+                AppLocalizations.of(context)!.homeSwitchProfile,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 18,
@@ -742,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 16, color: theme.secondaryText),
                       const SizedBox(width: 8),
                       Text(
-                        'Create New Profile',
+                        AppLocalizations.of(context)!.homeCreateProfile,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 13,
@@ -788,7 +788,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Preparing your plan...',
+              AppLocalizations.of(context)!.homePreparingPlan,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
@@ -826,7 +826,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Tap below to generate today\'s plan',
+            AppLocalizations.of(context)!.homeTapBelow,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 13,
@@ -843,9 +843,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: theme.accentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Center(
-                child: Text(
-                  'Generate Plan',
+              child: Center(child: Text(AppLocalizations.of(context)!.homeGeneratePlan,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 14,
@@ -878,7 +876,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(LucideIcons.sparkle, size: 16, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
-                l.t('home_ayah_title'),
+                l!.homeAyahTitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -892,7 +890,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_ayahLoading)
             Center(
               child: Text(
-                l.t('home_loading'),
+                l!.homeLoading,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -929,7 +927,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ] else
             Text(
-              l.t('home_ayah_subtitle'),
+              l!.homeAyahSubtitle,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
@@ -944,9 +942,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Animated AI progress card shown while AI is generating the plan.
   Widget _buildAiProgressCard(ThemeProvider theme, AiProgress progress) {
     final steps = [
-      (AiProgress.analyzing, '📊', 'Analyzing your progress'),
-      (AiProgress.generating, '✨', 'Generating your plan'),
-      (AiProgress.validating, '✅', 'Validating & optimizing'),
+      (AiProgress.analyzing, '📊', AppLocalizations.of(context)!.homeAnalyzing),
+      (AiProgress.generating, '✨', AppLocalizations.of(context)!.homeGenerating),
+      (AiProgress.validating, '✅', AppLocalizations.of(context)!.homeValidating),
     ];
 
     // Determine which step is active
@@ -998,7 +996,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'AI is preparing your plan',
+                AppLocalizations.of(context)!.homeAiPreparing,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -1078,7 +1076,7 @@ class _MissedDaySheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final msg = recoveryMessage;
     final emoji = msg?.emoji ?? '🌅';
-    final title = msg?.title ?? 'Welcome back!';
+    final title = msg?.title ?? AppLocalizations.of(context)!.homeWelcomeBack;
     final message = msg?.message ??
         (missedDays <= 3
             ? 'It\'s been $missedDays days. Let\'s ease back in!'
@@ -1146,8 +1144,7 @@ class _MissedDaySheet extends StatelessWidget {
                 color: theme.accentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
-                'Let\'s Go! ✨',
+              child: Text(AppLocalizations.of(context)!.homeLetsGo,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Inter',

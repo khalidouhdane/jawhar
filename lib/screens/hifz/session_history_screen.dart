@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +22,7 @@ class SessionHistoryScreen extends StatelessWidget {
         backgroundColor: theme.scaffoldBackground,
         appBar: _buildAppBar(theme),
         body: Center(
-          child: Text('No active profile',
+          child: Text(AppLocalizations.of(context)!.hifzNoActiveProfile,
               style: TextStyle(color: theme.mutedText)),
         ),
       );

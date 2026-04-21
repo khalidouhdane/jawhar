@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -266,8 +267,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.sparkles,
-      title: 'Let\'s build your Hifz profile',
-      subtitle: 'A few quick questions to personalize your journey',
+      title: AppLocalizations.of(context)!.assessBuildProfile,
+      subtitle: AppLocalizations.of(context)!.assessQuickQuestions,
       child: Column(
         children: [
           // Name input
@@ -280,7 +281,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               color: theme.primaryText,
             ),
             decoration: InputDecoration(
-              hintText: 'What should we call you?',
+              hintText: AppLocalizations.of(context)!.assessNameHint,
               hintStyle: TextStyle(
                 fontFamily: 'Inter',
                 color: theme.mutedText,
@@ -308,7 +309,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           const SizedBox(height: 24),
           // Avatar picker
           Text(
-            'Choose an avatar',
+            AppLocalizations.of(context)!.assessChooseAvatar,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -384,8 +385,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.users,
-      title: 'How old are you?',
-      subtitle: 'This helps us tailor session length, load, and pace',
+      title: AppLocalizations.of(context)!.assessHowOld,
+      subtitle: AppLocalizations.of(context)!.assessAgeSubtitle,
       child: Column(
         children: [
           // Age number input
@@ -456,7 +457,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Your age group is auto-detected',
+            AppLocalizations.of(context)!.assessAgeAuto,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 12,
@@ -476,22 +477,22 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.compass,
-      title: 'Where are you in your Hifz journey?',
-      subtitle: 'This shapes your starting plan',
+      title: AppLocalizations.of(context)!.assessWhereJourney,
+      subtitle: AppLocalizations.of(context)!.assessShapesPlan,
       child: Column(
         children: [
-          _optionCard(theme, '🌱', 'Starting fresh',
-              'I haven\'t memorized before or starting over',
+          _optionCard(theme, '🌱', AppLocalizations.of(context)!.assessFresh,
+              AppLocalizations.of(context)!.assessFreshDesc,
               _hifzExperience == HifzExperience.fresh,
               () => setState(() => _hifzExperience = HifzExperience.fresh)),
           const SizedBox(height: 12),
-          _optionCard(theme, '🔄', 'Resuming',
-              'I memorized some before and want to continue',
+          _optionCard(theme, '🔄', AppLocalizations.of(context)!.assessResuming,
+              AppLocalizations.of(context)!.assessResumingDesc,
               _hifzExperience == HifzExperience.resuming,
               () => setState(() => _hifzExperience = HifzExperience.resuming)),
           const SizedBox(height: 12),
-          _optionCard(theme, '📖', 'Reviewing',
-              'I\'ve memorized a lot and need to strengthen it',
+          _optionCard(theme, '📖', AppLocalizations.of(context)!.assessReviewing,
+              AppLocalizations.of(context)!.assessReviewingDesc,
               _hifzExperience == HifzExperience.reviewing,
               () => setState(() => _hifzExperience = HifzExperience.reviewing)),
         ],
@@ -507,12 +508,12 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.brain,
-      title: 'When you memorize something new, what helps most?',
-      subtitle: 'Pick the one that resonates — no wrong answers!',
+      title: AppLocalizations.of(context)!.assessWhatHelps,
+      subtitle: AppLocalizations.of(context)!.assessNoWrong,
       child: Column(
         children: [
-          _optionCard(theme, '👁️', 'Looking and reading',
-              'I stare at the text until it sticks',
+          _optionCard(theme, '👁️', AppLocalizations.of(context)!.assessPrefVisual,
+              AppLocalizations.of(context)!.assessPrefVisualDesc,
               _learningPref == LearningPreference.visual,
               () => setState(() => _learningPref = LearningPreference.visual)),
           const SizedBox(height: 12),
@@ -521,13 +522,13 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               _learningPref == LearningPreference.auditory,
               () => setState(() => _learningPref = LearningPreference.auditory)),
           const SizedBox(height: 12),
-          _optionCard(theme, '✍️', 'Writing it down',
-              'Writing helps me remember',
+          _optionCard(theme, '✍️', AppLocalizations.of(context)!.assessPrefWriting,
+              AppLocalizations.of(context)!.assessPrefWritingDesc,
               _learningPref == LearningPreference.kinesthetic,
               () => setState(() => _learningPref = LearningPreference.kinesthetic)),
           const SizedBox(height: 12),
-          _optionCard(theme, '🔄', 'Repeating out loud',
-              'I just keep saying it until I know it',
+          _optionCard(theme, '🔄', AppLocalizations.of(context)!.assessPrefVerbal,
+              AppLocalizations.of(context)!.assessPrefVerbalDesc,
               _learningPref == LearningPreference.repetition,
               () => setState(() => _learningPref = LearningPreference.repetition)),
         ],
@@ -543,22 +544,22 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.zap,
-      title: 'Imagine memorizing a new page...',
-      subtitle: 'After 30 minutes of focused effort, how much would you typically remember?',
+      title: AppLocalizations.of(context)!.assessImaginePage,
+      subtitle: AppLocalizations.of(context)!.assessAfter_30,
       child: Column(
         children: [
-          _optionCard(theme, '🚀', 'Most of the page',
-              'I pick things up quickly',
+          _optionCard(theme, '🚀', AppLocalizations.of(context)!.assessMostPage,
+              AppLocalizations.of(context)!.assessMostPageDesc,
               _encodingSpeed == EncodingSpeed.fast,
               () => setState(() => _encodingSpeed = EncodingSpeed.fast)),
           const SizedBox(height: 12),
-          _optionCard(theme, '📖', 'About half',
-              'I need a few sessions to finish a page',
+          _optionCard(theme, '📖', AppLocalizations.of(context)!.assessHalfPage,
+              AppLocalizations.of(context)!.assessHalfPageDesc,
               _encodingSpeed == EncodingSpeed.moderate,
               () => setState(() => _encodingSpeed = EncodingSpeed.moderate)),
           const SizedBox(height: 12),
-          _optionCard(theme, '🐢', 'A few lines',
-              'I prefer to go slow and careful',
+          _optionCard(theme, '🐢', AppLocalizations.of(context)!.assessFewLines,
+              AppLocalizations.of(context)!.assessFewLinesDesc,
               _encodingSpeed == EncodingSpeed.slow,
               () => setState(() => _encodingSpeed = EncodingSpeed.slow)),
         ],
@@ -574,22 +575,22 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.refreshCw,
-      title: 'Think about something you memorized last month...',
-      subtitle: 'If someone asked you to recite it today, how would it go?',
+      title: AppLocalizations.of(context)!.assessThinkLastMonth,
+      subtitle: AppLocalizations.of(context)!.assessIfAsked,
       child: Column(
         children: [
-          _optionCard(theme, '💪', 'Pretty smoothly',
-              'It sticks with me once I learn it',
+          _optionCard(theme, '💪', AppLocalizations.of(context)!.assessPrettySmooth,
+              AppLocalizations.of(context)!.assessPrettySmoothDesc,
               _retention == RetentionStrength.strong,
               () => setState(() => _retention = RetentionStrength.strong)),
           const SizedBox(height: 12),
-          _optionCard(theme, '🤔', 'I\'d need a quick refresh',
-              'Then it comes back',
+          _optionCard(theme, '🤔', AppLocalizations.of(context)!.assessQuickRefresh,
+              AppLocalizations.of(context)!.assessQuickRefreshDesc,
               _retention == RetentionStrength.moderate,
               () => setState(() => _retention = RetentionStrength.moderate)),
           const SizedBox(height: 12),
-          _optionCard(theme, '😅', 'I\'d struggle',
-              'Things fade if I don\'t review regularly',
+          _optionCard(theme, '😅', AppLocalizations.of(context)!.assessStruggle,
+              AppLocalizations.of(context)!.assessStruggleDesc,
               _retention == RetentionStrength.fragile,
               () => setState(() => _retention = RetentionStrength.fragile)),
         ],
@@ -605,8 +606,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.clock,
-      title: 'Your daily commitment',
-      subtitle: 'How much time can you dedicate each day?',
+      title: AppLocalizations.of(context)!.assessDailyCommit,
+      subtitle: AppLocalizations.of(context)!.assessHowMuchTime,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -634,7 +635,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           const SizedBox(height: 16),
           // Time of day chips
           Text(
-            'Preferred time',
+            AppLocalizations.of(context)!.assessPrefTime,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -691,8 +692,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.calendarDays,
-      title: 'Which days will you study?',
-      subtitle: 'Tap to toggle — rest days are important too!',
+      title: AppLocalizations.of(context)!.assessWhichDays,
+      subtitle: AppLocalizations.of(context)!.assessTapToggle,
       child: Column(
         children: [
           // 7-day grid
@@ -796,14 +797,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.target,
-      title: 'Your goal & pace',
-      subtitle: 'What do you want to memorize and how fast?',
+      title: AppLocalizations.of(context)!.assessGoalPace,
+      subtitle: AppLocalizations.of(context)!.assessWhatMemorize,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Goal selection
           Text(
-            'What\'s your aim?',
+            AppLocalizations.of(context)!.assessWhatAim,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -812,21 +813,21 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _optionCard(theme, '📖', 'The entire Quran', 'Full memorization journey',
+          _optionCard(theme, '📖', AppLocalizations.of(context)!.assessEntireQuran, AppLocalizations.of(context)!.assessEntireQuranDesc,
               _goal == HifzGoal.fullQuran,
               () => setState(() => _goal = HifzGoal.fullQuran)),
           const SizedBox(height: 10),
-          _optionCard(theme, '📑', 'Specific Juz', 'Choose which juz to memorize',
+          _optionCard(theme, '📑', AppLocalizations.of(context)!.assessSpecificJuz, AppLocalizations.of(context)!.assessSpecificJuzDesc,
               _goal == HifzGoal.specificJuz,
               () => setState(() => _goal = HifzGoal.specificJuz)),
           const SizedBox(height: 10),
-          _optionCard(theme, '📄', 'Specific Surahs', 'Pick individual surahs',
+          _optionCard(theme, '📄', AppLocalizations.of(context)!.assessSpecificSurah, AppLocalizations.of(context)!.assessSpecificSurahDesc,
               _goal == HifzGoal.specificSurahs,
               () => setState(() => _goal = HifzGoal.specificSurahs)),
           const SizedBox(height: 24),
           // Pace preference
           Text(
-            'How fast do you want to go?',
+            AppLocalizations.of(context)!.assessHowFast,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -835,18 +836,18 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _optionCard(theme, '🚀', 'Push me',
-              'Higher load, faster progression',
+          _optionCard(theme, '🚀', AppLocalizations.of(context)!.assessPushMe,
+              AppLocalizations.of(context)!.assessPushMeDesc,
               _pacePreference == PacePreference.aggressive,
               () => setState(() => _pacePreference = PacePreference.aggressive)),
           const SizedBox(height: 10),
           _optionCard(theme, '⚖️', 'Steady',
-              'Balanced and consistent',
+              AppLocalizations.of(context)!.assessBalanced,
               _pacePreference == PacePreference.steady,
               () => setState(() => _pacePreference = PacePreference.steady)),
           const SizedBox(height: 10),
           _optionCard(theme, '🌿', 'Gentle',
-              'Lighter load, focus on retention',
+              AppLocalizations.of(context)!.assessBalancedDesc,
               _pacePreference == PacePreference.gentle,
               () => setState(() => _pacePreference = PacePreference.gentle)),
         ],
@@ -875,8 +876,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.mic,
-      title: 'Choose your Qari',
-      subtitle: 'Sticking with one reciter helps build stronger auditory memory',
+      title: AppLocalizations.of(context)!.assessChooseQari,
+      subtitle: AppLocalizations.of(context)!.assessStickingOne,
       child: reciters.isEmpty
           ? Center(
               child: Column(
@@ -884,7 +885,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   CircularProgressIndicator(color: theme.accentColor),
                   const SizedBox(height: 12),
                   Text(
-                    'Loading reciters...',
+                    AppLocalizations.of(context)!.assessLoadingReciters,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -1006,24 +1007,24 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return _pageWrapper(
       theme,
       icon: LucideIcons.mapPin,
-      title: 'Where would you like to start?',
-      subtitle: 'Pick any page or surah — you\'re in full control',
+      title: AppLocalizations.of(context)!.assessWhereStart,
+      subtitle: AppLocalizations.of(context)!.assessPickAny,
       child: Column(
         children: [
           // Suggested options
-          _optionCard(theme, '⭐', 'Juz 30 (Juz \'Amma)',
-              'Most common starting point — Page 582',
+          _optionCard(theme, '⭐', AppLocalizations.of(context)!.assessJuz_30,
+              AppLocalizations.of(context)!.assessJuz_30Desc,
               _startingPage == 582,
               () => setState(() => _startingPage = 582)),
           const SizedBox(height: 12),
-          _optionCard(theme, '⭐', 'Surah Al-Baqarah',
-              'Start from the beginning — Page 2',
+          _optionCard(theme, '⭐', AppLocalizations.of(context)!.assessSurahBaqarah,
+              AppLocalizations.of(context)!.assessSurahBaqarahDesc,
               _startingPage == 2,
               () => setState(() => _startingPage = 2)),
           const SizedBox(height: 20),
           // Custom page input
           Text(
-            'Or pick a specific page (1-604)',
+            AppLocalizations.of(context)!.assessPickSpecific,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 13,
@@ -1140,7 +1141,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your Plan',
+                  AppLocalizations.of(context)!.assessYourPlan,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 14,
@@ -1153,18 +1154,18 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 const SizedBox(height: 10),
                 _paramRow(theme, '🌱', 'Experience', _hifzExperience.name),
                 const SizedBox(height: 10),
-                _paramRow(theme, '📅', 'Active days', '${_activeDays.length}/7 days'),
+                _paramRow(theme, '📅', AppLocalizations.of(context)!.assessActiveDays, '${_activeDays.length}/7 days'),
                 const SizedBox(height: 10),
                 _paramRow(theme, '⚡', 'Pace', _pacePreference.name),
                 const SizedBox(height: 10),
-                _paramRow(theme, '📖', 'Daily new material', load),
+                _paramRow(theme, '📖', AppLocalizations.of(context)!.assessDailyNew, load),
                 const SizedBox(height: 10),
-                _paramRow(theme, '🔁', 'Target repetitions',
+                _paramRow(theme, '🔁', AppLocalizations.of(context)!.assessTargetReps,
                     _targetRepsDescription()),
                 const SizedBox(height: 10),
-                _paramRow(theme, '⏱', 'Time split', timeSplit),
+                _paramRow(theme, '⏱', AppLocalizations.of(context)!.assessTimeSplit, timeSplit),
                 const SizedBox(height: 10),
-                _paramRow(theme, '📍', 'Starting at', 'Page $_startingPage'),
+                _paramRow(theme, '📍', AppLocalizations.of(context)!.assessStartingAt, 'Page $_startingPage'),
               ],
             ),
           ),
@@ -1190,7 +1191,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Estimated Timeline',
+                        AppLocalizations.of(context)!.assessEstTimeline,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 13,
@@ -1234,8 +1235,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     ),
                   ],
                 ),
-                child: const Text(
-                  'Start My Journey ✨',
+                child: Text(AppLocalizations.of(context)!.assessStartJourney,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Inter',
@@ -1280,7 +1280,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your Memory Profile',
+            AppLocalizations.of(context)!.assessYourProfile,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -1657,7 +1657,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  'Continue →',
+                  AppLocalizations.of(context)!.assessContinue,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Inter',

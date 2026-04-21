@@ -45,7 +45,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                l.t('audio_settings_title'),
+                l!.audioSettingsTitle,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -67,7 +67,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l.t('audio_playback_speed'),
+                l!.audioPlaybackSpeed,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -131,7 +131,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      l.t('audio_repeat_mode'),
+                      l!.audioRepeatMode,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -144,14 +144,14 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                 Row(
                   children: [
                     _buildRepeatChip(
-                      l.t('audio_repeat_off'),
+                      l!.audioRepeatOff,
                       AudioRepeatMode.none,
                       audioProvider,
                       theme,
                     ),
                     const SizedBox(width: 8),
                     _buildRepeatChip(
-                      l.t('audio_repeat_verse'),
+                      l!.audioRepeatVerse,
                       AudioRepeatMode.repeatVerse,
                       audioProvider,
                       theme,
@@ -173,7 +173,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        l.t('audio_repeat_times'),
+                        l!.audioRepeatTimes,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

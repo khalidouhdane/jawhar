@@ -49,7 +49,7 @@ class _AudioScreenState extends State<AudioScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                l.t('audio_title'),
+                l!.audioTitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 26,
@@ -63,7 +63,7 @@ class _AudioScreenState extends State<AudioScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                l.t('audio_subtitle'),
+                l!.audioSubtitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -94,7 +94,7 @@ class _AudioScreenState extends State<AudioScreen>
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
-                    hintText: l.t('audio_search_hint'),
+                    hintText: l!.audioSearchHint,
                     hintStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -143,8 +143,8 @@ class _AudioScreenState extends State<AudioScreen>
                     fontWeight: FontWeight.w500,
                   ),
                   tabs: [
-                    Tab(text: l.t('audio_tab_reciters')),
-                    Tab(text: l.t('audio_tab_surahs')),
+                    Tab(text: l!.audioTabReciters),
+                    Tab(text: l!.audioTabSurahs),
                   ],
                 ),
               ),
@@ -230,7 +230,7 @@ class _AudioScreenState extends State<AudioScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${loc.t('audio_now_playing')} — ${audio.activeVerseKey}',
+                          '${loc!.audioNowPlaying} — ${audio.activeVerseKey}',
                           style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 12,

@@ -53,7 +53,7 @@ class _SearchSheetState extends State<SearchSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      l.t('search_title'),
+                      l!.searchTitle,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -79,7 +79,7 @@ class _SearchSheetState extends State<SearchSheet> {
                   onChanged: (value) => setState(() => searchQuery = value),
                   style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
-                    hintText: l.t('search_hint'),
+                    hintText: l!.searchHint,
                     hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
                     prefixIcon: Icon(
                       LucideIcons.search,
@@ -133,7 +133,7 @@ class _SearchSheetState extends State<SearchSheet> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          l.t('search_no_results'),
+                          l!.searchNoResults,
                           style: TextStyle(
                             color: theme.mutedText,
                             fontSize: 14,
@@ -187,7 +187,7 @@ class _SearchSheetState extends State<SearchSheet> {
                         ),
                       ),
                       subtitle: Text(
-                        "${surah.versesCount} ${l.t('nav_ayahs')}",
+                        "${surah.versesCount} ${l!.navAyahs}",
                         style: TextStyle(fontSize: 12, color: theme.mutedText),
                       ),
                       trailing: Text(

@@ -1,535 +1,2388 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-/// Lightweight manual localization — no intl/arb codegen needed.
-/// Usage: `AppLocalizations.of(context).t('key')`
-class AppLocalizations {
-  final Locale locale;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
 
-  AppLocalizations(this.locale);
+import 'app_localizations_ar.dart';
+import 'app_localizations_en.dart';
 
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  /// Get the translated string for [key]. Falls back to English.
-  String t(String key) {
-    return _strings[locale.languageCode]?[key] ?? _strings['en']?[key] ?? key;
-  }
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
-  // ── All translatable strings ──
-  static const Map<String, Map<String, String>> _strings = {
-    'en': {
-      // Bottom Nav
-      'nav_home': 'Home',
-      'nav_dashboard': 'Dashboard',
-      'nav_practice': 'Practice',
-      'nav_read': 'Read',
-      'nav_listen': 'Listen',
-      'nav_audio': 'Audio',
-      'nav_hifz': 'Hifz',
-      'nav_profile': 'Profile',
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('en'),
+  ];
 
-      // Home Screen
-      'home_greeting': 'Assalamu Alaikum',
-      'home_resume_title': 'Resume Your Journey',
-      'home_resume_subtitle': 'Continue where you left off',
-      'home_continue': 'Continue Reading',
-      'home_no_history': 'Start reading to track your progress',
-      'home_quick_access': 'Quick Access',
-      'home_bookmarks': 'Bookmarks',
-      'home_random': 'Random\nPage',
-      'home_ayah_title': 'Ayah of the Day',
-      'home_ayah_subtitle': 'Daily inspiration from the Quran',
-      'home_hifz_title': 'Hifz Progress',
-      'home_hifz_subtitle': 'Memorization journey',
-      'home_coming_soon': 'Coming Soon',
-      'home_loading': 'Loading verse...',
-      'home_page': 'Page',
-      'home_read': 'Read',
-      'home_welcome': 'Welcome',
-      'home_just_now': 'Just now',
-      'home_min_ago': 'm ago',
-      'home_hour_ago': 'h ago',
-      'home_yesterday': 'Yesterday',
-      'home_days_ago': 'days ago',
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
 
-      // Read Index
-      'read_title': 'Read',
-      'read_subtitle': 'Explore the Holy Quran',
-      'read_search_hint': 'Search surahs...',
-      'read_tab_surah': 'Surah',
-      'read_tab_juz': 'Juz',
-      'read_tab_hizb': 'Hizb',
-      'read_verses': 'verses',
-      'read_pages': 'Pages',
+  /// No description provided for @navDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navDashboard;
 
-      // Audio Screen
-      'audio_title': 'Listen',
-      'audio_subtitle': 'Explore reciters and listen to the Quran',
-      'audio_search_hint': 'Search reciters or surahs...',
-      'audio_tab_reciters': 'Reciters',
-      'audio_tab_surahs': 'Surahs',
-      'audio_now_playing': 'Now Playing',
-      'audio_active': 'Active',
-      'audio_verses': 'verses',
+  /// No description provided for @navPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get navPractice;
 
-      // Hifz Screen
-      'hifz_title': 'Memorization',
-      'hifz_subtitle': 'Track your Hifz journey',
-      'hifz_day_streak': 'Day streak',
-      'hifz_best_streak': 'Best streak',
-      'hifz_sabaq': 'Sabaq',
-      'hifz_sabaq_desc': 'New lessons',
-      'hifz_sabqi': 'Sabqi',
-      'hifz_sabqi_desc': 'Recent review',
-      'hifz_manzil': 'Manzil',
-      'hifz_manzil_desc': 'Mastered',
-      'hifz_overall': 'Overall Progress',
-      'hifz_of_surahs': 'of 114 surahs',
-      'hifz_all_surahs': 'All Surahs',
-      'hifz_not_started': 'Not Started',
-      'hifz_learning': 'Learning (Sabaq)',
-      'hifz_reviewing': 'Reviewing (Sabqi)',
-      'hifz_memorized': 'Memorized (Manzil)',
-      'hifz_mark_reviewed': 'Mark Reviewed Today',
-      'hifz_total': 'total',
-      'hifz_never_reviewed': 'Never reviewed',
-      'hifz_last_reviewed': 'Last reviewed:',
+  /// No description provided for @navRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get navRead;
 
-      // Profile Screen
-      'profile_title': 'Settings',
-      'profile_subtitle': 'Customize your experience',
-      'profile_journey': 'Your Journey',
-      'profile_memorized': 'Memorized',
-      'profile_last_page': 'Last page',
-      'profile_appearance': 'Appearance',
-      'profile_language': 'Language',
-      'profile_reading': 'Reading',
-      'profile_theme_classic': 'Classic',
-      'profile_theme_warm': 'Warm',
-      'profile_theme_dark': 'Dark',
-      'profile_bookmarks_title': 'Your Bookmarks',
-      'profile_bookmarks_desc': 'Save and organize your favorite verses',
-      'profile_soon': 'Soon',
-      'profile_about': 'About',
-      'profile_version': 'Version 1.0.0',
-      'profile_made_with': 'Made with love',
-      'profile_companion': 'A modern Quran companion',
-      'profile_data': 'Data Source',
-      'profile_replay_onboarding': 'Replay Onboarding',
-      'profile_replay_onboarding_desc':
-          'Change language and reading preference',
+  /// No description provided for @navListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get navListen;
 
-      // Reading Screen Chrome
-      'reading_read': 'Read',
-      'reading_tafsir': 'Tafsir',
-      'reading_select_verse': 'Select a verse',
+  /// No description provided for @navAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get navAudio;
 
-      // Theme Picker Sheet
-      'theme_appearance': 'Appearance',
-      'theme_classic': 'Classic',
-      'theme_warm': 'Warm',
-      'theme_dark': 'Dark',
-      'theme_active': 'Active',
-      'theme_fit_screen': 'Fit Screen Height',
-      'theme_fit_screen_desc':
-          'Auto-calculates the perfect font size to fit the entire page without scrolling.',
-      'theme_font_size': 'Font Size',
-      'theme_line_spacing': 'Line Spacing',
-      'theme_text_align': 'Text Align',
-      'theme_content_align': 'Content Align',
-      'theme_overlay_typo': 'Overlay Typography',
-      'theme_opacity': 'Opacity',
-      'theme_overlay_indicators': 'Overlay Indicators',
-      'theme_alternate_info': 'Alternate Info Layout per Page',
-      'theme_show_hizb': 'Show Hizb Info',
-      'theme_show_juz': 'Show Juz Info',
-      'theme_show_book_icon': 'Show Book Icon Indicator',
-      'theme_page_shadow': 'Page Shadow Effects',
-      'theme_center_spine': 'Center Spine',
-      'theme_outer_edge': 'Outer Edge',
-      'theme_intensity': 'Intensity',
-      'theme_spine_width': 'Spine Width',
-      'theme_edge_width': 'Edge Width',
-      'theme_spine_padding': 'Spine Padding',
-      'theme_edge_padding': 'Edge Padding',
+  /// No description provided for @navHifz.
+  ///
+  /// In en, this message translates to:
+  /// **'Hifz'**
+  String get navHifz;
 
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
 
-      // Daily Werd
-      'werd_set_title': 'Set Your Daily Werd',
-      'werd_set_desc':
-          'Create a daily recitation goal to\nstay consistent with your reading',
-      'werd_get_started': 'Get Started',
-      'werd_daily': 'Daily Werd',
-      'werd_complete': 'Masha\'Allah! 🎉',
-      'werd_complete_desc': 'You completed your daily werd',
-      'werd_pages_of': 'of',
-      'werd_pages_label': 'pages',
-      'werd_pages_remaining': 'pages remaining today',
-      'werd_pages_range': 'Pages',
-      'werd_start_reading': 'Start Reading',
-      'werd_setup_title': 'Daily Werd Setup',
-      'werd_setup_desc': 'Set your daily Quran reading goal',
-      'werd_fixed_range': 'Fixed Range',
-      'werd_daily_pages': 'Daily Pages',
-      'werd_from_page': 'From Page',
-      'werd_to_page': 'To Page',
-      'werd_pages_per_day': 'Pages per day',
-      'werd_1_page': '1 page',
-      'werd_30_pages': '30 pages',
-      'werd_save': 'Save Werd',
-      'werd_summary_fixed': 'Read {pages} pages daily (Pages {start}–{end})',
-      'werd_summary_daily': 'Read {pages} pages daily ≈ {days} days to finish',
-      'werd_error_range': 'Start page must be before end page',
+  /// No description provided for @homeGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Assalamu Alaikum'**
+  String get homeGreeting;
 
-      // Nav Menu Sheet
-      'nav_index': 'Index',
-      'nav_tab_surah': 'Surah',
-      'nav_tab_juz': 'Juz',
-      'nav_tab_bookmarks': 'Bookmarks',
-      'nav_search_hint': 'Search surah name or number...',
-      'nav_juz_coming': 'Juz list coming soon',
-      'nav_ayahs': 'Ayahs',
-      'nav_no_bookmarks': 'No bookmarks yet',
-      'nav_bookmark_hint': 'Tap the bookmark icon on any surah',
-      'nav_page': 'Page',
-      'nav_pages': 'Pages',
-      'nav_verses': 'Verses',
-      'nav_no_page_bookmarks': 'No page bookmarks yet',
-      'nav_page_bookmark_hint': 'Tap the bookmark icon in the top bar\nwhile reading to save a page',
-      'nav_no_verse_bookmarks': 'No verse bookmarks yet',
-      'nav_verse_bookmark_hint': 'Long-press any verse and tap the\nbookmark icon to save it',
+  /// No description provided for @homeResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume Your Journey'**
+  String get homeResumeTitle;
 
-      // Bookmark Edit & Collections
-      'bm_edit_title': 'Edit Bookmark',
-      'bm_color': 'Color',
-      'bm_note': 'Note',
-      'bm_note_hint': 'Add a personal note...',
-      'bm_collection': 'Collection',
-      'bm_uncategorized': 'Uncategorized',
-      'bm_delete': 'Delete Bookmark',
-      'bm_all': 'All',
-      'bm_new_collection': 'New Collection',
-      'bm_collection_name_hint': 'e.g. Favorite Duas',
-      'bm_cancel': 'Cancel',
-      'bm_create': 'Create',
-      'bm_add': 'Add',
-      'bm_rename': 'Rename',
-      'bm_delete_collection': 'Delete Collection',
-      'bm_save': 'Save',
+  /// No description provided for @homeResumeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue where you left off'**
+  String get homeResumeSubtitle;
 
-      // Reciter Menu Sheet
-      'reciter_title': 'Select Reciter',
-      'reciter_search_hint': 'Search by reciter name...',
-      'reciter_tab_favorites': 'Favorites',
-      'reciter_tab_recent': 'Recent',
-      'reciter_tab_all': 'All',
-      'reciter_hafs': 'Hafs',
-      'reciter_warsh': 'Warsh',
-      'reciter_style_all': 'All',
-      'reciter_recitation': 'Recitation',
-      'reciter_standard': 'Standard',
-      'reciter_no_favorites': 'No favorite reciters yet',
-      'reciter_no_recent': 'No recent reciters',
-      'reciter_no_found': 'No reciters found',
+  /// No description provided for @homeContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Reading'**
+  String get homeContinue;
 
-      // Search Sheet
-      'search_title': 'Search',
-      'search_hint': 'Search surah name or number...',
-      'search_no_results': 'No results found',
+  /// No description provided for @homeNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Start reading to track your progress'**
+  String get homeNoHistory;
 
-      // Audio Settings Sheet
-      'audio_settings_title': 'Audio Settings',
-      'audio_playback_speed': 'Playback Speed',
-      'audio_repeat_mode': 'Repeat Mode',
-      'audio_repeat_off': 'Off',
-      'audio_repeat_verse': 'Verse',
-      'audio_repeat_times': 'Repeat times',
+  /// No description provided for @homeQuickAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get homeQuickAccess;
 
-      // Reading Edge Info
-      'reading_juz': 'Juz',
-      'reading_hizb': 'Hizb',
-      'reading_verse': 'Verse',
-      'reading_playing': 'Playing...',
-      'reading_page_na': 'Page not available',
+  /// No description provided for @homeBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get homeBookmarks;
 
-      // Practice Screen
-      'practice_title': 'Practice',
-      'practice_subtitle': 'Strengthen your memorization',
-      'practice_coming_title': 'Coming Soon',
-      'practice_coming_desc': 'Flashcards and mutashabihat drills to reinforce your memorization journey.',
-      'practice_flashcards': 'Flashcards',
-      'practice_mutashabihat': 'Mutashabihat',
+  /// No description provided for @homeRandom.
+  ///
+  /// In en, this message translates to:
+  /// **'Random\nPage'**
+  String get homeRandom;
 
-      // General
-      'loading': 'Loading...',
+  /// No description provided for @homeAyahTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayah of the Day'**
+  String get homeAyahTitle;
 
-      // In-App Update
-      'update_available': 'Update Available',
-      'update_whats_new': 'What\'s New',
-      'update_now': 'Update Now',
-      'update_later': 'Later',
-      'update_downloading': 'Downloading...',
-      'update_error': 'Update failed. Please try again later.',
-    },
+  /// No description provided for @homeAyahSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily inspiration from the Quran'**
+  String get homeAyahSubtitle;
 
-    'ar': {
-      // Bottom Nav
-      'nav_home': 'الرئيسية',
-      'nav_dashboard': 'الرئيسية',
-      'nav_practice': 'التدريب',
-      'nav_read': 'القراءة',
-      'nav_listen': 'الاستماع',
-      'nav_audio': 'الاستماع',
-      'nav_hifz': 'الحفظ',
-      'nav_profile': 'الإعدادات',
+  /// No description provided for @homeHifzTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hifz Progress'**
+  String get homeHifzTitle;
 
-      // Home Screen
-      'home_greeting': 'السلام عليكم',
-      'home_resume_title': 'أكمل رحلتك',
-      'home_resume_subtitle': 'تابع من حيث توقفت',
-      'home_continue': 'أكمل القراءة',
-      'home_no_history': 'ابدأ القراءة لتتبع تقدمك',
-      'home_quick_access': 'وصول سريع',
-      'home_bookmarks': 'العلامات',
-      'home_random': 'صفحة\nعشوائية',
-      'home_ayah_title': 'آية اليوم',
-      'home_ayah_subtitle': 'إلهام يومي من القرآن الكريم',
-      'home_hifz_title': 'تقدم الحفظ',
-      'home_hifz_subtitle': 'رحلة الحفظ',
-      'home_coming_soon': 'قريباً',
-      'home_loading': 'جاري تحميل الآية...',
-      'home_page': 'صفحة',
-      'home_read': 'القراءة',
-      'home_welcome': 'أهلاً وسهلاً',
-      'home_just_now': 'الآن',
-      'home_min_ago': 'د مضت',
-      'home_hour_ago': 'س مضت',
-      'home_yesterday': 'أمس',
-      'home_days_ago': 'أيام مضت',
+  /// No description provided for @homeHifzSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorization journey'**
+  String get homeHifzSubtitle;
 
-      // Read Index
-      'read_title': 'القراءة',
-      'read_subtitle': 'تصفح القرآن الكريم',
-      'read_search_hint': 'ابحث عن سورة...',
-      'read_tab_surah': 'سورة',
-      'read_tab_juz': 'جزء',
-      'read_tab_hizb': 'حزب',
-      'read_verses': 'آيات',
-      'read_pages': 'صفحات',
+  /// No description provided for @homeComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get homeComingSoon;
 
-      // Audio Screen
-      'audio_title': 'الاستماع',
-      'audio_subtitle': 'استكشف القراء واستمع للقرآن',
-      'audio_search_hint': 'ابحث عن قارئ أو سورة...',
-      'audio_tab_reciters': 'القراء',
-      'audio_tab_surahs': 'السور',
-      'audio_now_playing': 'يعمل الآن',
-      'audio_active': 'نشط',
-      'audio_verses': 'آيات',
+  /// No description provided for @homeLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading verse...'**
+  String get homeLoading;
 
-      // Hifz Screen
-      'hifz_title': 'الحفظ',
-      'hifz_subtitle': 'تتبع رحلة حفظك',
-      'hifz_day_streak': 'أيام متتالية',
-      'hifz_best_streak': 'أفضل سلسلة',
-      'hifz_sabaq': 'سبق',
-      'hifz_sabaq_desc': 'دروس جديدة',
-      'hifz_sabqi': 'سبقي',
-      'hifz_sabqi_desc': 'مراجعة حديثة',
-      'hifz_manzil': 'منزل',
-      'hifz_manzil_desc': 'متقن',
-      'hifz_overall': 'التقدم العام',
-      'hifz_of_surahs': 'من 114 سورة',
-      'hifz_all_surahs': 'جميع السور',
-      'hifz_not_started': 'لم يبدأ',
-      'hifz_learning': 'قيد التعلم (سبق)',
-      'hifz_reviewing': 'قيد المراجعة (سبقي)',
-      'hifz_memorized': 'محفوظ (منزل)',
-      'hifz_mark_reviewed': 'تمت المراجعة اليوم',
-      'hifz_total': 'إجمالي',
-      'hifz_never_reviewed': 'لم تتم مراجعته',
-      'hifz_last_reviewed': 'آخر مراجعة:',
+  /// No description provided for @homePage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get homePage;
 
-      // Profile Screen
-      'profile_title': 'الإعدادات',
-      'profile_subtitle': 'خصص تجربتك',
-      'profile_journey': 'رحلتك',
-      'profile_memorized': 'محفوظ',
-      'profile_last_page': 'آخر صفحة',
-      'profile_appearance': 'المظهر',
-      'profile_language': 'اللغة',
-      'profile_reading': 'القراءة',
-      'profile_theme_classic': 'كلاسيكي',
-      'profile_theme_warm': 'دافئ',
-      'profile_theme_dark': 'داكن',
-      'profile_bookmarks_title': 'علاماتك المرجعية',
-      'profile_bookmarks_desc': 'احفظ ونظم آياتك المفضلة',
-      'profile_soon': 'قريباً',
-      'profile_about': 'حول',
-      'profile_version': 'الإصدار 1.0.0',
-      'profile_made_with': 'صُنع بحب',
-      'profile_companion': 'رفيق قرآني عصري',
-      'profile_data': 'مصدر البيانات',
-      'profile_replay_onboarding': 'إعادة الإعداد الأولي',
-      'profile_replay_onboarding_desc': 'تغيير اللغة والقراءة المفضلة',
+  /// No description provided for @homeRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get homeRead;
 
-      // Reading Screen Chrome
-      'reading_read': 'القراءة',
-      'reading_tafsir': 'التفسير',
-      'reading_select_verse': 'اختر آية',
+  /// No description provided for @homeWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get homeWelcome;
 
-      // Theme Picker Sheet
-      'theme_appearance': 'المظهر',
-      'theme_classic': 'كلاسيكي',
-      'theme_warm': 'دافئ',
-      'theme_dark': 'داكن',
-      'theme_active': 'نشط',
-      'theme_fit_screen': 'ملائمة ارتفاع الشاشة',
-      'theme_fit_screen_desc':
-          'يحسب حجم الخط تلقائياً ليناسب الصفحة كاملة بدون تمرير.',
-      'theme_font_size': 'حجم الخط',
-      'theme_line_spacing': 'تباعد الأسطر',
-      'theme_text_align': 'محاذاة النص',
-      'theme_content_align': 'محاذاة المحتوى',
-      'theme_overlay_typo': 'خط العرض',
-      'theme_opacity': 'الشفافية',
-      'theme_overlay_indicators': 'مؤشرات العرض',
-      'theme_alternate_info': 'تبديل تخطيط المعلومات لكل صفحة',
-      'theme_show_hizb': 'إظهار معلومات الحزب',
-      'theme_show_juz': 'إظهار معلومات الجزء',
-      'theme_show_book_icon': 'إظهار أيقونة الكتاب',
-      'theme_page_shadow': 'تأثيرات ظل الصفحة',
-      'theme_center_spine': 'عمود مركزي',
-      'theme_outer_edge': 'حافة خارجية',
-      'theme_intensity': 'الشدة',
-      'theme_spine_width': 'عرض العمود',
-      'theme_edge_width': 'عرض الحافة',
-      'theme_spine_padding': 'حشو العمود',
-      'theme_edge_padding': 'حشو الحافة',
+  /// No description provided for @homeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get homeJustNow;
 
+  /// No description provided for @homeMinAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'m ago'**
+  String get homeMinAgo;
 
-      // Daily Werd
-      'werd_set_title': 'حدد وردك اليومي',
-      'werd_set_desc':
-          'أنشئ هدفاً يومياً للتلاوة\nللمحافظة على استمرارية قراءتك',
-      'werd_get_started': 'ابدأ الآن',
-      'werd_daily': 'الورد اليومي',
-      'werd_complete': 'ماشاء الله! 🎉',
-      'werd_complete_desc': 'أكملت وردك اليومي',
-      'werd_pages_of': 'من',
-      'werd_pages_label': 'صفحات',
-      'werd_pages_remaining': 'صفحات متبقية اليوم',
-      'werd_pages_range': 'صفحات',
-      'werd_start_reading': 'ابدأ القراءة',
-      'werd_setup_title': 'إعداد الورد اليومي',
-      'werd_setup_desc': 'حدد هدفك اليومي لقراءة القرآن',
-      'werd_fixed_range': 'نطاق محدد',
-      'werd_daily_pages': 'صفحات يومية',
-      'werd_from_page': 'من صفحة',
-      'werd_to_page': 'إلى صفحة',
-      'werd_pages_per_day': 'صفحات في اليوم',
-      'werd_1_page': 'صفحة واحدة',
-      'werd_30_pages': '30 صفحة',
-      'werd_save': 'حفظ الورد',
-      'werd_summary_fixed': 'اقرأ {pages} صفحات يومياً (صفحات {start}–{end})',
-      'werd_summary_daily': 'اقرأ {pages} صفحات يومياً ≈ {days} أيام للإنهاء',
-      'werd_error_range': 'يجب أن تكون صفحة البداية قبل صفحة النهاية',
+  /// No description provided for @homeHourAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'h ago'**
+  String get homeHourAgo;
 
-      // Nav Menu Sheet
-      'nav_index': 'الفهرس',
-      'nav_tab_surah': 'سورة',
-      'nav_tab_juz': 'جزء',
-      'nav_tab_bookmarks': 'العلامات',
-      'nav_search_hint': 'ابحث عن اسم أو رقم السورة...',
-      'nav_juz_coming': 'قائمة الأجزاء قريباً',
-      'nav_ayahs': 'آيات',
-      'nav_no_bookmarks': 'لا توجد علامات بعد',
-      'nav_bookmark_hint': 'اضغط على أيقونة العلامة في أي سورة',
-      'nav_page': 'صفحة',
-      'nav_pages': 'صفحات',
-      'nav_verses': 'آيات',
-      'nav_no_page_bookmarks': 'لا توجد علامات صفحات بعد',
-      'nav_page_bookmark_hint': 'اضغط على أيقونة العلامة في الشريط العلوي\nأثناء القراءة لحفظ صفحة',
-      'nav_no_verse_bookmarks': 'لا توجد علامات آيات بعد',
-      'nav_verse_bookmark_hint': 'اضغط مطولاً على أي آية ثم اضغط\nعلى أيقونة العلامة لحفظها',
+  /// No description provided for @homeYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get homeYesterday;
 
-      // Bookmark Edit & Collections
-      'bm_edit_title': 'تعديل العلامة',
-      'bm_color': 'اللون',
-      'bm_note': 'ملاحظة',
-      'bm_note_hint': 'أضف ملاحظة شخصية...',
-      'bm_collection': 'المجموعة',
-      'bm_uncategorized': 'بدون تصنيف',
-      'bm_delete': 'حذف العلامة',
-      'bm_all': 'الكل',
-      'bm_new_collection': 'مجموعة جديدة',
-      'bm_collection_name_hint': 'مثال: أدعية مفضلة',
-      'bm_cancel': 'إلغاء',
-      'bm_create': 'إنشاء',
-      'bm_add': 'إضافة',
-      'bm_rename': 'إعادة تسمية',
-      'bm_delete_collection': 'حذف المجموعة',
-      'bm_save': 'حفظ',
+  /// No description provided for @homeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'days ago'**
+  String get homeDaysAgo;
 
-      // Reciter Menu Sheet
-      'reciter_title': 'اختر قارئاً',
-      'reciter_search_hint': 'ابحث باسم القارئ...',
-      'reciter_tab_favorites': 'المفضلة',
-      'reciter_tab_recent': 'الأخيرة',
-      'reciter_tab_all': 'الكل',
-      'reciter_hafs': 'حفص',
-      'reciter_warsh': 'ورش',
-      'reciter_style_all': 'الكل',
-      'reciter_recitation': 'تلاوة',
-      'reciter_standard': 'عادي',
-      'reciter_no_favorites': 'لا يوجد قراء مفضلون بعد',
-      'reciter_no_recent': 'لا يوجد قراء مؤخراً',
-      'reciter_no_found': 'لم يتم العثور على قراء',
+  /// No description provided for @readTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get readTitle;
 
-      // Search Sheet
-      'search_title': 'البحث',
-      'search_hint': 'ابحث عن اسم أو رقم السورة...',
-      'search_no_results': 'لا توجد نتائج',
+  /// No description provided for @readSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the Holy Quran'**
+  String get readSubtitle;
 
-      // Audio Settings Sheet
-      'audio_settings_title': 'إعدادات الصوت',
-      'audio_playback_speed': 'سرعة التشغيل',
-      'audio_repeat_mode': 'وضع التكرار',
-      'audio_repeat_off': 'إيقاف',
-      'audio_repeat_verse': 'آية',
-      'audio_repeat_times': 'عدد التكرار',
+  /// No description provided for @readSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search surahs...'**
+  String get readSearchHint;
 
-      // Reading Edge Info
-      'reading_juz': 'الجزء',
-      'reading_hizb': 'الحزب',
-      'reading_verse': 'الآية',
-      'reading_playing': 'يتم التشغيل...',
-      'reading_page_na': 'الصفحة غير متوفرة',
+  /// No description provided for @readTabSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah'**
+  String get readTabSurah;
 
-      // Practice Screen
-      'practice_title': 'التدريب',
-      'practice_subtitle': 'عزز حفظك',
-      'practice_coming_title': 'قريباً',
-      'practice_coming_desc': 'بطاقات تدريب وتمارين المتشابهات لتعزيز رحلة حفظك.',
-      'practice_flashcards': 'بطاقات تدريب',
-      'practice_mutashabihat': 'المتشابهات',
+  /// No description provided for @readTabJuz.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz'**
+  String get readTabJuz;
 
-      // General
-      'loading': 'جاري التحميل...',
+  /// No description provided for @readTabHizb.
+  ///
+  /// In en, this message translates to:
+  /// **'Hizb'**
+  String get readTabHizb;
 
-      // In-App Update
-      'update_available': 'تحديث متوفر',
-      'update_whats_new': 'الجديد في هذا التحديث',
-      'update_now': 'تحديث الآن',
-      'update_later': 'لاحقاً',
-      'update_downloading': 'جاري التحميل...',
-      'update_error': 'فشل التحديث. يرجى المحاولة لاحقاً.',
-    },
-  };
+  /// No description provided for @readVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'verses'**
+  String get readVerses;
+
+  /// No description provided for @readPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get readPages;
+
+  /// No description provided for @audioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get audioTitle;
+
+  /// No description provided for @audioSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore reciters and listen to the Quran'**
+  String get audioSubtitle;
+
+  /// No description provided for @audioSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search reciters or surahs...'**
+  String get audioSearchHint;
+
+  /// No description provided for @audioTabReciters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reciters'**
+  String get audioTabReciters;
+
+  /// No description provided for @audioTabSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'Surahs'**
+  String get audioTabSurahs;
+
+  /// No description provided for @audioNowPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Now Playing'**
+  String get audioNowPlaying;
+
+  /// No description provided for @audioActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get audioActive;
+
+  /// No description provided for @audioVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'verses'**
+  String get audioVerses;
+
+  /// No description provided for @hifzTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorization'**
+  String get hifzTitle;
+
+  /// No description provided for @hifzSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your Hifz journey'**
+  String get hifzSubtitle;
+
+  /// No description provided for @hifzDayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Day streak'**
+  String get hifzDayStreak;
+
+  /// No description provided for @hifzBestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Best streak'**
+  String get hifzBestStreak;
+
+  /// No description provided for @hifzSabaq.
+  ///
+  /// In en, this message translates to:
+  /// **'Sabaq'**
+  String get hifzSabaq;
+
+  /// No description provided for @hifzSabaqDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'New lessons'**
+  String get hifzSabaqDesc;
+
+  /// No description provided for @hifzSabqi.
+  ///
+  /// In en, this message translates to:
+  /// **'Sabqi'**
+  String get hifzSabqi;
+
+  /// No description provided for @hifzSabqiDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent review'**
+  String get hifzSabqiDesc;
+
+  /// No description provided for @hifzManzil.
+  ///
+  /// In en, this message translates to:
+  /// **'Manzil'**
+  String get hifzManzil;
+
+  /// No description provided for @hifzManzilDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get hifzManzilDesc;
+
+  /// No description provided for @hifzOverall.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall Progress'**
+  String get hifzOverall;
+
+  /// No description provided for @hifzOfSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'of 114 surahs'**
+  String get hifzOfSurahs;
+
+  /// No description provided for @hifzAllSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'All Surahs'**
+  String get hifzAllSurahs;
+
+  /// No description provided for @hifzNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Started'**
+  String get hifzNotStarted;
+
+  /// No description provided for @hifzLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning (Sabaq)'**
+  String get hifzLearning;
+
+  /// No description provided for @hifzReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing (Sabqi)'**
+  String get hifzReviewing;
+
+  /// No description provided for @hifzMemorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorized (Manzil)'**
+  String get hifzMemorized;
+
+  /// No description provided for @hifzMarkReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Reviewed Today'**
+  String get hifzMarkReviewed;
+
+  /// No description provided for @hifzTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'total'**
+  String get hifzTotal;
+
+  /// No description provided for @hifzNeverReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Never reviewed'**
+  String get hifzNeverReviewed;
+
+  /// No description provided for @hifzLastReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last reviewed:'**
+  String get hifzLastReviewed;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get profileTitle;
+
+  /// No description provided for @profileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize your experience'**
+  String get profileSubtitle;
+
+  /// No description provided for @profileJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Journey'**
+  String get profileJourney;
+
+  /// No description provided for @profileMemorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorized'**
+  String get profileMemorized;
+
+  /// No description provided for @profileLastPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Last page'**
+  String get profileLastPage;
+
+  /// No description provided for @profileAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get profileAppearance;
+
+  /// No description provided for @profileLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get profileLanguage;
+
+  /// No description provided for @profileReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get profileReading;
+
+  /// No description provided for @profileThemeClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get profileThemeClassic;
+
+  /// No description provided for @profileThemeWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm'**
+  String get profileThemeWarm;
+
+  /// No description provided for @profileThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get profileThemeDark;
+
+  /// No description provided for @profileBookmarksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Bookmarks'**
+  String get profileBookmarksTitle;
+
+  /// No description provided for @profileBookmarksDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and organize your favorite verses'**
+  String get profileBookmarksDesc;
+
+  /// No description provided for @profileSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Soon'**
+  String get profileSoon;
+
+  /// No description provided for @profileAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get profileAbout;
+
+  /// No description provided for @profileVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version 1.0.0'**
+  String get profileVersion;
+
+  /// No description provided for @profileMadeWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Made with love'**
+  String get profileMadeWith;
+
+  /// No description provided for @profileCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'A modern Quran companion'**
+  String get profileCompanion;
+
+  /// No description provided for @profileData.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Source'**
+  String get profileData;
+
+  /// No description provided for @profileReplayOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay Onboarding'**
+  String get profileReplayOnboarding;
+
+  /// No description provided for @profileReplayOnboardingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Change language and reading preference'**
+  String get profileReplayOnboardingDesc;
+
+  /// No description provided for @readingRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get readingRead;
+
+  /// No description provided for @readingTafsir.
+  ///
+  /// In en, this message translates to:
+  /// **'Tafsir'**
+  String get readingTafsir;
+
+  /// No description provided for @readingSelectVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a verse'**
+  String get readingSelectVerse;
+
+  /// No description provided for @themeAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get themeAppearance;
+
+  /// No description provided for @themeClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get themeClassic;
+
+  /// No description provided for @themeWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm'**
+  String get themeWarm;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @themeActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get themeActive;
+
+  /// No description provided for @themeFitScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit Screen Height'**
+  String get themeFitScreen;
+
+  /// No description provided for @themeFitScreenDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-calculates the perfect font size to fit the entire page without scrolling.'**
+  String get themeFitScreenDesc;
+
+  /// No description provided for @themeFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Size'**
+  String get themeFontSize;
+
+  /// No description provided for @themeLineSpacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Line Spacing'**
+  String get themeLineSpacing;
+
+  /// No description provided for @themeTextAlign.
+  ///
+  /// In en, this message translates to:
+  /// **'Text Align'**
+  String get themeTextAlign;
+
+  /// No description provided for @themeContentAlign.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Align'**
+  String get themeContentAlign;
+
+  /// No description provided for @themeOverlayTypo.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay Typography'**
+  String get themeOverlayTypo;
+
+  /// No description provided for @themeOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opacity'**
+  String get themeOpacity;
+
+  /// No description provided for @themeOverlayIndicators.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay Indicators'**
+  String get themeOverlayIndicators;
+
+  /// No description provided for @themeAlternateInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate Info Layout per Page'**
+  String get themeAlternateInfo;
+
+  /// No description provided for @themeShowHizb.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Hizb Info'**
+  String get themeShowHizb;
+
+  /// No description provided for @themeShowJuz.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Juz Info'**
+  String get themeShowJuz;
+
+  /// No description provided for @themeShowBookIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Book Icon Indicator'**
+  String get themeShowBookIcon;
+
+  /// No description provided for @themePageShadow.
+  ///
+  /// In en, this message translates to:
+  /// **'Page Shadow Effects'**
+  String get themePageShadow;
+
+  /// No description provided for @themeCenterSpine.
+  ///
+  /// In en, this message translates to:
+  /// **'Center Spine'**
+  String get themeCenterSpine;
+
+  /// No description provided for @themeOuterEdge.
+  ///
+  /// In en, this message translates to:
+  /// **'Outer Edge'**
+  String get themeOuterEdge;
+
+  /// No description provided for @themeIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Intensity'**
+  String get themeIntensity;
+
+  /// No description provided for @themeSpineWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Spine Width'**
+  String get themeSpineWidth;
+
+  /// No description provided for @themeEdgeWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge Width'**
+  String get themeEdgeWidth;
+
+  /// No description provided for @themeSpinePadding.
+  ///
+  /// In en, this message translates to:
+  /// **'Spine Padding'**
+  String get themeSpinePadding;
+
+  /// No description provided for @themeEdgePadding.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge Padding'**
+  String get themeEdgePadding;
+
+  /// No description provided for @werdSetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Your Daily Werd'**
+  String get werdSetTitle;
+
+  /// No description provided for @werdSetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a daily recitation goal to\nstay consistent with your reading'**
+  String get werdSetDesc;
+
+  /// No description provided for @werdGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get werdGetStarted;
+
+  /// No description provided for @werdDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Werd'**
+  String get werdDaily;
+
+  /// No description provided for @werdComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Masha\'Allah! 🎉'**
+  String get werdComplete;
+
+  /// No description provided for @werdCompleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You completed your daily werd'**
+  String get werdCompleteDesc;
+
+  /// No description provided for @werdPagesOf.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get werdPagesOf;
+
+  /// No description provided for @werdPagesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'pages'**
+  String get werdPagesLabel;
+
+  /// No description provided for @werdPagesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'pages remaining today'**
+  String get werdPagesRemaining;
+
+  /// No description provided for @werdPagesRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get werdPagesRange;
+
+  /// No description provided for @werdStartReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Reading'**
+  String get werdStartReading;
+
+  /// No description provided for @werdSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Werd Setup'**
+  String get werdSetupTitle;
+
+  /// No description provided for @werdSetupDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your daily Quran reading goal'**
+  String get werdSetupDesc;
+
+  /// No description provided for @werdFixedRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed Range'**
+  String get werdFixedRange;
+
+  /// No description provided for @werdDailyPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Pages'**
+  String get werdDailyPages;
+
+  /// No description provided for @werdFromPage.
+  ///
+  /// In en, this message translates to:
+  /// **'From Page'**
+  String get werdFromPage;
+
+  /// No description provided for @werdToPage.
+  ///
+  /// In en, this message translates to:
+  /// **'To Page'**
+  String get werdToPage;
+
+  /// No description provided for @werdPagesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages per day'**
+  String get werdPagesPerDay;
+
+  /// No description provided for @werd_1Page.
+  ///
+  /// In en, this message translates to:
+  /// **'1 page'**
+  String get werd_1Page;
+
+  /// No description provided for @werd_30Pages.
+  ///
+  /// In en, this message translates to:
+  /// **'30 pages'**
+  String get werd_30Pages;
+
+  /// No description provided for @werdSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Werd'**
+  String get werdSave;
+
+  /// No description provided for @werdSummaryFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Read {pages} pages daily (Pages {start}–{end})'**
+  String werdSummaryFixed(Object end, Object pages, Object start);
+
+  /// No description provided for @werdSummaryDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Read {pages} pages daily ≈ {days} days to finish'**
+  String werdSummaryDaily(Object days, Object pages);
+
+  /// No description provided for @werdErrorRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Start page must be before end page'**
+  String get werdErrorRange;
+
+  /// No description provided for @navIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Index'**
+  String get navIndex;
+
+  /// No description provided for @navTabSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah'**
+  String get navTabSurah;
+
+  /// No description provided for @navTabJuz.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz'**
+  String get navTabJuz;
+
+  /// No description provided for @navTabBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get navTabBookmarks;
+
+  /// No description provided for @navSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search surah name or number...'**
+  String get navSearchHint;
+
+  /// No description provided for @navJuzComing.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz list coming soon'**
+  String get navJuzComing;
+
+  /// No description provided for @navAyahs.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayahs'**
+  String get navAyahs;
+
+  /// No description provided for @navNoBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookmarks yet'**
+  String get navNoBookmarks;
+
+  /// No description provided for @navBookmarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the bookmark icon on any surah'**
+  String get navBookmarkHint;
+
+  /// No description provided for @navPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get navPage;
+
+  /// No description provided for @navPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get navPages;
+
+  /// No description provided for @navVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'Verses'**
+  String get navVerses;
+
+  /// No description provided for @navNoPageBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'No page bookmarks yet'**
+  String get navNoPageBookmarks;
+
+  /// No description provided for @navPageBookmarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the bookmark icon in the top bar\nwhile reading to save a page'**
+  String get navPageBookmarkHint;
+
+  /// No description provided for @navNoVerseBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'No verse bookmarks yet'**
+  String get navNoVerseBookmarks;
+
+  /// No description provided for @navVerseBookmarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press any verse and tap the\nbookmark icon to save it'**
+  String get navVerseBookmarkHint;
+
+  /// No description provided for @bmEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Bookmark'**
+  String get bmEditTitle;
+
+  /// No description provided for @bmColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get bmColor;
+
+  /// No description provided for @bmNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get bmNote;
+
+  /// No description provided for @bmNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a personal note...'**
+  String get bmNoteHint;
+
+  /// No description provided for @bmCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection'**
+  String get bmCollection;
+
+  /// No description provided for @bmUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get bmUncategorized;
+
+  /// No description provided for @bmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Bookmark'**
+  String get bmDelete;
+
+  /// No description provided for @bmAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get bmAll;
+
+  /// No description provided for @bmNewCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'New Collection'**
+  String get bmNewCollection;
+
+  /// No description provided for @bmCollectionNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Favorite Duas'**
+  String get bmCollectionNameHint;
+
+  /// No description provided for @bmCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get bmCancel;
+
+  /// No description provided for @bmCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get bmCreate;
+
+  /// No description provided for @bmAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get bmAdd;
+
+  /// No description provided for @bmRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get bmRename;
+
+  /// No description provided for @bmDeleteCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Collection'**
+  String get bmDeleteCollection;
+
+  /// No description provided for @bmSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get bmSave;
+
+  /// No description provided for @reciterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Reciter'**
+  String get reciterTitle;
+
+  /// No description provided for @reciterSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by reciter name...'**
+  String get reciterSearchHint;
+
+  /// No description provided for @reciterTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get reciterTabFavorites;
+
+  /// No description provided for @reciterTabRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get reciterTabRecent;
+
+  /// No description provided for @reciterTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get reciterTabAll;
+
+  /// No description provided for @reciterHafs.
+  ///
+  /// In en, this message translates to:
+  /// **'Hafs'**
+  String get reciterHafs;
+
+  /// No description provided for @reciterWarsh.
+  ///
+  /// In en, this message translates to:
+  /// **'Warsh'**
+  String get reciterWarsh;
+
+  /// No description provided for @reciterStyleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get reciterStyleAll;
+
+  /// No description provided for @reciterRecitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recitation'**
+  String get reciterRecitation;
+
+  /// No description provided for @reciterStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get reciterStandard;
+
+  /// No description provided for @reciterNoFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorite reciters yet'**
+  String get reciterNoFavorites;
+
+  /// No description provided for @reciterNoRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent reciters'**
+  String get reciterNoRecent;
+
+  /// No description provided for @reciterNoFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No reciters found'**
+  String get reciterNoFound;
+
+  /// No description provided for @searchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchTitle;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search surah name or number...'**
+  String get searchHint;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get searchNoResults;
+
+  /// No description provided for @audioSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Settings'**
+  String get audioSettingsTitle;
+
+  /// No description provided for @audioPlaybackSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback Speed'**
+  String get audioPlaybackSpeed;
+
+  /// No description provided for @audioRepeatMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat Mode'**
+  String get audioRepeatMode;
+
+  /// No description provided for @audioRepeatOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get audioRepeatOff;
+
+  /// No description provided for @audioRepeatVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse'**
+  String get audioRepeatVerse;
+
+  /// No description provided for @audioRepeatTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat times'**
+  String get audioRepeatTimes;
+
+  /// No description provided for @readingJuz.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz'**
+  String get readingJuz;
+
+  /// No description provided for @readingHizb.
+  ///
+  /// In en, this message translates to:
+  /// **'Hizb'**
+  String get readingHizb;
+
+  /// No description provided for @readingVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse'**
+  String get readingVerse;
+
+  /// No description provided for @readingPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing...'**
+  String get readingPlaying;
+
+  /// No description provided for @readingPageNa.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not available'**
+  String get readingPageNa;
+
+  /// No description provided for @practiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get practiceTitle;
+
+  /// No description provided for @practiceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengthen your memorization'**
+  String get practiceSubtitle;
+
+  /// No description provided for @practiceComingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get practiceComingTitle;
+
+  /// No description provided for @practiceComingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcards and mutashabihat drills to reinforce your memorization journey.'**
+  String get practiceComingDesc;
+
+  /// No description provided for @practiceFlashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcards'**
+  String get practiceFlashcards;
+
+  /// No description provided for @practiceMutashabihat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutashabihat'**
+  String get practiceMutashabihat;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailable;
+
+  /// No description provided for @updateWhatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get updateWhatsNew;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @updateDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading...'**
+  String get updateDownloading;
+
+  /// No description provided for @updateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Please try again later.'**
+  String get updateError;
+
+  /// No description provided for @assessBuildProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\\\'s build your Hifz profile'**
+  String get assessBuildProfile;
+
+  /// No description provided for @assessQuickQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'A few quick questions to personalize your journey'**
+  String get assessQuickQuestions;
+
+  /// No description provided for @assessNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What should we call you?'**
+  String get assessNameHint;
+
+  /// No description provided for @assessChooseAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an avatar'**
+  String get assessChooseAvatar;
+
+  /// No description provided for @assessHowOld.
+  ///
+  /// In en, this message translates to:
+  /// **'How old are you?'**
+  String get assessHowOld;
+
+  /// No description provided for @assessAgeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This helps us tailor session length, load, and pace'**
+  String get assessAgeSubtitle;
+
+  /// No description provided for @assessAgeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Your age group is auto-detected'**
+  String get assessAgeAuto;
+
+  /// No description provided for @assessWhereJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you in your Hifz journey?'**
+  String get assessWhereJourney;
+
+  /// No description provided for @assessShapesPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'This shapes your starting plan'**
+  String get assessShapesPlan;
+
+  /// No description provided for @assessFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting fresh'**
+  String get assessFresh;
+
+  /// No description provided for @assessFreshDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I haven\\\'t memorized before or starting over'**
+  String get assessFreshDesc;
+
+  /// No description provided for @assessResuming.
+  ///
+  /// In en, this message translates to:
+  /// **'Resuming'**
+  String get assessResuming;
+
+  /// No description provided for @assessResumingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I memorized some before and want to continue'**
+  String get assessResumingDesc;
+
+  /// No description provided for @assessReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get assessReviewing;
+
+  /// No description provided for @assessReviewingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I\\\'ve memorized a lot and need to strengthen it'**
+  String get assessReviewingDesc;
+
+  /// No description provided for @assessWhatHelps.
+  ///
+  /// In en, this message translates to:
+  /// **'When you memorize something new, what helps most?'**
+  String get assessWhatHelps;
+
+  /// No description provided for @assessNoWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the one that resonates — no wrong answers!'**
+  String get assessNoWrong;
+
+  /// No description provided for @assessPrefVisual.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking and reading'**
+  String get assessPrefVisual;
+
+  /// No description provided for @assessPrefVisualDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I stare at the text until it sticks'**
+  String get assessPrefVisualDesc;
+
+  /// No description provided for @assessPrefWriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing it down'**
+  String get assessPrefWriting;
+
+  /// No description provided for @assessPrefWritingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing helps me remember'**
+  String get assessPrefWritingDesc;
+
+  /// No description provided for @assessPrefVerbal.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeating out loud'**
+  String get assessPrefVerbal;
+
+  /// No description provided for @assessPrefVerbalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I just keep saying it until I know it'**
+  String get assessPrefVerbalDesc;
+
+  /// No description provided for @assessImaginePage.
+  ///
+  /// In en, this message translates to:
+  /// **'Imagine memorizing a new page...'**
+  String get assessImaginePage;
+
+  /// No description provided for @assessAfter_30.
+  ///
+  /// In en, this message translates to:
+  /// **'After 30 minutes of focused effort, how much would you typically remember?'**
+  String get assessAfter_30;
+
+  /// No description provided for @assessMostPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Most of the page'**
+  String get assessMostPage;
+
+  /// No description provided for @assessMostPageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I pick things up quickly'**
+  String get assessMostPageDesc;
+
+  /// No description provided for @assessHalfPage.
+  ///
+  /// In en, this message translates to:
+  /// **'About half'**
+  String get assessHalfPage;
+
+  /// No description provided for @assessHalfPageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I need a few sessions to finish a page'**
+  String get assessHalfPageDesc;
+
+  /// No description provided for @assessFewLines.
+  ///
+  /// In en, this message translates to:
+  /// **'A few lines'**
+  String get assessFewLines;
+
+  /// No description provided for @assessFewLinesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'I prefer to go slow and careful'**
+  String get assessFewLinesDesc;
+
+  /// No description provided for @assessThinkLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Think about something you memorized last month...'**
+  String get assessThinkLastMonth;
+
+  /// No description provided for @assessIfAsked.
+  ///
+  /// In en, this message translates to:
+  /// **'If someone asked you to recite it today, how would it go?'**
+  String get assessIfAsked;
+
+  /// No description provided for @assessPrettySmooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pretty smoothly'**
+  String get assessPrettySmooth;
+
+  /// No description provided for @assessPrettySmoothDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'It sticks with me once I learn it'**
+  String get assessPrettySmoothDesc;
+
+  /// No description provided for @assessQuickRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'I\\\'d need a quick refresh'**
+  String get assessQuickRefresh;
+
+  /// No description provided for @assessQuickRefreshDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Then it comes back'**
+  String get assessQuickRefreshDesc;
+
+  /// No description provided for @assessStruggle.
+  ///
+  /// In en, this message translates to:
+  /// **'I\\\'d struggle'**
+  String get assessStruggle;
+
+  /// No description provided for @assessStruggleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Things fade if I don\\\'t review regularly'**
+  String get assessStruggleDesc;
+
+  /// No description provided for @assessDailyCommit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily commitment'**
+  String get assessDailyCommit;
+
+  /// No description provided for @assessHowMuchTime.
+  ///
+  /// In en, this message translates to:
+  /// **'How much time can you dedicate each day?'**
+  String get assessHowMuchTime;
+
+  /// No description provided for @assessPrefTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred time'**
+  String get assessPrefTime;
+
+  /// No description provided for @assessWhichDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Which days will you study?'**
+  String get assessWhichDays;
+
+  /// No description provided for @assessTapToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to toggle — rest days are important too!'**
+  String get assessTapToggle;
+
+  /// No description provided for @assessGoalPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal & pace'**
+  String get assessGoalPace;
+
+  /// No description provided for @assessWhatMemorize.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to memorize and how fast?'**
+  String get assessWhatMemorize;
+
+  /// No description provided for @assessWhatAim.
+  ///
+  /// In en, this message translates to:
+  /// **'What\\\'s your aim?'**
+  String get assessWhatAim;
+
+  /// No description provided for @assessEntireQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'The entire Quran'**
+  String get assessEntireQuran;
+
+  /// No description provided for @assessEntireQuranDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Full memorization journey'**
+  String get assessEntireQuranDesc;
+
+  /// No description provided for @assessSpecificJuz.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific Juz'**
+  String get assessSpecificJuz;
+
+  /// No description provided for @assessSpecificJuzDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which juz to memorize'**
+  String get assessSpecificJuzDesc;
+
+  /// No description provided for @assessSpecificSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific Surahs'**
+  String get assessSpecificSurah;
+
+  /// No description provided for @assessSpecificSurahDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick individual surahs'**
+  String get assessSpecificSurahDesc;
+
+  /// No description provided for @assessHowFast.
+  ///
+  /// In en, this message translates to:
+  /// **'How fast do you want to go?'**
+  String get assessHowFast;
+
+  /// No description provided for @assessPushMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Push me'**
+  String get assessPushMe;
+
+  /// No description provided for @assessPushMeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher load, faster progression'**
+  String get assessPushMeDesc;
+
+  /// No description provided for @assessBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced and consistent'**
+  String get assessBalanced;
+
+  /// No description provided for @assessBalancedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter load, focus on retention'**
+  String get assessBalancedDesc;
+
+  /// No description provided for @assessChooseQari.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your Qari'**
+  String get assessChooseQari;
+
+  /// No description provided for @assessStickingOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticking with one reciter helps build stronger auditory memory'**
+  String get assessStickingOne;
+
+  /// No description provided for @assessLoadingReciters.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading reciters...'**
+  String get assessLoadingReciters;
+
+  /// No description provided for @assessWhereStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Where would you like to start?'**
+  String get assessWhereStart;
+
+  /// No description provided for @assessPickAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick any page or surah — you\\\'re in full control'**
+  String get assessPickAny;
+
+  /// No description provided for @assessJuz_30.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz 30 (Juz \\\'Amma)'**
+  String get assessJuz_30;
+
+  /// No description provided for @assessJuz_30Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Most common starting point — Page 582'**
+  String get assessJuz_30Desc;
+
+  /// No description provided for @assessSurahBaqarah.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah Al-Baqarah'**
+  String get assessSurahBaqarah;
+
+  /// No description provided for @assessSurahBaqarahDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from the beginning — Page 2'**
+  String get assessSurahBaqarahDesc;
+
+  /// No description provided for @assessPickSpecific.
+  ///
+  /// In en, this message translates to:
+  /// **'Or pick a specific page (1-604)'**
+  String get assessPickSpecific;
+
+  /// No description provided for @assessYourPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Plan'**
+  String get assessYourPlan;
+
+  /// No description provided for @assessActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Active days'**
+  String get assessActiveDays;
+
+  /// No description provided for @assessDailyNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily new material'**
+  String get assessDailyNew;
+
+  /// No description provided for @assessTargetReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Target repetitions'**
+  String get assessTargetReps;
+
+  /// No description provided for @assessTimeSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Time split'**
+  String get assessTimeSplit;
+
+  /// No description provided for @assessStartingAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting at'**
+  String get assessStartingAt;
+
+  /// No description provided for @assessEstTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Timeline'**
+  String get assessEstTimeline;
+
+  /// No description provided for @assessStartJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Start My Journey ✨'**
+  String get assessStartJourney;
+
+  /// No description provided for @assessYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Memory Profile'**
+  String get assessYourProfile;
+
+  /// No description provided for @assessContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue →'**
+  String get assessContinue;
+
+  /// No description provided for @homeGreatWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Great work today!'**
+  String get homeGreatWork;
+
+  /// No description provided for @homeBeginJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin your memorization journey today'**
+  String get homeBeginJourney;
+
+  /// No description provided for @homeJourneyAwaits.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey awaits'**
+  String get homeJourneyAwaits;
+
+  /// No description provided for @homeTapBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap below to generate today\\\'s plan'**
+  String get homeTapBelow;
+
+  /// No description provided for @homeGeneratePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Plan'**
+  String get homeGeneratePlan;
+
+  /// No description provided for @homeAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing your progress'**
+  String get homeAnalyzing;
+
+  /// No description provided for @homeGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating your plan'**
+  String get homeGenerating;
+
+  /// No description provided for @homeValidating.
+  ///
+  /// In en, this message translates to:
+  /// **'Validating & optimizing'**
+  String get homeValidating;
+
+  /// No description provided for @homeAiPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is preparing your plan'**
+  String get homeAiPreparing;
+
+  /// No description provided for @homeWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back!'**
+  String get homeWelcomeBack;
+
+  /// No description provided for @homeLetsGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\\\'s Go! ✨'**
+  String get homeLetsGo;
+
+  /// No description provided for @pracMutashabihat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutashabihat Practice'**
+  String get pracMutashabihat;
+
+  /// No description provided for @pracSpotDiff.
+  ///
+  /// In en, this message translates to:
+  /// **'Spot Diff'**
+  String get pracSpotDiff;
+
+  /// No description provided for @pracTapReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to reveal similar verse'**
+  String get pracTapReveal;
+
+  /// No description provided for @pracReadContext.
+  ///
+  /// In en, this message translates to:
+  /// **'اقرأ الآيات في سياقها'**
+  String get pracReadContext;
+
+  /// No description provided for @pracHafsScript.
+  ///
+  /// In en, this message translates to:
+  /// **'KFGQPC Uthmanic Script HAFS'**
+  String get pracHafsScript;
+
+  /// No description provided for @pracNoDiffWords.
+  ///
+  /// In en, this message translates to:
+  /// **'No distinguishing words available for this pair.'**
+  String get pracNoDiffWords;
+
+  /// No description provided for @pracCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ صحيح!'**
+  String get pracCorrect;
+
+  /// No description provided for @pracWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ خطأ'**
+  String get pracWrong;
+
+  /// No description provided for @pracNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next →'**
+  String get pracNext;
+
+  /// No description provided for @pracComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice Complete!'**
+  String get pracComplete;
+
+  /// No description provided for @pracNoMut.
+  ///
+  /// In en, this message translates to:
+  /// **'No mutashabihat loaded yet'**
+  String get pracNoMut;
+
+  /// No description provided for @pracCheckConn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get pracCheckConn;
+
+  /// No description provided for @pracStrengthen.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengthen your memorization'**
+  String get pracStrengthen;
+
+  /// No description provided for @pracRegenCards.
+  ///
+  /// In en, this message translates to:
+  /// **'🔄 Regenerate all cards'**
+  String get pracRegenCards;
+
+  /// No description provided for @pracMixedReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed Review'**
+  String get pracMixedReview;
+
+  /// No description provided for @pracAllCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'All caught up! ✨'**
+  String get pracAllCaughtUp;
+
+  /// No description provided for @pracNoFlashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'No flashcards due right now'**
+  String get pracNoFlashcards;
+
+  /// No description provided for @pracNextVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Verse'**
+  String get pracNextVerse;
+
+  /// No description provided for @pracPrevVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Verse'**
+  String get pracPrevVerse;
+
+  /// No description provided for @pracCompleteIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete It'**
+  String get pracCompleteIt;
+
+  /// No description provided for @pracSurahDetective.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah Detective'**
+  String get pracSurahDetective;
+
+  /// No description provided for @pracSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence'**
+  String get pracSequence;
+
+  /// No description provided for @pracMutArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'آيات متشابهة'**
+  String get pracMutArabic;
+
+  /// No description provided for @pracMutSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutashabihat (Similar Verses)'**
+  String get pracMutSimilar;
+
+  /// No description provided for @pracBrowseStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse, study & practice'**
+  String get pracBrowseStudy;
+
+  /// No description provided for @pracBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'📚 Browse'**
+  String get pracBrowse;
+
+  /// No description provided for @pracPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'🎯 Practice'**
+  String get pracPractice;
+
+  /// No description provided for @pracTotalCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cards'**
+  String get pracTotalCards;
+
+  /// No description provided for @pracCreateProfileUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a Hifz profile to unlock flashcards'**
+  String get pracCreateProfileUnlock;
+
+  /// No description provided for @assessAgeChild.
+  ///
+  /// In en, this message translates to:
+  /// **'🧒 Child (7-12)'**
+  String get assessAgeChild;
+
+  /// No description provided for @assessAgeTeen.
+  ///
+  /// In en, this message translates to:
+  /// **'🧑 Teen (13-17)'**
+  String get assessAgeTeen;
+
+  /// No description provided for @assessAgeYoungAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'💪 Young Adult (18-30)'**
+  String get assessAgeYoungAdult;
+
+  /// No description provided for @assessAgeAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'🧔 Adult (31-45)'**
+  String get assessAgeAdult;
+
+  /// No description provided for @assessAgeMiddle.
+  ///
+  /// In en, this message translates to:
+  /// **'🌟 Middle-Aged (46-55)'**
+  String get assessAgeMiddle;
+
+  /// No description provided for @assessAgeSenior.
+  ///
+  /// In en, this message translates to:
+  /// **'📿 Senior (56-70)'**
+  String get assessAgeSenior;
+
+  /// No description provided for @assessAgeElderly.
+  ///
+  /// In en, this message translates to:
+  /// **'🤲 Elderly (71+)'**
+  String get assessAgeElderly;
+
+  /// No description provided for @assessOnePage.
+  ///
+  /// In en, this message translates to:
+  /// **'1 page'**
+  String get assessOnePage;
+
+  /// No description provided for @assessOneTwoPages.
+  ///
+  /// In en, this message translates to:
+  /// **'1-2 pages'**
+  String get assessOneTwoPages;
+
+  /// No description provided for @assessTwoThreePages.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 pages'**
+  String get assessTwoThreePages;
+
+  /// No description provided for @assessTwoThreeLines.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 lines'**
+  String get assessTwoThreeLines;
+
+  /// No description provided for @assessThreeFiveLines.
+  ///
+  /// In en, this message translates to:
+  /// **'3-5 lines'**
+  String get assessThreeFiveLines;
+
+  /// No description provided for @assessFiveEightLines.
+  ///
+  /// In en, this message translates to:
+  /// **'5-8 lines'**
+  String get assessFiveEightLines;
+
+  /// No description provided for @assessOnePageLines.
+  ///
+  /// In en, this message translates to:
+  /// **'1 page (15 lines)'**
+  String get assessOnePageLines;
+
+  /// No description provided for @assessThirtyPerSection.
+  ///
+  /// In en, this message translates to:
+  /// **'30+ per section'**
+  String get assessThirtyPerSection;
+
+  /// No description provided for @assessTwentyPerSection.
+  ///
+  /// In en, this message translates to:
+  /// **'20 per section'**
+  String get assessTwentyPerSection;
+
+  /// No description provided for @assessFifteenPerSection.
+  ///
+  /// In en, this message translates to:
+  /// **'15 per section'**
+  String get assessFifteenPerSection;
+
+  /// No description provided for @assessTheEntireQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'the entire Quran'**
+  String get assessTheEntireQuran;
+
+  /// No description provided for @assessYourSelectedSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'your selected surahs'**
+  String get assessYourSelectedSurahs;
+
+  /// No description provided for @syncError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get syncError;
+
+  /// No description provided for @syncIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get syncIdle;
+
+  /// No description provided for @profileAccountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get profileAccountDeleted;
+
+  /// No description provided for @profileError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error occurred'**
+  String get profileError;
+
+  /// No description provided for @profileSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get profileSyncing;
+
+  /// No description provided for @actionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get actionCancel;
+
+  /// No description provided for @profileProgressReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress reset successfully'**
+  String get profileProgressReset;
+
+  /// No description provided for @actionReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get actionReset;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// No description provided for @progressDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get progressDays;
+
+  /// No description provided for @progressLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last'**
+  String get progressLast;
+
+  /// No description provided for @timeMin.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get timeMin;
+
+  /// No description provided for @reportSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as last week'**
+  String get reportSame;
+
+  /// No description provided for @homePlanComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Complete'**
+  String get homePlanComplete;
+
+  /// No description provided for @homeStartExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Extra Session'**
+  String get homeStartExtra;
+
+  /// No description provided for @homeSwitchProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Profile'**
+  String get homeSwitchProfile;
+
+  /// No description provided for @homeCreateProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Profile'**
+  String get homeCreateProfile;
+
+  /// No description provided for @homePreparingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing Plan'**
+  String get homePreparingPlan;
+
+  /// No description provided for @syncSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get syncSyncing;
+
+  /// No description provided for @syncSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get syncSynced;
+
+  /// No description provided for @hifzNoPlanAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No plan available'**
+  String get hifzNoPlanAvailable;
+
+  /// No description provided for @hifzNoActiveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'No active profile'**
+  String get hifzNoActiveProfile;
+
+  /// No description provided for @sessionLastVerseLearned.
+  ///
+  /// In en, this message translates to:
+  /// **'Last verse learned'**
+  String get sessionLastVerseLearned;
+
+  /// No description provided for @sessionExitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Session?'**
+  String get sessionExitTitle;
+
+  /// No description provided for @sessionExitDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress will be lost.'**
+  String get sessionExitDesc;
+
+  /// No description provided for @actionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get actionContinue;
+
+  /// No description provided for @actionExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get actionExit;
+
+  /// No description provided for @sharePrivacyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy notice'**
+  String get sharePrivacyNotice;
+
+  /// No description provided for @homeWeeklyInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Insights'**
+  String get homeWeeklyInsights;
+
+  /// No description provided for @actionSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get actionSkip;
+
+  /// No description provided for @actionVs.
+  ///
+  /// In en, this message translates to:
+  /// **'Vs'**
+  String get actionVs;
 }
 
 class _AppLocalizationsDelegate
@@ -537,14 +2390,31 @@ class _AppLocalizationsDelegate
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'ar'].contains(locale.languageCode);
-
-  @override
-  Future<AppLocalizations> load(Locale locale) async {
-    return AppLocalizations(locale);
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
   }
 
   @override
-  bool shouldReload(covariant LocalizationsDelegate<AppLocalizations> old) =>
-      false;
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

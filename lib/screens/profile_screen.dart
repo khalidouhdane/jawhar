@@ -49,7 +49,7 @@ class ProfileScreen extends StatelessWidget {
 
               // ── Header ──
               Text(
-                l.t('profile_title'),
+                l!.profileTitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 26,
@@ -60,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                l.t('profile_subtitle'),
+                l!.profileSubtitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -75,25 +75,25 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // ── Language Selector ──
-              _buildSectionLabel(theme, l.t('profile_language')),
+              _buildSectionLabel(theme, l!.profileLanguage),
               const SizedBox(height: 10),
               _buildLanguageSelector(context, theme, locale),
               const SizedBox(height: 24),
 
               // ── Rewaya (Reading) Selector ──
-              _buildSectionLabel(theme, l.t('profile_reading')),
+              _buildSectionLabel(theme, l!.profileReading),
               const SizedBox(height: 10),
               _buildRewayaSelector(context, theme, reading),
               const SizedBox(height: 24),
 
               // ── Theme Selector ──
-              _buildSectionLabel(theme, l.t('profile_appearance')),
+              _buildSectionLabel(theme, l!.profileAppearance),
               const SizedBox(height: 10),
               _buildThemeSelector(context, theme, l),
               const SizedBox(height: 24),
 
               // ── Bookmarks ──
-              _buildSectionLabel(theme, l.t('profile_bookmarks_title')),
+              _buildSectionLabel(theme, l!.profileBookmarksTitle),
               const SizedBox(height: 10),
               _buildBookmarksCard(context, theme, l),
               const SizedBox(height: 24),
@@ -215,26 +215,26 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── About ──
-              _buildSectionLabel(theme, l.t('profile_about')),
+              _buildSectionLabel(theme, l!.profileAbout),
               const SizedBox(height: 10),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.info,
                 title: 'Le Quran',
-                subtitle: l.t('profile_version'),
+                subtitle: l!.profileVersion,
               ),
               const SizedBox(height: 6),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.heart,
-                title: l.t('profile_made_with'),
-                subtitle: l.t('profile_companion'),
+                title: l!.profileMadeWith,
+                subtitle: l!.profileCompanion,
               ),
               const SizedBox(height: 6),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.globe,
-                title: l.t('profile_data'),
+                title: l!.profileData,
                 subtitle: 'Quran.com API',
               ),
               const SizedBox(height: 6),
@@ -254,8 +254,8 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildSettingsTile(
                   theme,
                   icon: LucideIcons.refreshCw,
-                  title: l.t('profile_replay_onboarding'),
-                  subtitle: l.t('profile_replay_onboarding_desc'),
+                  title: l!.profileReplayOnboarding,
+                  subtitle: l!.profileReplayOnboardingDesc,
                 ),
               ),
               const SizedBox(height: 32),
@@ -431,7 +431,7 @@ class ProfileScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l.t('profile_journey'),
+            l!.profileJourney,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -445,28 +445,28 @@ class ProfileScreen extends StatelessWidget {
               _statItem(
                 theme,
                 value: '$activeDays',
-                label: l.t('profile_memorized'),
+                label: l!.profileMemorized,
                 icon: LucideIcons.brain,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: '${hifzProfile.streak.totalActiveDays}',
-                label: l.t('hifz_day_streak'),
+                label: l!.hifzDayStreak,
                 icon: LucideIcons.flame,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: lastRead != null ? '${lastRead.page}' : '-',
-                label: l.t('profile_last_page'),
+                label: l!.profileLastPage,
                 icon: LucideIcons.bookOpen,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: '${context.watch<BookmarkProvider>().count}',
-                label: l.t('profile_bookmarks_title'),
+                label: l!.profileBookmarksTitle,
                 icon: LucideIcons.bookmark,
               ),
             ],
@@ -576,7 +576,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l.t('profile_bookmarks_title'),
+                    l!.profileBookmarksTitle,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -587,7 +587,7 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     count > 0
                         ? '$count ${count == 1 ? 'bookmark' : 'bookmarks'}'
-                        : l.t('profile_bookmarks_desc'),
+                        : l!.profileBookmarksDesc,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -638,7 +638,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.classic,
-          l.t('profile_theme_classic'),
+          l!.profileThemeClassic,
           Colors.white,
           const Color(0xFF1A454E),
         ),
@@ -647,7 +647,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.warm,
-          l.t('profile_theme_warm'),
+          l!.profileThemeWarm,
           const Color(0xFFF5F0E8),
           const Color(0xFF1A454E),
         ),
@@ -656,7 +656,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.dark,
-          l.t('profile_theme_dark'),
+          l!.profileThemeDark,
           const Color(0xFF0A1E24),
           const Color(0xFF4DB6AC),
         ),
@@ -795,22 +795,22 @@ class ProfileScreen extends StatelessWidget {
                       case SyncStatus.syncing:
                         color = Colors.orange;
                         icon = LucideIcons.refreshCw;
-                        label = 'Syncing…';
+                        label = AppLocalizations.of(context)!.syncSyncing;
                         break;
                       case SyncStatus.synced:
                         color = const Color(0xFF4CAF50);
                         icon = LucideIcons.cloud;
-                        label = 'Synced';
+                        label = AppLocalizations.of(context)!.syncSynced;
                         break;
                       case SyncStatus.error:
                         color = Colors.red;
                         icon = LucideIcons.cloudOff;
-                        label = 'Error';
+                        label = AppLocalizations.of(context)!.syncError;
                         break;
                       case SyncStatus.idle:
                         color = theme.mutedText;
                         icon = LucideIcons.cloud;
-                        label = 'Idle';
+                        label = AppLocalizations.of(context)!.syncIdle;
                         break;
                     }
                     return GestureDetector(
@@ -967,13 +967,13 @@ class ProfileScreen extends StatelessWidget {
                     if (context.mounted) {
                       await auth.signOut();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Account deleted successfully')),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.profileAccountDeleted)),
                       );
                     }
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
+                        SnackBar(content: Text('${AppLocalizations.of(context)!.profileError}: $e')),
                       );
                     }
                   }
@@ -1006,7 +1006,7 @@ class ProfileScreen extends StatelessWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Syncing your data to the cloud...'),
+                      content: Text(AppLocalizations.of(context)!.profileSyncing),
                       backgroundColor: theme.accentColor,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -1167,7 +1167,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: theme.mutedText)),
+            child: Text(AppLocalizations.of(context)!.actionCancel, style: TextStyle(color: theme.mutedText)),
           ),
           TextButton(
             onPressed: () async {
@@ -1181,11 +1181,11 @@ class ProfileScreen extends StatelessWidget {
               await hifz.refresh();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Progress reset successfully')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.profileProgressReset)),
                 );
               }
             },
-            child: Text('Reset', style: TextStyle(color: Colors.red.shade400)),
+            child: Text(AppLocalizations.of(context)!.actionReset, style: TextStyle(color: Colors.red.shade400)),
           ),
         ],
       ),
@@ -1209,7 +1209,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: theme.mutedText)),
+            child: Text(AppLocalizations.of(context)!.actionCancel, style: TextStyle(color: theme.mutedText)),
           ),
           TextButton(
             onPressed: () async {
@@ -1227,7 +1227,7 @@ class ProfileScreen extends StatelessWidget {
                 }
               }
             },
-            child: Text('Delete', style: TextStyle(color: Colors.red.shade400)),
+            child: Text(AppLocalizations.of(context)!.actionDelete, style: TextStyle(color: Colors.red.shade400)),
           ),
         ],
       ),

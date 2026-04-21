@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -153,7 +154,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           else
             GestureDetector(
               onTap: () => fc.skip(),
-              child: Text('Skip →',
+              child: Text('${AppLocalizations.of(context)!.actionSkip} →',
                   style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -364,7 +365,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 fc.isRevealed ? Colors.green.shade50 : null,
                 fc.isRevealed ? Colors.green.shade700 : null),
             const SizedBox(height: 12),
-            Text('VS',
+            Text(AppLocalizations.of(context)!.actionVs,
                 style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 11,
@@ -459,7 +460,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(
-                  fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                  fontFamily: AppLocalizations.of(context)!.pracHafsScript,
                   fontSize: 22,
                   height: 2.0,
                   color: theme.primaryText,
@@ -572,7 +573,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
             TextSpan(
               text: verseText,
               style: TextStyle(
-                fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                fontFamily: AppLocalizations.of(context)!.pracHafsScript,
                 fontSize: fontSize,
                 height: 2.0,
                 color: textColor,
@@ -1076,7 +1077,7 @@ class _ConnectSequenceCardState extends State<_ConnectSequenceCard> {
                   text,
                   textDirection: TextDirection.rtl,
                   style: TextStyle(
-                    fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                    fontFamily: AppLocalizations.of(context)!.pracHafsScript,
                     fontSize: 16,
                     height: 1.8,
                     color: isSelected ? Colors.green.shade700 : theme.primaryText,

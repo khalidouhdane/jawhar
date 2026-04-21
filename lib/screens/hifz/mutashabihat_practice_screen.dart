@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -106,7 +107,7 @@ class _MutashabihatPracticeScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Mutashabihat Practice',
+          AppLocalizations.of(context)!.pracMutashabihat,
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 18,
@@ -179,7 +180,7 @@ class _MutashabihatPracticeScreenState
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          _modeChip(theme, _PracticeMode.spotDiff, '🔎', 'Spot Diff'),
+          _modeChip(theme, _PracticeMode.spotDiff, '🔎', AppLocalizations.of(context)!.pracSpotDiff),
           const SizedBox(width: 8),
           _modeChip(theme, _PracticeMode.context, '🔗', 'Context'),
           const SizedBox(width: 8),
@@ -284,7 +285,7 @@ class _MutashabihatPracticeScreenState
         ),
         const SizedBox(height: 16),
         if (!_isRevealed)
-          _actionButton(theme, 'Tap to reveal similar verse', () {
+          _actionButton(theme, AppLocalizations.of(context)!.pracTapReveal, () {
             setState(() {
               _isRevealed = true;
               _totalAttempted++;
@@ -392,7 +393,7 @@ class _MutashabihatPracticeScreenState
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            'اقرأ الآيات في سياقها',
+            AppLocalizations.of(context)!.pracReadContext,
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
             style: TextStyle(
@@ -433,7 +434,7 @@ class _MutashabihatPracticeScreenState
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
                     style: TextStyle(
-                      fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                      fontFamily: AppLocalizations.of(context)!.pracHafsScript,
                       fontSize: 18,
                       height: 2.0,
                       color: entry.key == mutAyah
@@ -496,7 +497,7 @@ class _MutashabihatPracticeScreenState
       return Column(
         children: [
           Text(
-            'No distinguishing words available for this pair.',
+            AppLocalizations.of(context)!.pracNoDiffWords,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -541,7 +542,7 @@ class _MutashabihatPracticeScreenState
               quizWord,
               textDirection: TextDirection.rtl,
               style: TextStyle(
-                fontFamily: 'KFGQPC Uthmanic Script HAFS',
+                fontFamily: AppLocalizations.of(context)!.pracHafsScript,
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
                 color: theme.accentColor,
@@ -573,7 +574,7 @@ class _MutashabihatPracticeScreenState
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    _quizCorrect == true ? '✅ صحيح!' : '❌ خطأ',
+                    _quizCorrect == true ? AppLocalizations.of(context)!.pracCorrect : AppLocalizations.of(context)!.pracWrong,
                     textDirection: TextDirection.rtl,
                     style: TextStyle(
                       fontFamily: 'Inter',
@@ -746,7 +747,7 @@ class _MutashabihatPracticeScreenState
         textAlign: TextAlign.center,
         textDirection: TextDirection.rtl,
         style: TextStyle(
-          fontFamily: 'KFGQPC Uthmanic Script HAFS',
+          fontFamily: AppLocalizations.of(context)!.pracHafsScript,
           fontSize: 18,
           height: 2.0,
           color: theme.primaryText,
@@ -764,7 +765,7 @@ class _MutashabihatPracticeScreenState
       spans.add(TextSpan(
         text: i > 0 ? ' $w' : w,
         style: TextStyle(
-          fontFamily: 'KFGQPC Uthmanic Script HAFS',
+          fontFamily: AppLocalizations.of(context)!.pracHafsScript,
           fontSize: 18,
           height: 2.0,
           color: isHighlight ? color : theme.primaryText,
@@ -817,8 +818,7 @@ class _MutashabihatPracticeScreenState
           color: theme.accentColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Text(
-          'Next →',
+        child: Text(AppLocalizations.of(context)!.pracNext,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'Inter',
@@ -839,7 +839,7 @@ class _MutashabihatPracticeScreenState
           const Text('🏆', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 16),
           Text(
-            'Practice Complete!',
+            AppLocalizations.of(context)!.pracComplete,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 22,
@@ -890,7 +890,7 @@ class _MutashabihatPracticeScreenState
           const Text('📿', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 16),
           Text(
-            'No mutashabihat loaded yet',
+            AppLocalizations.of(context)!.pracNoMut,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 18,
@@ -900,7 +900,7 @@ class _MutashabihatPracticeScreenState
           ),
           const SizedBox(height: 8),
           Text(
-            'Check your connection and try again.',
+            AppLocalizations.of(context)!.pracCheckConn,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,

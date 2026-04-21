@@ -80,7 +80,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    l.t('bm_edit_title'),
+                    l!.bmEditTitle,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 16,
@@ -118,7 +118,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 Text(
                   bm.type == BookmarkType.verse
                       ? '${bm.verseKey} · ${bm.surahName}'
-                      : '${l.t('nav_page')} ${bm.pageNumber} · ${bm.surahName}',
+                      : '${l!.navPage} ${bm.pageNumber} · ${bm.surahName}',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 12,
@@ -138,7 +138,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l.t('bm_color'),
+                  l!.bmColor,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 12,
@@ -176,7 +176,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l.t('bm_note'),
+                  l!.bmNote,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 12,
@@ -194,7 +194,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
-                    hintText: l.t('bm_note_hint'),
+                    hintText: l!.bmNoteHint,
                     hintStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -235,7 +235,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l.t('bm_collection'),
+                    l!.bmCollection,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -250,7 +250,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     children: [
                       _collectionChip(
                         theme,
-                        l.t('bm_uncategorized'),
+                        l!.bmUncategorized,
                         null,
                         bm.collectionId == null,
                         bp,
@@ -281,7 +281,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   widget.onClose();
                 },
                 icon: const Icon(LucideIcons.trash2, size: 16),
-                label: Text(l.t('bm_delete')),
+                label: Text(l!.bmDelete),
                 style: TextButton.styleFrom(
                   foregroundColor: const Color(0xFFEF5350),
                   padding: const EdgeInsets.symmetric(vertical: 14),

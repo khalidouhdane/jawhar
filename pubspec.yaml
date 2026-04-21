@@ -64,6 +64,7 @@ dependencies:
   google_sign_in: ^6.2.2
   crypto: ^3.0.7
   sentry_flutter: ^9.16.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -75,12 +76,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  analyzer: ^10.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

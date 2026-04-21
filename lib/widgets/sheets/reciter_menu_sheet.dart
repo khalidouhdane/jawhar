@@ -65,7 +65,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      l.t('reciter_title'),
+                      l!.reciterTitle,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -104,7 +104,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              l.t('reciter_hafs'),
+                              l!.reciterHafs,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: rp.selectedRewaya == 1
@@ -131,7 +131,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              l.t('reciter_warsh'),
+                              l!.reciterWarsh,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: rp.selectedRewaya == 2
@@ -150,7 +150,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   onChanged: (value) => setState(() => searchQuery = value),
                   style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
-                    hintText: l.t('reciter_search_hint'),
+                    hintText: l!.reciterSearchHint,
                     hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
                     prefixIcon: Icon(
                       LucideIcons.search,
@@ -170,39 +170,39 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   children: _favoriteIds.isNotEmpty
                       ? [
                           _buildTab(
-                            l.t('reciter_tab_favorites'),
+                            l!.reciterTabFavorites,
                             'favorites',
                             icon: LucideIcons.heart,
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l.t('reciter_tab_recent'),
+                            l!.reciterTabRecent,
                             'recent',
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l.t('reciter_tab_all'),
+                            l!.reciterTabAll,
                             'all',
                             theme: theme,
                           ),
                         ]
                       : [
                           _buildTab(
-                            l.t('reciter_tab_all'),
+                            l!.reciterTabAll,
                             'all',
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l.t('reciter_tab_recent'),
+                            l!.reciterTabRecent,
                             'recent',
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l.t('reciter_tab_favorites'),
+                            l!.reciterTabFavorites,
                             'favorites',
                             icon: LucideIcons.heart,
                             theme: theme,
@@ -268,10 +268,10 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         const SizedBox(height: 12),
                         Text(
                           activeTab == 'favorites'
-                              ? l.t('reciter_no_favorites')
+                              ? l!.reciterNoFavorites
                               : activeTab == 'recent'
-                              ? l.t('reciter_no_recent')
-                              : l.t('reciter_no_found'),
+                              ? l!.reciterNoRecent
+                              : l!.reciterNoFound,
                           style: TextStyle(
                             color: theme.mutedText,
                             fontSize: 14,

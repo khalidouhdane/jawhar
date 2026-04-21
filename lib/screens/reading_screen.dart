@@ -409,7 +409,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       final chId = int.tryParse(rp.verses.first.verseKey.split(':')[0]) ?? 1;
                       try {
                         final ch = rp.chapters.firstWhere((c) => c.id == chId);
-                        sName = l.locale.languageCode == 'ar' ? ch.nameArabic : ch.nameSimple;
+                        sName = l!.localeName == 'ar' ? ch.nameArabic : ch.nameSimple;
                       } catch (_) {
                         sName = 'Surah $chId';
                       }
@@ -423,7 +423,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       SnackBar(
                         content: Text(
                           added
-                              ? '${l.t('home_page')} ${rp.activePage} bookmarked'
+                              ? '${l!.homePage} ${rp.activePage} bookmarked'
                               : 'Bookmark removed',
                           style: const TextStyle(fontFamily: 'Inter', fontSize: 13),
                         ),
@@ -442,14 +442,14 @@ class _ReadingScreenState extends State<ReadingScreen> {
             Consumer2<QuranReadingProvider, AudioProvider>(
               builder: (context, readingProvider, audioProvider, child) {
                 final l = AppLocalizations.of(context);
-                String surahName = l.t('loading');
+                String surahName = l!.loading;
                 String hizbName = '...';
 
                 if (readingProvider.verses.isNotEmpty &&
                     readingProvider.chapters.isNotEmpty) {
                   final firstVerse = readingProvider.verses.first;
                   hizbName =
-                      '${l.t('reading_hizb')} ${firstVerse.hizbNumber}';
+                      '${l!.readingHizb} ${firstVerse.hizbNumber}';
 
                   int chapterId =
                       int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
@@ -457,11 +457,11 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     final chapter = readingProvider.chapters.firstWhere(
                       (c) => c.id == chapterId,
                     );
-                    surahName = l.locale.languageCode == 'ar'
+                    surahName = l!.localeName == 'ar'
                         ? chapter.nameArabic
                         : chapter.nameSimple;
                   } catch (e) {
-                    surahName = '${l.t('read_tab_surah')} $chapterId';
+                    surahName = '${l!.readTabSurah} $chapterId';
                   }
                 }
 
@@ -489,7 +489,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     : 0.0;
 
                 // Build the playing title from the ACTUAL playing verse, not the viewed page
-                String playingVerseLabel = l.t('reading_select_verse');
+                String playingVerseLabel = l!.readingSelectVerse;
                 if (audioProvider.activeVerseKey != null) {
                   final parts = audioProvider.activeVerseKey!.split(':');
                   if (parts.length == 2) {
@@ -501,16 +501,16 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       try {
                         final playingChapter = readingProvider.chapters
                             .firstWhere((c) => c.id == playingChapterId);
-                        playingSurahName = l.locale.languageCode == 'ar'
+                        playingSurahName = l!.localeName == 'ar'
                             ? playingChapter.nameArabic
                             : playingChapter.nameSimple;
                       } catch (_) {}
                     }
                     playingVerseLabel =
-                        '$playingSurahName - ${l.t('reading_verse')} ${parts[1]}';
+                        '$playingSurahName - ${l!.readingVerse} ${parts[1]}';
                   } else {
                     playingVerseLabel =
-                        '$surahName - ${l.t('reading_playing')}';
+                        '$surahName - ${l!.readingPlaying}';
                   }
                 }
                 // Determine if we are currently viewing the page that is playing
@@ -608,7 +608,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
               Consumer2<QuranReadingProvider, AudioProvider>(
                 builder: (context, readingProvider, audioProvider, child) {
                   final l = AppLocalizations.of(context);
-                  String surahName = l.t('loading');
+                  String surahName = l!.loading;
                   String juzName = '...';
                   String hizbName = '...';
 
@@ -616,9 +616,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       readingProvider.chapters.isNotEmpty) {
                     final firstVerse = readingProvider.verses.first;
                     juzName =
-                        '${l.t('reading_juz')} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
+                        '${l!.readingJuz} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
                     hizbName =
-                        '${l.t('reading_hizb')} ${firstVerse.hizbNumber}';
+                        '${l!.readingHizb} ${firstVerse.hizbNumber}';
 
                     int chapterId =
                         int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
@@ -626,11 +626,11 @@ class _ReadingScreenState extends State<ReadingScreen> {
                       final chapter = readingProvider.chapters.firstWhere(
                         (c) => c.id == chapterId,
                       );
-                      surahName = l.locale.languageCode == 'ar'
+                      surahName = l!.localeName == 'ar'
                           ? chapter.nameArabic
                           : chapter.nameSimple;
                     } catch (e) {
-                      surahName = '${l.t('read_tab_surah')} $chapterId';
+                      surahName = '${l!.readTabSurah} $chapterId';
                     }
                   }
 

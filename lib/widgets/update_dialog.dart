@@ -34,7 +34,7 @@ class UpdateDialog extends StatelessWidget {
   }
 
   Widget _buildCard(BuildContext context, UpdateProvider provider) {
-    final l = AppLocalizations.of(context);
+    final l = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF1E2A2F) : Colors.white;
     final cardBorder = isDark
@@ -99,7 +99,7 @@ class UpdateDialog extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            l.t('update_available'),
+            l!.updateAvailable,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -142,7 +142,7 @@ class UpdateDialog extends StatelessWidget {
           if (provider.updateInfo != null &&
               provider.updateInfo!.releaseNotes.isNotEmpty) ...[
             Text(
-              l.t('update_whats_new'),
+              l!.updateWhatsNew,
               style: TextStyle(
                 color: textColor,
                 fontSize: 14,
@@ -184,7 +184,7 @@ class UpdateDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l.t('update_error'),
+                      l!.updateError,
                       style: TextStyle(
                         color: Colors.red.shade300,
                         fontSize: 12,
@@ -210,7 +210,7 @@ class UpdateDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              l.t('update_downloading'),
+              l!.updateDownloading,
               style: TextStyle(
                 color: isDark ? Colors.white60 : Colors.black54,
                 fontSize: 13,
@@ -272,7 +272,7 @@ class UpdateDialog extends StatelessWidget {
                 ),
               ),
               child: Text(
-                l.t('update_later'),
+                l!.updateLater,
                 style: TextStyle(
                   color: isDark ? Colors.white54 : Colors.black54,
                   fontWeight: FontWeight.w600,
@@ -300,8 +300,8 @@ class UpdateDialog extends StatelessWidget {
               ),
               child: Text(
                 isDownloading
-                    ? l.t('update_downloading')
-                    : l.t('update_now'),
+                    ? l!.updateDownloading
+                    : l!.updateNow,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,

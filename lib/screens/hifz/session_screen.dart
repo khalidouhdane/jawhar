@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -1030,12 +1031,12 @@ class _SessionScreenState extends State<SessionScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Last verse I learned:',
+                      Text(AppLocalizations.of(context)!.sessionLastVerseLearned,
                           style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 13,
                               color: theme.secondaryText)),
-                      Text('Verse $_lastVerseLearned',
+                      Text('${AppLocalizations.of(context)!.readingVerse} $_lastVerseLearned',
                           style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 14,
@@ -1424,12 +1425,12 @@ class _SessionScreenState extends State<SessionScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Exit Session?'),
-        content: const Text('Your progress in this session will not be saved.'),
+        title: Text(AppLocalizations.of(context)!.sessionExitTitle),
+        content: Text(AppLocalizations.of(context)!.sessionExitDesc),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Continue'),
+            child: Text(AppLocalizations.of(context)!.actionContinue),
           ),
           TextButton(
             onPressed: () {
@@ -1437,7 +1438,7 @@ class _SessionScreenState extends State<SessionScreen> {
               Navigator.of(ctx).pop();
               Navigator.of(context).pop();
             },
-            child: const Text('Exit'),
+            child: Text(AppLocalizations.of(context)!.actionExit),
           ),
         ],
       ),

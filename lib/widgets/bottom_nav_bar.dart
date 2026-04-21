@@ -6,6 +6,17 @@ import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
 class AppBottomNavBar extends StatelessWidget {
+  String _getNavLabel(AppLocalizations l, int index) {
+    switch (index) {
+      case 0: return l.navDashboard;
+      case 1: return l.navPractice;
+      case 2: return l.navRead;
+      case 3: return l.navListen;
+      case 4: return l.navProfile;
+      default: return '';
+    }
+  }
+
   const AppBottomNavBar({super.key});
 
   // Dashboard / Practice / Read / Listen / Profile
@@ -80,7 +91,8 @@ class AppBottomNavBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      l.t(_labelKeys[i]),
+                      _getNavLabel(l!, i)
+,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 10,

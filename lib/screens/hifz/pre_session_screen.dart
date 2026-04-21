@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -67,7 +68,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
       return Scaffold(
         backgroundColor: theme.scaffoldBackground,
         body: Center(
-          child: Text('No plan available',
+          child: Text(AppLocalizations.of(context)!.hifzNoPlanAvailable,
               style: TextStyle(color: theme.secondaryText)),
         ),
       );

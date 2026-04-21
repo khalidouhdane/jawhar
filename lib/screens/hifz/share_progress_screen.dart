@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -260,7 +261,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Your progress is shared as a snapshot. No live data is sent.',
+                      AppLocalizations.of(context)!.sharePrivacyNotice,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11,

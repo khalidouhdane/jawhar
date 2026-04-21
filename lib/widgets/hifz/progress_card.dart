@@ -1,3 +1,4 @@
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -77,7 +78,7 @@ class ProgressCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '🔥 $activeDays days',
+                      '🔥 $activeDays ${AppLocalizations.of(context)!.progressDays}',
                       style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11,
@@ -97,7 +98,7 @@ class ProgressCard extends StatelessWidget {
 
             // Active juz progress bar (CE-10.1)
             if (currentJuz != null && currentJuzTotal != null && currentJuzTotal! > 0) ...[
-              _buildJuzProgress(),
+              _buildJuzProgress(context),
               const SizedBox(height: 14),
             ],
 
@@ -164,7 +165,7 @@ class ProgressCard extends StatelessWidget {
             // Last session (CE-10.3)
             if (lastSession != null) ...[
               const SizedBox(height: 14),
-              _buildLastSession(),
+              _buildLastSession(context),
             ],
           ],
         ),
@@ -172,7 +173,7 @@ class ProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _buildJuzProgress() {
+  Widget _buildJuzProgress(BuildContext context) {
     final progress = currentJuzProgress ?? 0;
     final total = currentJuzTotal ?? 1;
     final pct = (progress / total * 100).round();
@@ -189,7 +190,7 @@ class ProgressCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Juz $currentJuz',
+                '${AppLocalizations.of(context)!.readTabJuz} $currentJuz',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -224,7 +225,7 @@ class ProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLastSession() {
+  Widget _buildLastSession(BuildContext context) {
     final session = lastSession!;
     final time = '${session.date.hour.toString().padLeft(2, '0')}:'
         '${session.date.minute.toString().padLeft(2, '0')}';
@@ -243,7 +244,7 @@ class ProgressCard extends StatelessWidget {
           Icon(LucideIcons.clock, size: 12, color: theme.mutedText),
           const SizedBox(width: 6),
           Text(
-            'Last: $time · ${session.durationMinutes}min',
+            '${AppLocalizations.of(context)!.progressLast}: $time · ${session.durationMinutes}${AppLocalizations.of(context)!.timeMin}',
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 11,
