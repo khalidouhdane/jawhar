@@ -351,13 +351,13 @@ class _PlanCardState extends State<PlanCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(LucideIcons.listChecks, size: 12, color: Colors.white70),
-              SizedBox(width: 6),
+              const Icon(LucideIcons.listChecks, size: 12, color: Colors.white70),
+              const SizedBox(width: 6),
               Text(
                 AppLocalizations.of(context)!.planSessionSteps,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
