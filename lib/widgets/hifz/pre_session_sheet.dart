@@ -5,6 +5,7 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/session_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Lightweight bottom sheet that replaces the old full-page pre-session screen.
 /// Shows active phases with offline-skip toggles and a prominent Start button.
@@ -138,7 +139,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Done any offline?',
+                        AppLocalizations.of(context)!.preSessionDoneOffline,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 18,
@@ -148,7 +149,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Check phases you\'ve already completed to skip them',
+                        AppLocalizations.of(context)!.preSessionCheckPhases,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
@@ -191,8 +192,8 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                   theme,
                   icon: LucideIcons.bookOpen,
                   iconColor: const Color(0xFF4ECDC4),
-                  title: 'Sabaq · New',
-                  detail: 'Page ${plan.sabaqPage} · Lines ${plan.sabaqLineStart}–${plan.sabaqLineEnd}',
+                  title: AppLocalizations.of(context)!.planSabaqNew,
+                  detail: AppLocalizations.of(context)!.planPageLines(plan.sabaqPage, plan.sabaqLineStart, plan.sabaqLineEnd),
                   minutes: plan.sabaqTargetMinutes,
                   isDone: _sabaqOffline,
                   onToggle: (val) => setState(() => _sabaqOffline = val),
@@ -205,8 +206,8 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                     theme,
                     icon: LucideIcons.repeat,
                     iconColor: const Color(0xFF6C63FF),
-                    title: 'Sabqi · Review',
-                    detail: '${plan.sabqiPages.length} page${plan.sabqiPages.length > 1 ? 's' : ''}',
+                    title: AppLocalizations.of(context)!.planSabqiReview,
+                    detail: AppLocalizations.of(context)!.planPagesCount(plan.sabqiPages.length),
                     minutes: plan.sabqiTargetMinutes,
                     isDone: _sabqiOffline,
                     onToggle: (val) => setState(() => _sabqiOffline = val),
@@ -220,8 +221,8 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                     theme,
                     icon: LucideIcons.library,
                     iconColor: const Color(0xFFF5A623),
-                    title: 'Manzil · Revision',
-                    detail: 'Juz ${plan.manzilJuz} · ${plan.manzilPages.length} pages',
+                    title: AppLocalizations.of(context)!.planManzilRevision,
+                    detail: AppLocalizations.of(context)!.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
                     minutes: plan.manzilTargetMinutes,
                     isDone: _manzilOffline,
                     onToggle: (val) => setState(() => _manzilOffline = val),
@@ -263,7 +264,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _allDone ? 'Mark Session as Done' : 'Start Session',
+                      _allDone ? AppLocalizations.of(context)!.preSessionMarkDone : AppLocalizations.of(context)!.planStartSession,
                       style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 15,

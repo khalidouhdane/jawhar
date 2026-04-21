@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Dashboard card showing today's Hifz plan with full daily goal info.
 /// CE-8: Rich plan card showing what the user needs to do today.
@@ -71,8 +72,8 @@ class _PlanCardState extends State<PlanCard> {
               const SizedBox(width: 8),
               Text(
                 widget.sessionCount > 0
-                    ? 'Extra Session #${widget.sessionCount + 1}'
-                    : 'Today\'s Plan',
+                    ? AppLocalizations.of(context)!.planExtraSession(widget.sessionCount + 1)
+                    : AppLocalizations.of(context)!.planTodaysPlan,
                 style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -134,10 +135,10 @@ class _PlanCardState extends State<PlanCard> {
           // Sabaq phase — with page + line/verse details
           _phaseRow(
             '📖',
-            'Sabaq · New',
+            AppLocalizations.of(context)!.planSabaqNew,
             plan.sabaqStartVerse != null
-                ? 'Page ${plan.sabaqPage} · from verse ${plan.sabaqStartVerse}'
-                : 'Page ${plan.sabaqPage} · Lines ${plan.sabaqLineStart}–${plan.sabaqLineEnd}',
+                ? AppLocalizations.of(context)!.planPageFromVerse(plan.sabaqPage, plan.sabaqStartVerse!)
+                : AppLocalizations.of(context)!.planPageLines(plan.sabaqPage, plan.sabaqLineStart, plan.sabaqLineEnd),
             plan.sabaqDoneOffline,
             timeMinutes: plan.sabaqTargetMinutes,
             extraDetail: '${plan.sabaqRepetitionTarget} reps target',
@@ -147,10 +148,10 @@ class _PlanCardState extends State<PlanCard> {
           // Sabqi phase — with page numbers (CE-8.2)
           _phaseRow(
             '🔁',
-            'Sabqi · Review',
+            AppLocalizations.of(context)!.planSabqiReview,
             plan.sabqiPages.isEmpty
-                ? 'No review yet'
-                : _formatPageList(plan.sabqiPages),
+                ? AppLocalizations.of(context)!.planNoReviewYet
+                : _formatPageList(plan.sabqiPages, context),
             plan.sabqiDoneOffline,
             timeMinutes: plan.sabqiTargetMinutes,
           ),
@@ -159,10 +160,10 @@ class _PlanCardState extends State<PlanCard> {
           // Manzil phase — with juz info
           _phaseRow(
             '📚',
-            'Manzil · Revision',
+            AppLocalizations.of(context)!.planManzilRevision,
             plan.manzilPages.isNotEmpty
-                ? 'Juz ${plan.manzilJuz} · ${plan.manzilPages.length} pages'
-                : 'Not started yet',
+                ? AppLocalizations.of(context)!.planJuzPages(plan.manzilJuz, plan.manzilPages.length)
+                : AppLocalizations.of(context)!.planNotStartedYet,
             plan.manzilDoneOffline,
             timeMinutes: plan.manzilTargetMinutes,
           ),
@@ -182,7 +183,7 @@ class _PlanCardState extends State<PlanCard> {
                 const Icon(LucideIcons.clock, size: 12, color: Colors.white70),
                 const SizedBox(width: 6),
                 Text(
-                  '~${plan.estimatedMinutes} min total',
+                  AppLocalizations.of(context)!.planEstimatedTotal(plan.estimatedMinutes),
                   style: const TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 11,
@@ -193,7 +194,7 @@ class _PlanCardState extends State<PlanCard> {
                 if (_hasMultiplePhases()) ...[
                   const Text(' · ', style: TextStyle(color: Colors.white38)),
                   Text(
-                    _timeBreakdown(),
+                    _timeBreakdown(context),
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 11,
@@ -219,7 +220,7 @@ class _PlanCardState extends State<PlanCard> {
                   const Text('🃏', style: TextStyle(fontSize: 12)),
                   const SizedBox(width: 6),
                   Text(
-                    '$flashcardsDue flashcards due',
+                    AppLocalizations.of(context)!.planFlashcardsDue(flashcardsDue),
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 11,
@@ -250,8 +251,8 @@ class _PlanCardState extends State<PlanCard> {
                       children: [
                         const Icon(LucideIcons.lightbulb, size: 12, color: Colors.white70),
                         const SizedBox(width: 6),
-                        const Text(
-                          'Why this plan?',
+                        Text(
+                          AppLocalizations.of(context)!.planWhyThisPlan,
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
@@ -287,7 +288,7 @@ class _PlanCardState extends State<PlanCard> {
           // Recipe step preview
           if (widget.recipes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            _buildRecipePreview(theme),
+            _buildRecipePreview(theme, context),
           ],
           const SizedBox(height: 14),
 
@@ -315,7 +316,7 @@ class _PlanCardState extends State<PlanCard> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    plan.isCompleted ? 'Completed \u2728' : 'Start Session',
+                    plan.isCompleted ? AppLocalizations.of(context)!.planCompleted : AppLocalizations.of(context)!.planStartSession,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -334,7 +335,7 @@ class _PlanCardState extends State<PlanCard> {
     );
   }
 
-  Widget _buildRecipePreview(ThemeProvider theme) {
+  Widget _buildRecipePreview(ThemeProvider theme, BuildContext context) {
     // Show sabaq recipe steps as a compact icon row
     final sabaqRecipe = widget.recipes.where((r) => r.phase == 'sabaq').toList();
     if (sabaqRecipe.isEmpty || sabaqRecipe.first.isEmpty) return const SizedBox.shrink();
@@ -355,7 +356,7 @@ class _PlanCardState extends State<PlanCard> {
               Icon(LucideIcons.listChecks, size: 12, color: Colors.white70),
               SizedBox(width: 6),
               Text(
-                'Session steps',
+                AppLocalizations.of(context)!.planSessionSteps,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 11,
@@ -475,7 +476,7 @@ class _PlanCardState extends State<PlanCard> {
     final goal = widget.profile!.goal;
     switch (goal) {
       case HifzGoal.fullQuran:
-        return 'Full Quran';
+        return AppLocalizations.of(context)!.planFullQuran;
       case HifzGoal.specificJuz:
         return '${widget.profile!.goalDetails}';
       case HifzGoal.specificSurahs:
@@ -483,11 +484,11 @@ class _PlanCardState extends State<PlanCard> {
     }
   }
 
-  String _formatPageList(List<int> pages) {
+  String _formatPageList(List<int> pages, BuildContext context) {
     if (pages.length <= 3) {
-      return 'Pages ${pages.join(', ')}';
+      return AppLocalizations.of(context)!.planPagesList(pages.join(', '));
     }
-    return 'Pages ${pages.take(3).join(', ')}… (+${pages.length - 3})';
+    return AppLocalizations.of(context)!.planPagesListMore(pages.take(3).join(', '), pages.length - 3);
   }
 
   bool _hasMultiplePhases() {
@@ -498,16 +499,16 @@ class _PlanCardState extends State<PlanCard> {
     return active > 1;
   }
 
-  String _timeBreakdown() {
+  String _timeBreakdown(BuildContext context) {
     final parts = <String>[];
     if (!widget.plan.sabaqDoneOffline && widget.plan.sabaqTargetMinutes > 0) {
-      parts.add('${widget.plan.sabaqTargetMinutes}m new');
+      parts.add(AppLocalizations.of(context)!.planTimeNew(widget.plan.sabaqTargetMinutes));
     }
     if (!widget.plan.sabqiDoneOffline && widget.plan.sabqiTargetMinutes > 0) {
-      parts.add('${widget.plan.sabqiTargetMinutes}m review');
+      parts.add(AppLocalizations.of(context)!.planTimeReview(widget.plan.sabqiTargetMinutes));
     }
     if (!widget.plan.manzilDoneOffline && widget.plan.manzilTargetMinutes > 0) {
-      parts.add('${widget.plan.manzilTargetMinutes}m revision');
+      parts.add(AppLocalizations.of(context)!.planTimeRevision(widget.plan.manzilTargetMinutes));
     }
     return parts.join(' / ');
   }

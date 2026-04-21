@@ -738,7 +738,7 @@ class _SessionScreenState extends State<SessionScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '${session.currentPhaseEmoji} How did it go?',
+            '${session.currentPhaseEmoji} ${AppLocalizations.of(context)!.sessionHowDidItGo}',
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 22,
@@ -748,7 +748,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Rate your ${session.currentPhaseLabel.toLowerCase()} performance',
+            AppLocalizations.of(context)!.sessionRatePerformance(session.currentPhaseLabel.toLowerCase()),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -756,16 +756,16 @@ class _SessionScreenState extends State<SessionScreen> {
             ),
           ),
           const SizedBox(height: 32),
-          _assessmentOption(theme, '💪', 'Strong',
-              'I nailed it — confident',
+          _assessmentOption(theme, '💪', AppLocalizations.of(context)!.sessionAssessmentStrong,
+              AppLocalizations.of(context)!.sessionAssessmentStrongDesc,
               () => session.submitAssessment(SelfAssessment.strong)),
           const SizedBox(height: 12),
-          _assessmentOption(theme, '🤔', 'Okay',
-              'Got through it, some mistakes',
+          _assessmentOption(theme, '🤔', AppLocalizations.of(context)!.sessionAssessmentOkay,
+              AppLocalizations.of(context)!.sessionAssessmentOkayDesc,
               () => session.submitAssessment(SelfAssessment.okay)),
           const SizedBox(height: 12),
-          _assessmentOption(theme, '😬', 'Needs Work',
-              'I struggled — need more practice',
+          _assessmentOption(theme, '😬', AppLocalizations.of(context)!.sessionAssessmentNeedsWork,
+              AppLocalizations.of(context)!.sessionAssessmentNeedsWorkDesc,
               () => session.submitAssessment(SelfAssessment.needsWork)),
         ],
       ),
@@ -790,7 +790,7 @@ class _SessionScreenState extends State<SessionScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '📖 How much did you cover?',
+            '📖 ${AppLocalizations.of(context)!.coverageHowMuch}',
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 22,
@@ -800,7 +800,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Planned: Page $sabaqPage · $lineInfo',
+            AppLocalizations.of(context)!.coveragePlanned(sabaqPage.toString(), lineInfo),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -813,8 +813,8 @@ class _SessionScreenState extends State<SessionScreen> {
           _coverageOption(
             theme,
             '✅',
-            'All planned lines',
-            'I completed page $sabaqPage ($lineInfo)',
+            AppLocalizations.of(context)!.coverageAllLines,
+            AppLocalizations.of(context)!.coverageAllLinesDesc(sabaqPage.toString(), lineInfo),
             () => session.setActualCoverage([sabaqPage]),
           ),
           const SizedBox(height: 12),
@@ -823,8 +823,8 @@ class _SessionScreenState extends State<SessionScreen> {
           _coverageOption(
             theme,
             '📄',
-            'Part of the page',
-            'I\'ll specify which verses I covered',
+            AppLocalizations.of(context)!.coveragePartOfPage,
+            AppLocalizations.of(context)!.coveragePartOfPageDesc,
             () => _showVerseRangePicker(theme, session, sabaqPage),
           ),
           const SizedBox(height: 12),
@@ -833,8 +833,8 @@ class _SessionScreenState extends State<SessionScreen> {
           _coverageOption(
             theme,
             '📚',
-            'More than planned',
-            'I covered extra pages!',
+            AppLocalizations.of(context)!.coverageMoreThanPlanned,
+            AppLocalizations.of(context)!.coverageMoreThanPlannedDesc,
             () => _showPageRangePicker(theme, session, sabaqPage),
           ),
         ],
@@ -1169,7 +1169,7 @@ class _SessionScreenState extends State<SessionScreen> {
           const Text('🎉', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
           Text(
-            'Session Complete!',
+            AppLocalizations.of(context)!.completeSessionComplete,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 26,
@@ -1199,10 +1199,10 @@ class _SessionScreenState extends State<SessionScreen> {
             ),
             child: Column(
               children: [
-                _summaryRow(theme, '⏱', 'Time spent',
+                _summaryRow(theme, '⏱', AppLocalizations.of(context)!.completeTimeSpent,
                     _formatTime(session.elapsedSeconds)),
                 const SizedBox(height: 12),
-                _summaryRow(theme, '🔄', 'Total reps',
+                _summaryRow(theme, '🔄', AppLocalizations.of(context)!.completeTotalReps,
                     '${session.totalRepCount}'),
                 if (session.sabaqAssessment != null)
                   Padding(
@@ -1250,7 +1250,7 @@ class _SessionScreenState extends State<SessionScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Tomorrow\'s preview',
+                              AppLocalizations.of(context)!.completeTomorrowsPreview,
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 12,
@@ -1308,7 +1308,7 @@ class _SessionScreenState extends State<SessionScreen> {
                         const Text('🃏', style: TextStyle(fontSize: 16)),
                         const SizedBox(width: 8),
                         Text(
-                          'Practice $due Flashcards',
+                          AppLocalizations.of(context)!.completePracticeFlashcards(due),
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 14,
@@ -1360,10 +1360,10 @@ class _SessionScreenState extends State<SessionScreen> {
                   ),
                 ],
               ),
-              child: const Text(
-                'Back to Dashboard',
+              child: Text(
+                AppLocalizations.of(context)!.completeBackToDashboard,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -1407,9 +1407,9 @@ class _SessionScreenState extends State<SessionScreen> {
 
   String _assessmentLabel(SelfAssessment a) {
     switch (a) {
-      case SelfAssessment.strong: return '💪 Strong';
-      case SelfAssessment.okay: return '🤔 Okay';
-      case SelfAssessment.needsWork: return '😬 Needs Work';
+      case SelfAssessment.strong: return '💪 ${AppLocalizations.of(context)!.sessionAssessmentStrong}';
+      case SelfAssessment.okay: return '🤔 ${AppLocalizations.of(context)!.sessionAssessmentOkay}';
+      case SelfAssessment.needsWork: return '😬 ${AppLocalizations.of(context)!.sessionAssessmentNeedsWork}';
     }
   }
 

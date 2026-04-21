@@ -11,6 +11,7 @@ import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/hifz/verse_highlighter.dart';
 import 'package:quran_app/widgets/overlays.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Floating session controls overlay for the digital reading mode (Phase 4).
 ///
@@ -278,7 +279,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             // In guided mode: Prev · +REP · Next/Finish
                             _ActionButton(
                               icon: LucideIcons.chevronLeft,
-                              label: 'Prev',
+                              label: AppLocalizations.of(context)!.overlayPrev,
                               theme: theme,
                               onTap: () => session.previousStep(),
                             ),
@@ -313,14 +314,14 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             if (session.currentStepIndex < (session.currentRecipe?.steps.length ?? 1) - 1)
                               _ActionButton(
                                 icon: LucideIcons.chevronRight,
-                                label: session.isStepComplete ? 'Next' : 'Skip',
+                                label: session.isStepComplete ? AppLocalizations.of(context)!.overlayNext : AppLocalizations.of(context)!.overlaySkip,
                                 theme: theme,
                                 onTap: () => session.nextStep(),
                               )
                             else
                               _ActionButton(
                                 icon: LucideIcons.checkCircle,
-                                label: 'Finish',
+                                label: AppLocalizations.of(context)!.overlayFinish,
                                 theme: theme,
                                 isPrimary: true,
                                 onTap: widget.onDone,
@@ -329,7 +330,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             // Free mode: Skip · +REP · Done
                             _ActionButton(
                               icon: LucideIcons.skipForward,
-                              label: 'Skip',
+                              label: AppLocalizations.of(context)!.overlaySkip,
                               theme: theme,
                               onTap: widget.onSkip ?? () {},
                             ),
@@ -359,7 +360,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             ),
                             _ActionButton(
                               icon: LucideIcons.check,
-                              label: 'Done',
+                              label: AppLocalizations.of(context)!.overlayDone,
                               theme: theme,
                               isPrimary: true,
                               onTap: widget.onDone,
