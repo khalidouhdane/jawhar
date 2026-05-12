@@ -130,7 +130,7 @@ class AnalyticsProvider extends ChangeNotifier {
   Future<void> forceAICalibration(MemoryProfile profile) async {
     if (_calibrationService == null || _currentWeek == null) return;
 
-    final aiSuggestions = await _calibrationService!.generateCalibration(
+    final aiSuggestions = await _calibrationService.generateCalibration(
       profile: profile,
       currentWeek: _currentWeek!,
       previousWeek: _previousWeek,

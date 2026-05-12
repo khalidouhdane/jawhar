@@ -628,7 +628,7 @@ class _ContextualMenu extends StatelessWidget {
               icon: LucideIcons.copy,
               onTap: () {
                 Clipboard.setData(ClipboardData(
-                  text: '${_verseText}\n[${verse.verseKey}]',
+                  text: '$_verseText\n[${verse.verseKey}]',
                 ));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -676,7 +676,7 @@ class _ContextualMenu extends StatelessWidget {
               icon: LucideIcons.share,
               onTap: () {
                 Clipboard.setData(ClipboardData(
-                  text: '${_verseText}\n\n— ${verse.verseKey}',
+                  text: '$_verseText\n\n— ${verse.verseKey}',
                 ));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

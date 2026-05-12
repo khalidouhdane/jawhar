@@ -486,5 +486,155 @@
   "overlayPrev": "Prev",
   "overlayNext": "Next",
   "overlayFinish": "Finish",
-  "overlayDone": "Done"
+  "overlayDone": "Done",
+  "phaseSabaq": "New Memorization",
+  "phaseSabqi": "Recent Review",
+  "phaseManzil": "Long-term Review",
+  "phaseFlashcards": "Flashcards",
+  "recipeStepOf": "Step {current} of {total}",
+  "@recipeStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeDoneBadge": "✓ Done",
+  "recipeTargetTimesLabel": "{target} × target",
+  "@recipeTargetTimesLabel": {
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeTimes": "{count} ×",
+  "@recipeTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeTargetMinLabel": "{target} min target",
+  "@recipeTargetMinLabel": {
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeMin": "{count} min",
+  "@recipeMin": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeBtnPrev": "Prev",
+  "recipeBtnNext": "Next",
+  "recipeBtnSkip": "Skip",
+  "recipeBtnFinish": "Finish",
+  "recipeFreeModeTitle": "Free Mode",
+  "recipeFreeModeDesc": "No recipe available for this phase. Use the + button to count your reps.",
+  "recipeActionListen": "Listen",
+  "recipeActionReadAlong": "Read Along",
+  "recipeActionReadSolo": "Read Solo",
+  "recipeActionReciteMemory": "Recite from Memory",
+  "recipeActionLinkPractice": "Link Practice",
+  "recipeActionWrite": "Write",
+  "recipeActionReviewMeaning": "Review Meaning",
+  "recipeActionSelfTest": "Self Test",
+  "recipeInstListen": "Listen to the page being recited. Focus on the melody and pronunciation.",
+  "recipeInstReadAlong": "Read along with the audio. Match the reciter's pace and tajweed.",
+  "recipeInstReadSolo": "Read on your own without audio. Check your accuracy after each attempt.",
+  "recipeInstReciteMemory": "Close the mushaf and recite from memory. Repeat until confident.",
+  "recipeInstSabqiReadSolo": "Read through the review pages. Note any areas that feel uncertain.",
+  "recipeInstSabqiSelfTest": "Close the mushaf and recite each page from memory. Check and correct.",
+  "recipeInstManzilReadSolo": "Read through the manzil pages at a steady pace. Focus on fluency.",
+  "recipeInstManzilSelfTest": "Recite from memory. Use the mushaf only to check uncertain sections.",
+  "recipeTipFocusLines": "Focus on 2-3 lines at a time, then connect them together.",
+  "recipeTipRecord": "Record yourself and compare with the reciter to spot mistakes.",
+  "recipeTipMeaning": "Review the meaning to build deeper neural connections.",
+  "recipeTipMaintenance": "Don't skip pages that feel easy — even strong pages need maintenance.",
+  "recipeTipWeakPage": "If a page feels weak, add an extra repetition.",
+  "recipeTipManzilLongTerm": "Manzil keeps your long-term memorization strong.",
+  "recipeTipConsistency": "Consistency matters more than perfection here.",
+  "overlayPageLines": "Page {page} · Lines {start}-{end}",
+  "@overlayPageLines": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "audioSelectVerse": "Select verse to play",
+  "assessmentPerformanceIn": "Assess your performance in {phase}",
+  "@assessmentPerformanceIn": {
+    "placeholders": {
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "overlayFreeMode": "Free",
+  "overlayGuidedMode": "Guided",
+  "tomorrowPreview": "📖 Page {page} · 🔁 Review today\\'s pages",
+  "@tomorrowPreview": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "khatmCongrats": "You\\'ve completed the Quran! 🎉",
+  "feedbackSabaqStrong": "Excellent! You rated this page as strong — great foundation! 🎯",
+  "feedbackSabaqNeedsWork": "Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪",
+  "feedbackRepetition": "Masha\\'Allah! {reps} repetitions — building rock-solid memory! 🧠",
+  "@feedbackRepetition": {
+    "placeholders": {
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackFallback": "Masha\\'Allah! Great work today. Every session counts! ✨",
+  "feedbackFallbackShort": "Masha\\'Allah! Great work today.",
+  "feedbackTime": "Masha\\'Allah! A solid {minutes}-minute session. Consistency builds mountains! 🌟",
+  "@feedbackTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "loadingPage": "Loading page {page}…",
+  "@loadingPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "failedToLoadPage": "Failed to load page {page}",
+  "@failedToLoadPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "hifzCtaTitle": "Start Your Hifz Journey",
+  "hifzCtaSubtitle": "Take a quick assessment and get a personalized memorization plan.",
+  "hifzCtaButton": "Create Profile"
 }

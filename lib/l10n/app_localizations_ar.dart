@@ -1527,4 +1527,216 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get overlayDone => 'تم';
+
+  @override
+  String get phaseSabaq => 'حفظ جديد';
+
+  @override
+  String get phaseSabqi => 'مراجعة قريبة';
+
+  @override
+  String get phaseManzil => 'مراجعة بعيدة';
+
+  @override
+  String get phaseFlashcards => 'بطاقات الاسترجاع';
+
+  @override
+  String recipeStepOf(int current, int total) {
+    return 'خطوة $current من $total';
+  }
+
+  @override
+  String get recipeDoneBadge => '✓ اكتمل';
+
+  @override
+  String recipeTargetTimesLabel(int target) {
+    return 'الهدف: $target مرات';
+  }
+
+  @override
+  String recipeTimes(int count) {
+    return '$count مرات';
+  }
+
+  @override
+  String recipeTargetMinLabel(int target) {
+    return 'الهدف: $target دقيقة';
+  }
+
+  @override
+  String recipeMin(int count) {
+    return '$count دقيقة';
+  }
+
+  @override
+  String get recipeBtnPrev => 'السابق';
+
+  @override
+  String get recipeBtnNext => 'التالي';
+
+  @override
+  String get recipeBtnSkip => 'تخطي';
+
+  @override
+  String get recipeBtnFinish => 'إنهاء';
+
+  @override
+  String get recipeFreeModeTitle => 'الوضع الحر';
+
+  @override
+  String get recipeFreeModeDesc =>
+      'لا توجد خطة جاهزة لهذه المرحلة. استخدم زر + لعد مرات التكرار.';
+
+  @override
+  String get recipeActionListen => 'استماع';
+
+  @override
+  String get recipeActionReadAlong => 'قراءة مع القارئ';
+
+  @override
+  String get recipeActionReadSolo => 'قراءة منفردة';
+
+  @override
+  String get recipeActionReciteMemory => 'تسميع من الذاكرة';
+
+  @override
+  String get recipeActionLinkPractice => 'تمرين الربط';
+
+  @override
+  String get recipeActionWrite => 'كتابة';
+
+  @override
+  String get recipeActionReviewMeaning => 'مراجعة المعنى';
+
+  @override
+  String get recipeActionSelfTest => 'اختبار ذاتي';
+
+  @override
+  String get recipeInstListen => 'استمع للصفحة. ركز على التلاوة والنطق الصحيح.';
+
+  @override
+  String get recipeInstReadAlong =>
+      'اقرأ مع الصوت. حاول مطابقة سرعة القارئ وأحكام التجويد.';
+
+  @override
+  String get recipeInstReadSolo =>
+      'اقرأ بمفردك بدون صوت. تأكد من دقة قراءتك بعد كل محاولة.';
+
+  @override
+  String get recipeInstReciteMemory =>
+      'أغلق المصحف وسمّع من الذاكرة. كرر حتى تتقن.';
+
+  @override
+  String get recipeInstSabqiReadSolo =>
+      'اقرأ صفحات المراجعة. انتبه للمواضع التي تشعر فيها بالتردد.';
+
+  @override
+  String get recipeInstSabqiSelfTest =>
+      'أغلق المصحف وسمّع كل صفحة من الذاكرة. تأكد وصحح الأخطاء.';
+
+  @override
+  String get recipeInstManzilReadSolo =>
+      'اقرأ صفحات المراجعة البعيدة بسرعة منتظمة. ركز على الطلاقة.';
+
+  @override
+  String get recipeInstManzilSelfTest =>
+      'سمّع من الذاكرة. استخدم المصحف فقط للتأكد من المواضع المنسية.';
+
+  @override
+  String get recipeTipFocusLines =>
+      'ركز على 2-3 أسطر في المرة الواحدة، ثم اربطها ببعضها.';
+
+  @override
+  String get recipeTipRecord => 'سجل لنفسك وقارن مع القارئ لاكتشاف الأخطاء.';
+
+  @override
+  String get recipeTipMeaning =>
+      'راجع المعنى لبناء روابط عصبية أعمق للمساعدة على التذكر.';
+
+  @override
+  String get recipeTipMaintenance =>
+      'لا تتجاوز الصفحات التي تبدو سهلة — حتى الصفحات القوية تحتاج لمراجعة.';
+
+  @override
+  String get recipeTipWeakPage =>
+      'إذا شعرت بضعف في صفحة معينة، أضف تكراراً إضافياً.';
+
+  @override
+  String get recipeTipManzilLongTerm =>
+      'المراجعة البعيدة تحافظ على قوة حفظك على المدى الطويل.';
+
+  @override
+  String get recipeTipConsistency => 'الاستمرارية هنا أهم من الكمال.';
+
+  @override
+  String overlayPageLines(int page, int start, int end) {
+    return 'الصفحة $page · الأسطر $start-$end';
+  }
+
+  @override
+  String get audioSelectVerse => 'اختر آية للتشغيل';
+
+  @override
+  String assessmentPerformanceIn(String phase) {
+    return 'قيّم أداءك في $phase';
+  }
+
+  @override
+  String get overlayFreeMode => 'حر';
+
+  @override
+  String get overlayGuidedMode => 'موجّه';
+
+  @override
+  String tomorrowPreview(int page) {
+    return '📖 صفحة $page · 🔁 مراجعة صفحات اليوم';
+  }
+
+  @override
+  String get khatmCongrats => 'لقد ختمت القرآن! 🎉';
+
+  @override
+  String get feedbackSabaqStrong =>
+      'ممتاز! تقييمك لهذه الصفحة ممتاز — أساس قوي! 🎯';
+
+  @override
+  String get feedbackSabaqNeedsWork =>
+      'كل جلسة صعبة هي تقدم. الصفحات التي تتحداك اليوم ستكون الأقوى غدًا. 💪';
+
+  @override
+  String feedbackRepetition(int reps) {
+    return 'ما شاء الله! $reps تكرار — تبني ذاكرة قوية كالصخر! 🧠';
+  }
+
+  @override
+  String get feedbackFallback =>
+      'ما شاء الله! عمل رائع اليوم. كل جلسة تصنع الفرق! ✨';
+
+  @override
+  String get feedbackFallbackShort => 'ما شاء الله! عمل رائع اليوم.';
+
+  @override
+  String feedbackTime(int minutes) {
+    return 'ما شاء الله! جلسة قوية مدتها $minutes دقيقة. الاستمرارية تبني الجبال! 🌟';
+  }
+
+  @override
+  String loadingPage(int page) {
+    return 'جاري تحميل الصفحة $page…';
+  }
+
+  @override
+  String failedToLoadPage(int page) {
+    return 'فشل في تحميل الصفحة $page';
+  }
+
+  @override
+  String get hifzCtaTitle => 'ابدأ رحلة حفظك';
+
+  @override
+  String get hifzCtaSubtitle =>
+      'قم بإجراء تقييم سريع واحصل على خطة حفظ مخصصة لك.';
+
+  @override
+  String get hifzCtaButton => 'إنشاء ملف شخصي';
 }

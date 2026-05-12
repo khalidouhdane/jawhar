@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/providers/session_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Displays the current recipe step with progress, instructions,
 /// rep counter, and navigation controls.
@@ -21,7 +22,7 @@ class RecipeGuideWidget extends StatelessWidget {
     final step = session.currentStep;
 
     if (recipe == null || recipe.isEmpty || step == null) {
-      return _buildNoRecipe(theme, session);
+      return _buildNoRecipe(context, theme, session);
     }
 
     final totalSteps = recipe.steps.length;
@@ -75,7 +76,7 @@ class RecipeGuideWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Step ${currentIndex + 1} of $totalSteps',
+                          AppLocalizations.of(context)!.recipeStepOf(currentIndex + 1, totalSteps),
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
@@ -86,7 +87,7 @@ class RecipeGuideWidget extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          step.action.label,
+                          _getActionLabel(context, step.action),
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 16,
@@ -105,8 +106,8 @@ class RecipeGuideWidget extends StatelessWidget {
                         color: const Color(0xFF10B981).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        '✓ Done',
+                      child: Text(
+                        AppLocalizations.of(context)!.recipeDoneBadge,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 11,
@@ -121,7 +122,7 @@ class RecipeGuideWidget extends StatelessWidget {
 
               // Instruction text
               Text(
-                step.instruction,
+                _getInstructionLabel(context, step.instruction),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -132,7 +133,7 @@ class RecipeGuideWidget extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Rep/time progress bar
-              _buildProgressIndicator(theme, session, step),
+              _buildProgressIndicator(context, theme, session, step),
             ],
           ),
         ),
@@ -144,7 +145,7 @@ class RecipeGuideWidget extends StatelessWidget {
           children: [
             // Previous step
             if (currentIndex > 0)
-              _navButton(theme, LucideIcons.chevronLeft, 'Prev', () => session.previousStep())
+              _navButton(theme, LucideIcons.chevronLeft, AppLocalizations.of(context)!.recipeBtnPrev, () => session.previousStep())
             else
               const SizedBox(width: 80),
 
@@ -183,14 +184,14 @@ class RecipeGuideWidget extends StatelessWidget {
               _navButton(
                 theme,
                 LucideIcons.chevronRight,
-                isComplete ? 'Next' : 'Skip',
+                isComplete ? AppLocalizations.of(context)!.recipeBtnNext : AppLocalizations.of(context)!.recipeBtnSkip,
                 () => session.nextStep(),
               )
             else
               _navButton(
                 theme,
                 LucideIcons.checkCircle,
-                'Finish',
+                AppLocalizations.of(context)!.recipeBtnFinish,
                 () => session.finishPhase(),
               ),
           ],
@@ -213,7 +214,7 @@ class RecipeGuideWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    recipe.tips[currentIndex % recipe.tips.length],
+                    _getTipLabel(context, recipe.tips[currentIndex % recipe.tips.length]),
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -256,10 +257,9 @@ class RecipeGuideWidget extends StatelessWidget {
   }
 
   Widget _buildProgressIndicator(
-    ThemeProvider theme, SessionProvider session, RecipeStep step,
+    BuildContext context, ThemeProvider theme, SessionProvider session, RecipeStep step,
   ) {
     final progress = (session.stepRepCount / step.target).clamp(0.0, 1.0);
-    final unitLabel = step.unit == StepUnit.minutes ? 'min' : '×';
 
     return Column(
       children: [
@@ -281,7 +281,9 @@ class RecipeGuideWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${session.stepRepCount} $unitLabel',
+              step.unit == StepUnit.minutes
+                  ? AppLocalizations.of(context)!.recipeMin(session.stepRepCount)
+                  : AppLocalizations.of(context)!.recipeTimes(session.stepRepCount),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
@@ -290,7 +292,9 @@ class RecipeGuideWidget extends StatelessWidget {
               ),
             ),
             Text(
-              '${step.target} $unitLabel target',
+              step.unit == StepUnit.minutes
+                  ? AppLocalizations.of(context)!.recipeTargetMinLabel(step.target)
+                  : AppLocalizations.of(context)!.recipeTargetTimesLabel(step.target),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 12,
@@ -303,7 +307,7 @@ class RecipeGuideWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildNoRecipe(ThemeProvider theme, SessionProvider session) {
+  Widget _buildNoRecipe(BuildContext context, ThemeProvider theme, SessionProvider session) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -314,7 +318,7 @@ class RecipeGuideWidget extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Free Mode',
+            AppLocalizations.of(context)!.recipeFreeModeTitle,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 16,
@@ -324,7 +328,7 @@ class RecipeGuideWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'No recipe available for this phase. Use the + button to count your reps.',
+            AppLocalizations.of(context)!.recipeFreeModeDesc,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Inter',
@@ -366,5 +370,46 @@ class RecipeGuideWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getActionLabel(BuildContext context, RecipeAction action) {
+    final loc = AppLocalizations.of(context)!;
+    switch (action) {
+      case RecipeAction.listen: return loc.recipeActionListen;
+      case RecipeAction.readAlong: return loc.recipeActionReadAlong;
+      case RecipeAction.readSolo: return loc.recipeActionReadSolo;
+      case RecipeAction.reciteMemory: return loc.recipeActionReciteMemory;
+      case RecipeAction.linkPractice: return loc.recipeActionLinkPractice;
+      case RecipeAction.write: return loc.recipeActionWrite;
+      case RecipeAction.reviewMeaning: return loc.recipeActionReviewMeaning;
+      case RecipeAction.selfTest: return loc.recipeActionSelfTest;
+    }
+  }
+
+  String _getInstructionLabel(BuildContext context, String instruction) {
+    final loc = AppLocalizations.of(context)!;
+    if (instruction.contains('Listen to the page being recited')) return loc.recipeInstListen;
+    if (instruction.contains('Read along with the audio')) return loc.recipeInstReadAlong;
+    if (instruction.contains('Read on your own without audio')) return loc.recipeInstReadSolo;
+    if (instruction.contains('Close the mushaf and recite from memory')) {
+      if (instruction.contains('Check and correct.')) return loc.recipeInstSabqiSelfTest;
+      return loc.recipeInstReciteMemory;
+    }
+    if (instruction.contains('Read through the review pages')) return loc.recipeInstSabqiReadSolo;
+    if (instruction.contains('Read through the manzil pages')) return loc.recipeInstManzilReadSolo;
+    if (instruction.contains('Use the mushaf only to check')) return loc.recipeInstManzilSelfTest;
+    return instruction;
+  }
+
+  String _getTipLabel(BuildContext context, String tip) {
+    final loc = AppLocalizations.of(context)!;
+    if (tip.contains('Focus on 2-3 lines')) return loc.recipeTipFocusLines;
+    if (tip.contains('Record yourself')) return loc.recipeTipRecord;
+    if (tip.contains('Review the meaning')) return loc.recipeTipMeaning;
+    if (tip.contains("Don't skip pages")) return loc.recipeTipMaintenance;
+    if (tip.contains('If a page feels weak')) return loc.recipeTipWeakPage;
+    if (tip.contains('Manzil keeps your long-term')) return loc.recipeTipManzilLongTerm;
+    if (tip.contains('Consistency matters')) return loc.recipeTipConsistency;
+    return tip;
   }
 }

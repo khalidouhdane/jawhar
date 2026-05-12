@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
@@ -105,7 +106,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Failed to load page ${widget.pageNumber}';
+          _error = AppLocalizations.of(context)!.failedToLoadPage(widget.pageNumber);
           _isLoading = false;
         });
       }
@@ -174,7 +175,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Loading page ${widget.pageNumber}…',
+              AppLocalizations.of(context)!.loadingPage(widget.pageNumber),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,

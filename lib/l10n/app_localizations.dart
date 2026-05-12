@@ -3019,6 +3019,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get overlayDone;
+
+  /// No description provided for @phaseSabaq.
+  ///
+  /// In en, this message translates to:
+  /// **'New Memorization'**
+  String get phaseSabaq;
+
+  /// No description provided for @phaseSabqi.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Review'**
+  String get phaseSabqi;
+
+  /// No description provided for @phaseManzil.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-term Review'**
+  String get phaseManzil;
+
+  /// No description provided for @phaseFlashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcards'**
+  String get phaseFlashcards;
+
+  /// No description provided for @recipeStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String recipeStepOf(int current, int total);
+
+  /// No description provided for @recipeDoneBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Done'**
+  String get recipeDoneBadge;
+
+  /// No description provided for @recipeTargetTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{target} × target'**
+  String recipeTargetTimesLabel(int target);
+
+  /// No description provided for @recipeTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} ×'**
+  String recipeTimes(int count);
+
+  /// No description provided for @recipeTargetMinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{target} min target'**
+  String recipeTargetMinLabel(int target);
+
+  /// No description provided for @recipeMin.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String recipeMin(int count);
+
+  /// No description provided for @recipeBtnPrev.
+  ///
+  /// In en, this message translates to:
+  /// **'Prev'**
+  String get recipeBtnPrev;
+
+  /// No description provided for @recipeBtnNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get recipeBtnNext;
+
+  /// No description provided for @recipeBtnSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get recipeBtnSkip;
+
+  /// No description provided for @recipeBtnFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get recipeBtnFinish;
+
+  /// No description provided for @recipeFreeModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Mode'**
+  String get recipeFreeModeTitle;
+
+  /// No description provided for @recipeFreeModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'No recipe available for this phase. Use the + button to count your reps.'**
+  String get recipeFreeModeDesc;
+
+  /// No description provided for @recipeActionListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get recipeActionListen;
+
+  /// No description provided for @recipeActionReadAlong.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Along'**
+  String get recipeActionReadAlong;
+
+  /// No description provided for @recipeActionReadSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Solo'**
+  String get recipeActionReadSolo;
+
+  /// No description provided for @recipeActionReciteMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Recite from Memory'**
+  String get recipeActionReciteMemory;
+
+  /// No description provided for @recipeActionLinkPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Practice'**
+  String get recipeActionLinkPractice;
+
+  /// No description provided for @recipeActionWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get recipeActionWrite;
+
+  /// No description provided for @recipeActionReviewMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Meaning'**
+  String get recipeActionReviewMeaning;
+
+  /// No description provided for @recipeActionSelfTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Self Test'**
+  String get recipeActionSelfTest;
+
+  /// No description provided for @recipeInstListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to the page being recited. Focus on the melody and pronunciation.'**
+  String get recipeInstListen;
+
+  /// No description provided for @recipeInstReadAlong.
+  ///
+  /// In en, this message translates to:
+  /// **'Read along with the audio. Match the reciter\'s pace and tajweed.'**
+  String get recipeInstReadAlong;
+
+  /// No description provided for @recipeInstReadSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Read on your own without audio. Check your accuracy after each attempt.'**
+  String get recipeInstReadSolo;
+
+  /// No description provided for @recipeInstReciteMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the mushaf and recite from memory. Repeat until confident.'**
+  String get recipeInstReciteMemory;
+
+  /// No description provided for @recipeInstSabqiReadSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Read through the review pages. Note any areas that feel uncertain.'**
+  String get recipeInstSabqiReadSolo;
+
+  /// No description provided for @recipeInstSabqiSelfTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the mushaf and recite each page from memory. Check and correct.'**
+  String get recipeInstSabqiSelfTest;
+
+  /// No description provided for @recipeInstManzilReadSolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Read through the manzil pages at a steady pace. Focus on fluency.'**
+  String get recipeInstManzilReadSolo;
+
+  /// No description provided for @recipeInstManzilSelfTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Recite from memory. Use the mushaf only to check uncertain sections.'**
+  String get recipeInstManzilSelfTest;
+
+  /// No description provided for @recipeTipFocusLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on 2-3 lines at a time, then connect them together.'**
+  String get recipeTipFocusLines;
+
+  /// No description provided for @recipeTipRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record yourself and compare with the reciter to spot mistakes.'**
+  String get recipeTipRecord;
+
+  /// No description provided for @recipeTipMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the meaning to build deeper neural connections.'**
+  String get recipeTipMeaning;
+
+  /// No description provided for @recipeTipMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t skip pages that feel easy — even strong pages need maintenance.'**
+  String get recipeTipMaintenance;
+
+  /// No description provided for @recipeTipWeakPage.
+  ///
+  /// In en, this message translates to:
+  /// **'If a page feels weak, add an extra repetition.'**
+  String get recipeTipWeakPage;
+
+  /// No description provided for @recipeTipManzilLongTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Manzil keeps your long-term memorization strong.'**
+  String get recipeTipManzilLongTerm;
+
+  /// No description provided for @recipeTipConsistency.
+  ///
+  /// In en, this message translates to:
+  /// **'Consistency matters more than perfection here.'**
+  String get recipeTipConsistency;
+
+  /// No description provided for @overlayPageLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} · Lines {start}-{end}'**
+  String overlayPageLines(int page, int start, int end);
+
+  /// No description provided for @audioSelectVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Select verse to play'**
+  String get audioSelectVerse;
+
+  /// No description provided for @assessmentPerformanceIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Assess your performance in {phase}'**
+  String assessmentPerformanceIn(String phase);
+
+  /// No description provided for @overlayFreeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get overlayFreeMode;
+
+  /// No description provided for @overlayGuidedMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided'**
+  String get overlayGuidedMode;
+
+  /// No description provided for @tomorrowPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'📖 Page {page} · 🔁 Review today\\\'s pages'**
+  String tomorrowPreview(int page);
+
+  /// No description provided for @khatmCongrats.
+  ///
+  /// In en, this message translates to:
+  /// **'You\\\'ve completed the Quran! 🎉'**
+  String get khatmCongrats;
+
+  /// No description provided for @feedbackSabaqStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent! You rated this page as strong — great foundation! 🎯'**
+  String get feedbackSabaqStrong;
+
+  /// No description provided for @feedbackSabaqNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪'**
+  String get feedbackSabaqNeedsWork;
+
+  /// No description provided for @feedbackRepetition.
+  ///
+  /// In en, this message translates to:
+  /// **'Masha\\\'Allah! {reps} repetitions — building rock-solid memory! 🧠'**
+  String feedbackRepetition(int reps);
+
+  /// No description provided for @feedbackFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Masha\\\'Allah! Great work today. Every session counts! ✨'**
+  String get feedbackFallback;
+
+  /// No description provided for @feedbackFallbackShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Masha\\\'Allah! Great work today.'**
+  String get feedbackFallbackShort;
+
+  /// No description provided for @feedbackTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Masha\\\'Allah! A solid {minutes}-minute session. Consistency builds mountains! 🌟'**
+  String feedbackTime(int minutes);
+
+  /// No description provided for @loadingPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading page {page}…'**
+  String loadingPage(int page);
+
+  /// No description provided for @failedToLoadPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load page {page}'**
+  String failedToLoadPage(int page);
+
+  /// No description provided for @hifzCtaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Your Hifz Journey'**
+  String get hifzCtaTitle;
+
+  /// No description provided for @hifzCtaSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a quick assessment and get a personalized memorization plan.'**
+  String get hifzCtaSubtitle;
+
+  /// No description provided for @hifzCtaButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Profile'**
+  String get hifzCtaButton;
 }
 
 class _AppLocalizationsDelegate

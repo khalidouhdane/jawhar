@@ -134,8 +134,7 @@ class AudioPlayerBridge extends StatelessWidget {
                                           (context, error, stackTrace) {
                                             return Center(
                                               child: Directionality(
-                                                textDirection:
-                                                    TextDirection.ltr,
+                                                textDirection: TextDirection.ltr,
                                                 child: Text(
                                                   reciterName.isNotEmpty
                                                       ? reciterName

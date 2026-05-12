@@ -67,7 +67,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l!.audioPlaybackSpeed,
+                l.audioPlaybackSpeed,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -131,7 +131,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      l!.audioRepeatMode,
+                      l.audioRepeatMode,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -144,14 +144,14 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                 Row(
                   children: [
                     _buildRepeatChip(
-                      l!.audioRepeatOff,
+                      l.audioRepeatOff,
                       AudioRepeatMode.none,
                       audioProvider,
                       theme,
                     ),
                     const SizedBox(width: 8),
                     _buildRepeatChip(
-                      l!.audioRepeatVerse,
+                      l.audioRepeatVerse,
                       AudioRepeatMode.repeatVerse,
                       audioProvider,
                       theme,
@@ -173,7 +173,7 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        l!.audioRepeatTimes,
+                        l.audioRepeatTimes,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

@@ -1543,4 +1543,219 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get overlayDone => 'Done';
+
+  @override
+  String get phaseSabaq => 'New Memorization';
+
+  @override
+  String get phaseSabqi => 'Recent Review';
+
+  @override
+  String get phaseManzil => 'Long-term Review';
+
+  @override
+  String get phaseFlashcards => 'Flashcards';
+
+  @override
+  String recipeStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get recipeDoneBadge => '✓ Done';
+
+  @override
+  String recipeTargetTimesLabel(int target) {
+    return '$target × target';
+  }
+
+  @override
+  String recipeTimes(int count) {
+    return '$count ×';
+  }
+
+  @override
+  String recipeTargetMinLabel(int target) {
+    return '$target min target';
+  }
+
+  @override
+  String recipeMin(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get recipeBtnPrev => 'Prev';
+
+  @override
+  String get recipeBtnNext => 'Next';
+
+  @override
+  String get recipeBtnSkip => 'Skip';
+
+  @override
+  String get recipeBtnFinish => 'Finish';
+
+  @override
+  String get recipeFreeModeTitle => 'Free Mode';
+
+  @override
+  String get recipeFreeModeDesc =>
+      'No recipe available for this phase. Use the + button to count your reps.';
+
+  @override
+  String get recipeActionListen => 'Listen';
+
+  @override
+  String get recipeActionReadAlong => 'Read Along';
+
+  @override
+  String get recipeActionReadSolo => 'Read Solo';
+
+  @override
+  String get recipeActionReciteMemory => 'Recite from Memory';
+
+  @override
+  String get recipeActionLinkPractice => 'Link Practice';
+
+  @override
+  String get recipeActionWrite => 'Write';
+
+  @override
+  String get recipeActionReviewMeaning => 'Review Meaning';
+
+  @override
+  String get recipeActionSelfTest => 'Self Test';
+
+  @override
+  String get recipeInstListen =>
+      'Listen to the page being recited. Focus on the melody and pronunciation.';
+
+  @override
+  String get recipeInstReadAlong =>
+      'Read along with the audio. Match the reciter\'s pace and tajweed.';
+
+  @override
+  String get recipeInstReadSolo =>
+      'Read on your own without audio. Check your accuracy after each attempt.';
+
+  @override
+  String get recipeInstReciteMemory =>
+      'Close the mushaf and recite from memory. Repeat until confident.';
+
+  @override
+  String get recipeInstSabqiReadSolo =>
+      'Read through the review pages. Note any areas that feel uncertain.';
+
+  @override
+  String get recipeInstSabqiSelfTest =>
+      'Close the mushaf and recite each page from memory. Check and correct.';
+
+  @override
+  String get recipeInstManzilReadSolo =>
+      'Read through the manzil pages at a steady pace. Focus on fluency.';
+
+  @override
+  String get recipeInstManzilSelfTest =>
+      'Recite from memory. Use the mushaf only to check uncertain sections.';
+
+  @override
+  String get recipeTipFocusLines =>
+      'Focus on 2-3 lines at a time, then connect them together.';
+
+  @override
+  String get recipeTipRecord =>
+      'Record yourself and compare with the reciter to spot mistakes.';
+
+  @override
+  String get recipeTipMeaning =>
+      'Review the meaning to build deeper neural connections.';
+
+  @override
+  String get recipeTipMaintenance =>
+      'Don\'t skip pages that feel easy — even strong pages need maintenance.';
+
+  @override
+  String get recipeTipWeakPage =>
+      'If a page feels weak, add an extra repetition.';
+
+  @override
+  String get recipeTipManzilLongTerm =>
+      'Manzil keeps your long-term memorization strong.';
+
+  @override
+  String get recipeTipConsistency =>
+      'Consistency matters more than perfection here.';
+
+  @override
+  String overlayPageLines(int page, int start, int end) {
+    return 'Page $page · Lines $start-$end';
+  }
+
+  @override
+  String get audioSelectVerse => 'Select verse to play';
+
+  @override
+  String assessmentPerformanceIn(String phase) {
+    return 'Assess your performance in $phase';
+  }
+
+  @override
+  String get overlayFreeMode => 'Free';
+
+  @override
+  String get overlayGuidedMode => 'Guided';
+
+  @override
+  String tomorrowPreview(int page) {
+    return '📖 Page $page · 🔁 Review today\\\'s pages';
+  }
+
+  @override
+  String get khatmCongrats => 'You\\\'ve completed the Quran! 🎉';
+
+  @override
+  String get feedbackSabaqStrong =>
+      'Excellent! You rated this page as strong — great foundation! 🎯';
+
+  @override
+  String get feedbackSabaqNeedsWork =>
+      'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪';
+
+  @override
+  String feedbackRepetition(int reps) {
+    return 'Masha\\\'Allah! $reps repetitions — building rock-solid memory! 🧠';
+  }
+
+  @override
+  String get feedbackFallback =>
+      'Masha\\\'Allah! Great work today. Every session counts! ✨';
+
+  @override
+  String get feedbackFallbackShort => 'Masha\\\'Allah! Great work today.';
+
+  @override
+  String feedbackTime(int minutes) {
+    return 'Masha\\\'Allah! A solid $minutes-minute session. Consistency builds mountains! 🌟';
+  }
+
+  @override
+  String loadingPage(int page) {
+    return 'Loading page $page…';
+  }
+
+  @override
+  String failedToLoadPage(int page) {
+    return 'Failed to load page $page';
+  }
+
+  @override
+  String get hifzCtaTitle => 'Start Your Hifz Journey';
+
+  @override
+  String get hifzCtaSubtitle =>
+      'Take a quick assessment and get a personalized memorization plan.';
+
+  @override
+  String get hifzCtaButton => 'Create Profile';
 }

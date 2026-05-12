@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
 /// CTA card shown to users without a Hifz profile.
@@ -16,6 +17,9 @@ class HifzCtaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -50,7 +54,7 @@ class HifzCtaCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Start Your Hifz Journey',
+              l.hifzCtaTitle,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 18,
@@ -60,7 +64,7 @@ class HifzCtaCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Take a quick assessment and get a personalized memorization plan.',
+              l.hifzCtaSubtitle,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
@@ -75,20 +79,24 @@ class HifzCtaCard extends StatelessWidget {
                 color: theme.accentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Create Profile',
-                    style: TextStyle(
+                    l.hifzCtaButton,
+                    style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: 6),
-                  Icon(LucideIcons.arrowRight, size: 14, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Icon(
+                    isRtl ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                    size: 14,
+                    color: Colors.white,
+                  ),
                 ],
               ),
             ),

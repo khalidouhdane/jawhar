@@ -118,7 +118,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
-                    hintText: l!.readSearchHint,
+                    hintText: l.readSearchHint,
                     hintStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -167,9 +167,9 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     fontWeight: FontWeight.w400,
                   ),
                   tabs: [
-                    Tab(text: l!.readTabSurah),
-                    Tab(text: l!.readTabJuz),
-                    Tab(text: l!.readTabHizb),
+                    Tab(text: l.readTabSurah),
+                    Tab(text: l.readTabJuz),
+                    Tab(text: l.readTabHizb),
                   ],
                 ),
               ),

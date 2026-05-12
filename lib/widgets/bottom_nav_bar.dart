@@ -28,13 +28,7 @@ class AppBottomNavBar extends StatelessWidget {
     LucideIcons.user,
   ];
 
-  static const _labelKeys = [
-    'nav_dashboard',
-    'nav_practice',
-    'nav_read',
-    'nav_listen',
-    'nav_profile',
-  ];
+
 
   @override
   Widget build(BuildContext context) {

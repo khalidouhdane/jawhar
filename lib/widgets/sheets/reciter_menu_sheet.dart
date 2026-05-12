@@ -104,7 +104,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              l!.reciterHafs,
+                              l.reciterHafs,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: rp.selectedRewaya == 1
@@ -131,7 +131,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              l!.reciterWarsh,
+                              l.reciterWarsh,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: rp.selectedRewaya == 2
@@ -150,7 +150,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   onChanged: (value) => setState(() => searchQuery = value),
                   style: TextStyle(color: theme.primaryText),
                   decoration: InputDecoration(
-                    hintText: l!.reciterSearchHint,
+                    hintText: l.reciterSearchHint,
                     hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
                     prefixIcon: Icon(
                       LucideIcons.search,
@@ -170,39 +170,39 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                   children: _favoriteIds.isNotEmpty
                       ? [
                           _buildTab(
-                            l!.reciterTabFavorites,
+                            l.reciterTabFavorites,
                             'favorites',
                             icon: LucideIcons.heart,
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l!.reciterTabRecent,
+                            l.reciterTabRecent,
                             'recent',
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l!.reciterTabAll,
+                            l.reciterTabAll,
                             'all',
                             theme: theme,
                           ),
                         ]
                       : [
                           _buildTab(
-                            l!.reciterTabAll,
+                            l.reciterTabAll,
                             'all',
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l!.reciterTabRecent,
+                            l.reciterTabRecent,
                             'recent',
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
                           _buildTab(
-                            l!.reciterTabFavorites,
+                            l.reciterTabFavorites,
                             'favorites',
                             icon: LucideIcons.heart,
                             theme: theme,
@@ -268,10 +268,10 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         const SizedBox(height: 12),
                         Text(
                           activeTab == 'favorites'
-                              ? l!.reciterNoFavorites
+                              ? l.reciterNoFavorites
                               : activeTab == 'recent'
-                              ? l!.reciterNoRecent
-                              : l!.reciterNoFound,
+                              ? l.reciterNoRecent
+                              : l.reciterNoFound,
                           style: TextStyle(
                             color: theme.mutedText,
                             fontSize: 14,

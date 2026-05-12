@@ -97,10 +97,10 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   child: Row(
                     children:
                         [
-                          {'label': l!.navTabSurah, 'key': 'surah'},
-                          {'label': l!.navTabJuz, 'key': 'juz'},
+                          {'label': l.navTabSurah, 'key': 'surah'},
+                          {'label': l.navTabJuz, 'key': 'juz'},
                           {
-                            'label': l!.navTabBookmarks,
+                            'label': l.navTabBookmarks,
                             'key': 'bookmarks',
                           },
                         ].map((tab) {
@@ -153,7 +153,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                     onChanged: (v) => setState(() => searchQuery = v),
                     style: TextStyle(color: theme.primaryText),
                     decoration: InputDecoration(
-                      hintText: l!.navSearchHint,
+                      hintText: l.navSearchHint,
                       hintStyle: TextStyle(
                         color: theme.mutedText,
                         fontSize: 14,
@@ -192,7 +192,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           Icon(LucideIcons.bookOpen, size: 48, color: theme.dividerColor),
           const SizedBox(height: 12),
           Text(
-            l!.navJuzComing,
+            l.navJuzComing,
             style: TextStyle(
               color: theme.mutedText,
               fontWeight: FontWeight.w500,
@@ -280,7 +280,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   ),
                 ),
                 subtitle: Text(
-                  "${surah.versesCount} ${l!.navAyahs}",
+                  "${surah.versesCount} ${l.navAyahs}",
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.mutedText,
@@ -341,7 +341,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               children: [
-                _collectionChip(theme, l!.bmAll, null),
+                _collectionChip(theme, l.bmAll, null),
                 const SizedBox(width: 8),
                 ...collections.map((col) => Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -370,14 +370,14 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                     children: [
                       _bookmarkSegment(
                         theme, l,
-                        label: l!.navPages,
+                        label: l.navPages,
                         key: 'pages',
                         count: pageBookmarks.length,
                       ),
                       const SizedBox(width: 4),
                       _bookmarkSegment(
                         theme, l,
-                        label: l!.navVerses,
+                        label: l.navVerses,
                         key: 'verses',
                         count: verseBookmarks.length,
                       ),
@@ -428,8 +428,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                       const SizedBox(height: 12),
                       Text(
                         _bookmarkFilter == 'pages'
-                            ? l!.navNoPageBookmarks
-                            : l!.navNoVerseBookmarks,
+                            ? l.navNoPageBookmarks
+                            : l.navNoVerseBookmarks,
                         style: TextStyle(
                           color: theme.mutedText,
                           fontWeight: FontWeight.w500,
@@ -439,8 +439,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                       const SizedBox(height: 4),
                       Text(
                         _bookmarkFilter == 'pages'
-                            ? l!.navPageBookmarkHint
-                            : l!.navVerseBookmarkHint,
+                            ? l.navPageBookmarkHint
+                            : l.navVerseBookmarkHint,
                         style: TextStyle(color: theme.mutedText, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
@@ -456,8 +456,8 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
 
                     // Subtitle: verse key or page, plus collection name if assigned
                     String subtitle = isVerse
-                        ? '${bookmark.verseKey} · ${l!.navPage} ${bookmark.pageNumber}'
-                        : '${l!.navPage} ${bookmark.pageNumber}';
+                        ? '${bookmark.verseKey} · ${l.navPage} ${bookmark.pageNumber}'
+                        : '${l.navPage} ${bookmark.pageNumber}';
                     if (bookmark.collectionId != null) {
                       final col = bookmarkProvider.getCollection(bookmark.collectionId!);
                       if (col != null) subtitle += ' · ${col.name}';
@@ -582,7 +582,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         backgroundColor: theme.scaffoldBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          l!.bmNewCollection,
+          l.bmNewCollection,
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 16,
@@ -595,7 +595,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           autofocus: true,
           style: TextStyle(fontFamily: 'Inter', color: theme.primaryText),
           decoration: InputDecoration(
-            hintText: l!.bmCollectionNameHint,
+            hintText: l.bmCollectionNameHint,
             hintStyle: TextStyle(fontFamily: 'Inter', color: theme.mutedText),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -610,7 +610,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l!.bmCancel,
+            child: Text(l.bmCancel,
                 style: TextStyle(color: theme.mutedText)),
           ),
           TextButton(
@@ -622,7 +622,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 Navigator.pop(ctx);
               }
             },
-            child: Text(l!.bmCreate,
+            child: Text(l.bmCreate,
                 style: TextStyle(color: theme.accentColor)),
           ),
         ],
@@ -678,7 +678,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             Icon(LucideIcons.plus, size: 14, color: theme.mutedText),
             const SizedBox(width: 4),
             Text(
-              l!.bmAdd,
+              l.bmAdd,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 12,
@@ -730,7 +730,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             ),
             ListTile(
               leading: Icon(LucideIcons.trash2, color: Colors.red.shade400),
-              title: Text(l!.bmDeleteCollection,
+              title: Text(l.bmDeleteCollection,
                   style: TextStyle(color: Colors.red.shade400)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -759,7 +759,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         backgroundColor: theme.scaffoldBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          l!.bmRename,
+          l.bmRename,
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 16,
@@ -785,7 +785,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l!.bmCancel,
+            child: Text(l.bmCancel,
                 style: TextStyle(color: theme.mutedText)),
           ),
           TextButton(
@@ -798,7 +798,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 Navigator.pop(ctx);
               }
             },
-            child: Text(l!.bmSave,
+            child: Text(l.bmSave,
                 style: TextStyle(color: theme.accentColor)),
           ),
         ],

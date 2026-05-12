@@ -68,7 +68,7 @@ class WerdCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              l!.werdSetTitle,
+              l.werdSetTitle,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 15,
@@ -79,7 +79,7 @@ class WerdCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              l!.werdSetDesc,
+              l.werdSetDesc,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Inter',
@@ -97,7 +97,7 @@ class WerdCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                l!.werdGetStarted,
+                l.werdGetStarted,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -160,7 +160,7 @@ class WerdCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      l!.werdDaily,
+                      l.werdDaily,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
@@ -212,8 +212,8 @@ class WerdCard extends StatelessWidget {
                         children: [
                           Text(
                             config.isComplete
-                                ? l!.werdComplete
-                                : '${config.pagesReadToday} ${l!.werdPagesOf} ${config.todayTarget} ${l!.werdPagesLabel}',
+                                ? l.werdComplete
+                                : '${config.pagesReadToday} ${l.werdPagesOf} ${config.todayTarget} ${l.werdPagesLabel}',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 15,
@@ -225,7 +225,7 @@ class WerdCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             config.isComplete
-                                ? l!.werdCompleteDesc
+                                ? l.werdCompleteDesc
                                 : _subtitle(config, l),
                             style: TextStyle(
                               fontFamily: 'Inter',
@@ -250,7 +250,7 @@ class WerdCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
-                                  l!.werdStartReading,
+                                  l.werdStartReading,
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
@@ -275,10 +275,10 @@ class WerdCard extends StatelessWidget {
 
   String _subtitle(WerdConfig config, AppLocalizations l) {
     if (config.mode == WerdMode.fixedRange) {
-      return '${l!.werdPagesRange} ${config.startPage}–${config.endPage}';
+      return '${l.werdPagesRange} ${config.startPage}–${config.endPage}';
     }
     final remaining = config.todayTarget - config.pagesReadToday;
-    return '$remaining ${l!.werdPagesRemaining}';
+    return '$remaining ${l.werdPagesRemaining}';
   }
 
   void _openSetupSheet(BuildContext context) {

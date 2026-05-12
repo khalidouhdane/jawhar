@@ -155,7 +155,7 @@ class ProgressCard extends StatelessWidget {
                 _statItem('$learning', AppLocalizations.of(context)!.progLearning, Colors.orange),
                 _statDivider(),
                 if (pagesPerWeek != null) ...[
-                  _statItem('${pagesPerWeek!.toStringAsFixed(1)}', AppLocalizations.of(context)!.progPagesPerWeek, theme.accentColor),
+                  _statItem(pagesPerWeek!.toStringAsFixed(1), AppLocalizations.of(context)!.progPagesPerWeek, theme.accentColor),
                 ] else ...[
                   _statItem('$activeDays', AppLocalizations.of(context)!.progActiveDays, theme.accentColor),
                 ],

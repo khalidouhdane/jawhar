@@ -486,5 +486,120 @@
   "overlayPrev": "السابق",
   "overlayNext": "التالي",
   "overlayFinish": "إنهاء",
-  "overlayDone": "تم"
+  "overlayDone": "تم",
+  "phaseSabaq": "حفظ جديد",
+  "phaseSabqi": "مراجعة قريبة",
+  "phaseManzil": "مراجعة بعيدة",
+  "phaseFlashcards": "بطاقات الاسترجاع",
+  "recipeStepOf": "خطوة {current} من {total}",
+  "@recipeStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeDoneBadge": "✓ اكتمل",
+  "recipeTargetTimesLabel": "الهدف: {target} مرات",
+  "@recipeTargetTimesLabel": {
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeTimes": "{count} مرات",
+  "@recipeTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeTargetMinLabel": "الهدف: {target} دقيقة",
+  "@recipeTargetMinLabel": {
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeMin": "{count} دقيقة",
+  "@recipeMin": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeBtnPrev": "السابق",
+  "recipeBtnNext": "التالي",
+  "recipeBtnSkip": "تخطي",
+  "recipeBtnFinish": "إنهاء",
+  "recipeFreeModeTitle": "الوضع الحر",
+  "recipeFreeModeDesc": "لا توجد خطة جاهزة لهذه المرحلة. استخدم زر + لعد مرات التكرار.",
+  "recipeActionListen": "استماع",
+  "recipeActionReadAlong": "قراءة مع القارئ",
+  "recipeActionReadSolo": "قراءة منفردة",
+  "recipeActionReciteMemory": "تسميع من الذاكرة",
+  "recipeActionLinkPractice": "تمرين الربط",
+  "recipeActionWrite": "كتابة",
+  "recipeActionReviewMeaning": "مراجعة المعنى",
+  "recipeActionSelfTest": "اختبار ذاتي",
+  "recipeInstListen": "استمع للصفحة. ركز على التلاوة والنطق الصحيح.",
+  "recipeInstReadAlong": "اقرأ مع الصوت. حاول مطابقة سرعة القارئ وأحكام التجويد.",
+  "recipeInstReadSolo": "اقرأ بمفردك بدون صوت. تأكد من دقة قراءتك بعد كل محاولة.",
+  "recipeInstReciteMemory": "أغلق المصحف وسمّع من الذاكرة. كرر حتى تتقن.",
+  "recipeInstSabqiReadSolo": "اقرأ صفحات المراجعة. انتبه للمواضع التي تشعر فيها بالتردد.",
+  "recipeInstSabqiSelfTest": "أغلق المصحف وسمّع كل صفحة من الذاكرة. تأكد وصحح الأخطاء.",
+  "recipeInstManzilReadSolo": "اقرأ صفحات المراجعة البعيدة بسرعة منتظمة. ركز على الطلاقة.",
+  "recipeInstManzilSelfTest": "سمّع من الذاكرة. استخدم المصحف فقط للتأكد من المواضع المنسية.",
+  "recipeTipFocusLines": "ركز على 2-3 أسطر في المرة الواحدة، ثم اربطها ببعضها.",
+  "recipeTipRecord": "سجل لنفسك وقارن مع القارئ لاكتشاف الأخطاء.",
+  "recipeTipMeaning": "راجع المعنى لبناء روابط عصبية أعمق للمساعدة على التذكر.",
+  "recipeTipMaintenance": "لا تتجاوز الصفحات التي تبدو سهلة — حتى الصفحات القوية تحتاج لمراجعة.",
+  "recipeTipWeakPage": "إذا شعرت بضعف في صفحة معينة، أضف تكراراً إضافياً.",
+  "recipeTipManzilLongTerm": "المراجعة البعيدة تحافظ على قوة حفظك على المدى الطويل.",
+  "recipeTipConsistency": "الاستمرارية هنا أهم من الكمال.",
+  "overlayPageLines": "الصفحة {page} · الأسطر {start}-{end}",
+  "@overlayPageLines": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "audioSelectVerse": "اختر آية للتشغيل",
+  "assessmentPerformanceIn": "قيّم أداءك في {phase}",
+  "@assessmentPerformanceIn": {
+    "placeholders": {
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "overlayFreeMode": "حر",
+  "overlayGuidedMode": "موجّه",
+  "tomorrowPreview": "📖 صفحة {page} · 🔁 مراجعة صفحات اليوم",
+  "khatmCongrats": "لقد ختمت القرآن! 🎉",
+  "feedbackSabaqStrong": "ممتاز! تقييمك لهذه الصفحة ممتاز — أساس قوي! 🎯",
+  "feedbackSabaqNeedsWork": "كل جلسة صعبة هي تقدم. الصفحات التي تتحداك اليوم ستكون الأقوى غدًا. 💪",
+  "feedbackRepetition": "ما شاء الله! {reps} تكرار — تبني ذاكرة قوية كالصخر! 🧠",
+  "feedbackFallback": "ما شاء الله! عمل رائع اليوم. كل جلسة تصنع الفرق! ✨",
+  "feedbackFallbackShort": "ما شاء الله! عمل رائع اليوم.",
+  "feedbackTime": "ما شاء الله! جلسة قوية مدتها {minutes} دقيقة. الاستمرارية تبني الجبال! 🌟",
+  "loadingPage": "جاري تحميل الصفحة {page}…",
+  "failedToLoadPage": "فشل في تحميل الصفحة {page}",
+  "hifzCtaTitle": "ابدأ رحلة حفظك",
+  "hifzCtaSubtitle": "قم بإجراء تقييم سريع واحصل على خطة حفظ مخصصة لك.",
+  "hifzCtaButton": "إنشاء ملف شخصي"
 }

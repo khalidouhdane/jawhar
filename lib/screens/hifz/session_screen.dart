@@ -215,7 +215,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     Text(session.currentPhaseEmoji, style: const TextStyle(fontSize: 14)),
                     const SizedBox(width: 6),
                     Text(
-                      '${session.currentPhaseLabel} · ${session.currentStepNumber}/${session.activePhaseCount}',
+                      '${_getPhaseLabel(context, session.currentPhase)} · ${session.currentStepNumber}/${session.activePhaseCount}',
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
@@ -359,7 +359,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'This page has similar verses',
+                        AppLocalizations.of(context)!.overlaySimilarVerses,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
@@ -425,7 +425,7 @@ class _SessionScreenState extends State<SessionScreen> {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        'Guided',
+                        AppLocalizations.of(context)!.overlayGuidedMode,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 11,
@@ -466,7 +466,7 @@ class _SessionScreenState extends State<SessionScreen> {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        'Free',
+                        AppLocalizations.of(context)!.overlayFreeMode,
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 11,
@@ -686,7 +686,7 @@ class _SessionScreenState extends State<SessionScreen> {
         final plan = session.plan;
         final lineInfo = plan?.sabaqStartVerse != null
             ? 'from verse ${plan!.sabaqStartVerse}'
-            : 'Lines ${plan?.sabaqLineStart ?? 1}–${plan?.sabaqLineEnd ?? 15}';
+            : AppLocalizations.of(context)!.planPageLines(plan?.sabaqPage ?? 0, plan?.sabaqLineStart ?? 1, plan?.sabaqLineEnd ?? 15);
         return 'Page ${plan?.sabaqPage ?? "?"} · $lineInfo';
       case SessionPhase.sabqi:
         return '${session.plan?.sabqiPages.length ?? 0} pages to review';
@@ -748,7 +748,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.sessionRatePerformance(session.currentPhaseLabel.toLowerCase()),
+            AppLocalizations.of(context)!.sessionRatePerformance(_getPhaseLabel(context, session.currentPhase).toLowerCase()),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -782,7 +782,7 @@ class _SessionScreenState extends State<SessionScreen> {
     final plan = session.plan;
     final lineInfo = plan?.sabaqStartVerse != null
         ? 'from verse ${plan!.sabaqStartVerse}'
-        : 'Lines ${plan?.sabaqLineStart ?? 1}–${plan?.sabaqLineEnd ?? 15}';
+        : AppLocalizations.of(context)!.planPageLines(plan?.sabaqPage ?? 0, plan?.sabaqLineStart ?? 1, plan?.sabaqLineEnd ?? 15);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -1453,8 +1453,8 @@ class _SessionScreenState extends State<SessionScreen> {
       // The plan was already regenerated after completeSession,
       // so todayPlan now has the next page
       final nextPage = plan.sabaqPage + 1;
-      if (nextPage > 604) return 'You\'ve completed the Quran! 🎉';
-      return '📖 Page $nextPage · 🔁 Review today\'s pages';
+      if (nextPage > 604) return AppLocalizations.of(context)!.khatmCongrats;
+      return AppLocalizations.of(context)!.tomorrowPreview(nextPage);
     } catch (_) {
       return null;
     }
@@ -1472,26 +1472,35 @@ class _SessionScreenState extends State<SessionScreen> {
         return 'Masha\'Allah! $minutes minutes of focused memorization. Your dedication is inspiring! 💪';
       }
       if (minutes >= 15) {
-        return 'Masha\'Allah! A solid $minutes-minute session. Consistency builds mountains! 🌟';
+        return AppLocalizations.of(context)!.feedbackTime(minutes);
       }
 
       // Assessment-based
       final sabaq = session.sabaqAssessment;
       if (sabaq == SelfAssessment.strong) {
-        return 'Excellent! You rated this page as strong — great foundation! 🎯';
+        return AppLocalizations.of(context)!.feedbackSabaqStrong;
       }
       if (sabaq == SelfAssessment.needsWork) {
-        return 'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪';
+        return AppLocalizations.of(context)!.feedbackSabaqNeedsWork;
       }
 
       // Rep-based
       if (reps >= 20) {
-        return 'Masha\'Allah! $reps repetitions — building rock-solid memory! 🧠';
+        return AppLocalizations.of(context)!.feedbackRepetition(reps);
       }
 
-      return 'Masha\'Allah! Great work today. Every session counts! ✨';
+      return AppLocalizations.of(context)!.feedbackFallback;
     } catch (_) {
-      return 'Masha\'Allah! Great work today.';
+      return AppLocalizations.of(context)!.feedbackFallbackShort;
+    }
+  }
+
+  String _getPhaseLabel(BuildContext context, SessionPhase phase) {
+    switch (phase) {
+      case SessionPhase.sabaq: return AppLocalizations.of(context)!.phaseSabaq;
+      case SessionPhase.sabqi: return AppLocalizations.of(context)!.phaseSabqi;
+      case SessionPhase.manzil: return AppLocalizations.of(context)!.phaseManzil;
+      case SessionPhase.flashcards: return AppLocalizations.of(context)!.phaseFlashcards;
     }
   }
 }

@@ -74,7 +74,7 @@ class ThemePickerSheet extends StatelessWidget {
                   _buildThemeOption(
                     context: context,
                     theme: theme,
-                    label: l!.themeClassic,
+                    label: l.themeClassic,
                     targetTheme: AppTheme.classic,
                     bgColor: Colors.white,
                     textColor: const Color(0xFF1A454E),
@@ -84,7 +84,7 @@ class ThemePickerSheet extends StatelessWidget {
                   _buildThemeOption(
                     context: context,
                     theme: theme,
-                    label: l!.themeWarm,
+                    label: l.themeWarm,
                     targetTheme: AppTheme.warm,
                     bgColor: const Color(0xFFF5F0E8),
                     textColor: const Color(0xFF1A454E),
@@ -94,7 +94,7 @@ class ThemePickerSheet extends StatelessWidget {
                   _buildThemeOption(
                     context: context,
                     theme: theme,
-                    label: l!.themeDark,
+                    label: l.themeDark,
                     targetTheme: AppTheme.dark,
                     bgColor: const Color(0xFF0A1E24),
                     textColor: const Color(0xFFD4E8EC),
@@ -111,7 +111,7 @@ class ThemePickerSheet extends StatelessWidget {
                 ),
                 child: SwitchListTile(
                   title: Text(
-                    l!.themeFitScreen,
+                    l.themeFitScreen,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w500,
@@ -119,7 +119,7 @@ class ThemePickerSheet extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    l!.themeFitScreenDesc,
+                    l.themeFitScreenDesc,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -151,7 +151,7 @@ class ThemePickerSheet extends StatelessWidget {
                             duration: const Duration(milliseconds: 200),
                             opacity: theme.fitScreenHeight ? 0.4 : 1.0,
                             child: _DebouncedSliderControl(
-                              label: l!.themeFontSize,
+                              label: l.themeFontSize,
                               initialValue: theme.quranFontSize,
                               min: 14,
                               max: 40,
@@ -171,7 +171,7 @@ class ThemePickerSheet extends StatelessWidget {
                       // ── Line Height Control ──
                       Expanded(
                         child: _DebouncedSliderControl(
-                          label: l!.themeLineSpacing,
+                          label: l.themeLineSpacing,
                           initialValue: theme.quranLineHeight,
                           min: 1.4,
                           max: 3.6,
@@ -194,7 +194,7 @@ class ThemePickerSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _AlignmentSelector<QuranTextAlign>(
-                      label: l!.themeTextAlign,
+                      label: l.themeTextAlign,
                       icon1: Icons.format_align_right,
                       icon2: Icons.format_align_center,
                       icon3: Icons.format_align_justify,
@@ -209,7 +209,7 @@ class ThemePickerSheet extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _AlignmentSelector<QuranContentAlignment>(
-                      label: l!.themeContentAlign,
+                      label: l.themeContentAlign,
                       icon1: Icons.vertical_align_top,
                       icon2: Icons.vertical_align_center,
                       icon3: Icons.vertical_align_bottom,
@@ -244,7 +244,7 @@ class ThemePickerSheet extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          l!.themeOverlayTypo,
+                          l.themeOverlayTypo,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -255,7 +255,7 @@ class ThemePickerSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _DebouncedSliderControl(
-                      label: l!.themeFontSize,
+                      label: l.themeFontSize,
                       initialValue: theme.overlayFontSize,
                       min: 10,
                       max: 24,
@@ -266,7 +266,7 @@ class ThemePickerSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _DebouncedSliderControl(
-                      label: l!.themeOpacity,
+                      label: l.themeOpacity,
                       initialValue: theme.overlayOpacity,
                       min: 0.1,
                       max: 1.0,
@@ -299,7 +299,7 @@ class ThemePickerSheet extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          l!.themeOverlayIndicators,
+                          l.themeOverlayIndicators,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -313,7 +313,7 @@ class ThemePickerSheet extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          l!.themeAlternateInfo,
+                          l.themeAlternateInfo,
                           style: TextStyle(
                             fontSize: 13,
                             color: theme.primaryText,
@@ -335,7 +335,7 @@ class ThemePickerSheet extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          l!.themeShowJuz,
+                          l.themeShowJuz,
                           style: TextStyle(
                             fontSize: 13,
                             color: theme.primaryText,
@@ -356,7 +356,7 @@ class ThemePickerSheet extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          l!.themeShowBookIcon,
+                          l.themeShowBookIcon,
                           style: TextStyle(
                             fontSize: 13,
                             color: theme.primaryText,
@@ -399,7 +399,7 @@ class ThemePickerSheet extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              l!.themePageShadow,
+                              l.themePageShadow,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -452,7 +452,7 @@ class ThemePickerSheet extends StatelessWidget {
                                           vertical: 8,
                                         ),
                                         child: Text(
-                                          l!.themeCenterSpine,
+                                          l.themeCenterSpine,
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight:
@@ -469,7 +469,7 @@ class ThemePickerSheet extends StatelessWidget {
                                           vertical: 8,
                                         ),
                                         child: Text(
-                                          l!.themeOuterEdge,
+                                          l.themeOuterEdge,
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight:
@@ -494,7 +494,7 @@ class ThemePickerSheet extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           _DebouncedSliderControl(
-                            label: l!.themeIntensity,
+                            label: l.themeIntensity,
                             initialValue: theme.spineEffectIntensity,
                             min: 0.0,
                             max: 0.20,
@@ -508,8 +508,8 @@ class ThemePickerSheet extends StatelessWidget {
                             label:
                                 theme.pageIndicatorEffect ==
                                     PageIndicatorEffect.center
-                                ? l!.themeSpineWidth
-                                : l!.themeEdgeWidth,
+                                ? l.themeSpineWidth
+                                : l.themeEdgeWidth,
                             initialValue: theme.spineEffectWidth,
                             min: 5,
                             max: 60,
@@ -523,8 +523,8 @@ class ThemePickerSheet extends StatelessWidget {
                             label:
                                 theme.pageIndicatorEffect ==
                                     PageIndicatorEffect.center
-                                ? l!.themeSpinePadding
-                                : l!.themeEdgePadding,
+                                ? l.themeSpinePadding
+                                : l.themeEdgePadding,
                             initialValue: theme.spineEffectPadding,
                             min: 0,
                             max: 16,

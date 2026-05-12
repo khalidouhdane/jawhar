@@ -261,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
 
               // ── Ayah of the Day ──
-              _buildAyahCard(theme, l!),
+              _buildAyahCard(theme, l),
               const SizedBox(height: 32),
             ],
           ),
@@ -552,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppLocalizations l,
   ) {
     final name = profile.hasActiveProfile ? profile.activeProfile!.name : '';
-    final greeting = l!.homeGreeting;
+    final greeting = l.homeGreeting;
     final displayName = name.isNotEmpty ? ', $name' : '';
 
     return Row(
@@ -878,7 +878,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(LucideIcons.sparkle, size: 16, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
-                l!.homeAyahTitle,
+                l.homeAyahTitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -892,7 +892,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_ayahLoading)
             Center(
               child: Text(
-                l!.homeLoading,
+                l.homeLoading,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -929,7 +929,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ] else
             Text(
-              l!.homeAyahSubtitle,
+              l.homeAyahSubtitle,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,

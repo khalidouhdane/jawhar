@@ -418,7 +418,7 @@ class _MutashabihatPracticeScreenState
           child: Column(
             children: [
               Text(
-                '$mutSurahName',
+                mutSurahName,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,

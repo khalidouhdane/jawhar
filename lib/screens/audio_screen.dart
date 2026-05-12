@@ -63,7 +63,7 @@ class _AudioScreenState extends State<AudioScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                l!.audioSubtitle,
+                l.audioSubtitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -94,7 +94,7 @@ class _AudioScreenState extends State<AudioScreen>
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
-                    hintText: l!.audioSearchHint,
+                    hintText: l.audioSearchHint,
                     hintStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -143,8 +143,8 @@ class _AudioScreenState extends State<AudioScreen>
                     fontWeight: FontWeight.w500,
                   ),
                   tabs: [
-                    Tab(text: l!.audioTabReciters),
-                    Tab(text: l!.audioTabSurahs),
+                    Tab(text: l.audioTabReciters),
+                    Tab(text: l.audioTabSurahs),
                   ],
                 ),
               ),

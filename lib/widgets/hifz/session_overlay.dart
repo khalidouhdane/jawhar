@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +12,6 @@ import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/hifz/verse_highlighter.dart';
 import 'package:quran_app/widgets/overlays.dart';
-import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Floating session controls overlay for the digital reading mode (Phase 4).
 ///
@@ -167,7 +167,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
         : 0.0;
 
     // Build the playing title
-    String playingVerseLabel = 'Select verse to play';
+    String playingVerseLabel = AppLocalizations.of(context)!.audioSelectVerse;
     if (audioProvider.activeVerseKey != null) {
       playingVerseLabel = audioProvider.activeVerseKey!;
     }
@@ -547,7 +547,7 @@ class _TopPhaseBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          session.currentPhaseLabel.toUpperCase(),
+                          _getPhaseLabel(context, session.currentPhase).toUpperCase(),
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 11,
@@ -557,7 +557,7 @@ class _TopPhaseBar extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Page $pageNumber',
+                          AppLocalizations.of(context)!.overlayPageLines(pageNumber, 1, 15),
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 12,
@@ -612,6 +612,15 @@ class _TopPhaseBar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getPhaseLabel(BuildContext context, SessionPhase phase) {
+    switch (phase) {
+      case SessionPhase.sabaq: return AppLocalizations.of(context)!.phaseSabaq;
+      case SessionPhase.sabqi: return AppLocalizations.of(context)!.phaseSabqi;
+      case SessionPhase.manzil: return AppLocalizations.of(context)!.phaseManzil;
+      case SessionPhase.flashcards: return AppLocalizations.of(context)!.phaseFlashcards;
+    }
   }
 }
 

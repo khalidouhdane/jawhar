@@ -20,7 +20,6 @@ import 'package:quran_app/widgets/sheets/nav_menu_sheet.dart';
 import 'package:quran_app/widgets/sheets/notification_settings_sheet.dart';
 import 'package:quran_app/screens/hifz/accountability_screen.dart';
 import 'package:quran_app/services/auth_service.dart';
-import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -60,7 +59,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                l!.profileSubtitle,
+                l.profileSubtitle,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
@@ -75,25 +74,25 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // ── Language Selector ──
-              _buildSectionLabel(theme, l!.profileLanguage),
+              _buildSectionLabel(theme, l.profileLanguage),
               const SizedBox(height: 10),
               _buildLanguageSelector(context, theme, locale),
               const SizedBox(height: 24),
 
               // ── Rewaya (Reading) Selector ──
-              _buildSectionLabel(theme, l!.profileReading),
+              _buildSectionLabel(theme, l.profileReading),
               const SizedBox(height: 10),
               _buildRewayaSelector(context, theme, reading),
               const SizedBox(height: 24),
 
               // ── Theme Selector ──
-              _buildSectionLabel(theme, l!.profileAppearance),
+              _buildSectionLabel(theme, l.profileAppearance),
               const SizedBox(height: 10),
               _buildThemeSelector(context, theme, l),
               const SizedBox(height: 24),
 
               // ── Bookmarks ──
-              _buildSectionLabel(theme, l!.profileBookmarksTitle),
+              _buildSectionLabel(theme, l.profileBookmarksTitle),
               const SizedBox(height: 10),
               _buildBookmarksCard(context, theme, l),
               const SizedBox(height: 24),
@@ -215,26 +214,26 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── About ──
-              _buildSectionLabel(theme, l!.profileAbout),
+              _buildSectionLabel(theme, l.profileAbout),
               const SizedBox(height: 10),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.info,
                 title: 'Le Quran',
-                subtitle: l!.profileVersion,
+                subtitle: l.profileVersion,
               ),
               const SizedBox(height: 6),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.heart,
-                title: l!.profileMadeWith,
-                subtitle: l!.profileCompanion,
+                title: l.profileMadeWith,
+                subtitle: l.profileCompanion,
               ),
               const SizedBox(height: 6),
               _buildSettingsTile(
                 theme,
                 icon: LucideIcons.globe,
-                title: l!.profileData,
+                title: l.profileData,
                 subtitle: 'Quran.com API',
               ),
               const SizedBox(height: 6),
@@ -254,8 +253,8 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildSettingsTile(
                   theme,
                   icon: LucideIcons.refreshCw,
-                  title: l!.profileReplayOnboarding,
-                  subtitle: l!.profileReplayOnboardingDesc,
+                  title: l.profileReplayOnboarding,
+                  subtitle: l.profileReplayOnboardingDesc,
                 ),
               ),
               const SizedBox(height: 32),
@@ -431,7 +430,7 @@ class ProfileScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l!.profileJourney,
+            l.profileJourney,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
@@ -445,28 +444,28 @@ class ProfileScreen extends StatelessWidget {
               _statItem(
                 theme,
                 value: '$activeDays',
-                label: l!.profileMemorized,
+                label: l.profileMemorized,
                 icon: LucideIcons.brain,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: '${hifzProfile.streak.totalActiveDays}',
-                label: l!.hifzDayStreak,
+                label: l.hifzDayStreak,
                 icon: LucideIcons.flame,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: lastRead != null ? '${lastRead.page}' : '-',
-                label: l!.profileLastPage,
+                label: l.profileLastPage,
                 icon: LucideIcons.bookOpen,
               ),
               _statDivider(theme),
               _statItem(
                 theme,
                 value: '${context.watch<BookmarkProvider>().count}',
-                label: l!.profileBookmarksTitle,
+                label: l.profileBookmarksTitle,
                 icon: LucideIcons.bookmark,
               ),
             ],
@@ -576,7 +575,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l!.profileBookmarksTitle,
+                    l.profileBookmarksTitle,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -587,7 +586,7 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     count > 0
                         ? '$count ${count == 1 ? 'bookmark' : 'bookmarks'}'
-                        : l!.profileBookmarksDesc,
+                        : l.profileBookmarksDesc,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -638,7 +637,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.classic,
-          l!.profileThemeClassic,
+          l.profileThemeClassic,
           Colors.white,
           const Color(0xFF1A454E),
         ),
@@ -647,7 +646,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.warm,
-          l!.profileThemeWarm,
+          l.profileThemeWarm,
           const Color(0xFFF5F0E8),
           const Color(0xFF1A454E),
         ),
@@ -656,7 +655,7 @@ class ProfileScreen extends StatelessWidget {
           context,
           theme,
           AppTheme.dark,
-          l!.profileThemeDark,
+          l.profileThemeDark,
           const Color(0xFF0A1E24),
           const Color(0xFF4DB6AC),
         ),
@@ -787,7 +786,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 // Live sync indicator
                 Consumer<CloudSyncService>(
-                  builder: (_, sync, __) {
+                  builder: (_, sync, _) {
                     final Color color;
                     final IconData icon;
                     final String label;

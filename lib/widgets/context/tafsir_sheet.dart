@@ -114,7 +114,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
       initialChildSize: 0.55,
       minChildSize: 0.3,
       maxChildSize: 0.85,
-      builder: (_, __) {
+      builder: (_, _) {
         return Container(
           decoration: BoxDecoration(
             color: theme.sheetBackground,

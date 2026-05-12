@@ -98,7 +98,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    l!.werdSetupDesc,
+                    l.werdSetupDesc,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -169,7 +169,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                           ),
                           child: Center(
                             child: Text(
-                              l!.werdSave,
+                              l.werdSave,
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 14,
@@ -204,7 +204,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
         children: [
           _modeChip(
             theme,
-            label: l!.werdFixedRange,
+            label: l.werdFixedRange,
             icon: LucideIcons.bookOpen,
             selected: _mode == WerdMode.fixedRange,
             onTap: () => setState(() => _mode = WerdMode.fixedRange),
@@ -212,7 +212,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
           const SizedBox(width: 4),
           _modeChip(
             theme,
-            label: l!.werdDailyPages,
+            label: l.werdDailyPages,
             icon: LucideIcons.layers,
             selected: _mode == WerdMode.dailyPages,
             onTap: () => setState(() => _mode = WerdMode.dailyPages),
@@ -275,7 +275,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             Expanded(
               child: _pageInput(
                 theme,
-                label: l!.werdFromPage,
+                label: l.werdFromPage,
                 controller: _startController,
               ),
             ),
@@ -290,7 +290,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             Expanded(
               child: _pageInput(
                 theme,
-                label: l!.werdToPage,
+                label: l.werdToPage,
                 controller: _endController,
               ),
             ),
@@ -362,7 +362,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
       key: const ValueKey('daily'),
       children: [
         Text(
-          l!.werdPagesPerDay,
+          l.werdPagesPerDay,
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 11,
@@ -405,7 +405,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              l!.werd_1Page,
+              l.werd_1Page,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 10,
@@ -413,7 +413,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
               ),
             ),
             Text(
-              l!.werd_30Pages,
+              l.werd_30Pages,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 10,
@@ -435,14 +435,14 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
     String summary;
     if (_mode == WerdMode.fixedRange) {
       final pages = (end - start + 1).clamp(1, 604);
-      summary = l!.werdSummaryFixed(
+      summary = l.werdSummaryFixed(
         end.toString(),
         pages.toString(),
         start.toString(),
       );
     } else {
       final days = (604 / _pagesPerDay).ceil();
-      summary = l!.werdSummaryDaily(
+      summary = l.werdSummaryDaily(
         days.toString(),
         _pagesPerDay.round().toString(),
       );

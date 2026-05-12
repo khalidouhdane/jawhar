@@ -106,7 +106,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                   onChanged: notif.isSupported
                       ? (val) => notif.toggleNotifications(val)
                       : null,
-                  activeColor: theme.accentColor,
+                  activeTrackColor: theme.accentColor,
                 ),
               ],
             ),

@@ -323,7 +323,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _avatarEmojis.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (context, i) {
                 final isSelected = _avatarIndex == i;
                 return GestureDetector(
@@ -899,7 +899,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               height: 320,
               child: ListView.separated(
                 itemCount: reciters.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (ctx, i) {
                   final reciter = reciters[i];
                   final isSelected = _selectedReciterId == reciter.id;
@@ -937,7 +937,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                                 width: 40,
                                 height: 40,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Center(
+                                errorBuilder: (_, _, _) => Center(
                                   child: Text(
                                     reciter.reciterName.isNotEmpty
                                         ? reciter.reciterName
@@ -1383,7 +1383,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             children: [
               _chipLabel(theme, 'Speed: ${_encodingSpeed.name}'),
               _chipLabel(theme, 'Retention: ${_retention.name}'),
-              _chipLabel(theme, '${_learningPref.name}'),
+              _chipLabel(theme, _learningPref.name),
             ],
           ),
         ],
