@@ -8,6 +8,11 @@ import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/widgets/surah_list_tile.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/read/continue_reading_card.dart';
+import 'package:quran_app/widgets/werd_card.dart';
+import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/widgets/sheets/reciter_menu_sheet.dart';
 
 /// Static lookup: Surah number → starting Mushaf page (Madani/Standard)
 const List<int> _surahStartPages = [
@@ -71,6 +76,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
     final theme = context.watch<ThemeProvider>();
     final l = AppLocalizations.of(context);
     final readingProvider = context.watch<QuranReadingProvider>();
+    final audioProvider = context.watch<AudioProvider>();
     final chapters = readingProvider.chapters;
 
     return Scaffold(
@@ -78,113 +84,174 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // ── Header ──
+            // ── Header & Reciter Shortcut ──
             Padding(
-              padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 16,
-                bottom: 8,
-              ),
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     l!.readTitle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (ctx) => ExcludeSemantics(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
+                            child: DefaultTextStyle(
+                              style: const TextStyle(fontFamily: 'Inter'),
+                              child: ReciterMenuSheet(onClose: () => Navigator.pop(ctx)),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: theme.accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.headphones, size: 14, color: theme.accentColor),
+                          const SizedBox(width: 6),
+                          Text(
+                            audioProvider.reciterName.split(' ').first,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: theme.accentColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // ── Search bar ──
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.inputFill,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  focusNode: _searchFocusNode,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    color: theme.primaryText,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: l.readSearchHint,
-                    hintStyle: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      color: theme.mutedText,
-                    ),
-                    prefixIcon: Icon(
-                      LucideIcons.search,
-                      size: 18,
-                      color: theme.mutedText,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onChanged: (val) => setState(() => _searchQuery = val),
-                ),
-              ),
-            ),
-
-            // ── Tab switcher: Surah | Juz | Hizb ──
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.inputFill,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: theme.accentColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  dividerHeight: 0,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: theme.mutedText,
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  tabs: [
-                    Tab(text: l.readTabSurah),
-                    Tab(text: l.readTabJuz),
-                    Tab(text: l.readTabHizb),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // ── Tab content ──
+            // ── Personalized Hub ──
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildSurahList(chapters, theme),
-                  _buildJuzList(chapters, theme),
-                  _buildHizbList(chapters, theme),
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          const ContinueReadingCard(),
+                          const SizedBox(height: 16),
+                          const WerdCard(),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // ── Search & Index Tabs ──
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: theme.inputFill,
+                              borderRadius: BorderRadius.circular(theme.radiusLg),
+                            ),
+                            child: TextField(
+                              focusNode: _searchFocusNode,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 14,
+                                color: theme.primaryText,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: l.readSearchHint,
+                                hintStyle: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 14,
+                                  color: theme.mutedText,
+                                ),
+                                prefixIcon: Icon(
+                                  LucideIcons.search,
+                                  size: 18,
+                                  color: theme.mutedText,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onChanged: (val) => setState(() => _searchQuery = val),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Container(
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: theme.inputFill,
+                              borderRadius: BorderRadius.circular(theme.radiusMd),
+                            ),
+                            child: TabBar(
+                              controller: _tabController,
+                              indicator: BoxDecoration(
+                                color: theme.accentColor,
+                                borderRadius: BorderRadius.circular(theme.radiusMd),
+                              ),
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              dividerHeight: 0,
+                              labelColor: Colors.white,
+                              unselectedLabelColor: theme.mutedText,
+                              labelStyle: const TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              unselectedLabelStyle: const TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              tabs: [
+                                Tab(text: l.readTabSurah),
+                                Tab(text: l.readTabJuz),
+                                Tab(text: l.readTabHizb),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+
+                  // ── Tab Content (Lists) ──
+                  SliverFillRemaining(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildSurahList(chapters, theme),
+                        _buildJuzList(chapters, theme),
+                        _buildHizbList(chapters, theme),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -292,13 +359,13 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                   height: 40,
                   decoration: BoxDecoration(
                     color: theme.accentColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(theme.radiusMd),
                   ),
                   child: Center(
                     child: Text(
                       '$juzNumber',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: theme.accentColor,
@@ -314,7 +381,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                       Text(
                         'Juz $juzNumber',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: theme.primaryText,
@@ -324,7 +391,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                       Text(
                         'Page $page',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           color: theme.mutedText,
                         ),
@@ -394,7 +461,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     child: Text(
                       '$hizbNumber',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: theme.accentColor,
@@ -410,7 +477,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                       Text(
                         'Hizb $hizbNumber',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: theme.primaryText,
@@ -420,7 +487,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                       Text(
                         'Page $page',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           color: theme.mutedText,
                         ),
