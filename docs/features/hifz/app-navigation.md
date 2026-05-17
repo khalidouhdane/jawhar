@@ -1,6 +1,61 @@
-# App Navigation — Hifz-Centric Redesign
+# App Navigation — Depth-First Redesign
 
-> **Decision:** Home becomes the Hifz Dashboard. Bottom nav gets revamped entirely.
+> **Decision:** Home is an adaptive hub. Bottom nav is 5 tabs. Each Beat has a home.
+
+---
+
+## Bottom Navigation — Final Decision
+
+```
+  Home      Read     Understand    Practice    Profile
+   🏠        📖          💡           🧠          👤
+```
+
+| Tab | Content | Beat |
+|-----|---------|------|
+| **Home** | Adaptive dashboard: today's plan (with profile), werd + CTA (without profile), progress, understanding spotlight, suggestions | — |
+| **Read** | Mushaf + surah/juz/hizb index + audio library + reciter browsing. Unified reading & listening experience | Beat 1 |
+| **Understand** | Surah introductions, tafsir explorer, asbab al-nuzul collection, daily spotlight. Browsable study experience | Beat 2 |
+| **Practice** | Flashcard categories (6 types), mutashabihat practice, review stats. Fun and casual — accessible to all users | Beat 3 |
+| **Profile** | Settings, profile management, theme, bookmarks, notifications, account, about | — |
+
+---
+
+## Understand Tab — Layout
+
+```
+┌─────────────────────────────────────┐
+│  Understand                          │
+│                                      │
+│  ┌───────────────────────────────┐   │
+│  │ 💡 Today's Spotlight          │   │
+│  │ Surah Al-Mulk — Why this     │   │
+│  │ surah is called "The         │   │
+│  │ Protector"...                 │   │
+│  └───────────────────────────────┘   │
+│                                      │
+│  Browse by Surah                     │
+│  ┌─────┬─────┬─────┬─────┐          │
+│  │Al-  │An-  │Al-  │Ya-  │  →       │
+│  │Mulk │Naba │Kahf │Sin  │          │
+│  └─────┴─────┴─────┴─────┘          │
+│                                      │
+│  ┌───────────────────────────────┐   │
+│  │ 📖 Surah Introductions       │   │
+│  │ Themes, context, key stories │   │
+│  └───────────────────────────────┘   │
+│                                      │
+│  ┌───────────────────────────────┐   │
+│  │ 📜 Asbab al-Nuzul            │   │
+│  │ Reasons of revelation        │   │
+│  └───────────────────────────────┘   │
+│                                      │
+│  ┌───────────────────────────────┐   │
+│  │ 🔍 Tafsir Explorer           │   │
+│  │ Browse tafsir by surah       │   │
+│  └───────────────────────────────┘   │
+└─────────────────────────────────────┘
+```
 
 ---
 
@@ -9,28 +64,31 @@
 ### For users WITH a profile:
 ```
 ┌──────────────────────────────────────┐
-│  Assalamu Alaykum, Khalid  ☀️       │
+│  jawhar · contextual status line     │
+│                                      │
+│  ╔══════════════════════════════╗    │
+│  ║  TODAY'S PLAN                ║    │
+│  ║  📖 Sabaq: Page 45          ║    │
+│  ║  🔄 Sabqi: Pages 40-44      ║    │
+│  ║  📚 Manzil: Juz 30 (6 pgs)  ║    │
+│  ║  🃏 12 cards due             ║    │
+│  ║                              ║    │
+│  ║  [ Start Session ▶ ]        ║    │
+│  ╚══════════════════════════════╝    │
+│                                      │
+│  ┌────────┬────────┬────────────┐    │
+│  │Continue│Practice│  Weekly    │    │
+│  │Reading │12 cards│  Report    │    │
+│  └────────┴────────┴────────────┘    │
 │                                      │
 │  ┌──────────────────────────────┐    │
-│  │  TODAY'S PLAN                │    │
-│  │  📖 Sabaq: Page 45          │    │
-│  │  🔄 Sabqi: Pages 40-44      │    │
-│  │  📚 Manzil: Juz 30 (6 pgs)  │    │
-│  │  🃏 12 cards due             │    │
-│  │                              │    │
-│  │  [ Start Session ▶ ]        │    │
+│  │  UNDERSTANDING SPOTLIGHT     │    │
+│  │  Today's sabaq context...    │    │
 │  └──────────────────────────────┘    │
 │                                      │
 │  ┌──────────────────────────────┐    │
-│  │  PROGRESS                    │    │
-│  │  Juz 30: ████████░░ 82%     │    │
-│  │  Pages memorized: 18/20     │    │
-│  │  🔥 14 active days           │    │
-│  └──────────────────────────────┘    │
-│                                      │
-│  ┌──────────────────────────────┐    │
-│  │  WERD (Daily Reading)        │    │
-│  │  3/5 pages · Continue →      │    │
+│  │  PROGRESS STRIP              │    │
+│  │  6.3% · Juz 30 · 14 days    │    │
 │  └──────────────────────────────┘    │
 │                                      │
 │  ┌──────────────────────────────┐    │
@@ -42,45 +100,27 @@
 ### For users WITHOUT a profile:
 ```
 ┌──────────────────────────────────────┐
-│  Assalamu Alaykum ☀️                │
+│  jawhar                              │
 │                                      │
 │  ┌──────────────────────────────┐    │
-│  │  🌟 Start Your Hifz Journey  │    │
-│  │                              │    │
-│  │  Create a personalized       │    │
-│  │  memorization plan designed  │    │
-│  │  for your memory and pace.   │    │
-│  │                              │    │
-│  │  [ Create Profile → ]       │    │
+│  │  Continue Reading → Page 45  │    │
 │  └──────────────────────────────┘    │
 │                                      │
 │  ┌──────────────────────────────┐    │
-│  │  WERD (Daily Reading)        │    │
-│  │  3/5 pages · Continue →      │    │
+│  │  📖 Werd: 3/5 pages today   │    │
+│  │  Continue →                  │    │
 │  └──────────────────────────────┘    │
 │                                      │
 │  ┌──────────────────────────────┐    │
 │  │  ✨ Ayah of the Day          │    │
 │  └──────────────────────────────┘    │
+│                                      │
+│  ┌──────────────────────────────┐    │
+│  │  Start Your Hifz Journey →   │    │
+│  │  (Subtle, not pushy)         │    │
+│  └──────────────────────────────┘    │
 └──────────────────────────────────────┘
 ```
-
----
-
-## Bottom Navigation — Final Decision
-
-```
-  Dashboard    Practice    Read    Listen    Profile
-     🏠          🃏         📖      🎧        👤
-```
-
-| Tab | Content |
-|---|---|
-| **Dashboard** | Hifz dashboard, today's plan, progress, start session, CTA for profile creation |
-| **Practice** | Flashcards + Mutashabihat drills. Dedicated tab for daily practice |
-| **Read** | Reading screen + surah index. Merged reading experience |
-| **Listen** | Audio library, reciter browsing, standalone listening |
-| **Profile** | Profile management, settings, multiple profiles, reassessment. Name TBD (could be Settings/More) |
 
 ---
 

@@ -22,7 +22,7 @@ The app's home screen IS the hifz dashboard. It shows:
 - **Werd** — separate daily reading goal (non-hifz)  
 - For users without a profile: a beautiful CTA card inviting them to create one  
 
-**Bottom nav tabs:** Dashboard / Practice / Read / Listen / Profile
+**Bottom nav tabs:** Home / Read / Understand / Practice / Profile
 
 ### 2. The Assessment Wizard (9 Screens)
 A warm, conversational onboarding that creates a Memory Profile:
@@ -83,7 +83,7 @@ Compassionate design. When the user returns after missing days:
 | **The Beginner** | Never memorized, starting with Juz 'Amma | 15-30 min after Fajr |
 | **The Returnee** | Memorized as a child, wants to rebuild | 30-60 min, rebuilding habit |
 | **The Committed** | Active student, maybe with a teacher | 1-4 hours, structured |
-| **The Casual Reader** | Just wants to read/listen, no hifz | Uses Read/Listen tabs only |
+| **The Casual Reader** | Just wants to read/listen, no hifz | Uses Read tab (includes audio/reciters) |
 | **The Parent** | Sets up profiles for children | Manages multiple profiles |
 
 ---
@@ -114,7 +114,7 @@ Compassionate design. When the user returns after missing days:
 - Dark/warm/classic themes
 - Bookmarks, surah index, search
 - Home screen with greeting, hero card, ayah of the day
-- 5-tab bottom navigation
+- 5-tab bottom navigation (Home / Read / Understand / Practice / Profile)
 - In-app self-update system
 
 The hifz program builds ON TOP of these existing features. The reading canvas and audio system are already built — sessions can leverage them.

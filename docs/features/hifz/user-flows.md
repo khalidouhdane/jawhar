@@ -8,13 +8,13 @@
 
 ### Primary Personas
 
-| Persona | Description | Primary Goal | Daily Time |
-|---|---|---|---|
-| **The Beginner** | Never memorized before. Wants to start with Juz 'Amma or short surahs | Learn their first juz | 15-30 min |
-| **The Returnee** | Memorized as a child, lost it. Wants to rebuild | Recover + expand | 30-60 min |
-| **The Committed Student** | Active hifz student, possibly with a teacher | Complete the Quran | 1-4 hours |
-| **The Casual Reader** | Uses the app for reading/listening, not memorization | Read Quran daily | N/A (no hifz) |
-| **The Parent** | Sets up profiles for children on a household device | Guide children's hifz | Varies |
+| Persona | Description | Primary Goal | Daily Time | Ring |
+|---|---|---|---|---|
+| **The Beginner** | Never memorized before. Wants to start with Juz 'Amma or short surahs | Learn their first juz | 15-30 min | 2 |
+| **The Returnee** | Memorized as a child, lost it. Wants to rebuild | Recover + expand | 30-60 min | 2-3 |
+| **The Committed Student** | Active hifz student, possibly with a teacher | Complete the Quran | 1-4 hours | 3 |
+| **The Casual Reader** | Uses the app for reading/listening, not memorization | Read Quran daily | N/A (no hifz) | Core-1 |
+| **The Parent** | Sets up profiles for children on a household device | Guide children's hifz | Varies | 2-3 |
 
 ---
 
@@ -24,17 +24,19 @@
 ┌─────────────────────────────────────────────────────┐
 │                    APP SHELL                         │
 │                                                     │
-│  ┌──────────┬──────────┬──────┬────────┬─────────┐  │
-│  │Dashboard │ Practice │ Read │ Listen │ Profile │  │
-│  │   🏠     │    🃏    │  📖  │   🎧   │   👤    │  │
-│  └──────────┴──────────┴──────┴────────┴─────────┘  │
-│       │           │         │       │        │      │
-│       ▼           ▼         ▼       ▼        ▼      │
-│   Today's     Flashcards  Reading  Audio   Settings │
-│   Plan        Mutashabihat Screen  Library Profiles │
-│   Progress    Stats       Surah    Reciter  Theme   │
-│   Session               Index    Browse   About    │
-│   Entry                                            │
+│  ┌──────┬──────┬────────────┬──────────┬─────────┐  │
+│  │ Home │ Read │ Understand  │ Practice │ Profile │  │
+│  │  🏠  │  📖  │     💡      │    🧠    │   👤    │  │
+│  └──────┴──────┴────────────┴──────────┴─────────┘  │
+│       │      │          │           │        │      │
+│       ▼      ▼          ▼           ▼        ▼      │
+│   Today's  Reading  Surah       Flashcards Settings │
+│   Plan     Screen   Intros      Mutashabihat Profiles│
+│   Progress Surah    Tafsir      Stats       Theme   │
+│   Session  Index    Asbab                   About   │
+│   Entry    Audio    Spotlight                       │
+│            Library                                  │
+│            Reciters                                 │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -44,14 +46,15 @@
 
 ```mermaid
 flowchart TD
-    A[App Opens] --> B[Onboarding: Rewaya Selection]
-    B --> C[Language Selection]
+    A[App Opens] --> B[Onboarding: Three Beats Showcase]
+    B --> C[Language + Rewaya Selection]
     C --> D[Dashboard — No Profile State]
     D --> E{User Action?}
     E -->|Tap CTA card| F[Profile Creation — Flow 2]
-    E -->|Tap Read tab| G[Reading Screen]
-    E -->|Tap Listen tab| H[Audio Library]
-    E -->|Explore freely| I[Any tab — full access]
+    E -->|Tap Read tab| G[Reading Screen + Audio]
+    E -->|Tap Understand tab| H[Surah Intros + Tafsir]
+    E -->|Tap Practice tab| I[Practice Cards]
+    E -->|Explore freely| J[Any tab — full access]
 ```
 
 **Key decisions reflected:**
@@ -468,11 +471,11 @@ flowchart TD
 
 ---
 
-## Flow 9: Listening (Non-Hifz)
+## Flow 9: Listening (from Read Tab)
 
 ```mermaid
 flowchart TD
-    A[Listen Tab 🎧] --> B[Reciter Library]
+    A[Read Tab 📖🎧] --> B[Audio Library Section]
     B --> C[Browse by reciter] --> D[Select reciter → surah list]
     B --> E[Browse by surah] --> F[Select surah → reciter list]
     D --> G[Play audio — full chapter]

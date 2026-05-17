@@ -10,7 +10,7 @@ All feature documentation lives in `docs/features/hifz/`:
 
 | Category | File | What It Covers |
 |---|---|---|
-| **Navigation** | [app-navigation.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/app-navigation.md) | Dashboard layouts, 5-tab bottom nav, progress visualization |
+| **Navigation** | [app-navigation.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/app-navigation.md) | Dashboard layouts, 5-tab bottom nav, Understand tab, progress visualization |
 | **User Journeys** | [user-flows.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/user-flows.md) | 12 user flows, 5 personas, edge cases, daily rhythm |
 | **Profiles** | [profile-model.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/memory-profiles/profile-model.md) | Data model, multi-profile architecture, SQLite storage |
 | **Assessment** | [assessment-flow.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/memory-profiles/assessment-flow.md) | 9-screen onboarding wizard, memory 2-axis assessment |
@@ -34,7 +34,7 @@ All feature documentation lives in `docs/features/hifz/`:
 | Plan adaptation | Suggest, never auto-adjust |
 | Profile creation | Optional — user explores first |
 | Multiple profiles | Yes — household use |
-| Bottom nav | Dashboard / Practice / Read / Listen / Profile |
+| Bottom nav | Home / Read / Understand / Practice / Profile |
 | Home screen | Hifz Dashboard (CTA for users without profile) |
 | Werd system | Separate from hifz (for now) |
 | Progress visualization | Pages primary, Juz indicators, Surah tab |
@@ -100,11 +100,12 @@ All feature documentation lives in `docs/features/hifz/`:
 - [x] Active day streak counter (total, not consecutive)
 
 ### 1.7 Bottom Navigation Revamp
-- [x] Restructure to 5 tabs: Dashboard / Practice / Read / Listen / Profile
+- [x] Restructure to 5 tabs: Home / Read / Understand / Practice / Profile
   - 📄 Reference: [app-navigation.md](file:///c:/Users/khali/OneDrive/Bureau/Quran%20App/docs/features/hifz/app-navigation.md) § Bottom Navigation
 - [x] Keep existing Read screen functionality intact
-- [x] Keep existing Audio screen as Listen tab
-- [x] Practice tab: placeholder with "Coming in next update" (or basic structure)
+- [x] Merge audio/reciter browsing into Read tab (unified reading & listening)
+- [x] Understand tab: surah intros, tafsir explorer, asbab al-nuzul, daily spotlight
+- [x] Practice tab: flashcard categories, mutashabihat, review stats
 - [x] Profile tab: settings, profile management, reassessment option
 
 ### 1.8 Missed Day Handling
@@ -282,7 +283,7 @@ All feature documentation lives in `docs/features/hifz/`:
 | Session engine | Physical control panel | Add digital canvas (P4), AI grading (P7) |
 | Dashboard | Today's plan + progress | Add card counts (P2), analytics (P5) |
 | Content | Verse text + audio | Add translations (P3), tafsir (P3), stories (P7) |
-| Navigation | 5 tabs: Dashboard/Practice/Read/Listen/Profile | Add analytics view (P5), social tab (P6) |
+| Navigation | 5 tabs: Home/Read/Understand/Practice/Profile | Add analytics view (P5), social features (P6) |
 | Practice | Placeholder tab | Flashcards + SRS (P2), mutashabihat (P2) |
 
 ---
