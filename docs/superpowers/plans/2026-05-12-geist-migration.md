@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Provider, google_fonts (IBM Plex Sans Arabic + IBM Plex Mono), existing KFGQPC for Quranic text.
 
-**Design Reference:** `docs/vercel_design.md`
+**Design Reference:** `DESIGN.md`
 
 ---
 

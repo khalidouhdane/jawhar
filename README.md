@@ -1,6 +1,9 @@
 # Jawhar (جوهر) — Memorize with Meaning
 
-The first Quran memorization companion built on understanding — where every verse you carry also carries its meaning.
+[![Quran Foundation Hackathon 2026 Submission](https://img.shields.io/badge/Quran_Foundation-Hackathon_2026-black)](https://hackathon.quran.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Website-000000)](https://website-lilac-phi-50.vercel.app/)
+
+The first Quran memorization companion built on understanding — where every verse you carry also carries its meaning. **Official submission for the 2026 Quran Foundation Hackathon.**
 
 ## What is Jawhar?
 
@@ -35,7 +38,7 @@ flutter run -d windows
 See [docs/brand-strategy.md](docs/brand-strategy.md) for the full brand strategy.
 
 **Tagline:** *Memorize with Meaning*
-**Design:** Vercel-inspired B&W system — [docs/vercel_design.md](docs/vercel_design.md)
+**Design:** Vercel-inspired B&W system — [DESIGN.md](DESIGN.md)
 
 ---
 

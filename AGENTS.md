@@ -38,7 +38,7 @@
 ## ⚠️ MANDATORY: Design System
 
 **Before making UI changes, you MUST read**:
-1. **[vercel_design.md](docs/vercel_design.md)** — The Vercel Design System by Open Design. All UI changes must strictly adhere to this design system.
+1. **[DESIGN.md](DESIGN.md)** — The Vercel Design System by Open Design. All UI changes must strictly adhere to this design system.
 
 ---
 
@@ -435,6 +435,6 @@ See [hifz-roadmap.md](docs/features/hifz/hifz-roadmap.md) for full details.
 - **API Docs**: https://api-docs.quran.com/docs/category/quran.com-api
 - **API Reference**: [api-reference.md](docs/api-reference.md)
 - **Technical Discoveries**: [findings.md](docs/research/findings.md)
-- **Design System**: [vercel_design.md](docs/vercel_design.md)
+- **Design System**: [DESIGN.md](DESIGN.md)
 - **Skills**: `.agents/skills/` (Superpowers framework)
 - **Credentials**: `.env` (gitignored)

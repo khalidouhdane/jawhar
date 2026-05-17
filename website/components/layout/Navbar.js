@@ -70,6 +70,7 @@ export default function Navbar() {
         <div className={styles.links}>
           <a href="/#system" className={styles.link}>Features</a>
           <a href="/struggles" className={styles.link}>Struggles</a>
+          <a href="/hackathon" className={styles.link}>Hackathon</a>
           <a href="/download" className={styles.link}>Download</a>
         </div>
 
@@ -99,6 +100,9 @@ export default function Navbar() {
           </a>
           <a href="/struggles" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Struggles
+          </a>
+          <a href="/hackathon" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+            Hackathon
           </a>
           <a href="/download" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Download

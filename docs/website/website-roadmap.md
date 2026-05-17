@@ -24,7 +24,7 @@
 
 ### Full Brand References
 - **Brand strategy:** `docs/brand-strategy.md`
-- **Design system:** `docs/vercel_design.md`
+- **Design system:** `DESIGN.md`
 - **Market research:** Available in conversation artifacts (230 sources across 3 deep research reports)
 - **Hifz struggles:** `docs/features/hifz/research/hifz-struggles.md` (11 struggles with solutions)
 - **Context research:** `docs/features/hifz/research/context-aware-memorization.md`
@@ -323,7 +323,7 @@ Given the May 20 deadline, here's what to ship first:
 | File | What it contains |
 |---|---|
 | `docs/brand-strategy.md` | Full brand strategy, positioning, messaging, voice |
-| `docs/vercel_design.md` | Vercel/Geist design system spec |
+| `DESIGN.md` | Vercel/Geist design system spec |
 | `docs/features/hifz/hifz-roadmap.md` | Complete feature roadmap (Phases 1-7) |
 | `docs/features/hifz/research/hifz-struggles.md` | 11 struggles with solutions (content for /struggles page) |
 | `docs/features/hifz/research/context-aware-memorization.md` | Tafsir, asbab al-nuzul research |

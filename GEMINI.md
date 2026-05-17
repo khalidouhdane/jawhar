@@ -20,6 +20,6 @@
 - **Brand strategy**: `docs/brand-strategy.md` (READ FIRST for any user-facing work)
 - **Credentials**: `.env` (gitignored — never hardcode secrets)
 - **Skills**: `.agents/skills/` (14 Superpowers + `khali-shared-conventions`)
-- **Design System**: `docs/vercel_design.md`
+- **Design System**: `DESIGN.md`
 - **Current Sprint**: Hackathon (May 20, 2026) — User API integration
 - **Test command**: `flutter run -d windows` (primary dev platform)
