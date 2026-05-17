@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get navProfile;
 
+  /// No description provided for @navUnderstand.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand'**
+  String get navUnderstand;
+
   /// No description provided for @homeGreeting.
   ///
   /// In en, this message translates to:
@@ -548,17 +554,11 @@ abstract class AppLocalizations {
   /// **'Reading'**
   String get profileReading;
 
-  /// No description provided for @profileThemeClassic.
+  /// No description provided for @profileThemeLight.
   ///
   /// In en, this message translates to:
-  /// **'Classic'**
-  String get profileThemeClassic;
-
-  /// No description provided for @profileThemeWarm.
-  ///
-  /// In en, this message translates to:
-  /// **'Warm'**
-  String get profileThemeWarm;
+  /// **'Light'**
+  String get profileThemeLight;
 
   /// No description provided for @profileThemeDark.
   ///
@@ -650,17 +650,11 @@ abstract class AppLocalizations {
   /// **'Appearance'**
   String get themeAppearance;
 
-  /// No description provided for @themeClassic.
+  /// No description provided for @themeLight.
   ///
   /// In en, this message translates to:
-  /// **'Classic'**
-  String get themeClassic;
-
-  /// No description provided for @themeWarm.
-  ///
-  /// In en, this message translates to:
-  /// **'Warm'**
-  String get themeWarm;
+  /// **'Light'**
+  String get themeLight;
 
   /// No description provided for @themeDark.
   ///
@@ -3361,6 +3355,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create Profile'**
   String get hifzCtaButton;
+
+  /// No description provided for @homeRestDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest Day'**
+  String get homeRestDayTitle;
+
+  /// No description provided for @homeRestDaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is your rest day. Recharge and come back stronger.'**
+  String get homeRestDaySubtitle;
+
+  /// No description provided for @homeRestDayContinueReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Reading'**
+  String get homeRestDayContinueReading;
+
+  /// No description provided for @homeRestDayStartAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a session anyway'**
+  String get homeRestDayStartAnyway;
+
+  /// No description provided for @undExploreDeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the Quran\'s deeper meaning'**
+  String get undExploreDeeper;
+
+  /// No description provided for @undSearchSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'Search surahs...'**
+  String get undSearchSurahs;
+
+  /// No description provided for @undAllSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'114 Surahs'**
+  String get undAllSurahs;
+
+  /// No description provided for @undResults.
+  ///
+  /// In en, this message translates to:
+  /// **'results'**
+  String get undResults;
+
+  /// No description provided for @profileQfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quran Foundation'**
+  String get profileQfTitle;
+
+  /// No description provided for @profileQfConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected · Syncing bookmarks & sessions'**
+  String get profileQfConnected;
+
+  /// No description provided for @profileQfActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get profileQfActive;
+
+  /// No description provided for @profileQfDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get profileQfDisconnect;
+
+  /// No description provided for @profileQfDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected from Quran Foundation'**
+  String get profileQfDisconnected;
+
+  /// No description provided for @profileQfSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Quran Foundation'**
+  String get profileQfSignIn;
+
+  /// No description provided for @profileQfSignInDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync bookmarks, streaks & reading sessions'**
+  String get profileQfSignInDesc;
+
+  /// No description provided for @profileQfConnectedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Quran Foundation'**
+  String get profileQfConnectedSuccess;
+
+  /// No description provided for @profileQfSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in cancelled or failed'**
+  String get profileQfSignInFailed;
+
+  /// No description provided for @profilePreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get profilePreferences;
+
+  /// No description provided for @profileFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get profileFeatures;
+
+  /// No description provided for @profileAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get profileAccounts;
+
+  /// No description provided for @profileTabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get profileTabSettings;
+
+  /// No description provided for @profileTabHifz.
+  ///
+  /// In en, this message translates to:
+  /// **'Hifz'**
+  String get profileTabHifz;
+
+  /// No description provided for @profileTabAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileTabAccount;
+
+  /// No description provided for @undStories.
+  ///
+  /// In en, this message translates to:
+  /// **'Stories'**
+  String get undStories;
+
+  /// No description provided for @undThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Themes'**
+  String get undThemes;
 }
 
 class _AppLocalizationsDelegate

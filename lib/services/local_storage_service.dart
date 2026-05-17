@@ -15,6 +15,7 @@ class LocalStorageService {
   static const _keyCenterLock = 'center_lock_enabled';
   static const _keyAutoScrollSpeed = 'auto_scroll_speed';
   static const _keyBookmarks = 'bookmarks';
+  static const _keySessionGuidedMode = 'session_guided_mode';
 
   final SharedPreferences _prefs;
 
@@ -107,6 +108,16 @@ class LocalStorageService {
   /// Returns saved auto-scroll speed (default 1.0).
   double get savedAutoScrollSpeed =>
       _prefs.getDouble(_keyAutoScrollSpeed) ?? 1.0;
+
+  // ── Session Settings ──
+
+  /// Save session guided mode preference.
+  void saveSessionGuidedMode(bool isGuided) =>
+      _prefs.setBool(_keySessionGuidedMode, isGuided);
+
+  /// Returns session guided mode preference (default true).
+  bool get savedSessionGuidedMode =>
+      _prefs.getBool(_keySessionGuidedMode) ?? true;
 
   // ── Bookmarks ──
 

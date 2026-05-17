@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/update_provider.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 
 /// Shows a premium update dialog when a new version is available.
 class UpdateDialog extends StatelessWidget {
@@ -26,7 +27,10 @@ class UpdateDialog extends StatelessWidget {
       builder: (context, provider, _) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 28,
+            vertical: 40,
+          ),
           child: _buildCard(context, provider),
         );
       },
@@ -67,7 +71,11 @@ class UpdateDialog extends StatelessWidget {
   }
 
   Widget _header(
-      BuildContext context, UpdateProvider provider, bool isDark, AppLocalizations l) {
+    BuildContext context,
+    UpdateProvider provider,
+    bool isDark,
+    AppLocalizations l,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
@@ -100,7 +108,7 @@ class UpdateDialog extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             l.updateAvailable,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -130,7 +138,11 @@ class UpdateDialog extends StatelessWidget {
   }
 
   Widget _body(
-      BuildContext context, UpdateProvider provider, bool isDark, AppLocalizations l) {
+    BuildContext context,
+    UpdateProvider provider,
+    bool isDark,
+    AppLocalizations l,
+  ) {
     final textColor = isDark ? Colors.white70 : Colors.black87;
     final subtitleColor = isDark ? Colors.white38 : Colors.black45;
 
@@ -180,7 +192,11 @@ class UpdateDialog extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade300, size: 20),
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red.shade300,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -201,7 +217,11 @@ class UpdateDialog extends StatelessWidget {
   }
 
   Widget _downloadProgress(
-      BuildContext context, UpdateProvider provider, bool isDark, AppLocalizations l) {
+    BuildContext context,
+    UpdateProvider provider,
+    bool isDark,
+    AppLocalizations l,
+  ) {
     final pct = (provider.downloadProgress * 100).toInt();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +264,11 @@ class UpdateDialog extends StatelessWidget {
   }
 
   Widget _footer(
-      BuildContext context, UpdateProvider provider, bool isDark, AppLocalizations l) {
+    BuildContext context,
+    UpdateProvider provider,
+    bool isDark,
+    AppLocalizations l,
+  ) {
     final isDownloading = provider.status == UpdateStatus.downloading;
 
     return Padding(
@@ -253,60 +277,30 @@ class UpdateDialog extends StatelessWidget {
         children: [
           // Later button
           Expanded(
-            child: TextButton(
+            child: GeistButton(
               onPressed: isDownloading
                   ? null
                   : () {
                       provider.dismiss();
                       Navigator.of(context).pop();
                     },
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.12)
-                        : Colors.black.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              child: Text(
-                l.updateLater,
-                style: TextStyle(
-                  color: isDark ? Colors.white54 : Colors.black54,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
+              label: l.updateLater,
+              type: GeistButtonType.secondary,
+              size: GeistButtonSize.large,
             ),
           ),
           const SizedBox(width: 12),
           // Update Now button
           Expanded(
             flex: 2,
-            child: ElevatedButton(
+            child: GeistButton(
               onPressed: isDownloading
                   ? null
                   : () => provider.downloadAndInstall(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A454E),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                isDownloading
-                    ? l.updateDownloading
-                    : l.updateNow,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
+              label: isDownloading ? l.updateDownloading : l.updateNow,
+              type: GeistButtonType.primary,
+              size: GeistButtonSize.large,
+              isLoading: isDownloading,
             ),
           ),
         ],

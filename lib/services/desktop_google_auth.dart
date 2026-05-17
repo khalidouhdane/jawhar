@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Handles Google OAuth on desktop platforms (Windows/macOS/Linux) where
 /// the `google_sign_in` plugin isn't available.
@@ -49,27 +49,31 @@ class DesktopGoogleAuth {
       final state = _generateRandomString(32);
 
       // 4. Build the authorization URL
-      final authUrl = Uri.parse(_authEndpoint).replace(queryParameters: {
-        'client_id': _clientId,
-        'redirect_uri': redirectUri,
-        'response_type': 'code',
-        'scope': _scopes,
-        'code_challenge': codeChallenge,
-        'code_challenge_method': 'S256',
-        'state': state,
-        'access_type': 'offline',
-      });
+      final authUrl = Uri.parse(_authEndpoint).replace(
+        queryParameters: {
+          'client_id': _clientId,
+          'redirect_uri': redirectUri,
+          'response_type': 'code',
+          'scope': _scopes,
+          'code_challenge': codeChallenge,
+          'code_challenge_method': 'S256',
+          'state': state,
+          'access_type': 'offline',
+        },
+      );
 
       // 5. Open the browser
-      debugPrint('[AUTH] Opening browser for Google Sign-In...');
+      AppLogger.info('DesktopAuth', '[AUTH] Opening browser for Google Sign-In...');
       await _openBrowser(authUrl.toString());
 
       // 6. Wait for the redirect (with timeout)
-      final code = await _waitForAuthCode(server, state)
-          .timeout(const Duration(minutes: 3));
+      final code = await _waitForAuthCode(
+        server,
+        state,
+      ).timeout(const Duration(minutes: 3));
 
       if (code == null) {
-        debugPrint('[AUTH] User cancelled or error in OAuth flow');
+        AppLogger.info('DesktopAuth', '[AUTH] User cancelled or error in OAuth flow');
         return null;
       }
 
@@ -78,13 +82,17 @@ class DesktopGoogleAuth {
       server = null;
 
       // 8. Exchange auth code for tokens
-      final tokens = await _exchangeCodeForTokens(code, redirectUri, codeVerifier);
+      final tokens = await _exchangeCodeForTokens(
+        code,
+        redirectUri,
+        codeVerifier,
+      );
       return tokens;
     } on TimeoutException {
-      debugPrint('[AUTH] OAuth flow timed out');
+      AppLogger.info('DesktopAuth', '[AUTH] OAuth flow timed out');
       return null;
     } catch (e) {
-      debugPrint('[AUTH] Desktop OAuth error: $e');
+      AppLogger.info('DesktopAuth', '[AUTH] Desktop OAuth error: $e');
       return null;
     } finally {
       await server?.close(force: true);
@@ -92,7 +100,10 @@ class DesktopGoogleAuth {
   }
 
   /// Waits for Google to redirect to our local server with the auth code.
-  static Future<String?> _waitForAuthCode(HttpServer server, String expectedState) async {
+  static Future<String?> _waitForAuthCode(
+    HttpServer server,
+    String expectedState,
+  ) async {
     await for (final request in server) {
       final uri = request.uri;
 
@@ -114,7 +125,7 @@ class DesktopGoogleAuth {
       if (code != null) {
         _sendResponse(
           request,
-          'Sign-in successful! You can close this window and return to Le Quran.',
+          'Sign-in successful! You can close this window and return to Jawhar.',
         );
         return code;
       }
@@ -145,7 +156,8 @@ class DesktopGoogleAuth {
     );
 
     if (response.statusCode != 200) {
-      debugPrint('[AUTH] Token exchange failed: ${response.statusCode} ${response.body}');
+      AppLogger.info('DesktopAuth', '[AUTH] Token exchange failed: ${response.statusCode} ${response.body}',
+      );
       return null;
     }
 
@@ -154,7 +166,7 @@ class DesktopGoogleAuth {
     final accessToken = data['access_token'] as String?;
 
     if (idToken == null || accessToken == null) {
-      debugPrint('[AUTH] Missing tokens in response');
+      AppLogger.info('DesktopAuth', '[AUTH] Missing tokens in response');
       return null;
     }
 
@@ -171,7 +183,7 @@ class DesktopGoogleAuth {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Le Quran - Sign In</title>
+  <title>Jawhar - Sign In</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -234,8 +246,12 @@ class DesktopGoogleAuth {
 
   /// Generates a cryptographically random string.
   static String _generateRandomString(int length) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
     final random = Random.secure();
-    return List.generate(length, (_) => chars[random.nextInt(chars.length)]).join();
+    return List.generate(
+      length,
+      (_) => chars[random.nextInt(chars.length)],
+    ).join();
   }
 }

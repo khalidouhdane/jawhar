@@ -5,6 +5,7 @@ import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/srs_engine.dart';
 import 'package:quran_app/services/card_generation_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// State management for flashcard review sessions.
 class FlashcardProvider extends ChangeNotifier {
@@ -83,14 +84,14 @@ class FlashcardProvider extends ChangeNotifier {
         // Auto-clean old page-format cards (migration from page-based to verse-based)
         await _cleanOldFormatCards(profileId);
 
-        debugPrint('[FlashcardProvider] Generating cards for $profileId...');
+        AppLogger.info('Flashcard', '[FlashcardProvider] Generating cards for $profileId...');
         final gen = CardGenerationService(_db);
         final count = await gen.generateCards(profileId);
-        debugPrint('[FlashcardProvider] Generated $count new cards');
+        AppLogger.info('Flashcard', '[FlashcardProvider] Generated $count new cards');
       }
 
       _dueCards = await _db.getDueFlashcards(profileId);
-      debugPrint('[FlashcardProvider] Due cards loaded: ${_dueCards.length}');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Due cards loaded: ${_dueCards.length}');
       _currentIndex = 0;
       _isRevealed = false;
       _resetSessionStats();
@@ -99,10 +100,10 @@ class FlashcardProvider extends ChangeNotifier {
       _stats = await _db.getFlashcardStats(profileId);
       _accuracy = await _db.getFlashcardAccuracy(profileId);
       _statsByType = await _db.getFlashcardStatsByType(profileId);
-      debugPrint('[FlashcardProvider] Stats: $_stats');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Stats: $_stats');
     } catch (e, stack) {
-      debugPrint('[FlashcardProvider] ERROR loading flashcards: $e');
-      debugPrint('[FlashcardProvider] Stack: $stack');
+      AppLogger.info('Flashcard', '[FlashcardProvider] ERROR loading flashcards: $e');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Stack: $stack');
       _dueCards = [];
     } finally {
       _isLoading = false;
@@ -118,12 +119,13 @@ class FlashcardProvider extends ChangeNotifier {
 
     try {
       _dueCards = await _db.getDueFlashcardsByType(profileId, type);
-      debugPrint('[FlashcardProvider] Loaded ${_dueCards.length} cards for type: ${type?.name ?? "mixed"}');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Loaded ${_dueCards.length} cards for type: ${type?.name ?? "mixed"}',
+      );
       _currentIndex = 0;
       _isRevealed = false;
       _resetSessionStats();
     } catch (e) {
-      debugPrint('[FlashcardProvider] ERROR loading by type: $e');
+      AppLogger.info('Flashcard', '[FlashcardProvider] ERROR loading by type: $e');
       _dueCards = [];
     } finally {
       _isLoading = false;
@@ -141,10 +143,10 @@ class FlashcardProvider extends ChangeNotifier {
         whereArgs: [profileId],
       );
       if (result > 0) {
-        debugPrint('[FlashcardProvider] Cleaned $result old page-format cards');
+        AppLogger.info('Flashcard', '[FlashcardProvider] Cleaned $result old page-format cards');
       }
     } catch (e) {
-      debugPrint('[FlashcardProvider] Clean old cards error: $e');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Clean old cards error: $e');
     }
   }
 
@@ -154,11 +156,11 @@ class FlashcardProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('[FlashcardProvider] Force regenerating — clearing old cards');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Force regenerating — clearing old cards');
       await _db.deleteFlashcardsForProfile(profileId);
       await loadDueCards(profileId, generate: true);
     } catch (e) {
-      debugPrint('[FlashcardProvider] Force regenerate error: $e');
+      AppLogger.info('Flashcard', '[FlashcardProvider] Force regenerate error: $e');
       _isLoading = false;
       notifyListeners();
     }
@@ -198,10 +200,18 @@ class FlashcardProvider extends ChangeNotifier {
     // Update session stats
     _reviewedCount++;
     switch (rating) {
-      case FlashcardRating.strong: _strongCount++; break;
-      case FlashcardRating.ok: _okCount++; break;
-      case FlashcardRating.weak: _weakCount++; break;
-      case FlashcardRating.forgot: _forgotCount++; break;
+      case FlashcardRating.strong:
+        _strongCount++;
+        break;
+      case FlashcardRating.ok:
+        _okCount++;
+        break;
+      case FlashcardRating.weak:
+        _weakCount++;
+        break;
+      case FlashcardRating.forgot:
+        _forgotCount++;
+        break;
     }
 
     // Advance
@@ -231,7 +241,7 @@ class FlashcardProvider extends ChangeNotifier {
       _lastWeakWasMutashabihat = groups.isNotEmpty;
       notifyListeners();
     } catch (e) {
-      debugPrint('[Flashcard] Mutashabihat check failed for $verseKey: $e');
+      AppLogger.info('Flashcard', '[Flashcard] Mutashabihat check failed for $verseKey: $e');
       _lastWeakWasMutashabihat = false;
     }
   }

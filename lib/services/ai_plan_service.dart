@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Custom exception for AI service errors.
 class AIPlanException implements Exception {
@@ -10,7 +10,11 @@ class AIPlanException implements Exception {
   final String? rawResponse;
   final bool isRetryable;
 
-  const AIPlanException(this.message, {this.rawResponse, this.isRetryable = false});
+  const AIPlanException(
+    this.message, {
+    this.rawResponse,
+    this.isRetryable = false,
+  });
 
   @override
   String toString() => 'AIPlanException: $message';
@@ -90,7 +94,15 @@ Return valid JSON only.
     required List<Map<String, dynamic>> recentSessions,
   }) {
     final now = DateTime.now();
-    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final dayNames = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     final todayIndex = now.weekday - 1; // 0-indexed
 
     return {
@@ -146,22 +158,25 @@ Return valid JSON only.
     );
 
     // 3. Build the user message
-    final userMessage = _buildUserMessage(context, isRecoveryMode: isRecoveryMode);
+    final userMessage = _buildUserMessage(
+      context,
+      isRecoveryMode: isRecoveryMode,
+    );
 
     // 4. Call Gemini with timeout
     try {
       final model = _getModel(systemPrompt);
-      final response = await model.generateContent([
-        Content.text(userMessage),
-      ]).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw const AIPlanException(
-            'AI plan generation timed out after 15 seconds. Check your connection.',
-            isRetryable: true,
+      final response = await model
+          .generateContent([Content.text(userMessage)])
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw const AIPlanException(
+                'AI plan generation timed out after 15 seconds. Check your connection.',
+                isRetryable: true,
+              );
+            },
           );
-        },
-      );
 
       // 5. Parse response
       final text = response.text;
@@ -185,7 +200,8 @@ Return valid JSON only.
       rethrow;
     } on GenerativeAIException catch (e) {
       // Handle rate limiting
-      if (e.message.contains('429') || e.message.toLowerCase().contains('rate')) {
+      if (e.message.contains('429') ||
+          e.message.toLowerCase().contains('rate')) {
         throw AIPlanException(
           'AI rate limit reached. Please try again in a minute.',
           rawResponse: e.message,
@@ -210,9 +226,11 @@ Return valid JSON only.
   /// Load the system prompt from assets, with fallback.
   Future<String> _loadSystemPrompt() async {
     try {
-      return await rootBundle.loadString('assets/prompts/plan_system_prompt_v1.md');
+      return await rootBundle.loadString(
+        'assets/prompts/plan_system_prompt_v1.md',
+      );
     } catch (e) {
-      debugPrint('Failed to load system prompt asset, using fallback: $e');
+      AppLogger.info('AIPlan', 'Failed to load system prompt asset, using fallback: $e');
       return _fallbackSystemPrompt;
     }
   }

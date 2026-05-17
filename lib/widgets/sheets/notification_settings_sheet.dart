@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/notification_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Bottom sheet for configuring daily Hifz session reminder notifications.
 class NotificationSettingsSheet extends StatelessWidget {
@@ -44,7 +45,7 @@ class NotificationSettingsSheet extends StatelessWidget {
               Text(
                 'Notifications',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: theme.primaryText,
@@ -56,7 +57,7 @@ class NotificationSettingsSheet extends StatelessWidget {
           Text(
             'Get reminded to complete your daily Hifz session.',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               color: theme.secondaryText,
             ),
@@ -82,7 +83,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                       Text(
                         'Daily Reminder',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: theme.primaryText,
@@ -93,7 +94,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                             ? 'Reminder set for ${notif.reminderTimeFormatted}'
                             : 'Off',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 11,
                           color: theme.mutedText,
                         ),
@@ -118,8 +119,10 @@ class NotificationSettingsSheet extends StatelessWidget {
             GestureDetector(
               onTap: () => _pickTime(context, theme, notif),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: theme.scaffoldBackground,
                   borderRadius: BorderRadius.circular(14),
@@ -136,7 +139,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                           Text(
                             'Reminder Time',
                             style: TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: theme.primaryText,
@@ -145,7 +148,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                           Text(
                             notif.reminderTimeFormatted,
                             style: TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 11,
                               color: theme.mutedText,
                             ),
@@ -183,7 +186,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                     child: Text(
                       'Smart skip: You won\'t be notified if you\'ve already completed today\'s session.',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         color: theme.secondaryText,
                       ),
@@ -215,7 +218,7 @@ class NotificationSettingsSheet extends StatelessWidget {
                     child: Text(
                       'Push notifications are available on mobile devices only. Your settings will be saved for when you use the app on your phone.',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         color: theme.secondaryText,
                       ),

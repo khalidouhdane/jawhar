@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
+  String get navUnderstand => 'Understand';
+
+  @override
   String get homeGreeting => 'Assalamu Alaikum';
 
   @override
@@ -234,10 +237,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileReading => 'Reading';
 
   @override
-  String get profileThemeClassic => 'Classic';
-
-  @override
-  String get profileThemeWarm => 'Warm';
+  String get profileThemeLight => 'Light';
 
   @override
   String get profileThemeDark => 'Dark';
@@ -286,10 +286,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeAppearance => 'Appearance';
 
   @override
-  String get themeClassic => 'Classic';
-
-  @override
-  String get themeWarm => 'Warm';
+  String get themeLight => 'Light';
 
   @override
   String get themeDark => 'Dark';
@@ -1758,4 +1755,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hifzCtaButton => 'Create Profile';
+
+  @override
+  String get homeRestDayTitle => 'Rest Day';
+
+  @override
+  String get homeRestDaySubtitle =>
+      'Today is your rest day. Recharge and come back stronger.';
+
+  @override
+  String get homeRestDayContinueReading => 'Continue Reading';
+
+  @override
+  String get homeRestDayStartAnyway => 'Start a session anyway';
+
+  @override
+  String get undExploreDeeper => 'Explore the Quran\'s deeper meaning';
+
+  @override
+  String get undSearchSurahs => 'Search surahs...';
+
+  @override
+  String get undAllSurahs => '114 Surahs';
+
+  @override
+  String get undResults => 'results';
+
+  @override
+  String get profileQfTitle => 'Quran Foundation';
+
+  @override
+  String get profileQfConnected => 'Connected · Syncing bookmarks & sessions';
+
+  @override
+  String get profileQfActive => 'Active';
+
+  @override
+  String get profileQfDisconnect => 'Disconnect';
+
+  @override
+  String get profileQfDisconnected => 'Disconnected from Quran Foundation';
+
+  @override
+  String get profileQfSignIn => 'Sign in with Quran Foundation';
+
+  @override
+  String get profileQfSignInDesc =>
+      'Sync bookmarks, streaks & reading sessions';
+
+  @override
+  String get profileQfConnectedSuccess => 'Connected to Quran Foundation';
+
+  @override
+  String get profileQfSignInFailed => 'Sign-in cancelled or failed';
+
+  @override
+  String get profilePreferences => 'Preferences';
+
+  @override
+  String get profileFeatures => 'Features';
+
+  @override
+  String get profileAccounts => 'Accounts';
+
+  @override
+  String get profileTabSettings => 'Settings';
+
+  @override
+  String get profileTabHifz => 'Hifz';
+
+  @override
+  String get profileTabAccount => 'Account';
+
+  @override
+  String get undStories => 'Stories';
+
+  @override
+  String get undThemes => 'Themes';
 }

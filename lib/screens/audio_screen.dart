@@ -8,6 +8,7 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 class AudioScreen extends StatefulWidget {
   const AudioScreen({super.key});
@@ -51,7 +52,7 @@ class _AudioScreenState extends State<AudioScreen>
               child: Text(
                 l!.audioTitle,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: theme.primaryText,
@@ -65,7 +66,7 @@ class _AudioScreenState extends State<AudioScreen>
               child: Text(
                 l.audioSubtitle,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: theme.secondaryText,
@@ -89,14 +90,14 @@ class _AudioScreenState extends State<AudioScreen>
                 child: TextField(
                   onChanged: (val) => setState(() => _searchQuery = val),
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 14,
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
                     hintText: l.audioSearchHint,
                     hintStyle: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.mutedText,
                     ),
@@ -130,15 +131,15 @@ class _AudioScreenState extends State<AudioScreen>
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
-                  labelColor: Colors.white,
+                  labelColor: theme.scaffoldBackground,
                   unselectedLabelColor: theme.secondaryText,
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Inter',
+                  labelStyle: TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontFamily: 'Inter',
+                  unselectedLabelStyle: TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -231,8 +232,8 @@ class _AudioScreenState extends State<AudioScreen>
                       children: [
                         Text(
                           '${loc!.audioNowPlaying} — ${audio.activeVerseKey}',
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -242,7 +243,7 @@ class _AudioScreenState extends State<AudioScreen>
                         Text(
                           audio.reciterName,
                           style: TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 11,
                             color: Colors.white.withValues(alpha: 0.7),
                           ),
@@ -347,7 +348,7 @@ class _AudioScreenState extends State<AudioScreen>
                       ? reciter.reciterName[0].toUpperCase()
                       : '?',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: theme.accentColor,
@@ -363,7 +364,7 @@ class _AudioScreenState extends State<AudioScreen>
                   Text(
                     reciter.reciterName,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 14,
                       fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
                       color: isActive ? theme.accentColor : theme.primaryText,
@@ -374,7 +375,7 @@ class _AudioScreenState extends State<AudioScreen>
                     Text(
                       reciter.style!,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         color: theme.mutedText,
                       ),
@@ -389,10 +390,10 @@ class _AudioScreenState extends State<AudioScreen>
                   color: theme.accentColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   'Active',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -488,7 +489,7 @@ class _AudioScreenState extends State<AudioScreen>
                 child: Text(
                   '${chapter.id}',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: theme.accentColor,
@@ -504,7 +505,7 @@ class _AudioScreenState extends State<AudioScreen>
                   Text(
                     chapter.nameSimple,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: isPlaying ? theme.accentColor : theme.primaryText,
@@ -513,7 +514,7 @@ class _AudioScreenState extends State<AudioScreen>
                   Text(
                     '${chapter.versesCount} verses',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 11,
                       color: theme.mutedText,
                     ),
@@ -567,15 +568,15 @@ class _AudioScreenState extends State<AudioScreen>
   }
 
   /// Start playing a surah from its first verse
-  Future<void> _playSurah(
+  void _playSurah(
     Chapter chapter,
     AudioProvider audio,
     QuranReadingProvider readingProvider,
-  ) async {
+  ) {
     // Get the first page of this surah
     // Use the surah starting pages from the Quran metadata
     final startPage = _surahStartPages[chapter.id] ?? 1;
-    final verses = await readingProvider.getPageVerses(startPage);
+    final verses = readingProvider.getPageVerses(startPage);
     if (verses.isNotEmpty) {
       // Find the first verse of THIS surah on the page
       final startIndex = verses.indexWhere(

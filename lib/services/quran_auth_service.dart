@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
+import 'package:quran_app/services/api_client.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 class QuranAuthService {
   static const String _clientId = '879421dc-68cb-4a1d-a500-c060d10478e6';
@@ -43,16 +43,21 @@ class QuranAuthService {
 
   static Future<String> _fetchNewToken() async {
     try {
-      debugPrint('Fetching new Quran API OAuth Token...');
+      AppLogger.info('QuranAuth', 'Fetching new Quran API OAuth Token...');
       final authStr = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
 
-      final response = await http.post(
+      // Use ApiClient.post() for retry + SSL error recovery.
+      // This handles SSLV3_ALERT_BAD_RECORD_MAC by resetting the
+      // HTTP client and retrying with a fresh TLS handshake.
+      final response = await ApiClient.post(
         Uri.parse(_authUrl),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Basic $authStr',
         },
         body: 'grant_type=client_credentials&scope=content',
+        timeout: const Duration(seconds: 10),
+        maxRetries: 3,
       );
 
       if (response.statusCode == 200) {
@@ -62,7 +67,7 @@ class QuranAuthService {
         final expiresInSeconds = data['expires_in'] ?? 3600;
         _tokenExpiry = DateTime.now().add(Duration(seconds: expiresInSeconds));
 
-        debugPrint('OAuth token acquired. Expires at $_tokenExpiry');
+        AppLogger.info('QuranAuth', 'OAuth token acquired. Expires at $_tokenExpiry');
         return _cachedToken!;
       } else {
         throw Exception(
@@ -70,7 +75,7 @@ class QuranAuthService {
         );
       }
     } catch (e) {
-      debugPrint('QuranAuthService Error: $e');
+      AppLogger.info('QuranAuth', 'QuranAuthService Error: $e');
       rethrow;
     }
   }

@@ -45,7 +45,9 @@ class UpdateService {
       final htmlUrl = data['html_url'] as String? ?? '';
 
       // Parse the remote version from the tag (strip leading 'v')
-      final remoteVersion = tagName.startsWith('v') ? tagName.substring(1) : tagName;
+      final remoteVersion = tagName.startsWith('v')
+          ? tagName.substring(1)
+          : tagName;
 
       // Get the running app version
       final packageInfo = await PackageInfo.fromPlatform();
@@ -97,7 +99,10 @@ class UpdateService {
     );
 
     // Trigger the Android APK installer
-    await OpenFilex.open(filePath, type: 'application/vnd.android.package-archive');
+    await OpenFilex.open(
+      filePath,
+      type: 'application/vnd.android.package-archive',
+    );
   }
 
   /// Compare two semver strings. Returns `true` if [remote] > [current].

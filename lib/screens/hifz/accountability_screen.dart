@@ -5,6 +5,7 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/social_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/share_progress_screen.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Accountability & sharing hub screen.
 /// Explains accountability partner concept and provides sharing tools.
@@ -30,7 +31,7 @@ class AccountabilityScreen extends StatelessWidget {
         title: Text(
           'Accountability',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: theme.primaryText,
@@ -64,16 +65,12 @@ class AccountabilityScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Icon(
-                    LucideIcons.users,
-                    size: 36,
-                    color: theme.accentColor,
-                  ),
+                  Icon(LucideIcons.users, size: 36, color: theme.accentColor),
                   const SizedBox(height: 14),
                   Text(
                     'Stay Accountable Together',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -84,7 +81,7 @@ class AccountabilityScreen extends StatelessWidget {
                     'Share your progress with friends, family, or your Quran teacher to stay motivated on your memorization journey.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.secondaryText,
                       height: 1.5,
@@ -99,7 +96,7 @@ class AccountabilityScreen extends StatelessWidget {
             Text(
               'Sharing Tools',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: theme.primaryText,
@@ -131,7 +128,8 @@ class AccountabilityScreen extends StatelessWidget {
               theme,
               icon: LucideIcons.graduationCap,
               title: 'Teacher Report',
-              subtitle: 'Generate a detailed PDF report for your teacher or mentor',
+              subtitle:
+                  'Generate a detailed PDF report for your teacher or mentor',
               enabled: profile != null,
               onTap: () {
                 if (profile != null) {
@@ -150,7 +148,8 @@ class AccountabilityScreen extends StatelessWidget {
               theme,
               icon: LucideIcons.flame,
               title: 'Share Streak',
-              subtitle: '${hifz.streak.totalActiveDays}-day active streak — celebrate your consistency!',
+              subtitle:
+                  '${hifz.streak.totalActiveDays}-day active streak — celebrate your consistency!',
               enabled: profile != null && hifz.streak.totalActiveDays > 0,
               onTap: () {
                 if (profile != null) {
@@ -167,7 +166,7 @@ class AccountabilityScreen extends StatelessWidget {
             Text(
               'How It Works',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: theme.primaryText,
@@ -175,14 +174,26 @@ class AccountabilityScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            _stepTile(theme, '1', 'Choose what to share',
-                'Pick a progress report, milestone, or streak.'),
+            _stepTile(
+              theme,
+              '1',
+              'Choose what to share',
+              'Pick a progress report, milestone, or streak.',
+            ),
             const SizedBox(height: 8),
-            _stepTile(theme, '2', 'Share via any app',
-                'Send via WhatsApp, email, or any messaging app.'),
+            _stepTile(
+              theme,
+              '2',
+              'Share via any app',
+              'Send via WhatsApp, email, or any messaging app.',
+            ),
             const SizedBox(height: 8),
-            _stepTile(theme, '3', 'Stay motivated',
-                'Regular check-ins with friends keep you on track.'),
+            _stepTile(
+              theme,
+              '3',
+              'Stay motivated',
+              'Regular check-ins with friends keep you on track.',
+            ),
             const SizedBox(height: 24),
 
             // ── Privacy Note ──
@@ -194,17 +205,13 @@ class AccountabilityScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    LucideIcons.shield,
-                    size: 16,
-                    color: theme.accentColor,
-                  ),
+                  Icon(LucideIcons.shield, size: 16, color: theme.accentColor),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Your data stays on your device. Sharing sends a one-time snapshot — no accounts, no servers, no tracking.',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         color: theme.secondaryText,
                       ),
@@ -234,7 +241,7 @@ class AccountabilityScreen extends StatelessWidget {
                       child: Text(
                         'Create a Hifz profile first to start sharing your progress.',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 11,
                           color: theme.secondaryText,
                         ),
@@ -289,7 +296,7 @@ class AccountabilityScreen extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: theme.primaryText,
@@ -298,7 +305,7 @@ class AccountabilityScreen extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         color: theme.mutedText,
                       ),
@@ -306,11 +313,7 @@ class AccountabilityScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                LucideIcons.chevronRight,
-                size: 18,
-                color: theme.mutedText,
-              ),
+              Icon(LucideIcons.chevronRight, size: 18, color: theme.mutedText),
             ],
           ),
         ),
@@ -344,7 +347,7 @@ class AccountabilityScreen extends StatelessWidget {
               child: Text(
                 number,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: theme.accentColor,
@@ -360,7 +363,7 @@ class AccountabilityScreen extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: theme.primaryText,
@@ -369,7 +372,7 @@ class AccountabilityScreen extends StatelessWidget {
                 Text(
                   desc,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 11,
                     color: theme.mutedText,
                   ),

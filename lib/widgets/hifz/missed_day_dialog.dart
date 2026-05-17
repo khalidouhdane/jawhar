@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Bottom sheet dialog shown when the user returns after missed days.
 class MissedDayDialog extends StatelessWidget {
@@ -65,12 +66,12 @@ class MissedDayDialog extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Welcome back
-          const Text('🌅', style: TextStyle(fontSize: 48)),
+          Icon(LucideIcons.sunrise, size: 48, color: theme.accentColor),
           const SizedBox(height: 12),
           Text(
             'Welcome back!',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -81,7 +82,7 @@ class MissedDayDialog extends StatelessWidget {
             _getMessage(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
               height: 1.4,
@@ -108,7 +109,7 @@ class MissedDayDialog extends StatelessWidget {
                   child: Text(
                     'We suggest starting with a review-only session to warm up.',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.accentColor,
                       height: 1.3,
@@ -133,11 +134,11 @@ class MissedDayDialog extends StatelessWidget {
                 color: theme.accentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 'Start Review Session',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -165,7 +166,7 @@ class MissedDayDialog extends StatelessWidget {
                 'Start Normal Plan',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: theme.primaryText,
@@ -184,7 +185,7 @@ class MissedDayDialog extends StatelessWidget {
             child: Text(
               'Maybe later',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
                 color: theme.mutedText,
               ),
@@ -202,7 +203,7 @@ class MissedDayDialog extends StatelessWidget {
     } else if (missedDays <= 3) {
       return 'It\'s been $missedDays days since your last session.\nLet\'s ease back in with a review.';
     } else {
-      return 'It\'s been $missedDays days.\nBut don\'t worry—every return is a fresh start! 🌱';
+      return 'It\'s been $missedDays days.\nBut don\'t worry—every return is a fresh start!';
     }
   }
 }

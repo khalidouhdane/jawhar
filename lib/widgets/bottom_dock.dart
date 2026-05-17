@@ -34,13 +34,7 @@ class _BottomDockState extends State<BottomDock> {
       decoration: BoxDecoration(
         color: theme.dockBackground,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.04),
-            blurRadius: 40,
-            offset: const Offset(0, -10),
-          ),
-        ],
+        boxShadow: theme.shadowRing,
       ),
       padding: const EdgeInsets.all(16),
       child: SafeArea(
@@ -337,18 +331,7 @@ class _PaginationSliderState extends State<PaginationSlider> {
                 decoration: BoxDecoration(
                   color: isActive ? theme.accentColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(6),
-                  border: isActive
-                      ? null
-                      : Border.all(color: theme.accentColor),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: theme.accentColor.withValues(alpha: 0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
+                  boxShadow: isActive ? theme.shadowCard : null,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -361,8 +344,8 @@ class _PaginationSliderState extends State<PaginationSlider> {
                       margin: const EdgeInsets.only(bottom: 6),
                       decoration: BoxDecoration(
                         color: isActive
-                            ? Colors.white.withValues(alpha: 0.7)
-                            : theme.accentColor,
+                            ? theme.scaffoldBackground.withValues(alpha: 0.7)
+                            : theme.mutedText,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -372,7 +355,7 @@ class _PaginationSliderState extends State<PaginationSlider> {
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0,
-                        color: isActive ? Colors.white : theme.accentColor,
+                        color: isActive ? theme.scaffoldBackground : theme.secondaryText,
                       ),
                     ),
                   ],
@@ -392,8 +375,8 @@ class _PaginationSliderState extends State<PaginationSlider> {
       margin: const EdgeInsets.only(bottom: 2),
       decoration: BoxDecoration(
         color: isActive
-            ? Colors.white.withValues(alpha: 0.7)
-            : theme.accentColor,
+            ? theme.scaffoldBackground.withValues(alpha: 0.7)
+            : theme.mutedText,
         borderRadius: BorderRadius.circular(2),
       ),
     );

@@ -13,17 +13,31 @@ import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/services/ai_plan_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
-import 'package:quran_app/screens/onboarding_screen.dart';
+import 'package:quran_app/screens/splash_screen.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/screens/hifz/assessment_screen.dart';
 import 'package:quran_app/widgets/sheets/nav_menu_sheet.dart';
 import 'package:quran_app/widgets/sheets/notification_settings_sheet.dart';
 import 'package:quran_app/screens/hifz/accountability_screen.dart';
 import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/theme/geist_tokens.dart';
+import 'package:quran_app/widgets/geist_button.dart';
+import 'package:quran_app/widgets/geist_segmented_control.dart';
 
-class ProfileScreen extends StatelessWidget {
+enum ProfileTab { settings, hifz, account }
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  ProfileTab _activeTab = ProfileTab.settings;
 
   @override
   Widget build(BuildContext context) {
@@ -38,377 +52,445 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-
-              // ── Header ──
-              Text(
-                l!.profileTitle,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: theme.primaryText,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                l.profileSubtitle,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: theme.secondaryText,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Reading Stats ──
-              _buildStatsCard(context, theme, hifzProfile, lastRead, l),
-              const SizedBox(height: 20),
-
-              // ── Language Selector ──
-              _buildSectionLabel(theme, l.profileLanguage),
-              const SizedBox(height: 10),
-              _buildLanguageSelector(context, theme, locale),
-              const SizedBox(height: 24),
-
-              // ── Rewaya (Reading) Selector ──
-              _buildSectionLabel(theme, l.profileReading),
-              const SizedBox(height: 10),
-              _buildRewayaSelector(context, theme, reading),
-              const SizedBox(height: 24),
-
-              // ── Theme Selector ──
-              _buildSectionLabel(theme, l.profileAppearance),
-              const SizedBox(height: 10),
-              _buildThemeSelector(context, theme, l),
-              const SizedBox(height: 24),
-
-              // ── Bookmarks ──
-              _buildSectionLabel(theme, l.profileBookmarksTitle),
-              const SizedBox(height: 10),
-              _buildBookmarksCard(context, theme, l),
-              const SizedBox(height: 24),
-
-              // ── Notifications ──
-              _buildSectionLabel(theme, AppLocalizations.of(context)!.profileNotificationsTitle),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const NotificationSettingsSheet(),
-                  );
-                },
-                child: _buildSettingsTile(
-                  theme,
-                  icon: LucideIcons.bell,
-                  title: AppLocalizations.of(context)!.profileSessionReminders,
-                  subtitle: AppLocalizations.of(context)!.profileSessionRemindersDesc,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Social & Accountability ──
-              _buildSectionLabel(theme, AppLocalizations.of(context)!.profileSocialSharingSection),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AccountabilityScreen(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Sticky Header & Segmented Control ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    l!.profileTitle,
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: theme.primaryText,
+                      letterSpacing: -1.28,
                     ),
-                  );
-                },
-                child: _buildSettingsTile(
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l.profileSubtitle,
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: theme.secondaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  GeistSegmentedControl<ProfileTab>(
+                    theme: theme,
+                    selectedTab: _activeTab,
+                    onTabChanged: (tab) => setState(() => _activeTab = tab),
+                    tabs: {
+                      ProfileTab.settings: l.profileTabSettings,
+                      ProfileTab.hifz: l.profileTabHifz,
+                      ProfileTab.account: l.profileTabAccount,
+                    },
+                  ),
+                ],
+              ),
+            ),
+            
+            // ── Scrollable Tab Content ──
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                child: _buildActiveTabContent(
+                  context,
                   theme,
-                  icon: LucideIcons.users,
-                  title: AppLocalizations.of(context)!.profileAccountabilityTitle,
-                  subtitle: AppLocalizations.of(context)!.profileAccountabilityDesc,
+                  hifzProfile,
+                  locale,
+                  reading,
+                  l,
+                  lastRead,
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // ── Hifz Profile Management (CE-11) ──
-              if (hifzProfile.hasActiveProfile) ...[
-                _buildSectionLabel(theme, AppLocalizations.of(context)!.profileHifzSection),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AssessmentScreen(isRetake: true)),
-                    );
-                  },
-                  child: _buildSettingsTile(
-                    theme,
-                    icon: LucideIcons.refreshCw,
-                    title: AppLocalizations.of(context)!.profileRetakeAssessment,
-                    subtitle: AppLocalizations.of(context)!.profileRetakeAssessmentDesc,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                // AI Model selector (dev testing)
-                Builder(
-                  builder: (ctx) {
-                    return FutureBuilder<SharedPreferences>(
-                      future: SharedPreferences.getInstance(),
-                      builder: (ctx, snap) {
-                        final prefs = snap.data;
-                        final currentModel = prefs?.getString('ai_model') ?? AIPlanService.modelFlash;
-                        final isFlash = currentModel.contains('flash');
-                        return GestureDetector(
-                          onTap: () async {
-                            if (prefs == null) return;
-                            final newModel = isFlash ? AIPlanService.modelPro : AIPlanService.modelFlash;
-                            await prefs.setString('ai_model', newModel);
-                            // Trigger rebuild
-                            (ctx as Element).markNeedsBuild();
-                          },
-                          child: _buildSettingsTile(
-                            theme,
-                            icon: LucideIcons.cpu,
-                            title: AppLocalizations.of(context)!.profileAiModel,
-                            subtitle: isFlash ? AppLocalizations.of(context)!.profileAiModelFlash : AppLocalizations.of(context)!.profileAiModelPro,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-                GestureDetector(
-                  onTap: () => _showResetProgressDialog(context, theme, hifzProfile),
-                  child: _buildSettingsTile(
-                    theme,
-                    icon: LucideIcons.trash2,
-                    title: AppLocalizations.of(context)!.profileResetProgress,
-                    subtitle: AppLocalizations.of(context)!.profileResetProgressDesc,
-                    danger: true,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: () => _showDeleteProfileDialog(context, theme, hifzProfile),
-                  child: _buildSettingsTile(
-                    theme,
-                    icon: LucideIcons.userX,
-                    title: AppLocalizations.of(context)!.profileDeleteProfile,
-                    subtitle: AppLocalizations.of(context)!.profileDeleteProfileDesc,
-                    danger: true,
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-
-              // ── Cloud & Account ──
-              _buildSectionLabel(theme, AppLocalizations.of(context)!.profileCloudAccountSection),
-              const SizedBox(height: 10),
-              _buildCloudAccountCard(context, theme),
-              const SizedBox(height: 24),
-
-              // ── About ──
-              _buildSectionLabel(theme, l.profileAbout),
-              const SizedBox(height: 10),
-              _buildSettingsTile(
-                theme,
-                icon: LucideIcons.info,
-                title: 'Le Quran',
-                subtitle: l.profileVersion,
-              ),
-              const SizedBox(height: 6),
-              _buildSettingsTile(
-                theme,
-                icon: LucideIcons.heart,
-                title: l.profileMadeWith,
-                subtitle: l.profileCompanion,
-              ),
-              const SizedBox(height: 6),
-              _buildSettingsTile(
-                theme,
-                icon: LucideIcons.globe,
-                title: l.profileData,
-                subtitle: 'Quran.com API',
-              ),
-              const SizedBox(height: 6),
-              GestureDetector(
-                onTap: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setBool('onboarding_complete', false);
-                  if (context.mounted) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (_) => const OnboardingScreen(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
-                child: _buildSettingsTile(
-                  theme,
-                  icon: LucideIcons.refreshCw,
-                  title: l.profileReplayOnboarding,
-                  subtitle: l.profileReplayOnboardingDesc,
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ── Language Selector ──
+  Widget _buildActiveTabContent(
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProfileProvider hifzProfile,
+    LocaleProvider locale,
+    QuranReadingProvider reading,
+    AppLocalizations l,
+    LastReadPosition? lastRead,
+  ) {
+    switch (_activeTab) {
+      case ProfileTab.settings:
+        return _buildSettingsTab(context, theme, locale, reading, l);
+      case ProfileTab.hifz:
+        return _buildHifzTab(context, theme, hifzProfile, l, lastRead);
+      case ProfileTab.account:
+        return _buildAccountTab(context, theme, l);
+    }
+  }
+
+  Widget _buildSettingsTab(
+    BuildContext context,
+    ThemeProvider theme,
+    LocaleProvider locale,
+    QuranReadingProvider reading,
+    AppLocalizations l,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ═══════════════════════════════════════════
+        // GROUP 1: Preferences
+        // ═══════════════════════════════════════════
+        _buildSectionLabel(theme, l.profilePreferences),
+        const SizedBox(height: 8),
+
+        // Language
+        _buildLanguageSelector(context, theme, locale),
+        const SizedBox(height: 12),
+
+        // Rewaya
+        _buildRewayaSelector(context, theme, reading),
+        const SizedBox(height: 12),
+
+        // Theme
+        _buildThemeSelector(context, theme, l),
+        const SizedBox(height: 32),
+
+        // ═══════════════════════════════════════════
+        // GROUP 2: Features
+        // ═══════════════════════════════════════════
+        _buildSectionLabel(theme, l.profileFeatures),
+        const SizedBox(height: 8),
+
+        // Bookmarks
+        _buildBookmarksCard(context, theme, l),
+        const SizedBox(height: 6),
+
+        // Notifications
+        GestureDetector(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const NotificationSettingsSheet(),
+            );
+          },
+          child: _buildSettingsTile(
+            theme,
+            icon: LucideIcons.bell,
+            title: AppLocalizations.of(context)!.profileSessionReminders,
+            subtitle: AppLocalizations.of(
+              context,
+            )!.profileSessionRemindersDesc,
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // Accountability
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AccountabilityScreen()),
+            );
+          },
+          child: _buildSettingsTile(
+            theme,
+            icon: LucideIcons.users,
+            title: AppLocalizations.of(context)!.profileAccountabilityTitle,
+            subtitle: AppLocalizations.of(context)!.profileAccountabilityDesc,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHifzTab(
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProfileProvider hifzProfile,
+    AppLocalizations l,
+    LastReadPosition? lastRead,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Reading Stats ──
+        _buildStatsCard(context, theme, hifzProfile, lastRead, l),
+        const SizedBox(height: 32),
+
+        // ═══════════════════════════════════════════
+        // GROUP 3: Hifz Profile
+        // ═══════════════════════════════════════════
+        if (hifzProfile.hasActiveProfile) ...[
+          _buildSectionLabel(
+            theme,
+            AppLocalizations.of(context)!.profileHifzSection,
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AssessmentScreen(isRetake: true),
+                ),
+              );
+            },
+            child: _buildSettingsTile(
+              theme,
+              icon: LucideIcons.refreshCw,
+              title: AppLocalizations.of(context)!.profileRetakeAssessment,
+              subtitle: AppLocalizations.of(
+                context,
+              )!.profileRetakeAssessmentDesc,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // AI Model selector (dev testing)
+          Builder(
+            builder: (ctx) {
+              return FutureBuilder<SharedPreferences>(
+                future: SharedPreferences.getInstance(),
+                builder: (ctx, snap) {
+                  final prefs = snap.data;
+                  final currentModel =
+                      prefs?.getString('ai_model') ?? AIPlanService.modelFlash;
+                  final isFlash = currentModel.contains('flash');
+                  return GestureDetector(
+                    onTap: () async {
+                      if (prefs == null) return;
+                      final newModel = isFlash
+                          ? AIPlanService.modelPro
+                          : AIPlanService.modelFlash;
+                      await prefs.setString('ai_model', newModel);
+                      (ctx as Element).markNeedsBuild();
+                    },
+                    child: _buildSettingsTile(
+                      theme,
+                      icon: LucideIcons.cpu,
+                      title: AppLocalizations.of(context)!.profileAiModel,
+                      subtitle: isFlash
+                          ? AppLocalizations.of(context)!.profileAiModelFlash
+                          : AppLocalizations.of(context)!.profileAiModelPro,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () => _showResetProgressDialog(context, theme, hifzProfile),
+            child: _buildSettingsTile(
+              theme,
+              icon: LucideIcons.trash2,
+              title: AppLocalizations.of(context)!.profileResetProgress,
+              subtitle: AppLocalizations.of(context)!.profileResetProgressDesc,
+              danger: true,
+            ),
+          ),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () => _showDeleteProfileDialog(context, theme, hifzProfile),
+            child: _buildSettingsTile(
+              theme,
+              icon: LucideIcons.userX,
+              title: AppLocalizations.of(context)!.profileDeleteProfile,
+              subtitle: AppLocalizations.of(context)!.profileDeleteProfileDesc,
+              danger: true,
+            ),
+          ),
+        ] else ...[
+          // Show something if no active profile, or let it be empty
+          _buildSettingsTile(
+            theme,
+            icon: LucideIcons.info,
+            title: 'No Hifz Profile',
+            subtitle: 'Start an assessment from the Dashboard to create one.',
+            showChevron: false,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAccountTab(
+    BuildContext context,
+    ThemeProvider theme,
+    AppLocalizations l,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ═══════════════════════════════════════════
+        // GROUP 4: Accounts
+        // ═══════════════════════════════════════════
+        _buildSectionLabel(theme, l.profileAccounts),
+        const SizedBox(height: 8),
+        _buildCloudAccountCard(context, theme),
+        const SizedBox(height: 6),
+        _buildQfAccountCard(context, theme),
+        const SizedBox(height: 32),
+
+        // ═══════════════════════════════════════════
+        // GROUP 5: About
+        // ═══════════════════════════════════════════
+        _buildSectionLabel(theme, l.profileAbout),
+        const SizedBox(height: 8),
+        _buildSettingsTile(
+          theme,
+          icon: LucideIcons.info,
+          title: 'Jawhar',
+          subtitle: l.profileVersion,
+          showChevron: false,
+        ),
+        const SizedBox(height: 6),
+        _buildSettingsTile(
+          theme,
+          icon: LucideIcons.heart,
+          title: l.profileMadeWith,
+          subtitle: l.profileCompanion,
+          showChevron: false,
+        ),
+        const SizedBox(height: 6),
+        _buildSettingsTile(
+          theme,
+          icon: LucideIcons.globe,
+          title: l.profileData,
+          subtitle: 'Quran.com API',
+          showChevron: false,
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: () async {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('onboarding_complete', false);
+            if (context.mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const SplashScreen()),
+                (route) => false,
+              );
+            }
+          },
+          child: _buildSettingsTile(
+            theme,
+            icon: LucideIcons.refreshCw,
+            title: l.profileReplayOnboarding,
+            subtitle: l.profileReplayOnboardingDesc,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Language Selector (compact inline row) ──
   Widget _buildLanguageSelector(
     BuildContext context,
     ThemeProvider theme,
     LocaleProvider locale,
   ) {
-    return Row(
-      children: [
-        _langOption(
-          context,
-          theme,
-          locale,
-          const Locale('en'),
-          'English',
-          '🇬🇧',
-        ),
-        const SizedBox(width: 10),
-        _langOption(
-          context,
-          theme,
-          locale,
-          const Locale('ar'),
-          'العربية',
-          '🇸🇦',
-        ),
-      ],
+    final isEnglish = locale.locale == const Locale('en');
+    return _buildPreferenceRow(
+      theme: theme,
+      icon: LucideIcons.globe,
+      label: AppLocalizations.of(context)!.profileLanguage,
+      options: ['English', 'العربية'],
+      selectedIndex: isEnglish ? 0 : 1,
+      onSelected: (index) {
+        locale.setLocale(index == 0 ? const Locale('en') : const Locale('ar'));
+      },
     );
   }
 
-  Widget _langOption(
-    BuildContext context,
-    ThemeProvider theme,
-    LocaleProvider locale,
-    Locale target,
-    String label,
-    String flag,
-  ) {
-    final isActive = locale.locale == target;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => locale.setLocale(target),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isActive ? theme.accentColor : theme.dividerColor,
-              width: isActive ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              Text(flag, style: const TextStyle(fontSize: 28)),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 13,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  color: isActive ? theme.accentColor : theme.secondaryText,
-                ),
-              ),
-              if (isActive) ...[
-                const SizedBox(height: 4),
-                Icon(LucideIcons.check, size: 14, color: theme.accentColor),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── Rewaya (Reading) Selector ──
+  // ── Rewaya (Reading) Selector (compact inline row) ──
   Widget _buildRewayaSelector(
     BuildContext context,
     ThemeProvider theme,
     QuranReadingProvider reading,
   ) {
-    return Row(
-      children: [
-        _rewayaOption(context, theme, reading, 1, 'حفص', 'Hafs'),
-        const SizedBox(width: 10),
-        _rewayaOption(context, theme, reading, 2, 'ورش', 'Warsh'),
-      ],
+    final isHafs = reading.selectedRewaya == 1;
+    return _buildPreferenceRow(
+      theme: theme,
+      icon: LucideIcons.bookOpen,
+      label: AppLocalizations.of(context)!.profileReading,
+      options: ['Hafs', 'Warsh'],
+      selectedIndex: isHafs ? 0 : 1,
+      onSelected: (index) {
+        reading.setRewaya(index == 0 ? 1 : 2);
+      },
     );
   }
 
-  Widget _rewayaOption(
+  // ── Theme Selector (compact inline row) ──
+  Widget _buildThemeSelector(
     BuildContext context,
     ThemeProvider theme,
-    QuranReadingProvider reading,
-    int rewaya,
-    String arabicLabel,
-    String englishLabel,
+    AppLocalizations l,
   ) {
-    final isActive = reading.selectedRewaya == rewaya;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => reading.setRewaya(rewaya),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isActive ? theme.accentColor : theme.dividerColor,
-              width: isActive ? 2 : 1,
+    final isLight = theme.theme == AppTheme.light;
+    return _buildPreferenceRow(
+      theme: theme,
+      icon: isLight ? LucideIcons.sun : LucideIcons.moon,
+      label: l.profileAppearance,
+      options: [l.profileThemeLight, l.profileThemeDark],
+      selectedIndex: isLight ? 0 : 1,
+      onSelected: (index) {
+        theme.setTheme(index == 0 ? AppTheme.light : AppTheme.dark);
+      },
+    );
+  }
+
+  /// Compact preference row: icon + label on left, mini segmented control on right.
+  Widget _buildPreferenceRow({
+    required ThemeProvider theme,
+    required IconData icon,
+    required String label,
+    required List<String> options,
+    required int selectedIndex,
+    required ValueChanged<int> onSelected,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: Border.all(color: theme.dividerColor, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: theme.secondaryText),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: theme.primaryText,
+              ),
             ),
           ),
-          child: Column(
-            children: [
-              Text(
-                arabicLabel,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: isActive ? theme.accentColor : theme.primaryText,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                englishLabel,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  color: isActive ? theme.accentColor : theme.secondaryText,
-                ),
-              ),
-              if (isActive) ...[
-                const SizedBox(height: 4),
-                Icon(LucideIcons.check, size: 14, color: theme.accentColor),
-              ],
-            ],
+          // ── Mini Segmented Control ──
+          _MiniSegmentedControl(
+            theme: theme,
+            options: options,
+            selectedIndex: selectedIndex,
+            onSelected: onSelected,
           ),
-        ),
+        ],
       ),
     );
   }
-
   // ── Stats Card ──
   Widget _buildStatsCard(
     BuildContext context,
@@ -418,100 +500,109 @@ class ProfileScreen extends StatelessWidget {
     AppLocalizations l,
   ) {
     final activeDays = hifzProfile.streak.totalActiveDays;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l.profileJourney,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: theme.primaryText,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l.profileJourney,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: theme.primaryText,
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              _statItem(
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSingleStatCard(
                 theme,
                 value: '$activeDays',
                 label: l.profileMemorized,
                 icon: LucideIcons.brain,
               ),
-              _statDivider(theme),
-              _statItem(
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSingleStatCard(
                 theme,
                 value: '${hifzProfile.streak.totalActiveDays}',
                 label: l.hifzDayStreak,
                 icon: LucideIcons.flame,
               ),
-              _statDivider(theme),
-              _statItem(
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSingleStatCard(
                 theme,
                 value: lastRead != null ? '${lastRead.page}' : '-',
                 label: l.profileLastPage,
                 icon: LucideIcons.bookOpen,
               ),
-              _statDivider(theme),
-              _statItem(
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSingleStatCard(
                 theme,
                 value: '${context.watch<BookmarkProvider>().count}',
                 label: l.profileBookmarksTitle,
                 icon: LucideIcons.bookmark,
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _statItem(
+  Widget _buildSingleStatCard(
     ThemeProvider theme, {
     required String value,
     required String label,
     required IconData icon,
   }) {
-    return Expanded(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: Border.all(color: theme.dividerColor, width: 1),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: theme.accentColor),
-          const SizedBox(height: 6),
+          Icon(icon, size: 20, color: theme.accentColor),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
               color: theme.primaryText,
+              height: 1.1,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 10,
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: theme.mutedText,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
-  }
-
-  Widget _statDivider(ThemeProvider theme) {
-    return Container(width: 1, height: 36, color: theme.dividerColor);
   }
 
   // ── Bookmarks Card ──
@@ -550,182 +641,13 @@ class ProfileScreen extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: theme.dividerColor),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: theme.accentColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(LucideIcons.bookmark, size: 20, color: theme.accentColor),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l.profileBookmarksTitle,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.primaryText,
-                    ),
-                  ),
-                  Text(
-                    count > 0
-                        ? '$count ${count == 1 ? 'bookmark' : 'bookmarks'}'
-                        : l.profileBookmarksDesc,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12,
-                      color: theme.mutedText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (count > 0)
-              Icon(
-                LucideIcons.chevronRight,
-                size: 18,
-                color: theme.mutedText,
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '0',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: theme.mutedText,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Theme Selector ──
-  Widget _buildThemeSelector(
-    BuildContext context,
-    ThemeProvider theme,
-    AppLocalizations l,
-  ) {
-    return Row(
-      children: [
-        _themeOption(
-          context,
-          theme,
-          AppTheme.classic,
-          l.profileThemeClassic,
-          Colors.white,
-          const Color(0xFF1A454E),
-        ),
-        const SizedBox(width: 10),
-        _themeOption(
-          context,
-          theme,
-          AppTheme.warm,
-          l.profileThemeWarm,
-          const Color(0xFFF5F0E8),
-          const Color(0xFF1A454E),
-        ),
-        const SizedBox(width: 10),
-        _themeOption(
-          context,
-          theme,
-          AppTheme.dark,
-          l.profileThemeDark,
-          const Color(0xFF0A1E24),
-          const Color(0xFF4DB6AC),
-        ),
-      ],
-    );
-  }
-
-  Widget _themeOption(
-    BuildContext context,
-    ThemeProvider theme,
-    AppTheme appTheme,
-    String label,
-    Color previewBg,
-    Color previewAccent,
-  ) {
-    final isActive = theme.theme == appTheme;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => theme.setTheme(appTheme),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isActive ? theme.accentColor : theme.dividerColor,
-              width: isActive ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: previewBg,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: previewAccent.withValues(alpha: 0.3),
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: previewAccent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  color: isActive ? theme.accentColor : theme.secondaryText,
-                ),
-              ),
-              if (isActive) ...[
-                const SizedBox(height: 4),
-                Icon(LucideIcons.check, size: 14, color: theme.accentColor),
-              ],
-            ],
-          ),
-        ),
+      child: _buildSettingsTile(
+        theme,
+        icon: LucideIcons.bookmark,
+        title: l.profileBookmarksTitle,
+        subtitle: count > 0
+            ? '$count ${count == 1 ? 'bookmark' : 'bookmarks'}'
+            : l.profileBookmarksDesc,
       ),
     );
   }
@@ -741,8 +663,8 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: theme.cardColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: theme.dividerColor),
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          boxShadow: theme.shadowCard,
         ),
         child: Column(
           children: [
@@ -756,7 +678,11 @@ class ProfileScreen extends StatelessWidget {
                       ? NetworkImage(auth.photoUrl!)
                       : null,
                   child: auth.photoUrl == null
-                      ? Icon(LucideIcons.user, size: 20, color: theme.accentColor)
+                      ? Icon(
+                          LucideIcons.user,
+                          size: 20,
+                          color: theme.accentColor,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 14),
@@ -767,7 +693,7 @@ class ProfileScreen extends StatelessWidget {
                       Text(
                         auth.displayName ?? 'Signed In',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: theme.primaryText,
@@ -776,7 +702,7 @@ class ProfileScreen extends StatelessWidget {
                       Text(
                         auth.email ?? '',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           color: theme.mutedText,
                         ),
@@ -792,17 +718,17 @@ class ProfileScreen extends StatelessWidget {
                     final String label;
                     switch (sync.status) {
                       case SyncStatus.syncing:
-                        color = Colors.orange;
+                        color = GeistTokens.amber800;
                         icon = LucideIcons.refreshCw;
                         label = AppLocalizations.of(context)!.syncSyncing;
                         break;
                       case SyncStatus.synced:
-                        color = const Color(0xFF4CAF50);
+                        color = const Color(0xFF0A7B3E);
                         icon = LucideIcons.cloud;
                         label = AppLocalizations.of(context)!.syncSynced;
                         break;
                       case SyncStatus.error:
-                        color = Colors.red;
+                        color = GeistTokens.red800;
                         icon = LucideIcons.cloudOff;
                         label = AppLocalizations.of(context)!.syncError;
                         break;
@@ -817,10 +743,13 @@ class ProfileScreen extends StatelessWidget {
                           ? () => sync.syncAll(auth.uid!)
                           : null,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(theme.radiusMd),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -830,7 +759,7 @@ class ProfileScreen extends StatelessWidget {
                             Text(
                               label,
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: color,
@@ -853,37 +782,35 @@ class ProfileScreen extends StatelessWidget {
                   builder: (ctx) => AlertDialog(
                     backgroundColor: theme.cardColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(theme.radiusLg),
                     ),
                     title: Text(
                       AppLocalizations.of(context)!.profileSignOutDialogTitle,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         color: theme.primaryText,
                       ),
                     ),
                     content: Text(
                       AppLocalizations.of(context)!.profileSignOutDialogDesc,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 13,
                         color: theme.secondaryText,
                       ),
                     ),
                     actions: [
-                      TextButton(
+                      GeistButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        child: Text(
-                          AppLocalizations.of(context)!.profileActionCancel,
-                          style: TextStyle(color: theme.secondaryText),
-                        ),
+                        label: AppLocalizations.of(context)!.profileActionCancel,
+                        type: GeistButtonType.tertiary,
+                        size: GeistButtonSize.small,
                       ),
-                      TextButton(
+                      GeistButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: Text(
-                          AppLocalizations.of(context)!.profileSignOut,
-                          style: TextStyle(color: Colors.red),
-                        ),
+                        label: AppLocalizations.of(context)!.profileSignOut,
+                        type: GeistButtonType.error,
+                        size: GeistButtonSize.small,
                       ),
                     ],
                   ),
@@ -896,14 +823,14 @@ class ProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: theme.dividerColor),
+                  borderRadius: BorderRadius.circular(theme.radiusMd),
+                  boxShadow: theme.shadowCard,
                 ),
                 child: Center(
                   child: Text(
                     AppLocalizations.of(context)!.profileSignOut,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: theme.secondaryText,
@@ -921,58 +848,69 @@ class ProfileScreen extends StatelessWidget {
                   builder: (ctx) => AlertDialog(
                     backgroundColor: theme.cardColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(theme.radiusLg),
                     ),
                     title: Text(
-                      AppLocalizations.of(context)!.profileDeleteAccountDialogTitle,
+                      AppLocalizations.of(
+                        context,
+                      )!.profileDeleteAccountDialogTitle,
                       style: TextStyle(
-                        fontFamily: 'Inter',
-                        color: Colors.red,
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        color: GeistTokens.red800,
                       ),
                     ),
                     content: Text(
-                      AppLocalizations.of(context)!.profileDeleteAccountDialogDesc,
+                      AppLocalizations.of(
+                        context,
+                      )!.profileDeleteAccountDialogDesc,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 13,
                         color: theme.secondaryText,
                       ),
                     ),
                     actions: [
-                      TextButton(
+                      GeistButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        child: Text(
-                          AppLocalizations.of(context)!.profileActionCancel,
-                          style: TextStyle(color: theme.secondaryText),
-                        ),
+                        label: AppLocalizations.of(context)!.profileActionCancel,
+                        type: GeistButtonType.tertiary,
+                        size: GeistButtonSize.small,
                       ),
-                      TextButton(
+                      GeistButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: Text(
-                          AppLocalizations.of(context)!.actionDelete,
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        label: AppLocalizations.of(context)!.actionDelete,
+                        type: GeistButtonType.error,
+                        size: GeistButtonSize.small,
                       ),
                     ],
                   ),
                 );
                 if (confirmed == true && context.mounted) {
-                  final sync = Provider.of<CloudSyncService>(context, listen: false);
+                  final sync = Provider.of<CloudSyncService>(
+                    context,
+                    listen: false,
+                  );
                   try {
                     await sync.deleteAccount(auth.uid!);
                     if (context.mounted) {
                       await auth.signOut();
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(AppLocalizations.of(context)!.profileAccountDeleted)),
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(context)!.profileAccountDeleted,
+                          ),
+                        ),
                       );
                     }
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${AppLocalizations.of(context)!.profileError}: $e')),
+                        SnackBar(
+                          content: Text(
+                            '${AppLocalizations.of(context)!.profileError}: $e',
+                          ),
+                        ),
                       );
                     }
                   }
@@ -981,9 +919,9 @@ class ProfileScreen extends StatelessWidget {
               child: Text(
                 AppLocalizations.of(context)!.profileDeleteAccount,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
-                  color: Colors.red.withValues(alpha: 0.6),
+                  color: GeistTokens.red800.withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -1005,7 +943,9 @@ class ProfileScreen extends StatelessWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.profileSyncing),
+                      content: Text(
+                        AppLocalizations.of(context)!.profileSyncing,
+                      ),
                       backgroundColor: theme.accentColor,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -1015,7 +955,7 @@ class ProfileScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(auth.error!),
-                    backgroundColor: Colors.red,
+                    backgroundColor: GeistTokens.red800,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -1026,8 +966,8 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: theme.cardColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: theme.dividerColor),
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          boxShadow: theme.shadowCard,
         ),
         child: Row(
           children: [
@@ -1036,7 +976,7 @@ class ProfileScreen extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: theme.accentColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(theme.radiusMd),
               ),
               child: Center(
                 child: auth.isLoading
@@ -1048,7 +988,11 @@ class ProfileScreen extends StatelessWidget {
                           color: theme.accentColor,
                         ),
                       )
-                    : Icon(LucideIcons.cloud, size: 20, color: theme.accentColor),
+                    : Icon(
+                        LucideIcons.cloud,
+                        size: 20,
+                        color: theme.accentColor,
+                      ),
               ),
             ),
             const SizedBox(width: 14),
@@ -1059,7 +1003,7 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     AppLocalizations.of(context)!.profileSignInGoogle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: theme.primaryText,
@@ -1068,7 +1012,226 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     AppLocalizations.of(context)!.profileSignInGoogleDesc,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 12,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(LucideIcons.chevronRight, size: 18, color: theme.mutedText),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Quran Foundation Account Card ──
+  Widget _buildQfAccountCard(BuildContext context, ThemeProvider theme) {
+    final qfAuth = context.watch<QfUserAuthService>();
+
+    if (qfAuth.isSignedIn) {
+      // Signed-in state
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          boxShadow: theme.shadowCard,
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: theme.accentColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(theme.radiusLg),
+                  ),
+                  child: Icon(
+                    LucideIcons.bookOpen,
+                    size: 20,
+                    color: theme.accentColor,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.profileQfTitle,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                      Text(
+                        AppLocalizations.of(context)!.profileQfConnected,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 11,
+                          color: const Color(0xFF0A7B3E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0A7B3E).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(theme.radiusMd),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        LucideIcons.check,
+                        size: 12,
+                        color: const Color(0xFF0A7B3E),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        AppLocalizations.of(context)!.profileQfActive,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0A7B3E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Sign-out button
+            GestureDetector(
+              onTap: () async {
+                await qfAuth.signOut();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.profileQfDisconnected),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(theme.radiusMd),
+                  boxShadow: theme.shadowCard,
+                ),
+                child: Center(
+                  child: Text(
+                    AppLocalizations.of(context)!.profileQfDisconnect,
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: theme.secondaryText,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Signed-out state: QF Sign-In button
+    return GestureDetector(
+      onTap: qfAuth.isSigningIn
+          ? null
+          : () async {
+              final success = await qfAuth.signIn();
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.profileQfConnectedSuccess),
+                      backgroundColor: theme.accentColor,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else if (!qfAuth.isSigningIn) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.profileQfSignInFailed),
+                      backgroundColor: GeistTokens.red800,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          boxShadow: theme.shadowCard,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.accentColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(theme.radiusMd),
+              ),
+              child: Center(
+                child: qfAuth.isSigningIn
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.accentColor,
+                        ),
+                      )
+                    : Icon(
+                        LucideIcons.bookOpen,
+                        size: 20,
+                        color: theme.accentColor,
+                      ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.profileQfSignIn,
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.primaryText,
+                    ),
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.profileQfSignInDesc,
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
@@ -1085,17 +1248,20 @@ class ProfileScreen extends StatelessWidget {
 
   // ── Section Label ──
   Widget _buildSectionLabel(ThemeProvider theme, String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontFamily: 'Inter',
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        color: theme.primaryText,
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: GeistTypography.primaryFontFamily,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: theme.mutedText,
+          letterSpacing: -0.2,
+        ),
       ),
     );
   }
-
 
   // ── Settings Tile ──
   Widget _buildSettingsTile(
@@ -1104,15 +1270,17 @@ class ProfileScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     bool danger = false,
+    bool showChevron = true,
   }) {
-    final iconColor = danger ? Colors.red.shade400 : theme.accentColor;
-    final titleColor = danger ? Colors.red.shade400 : theme.primaryText;
+    final dangerColor = GeistTokens.red800;
+    final iconColor = danger ? dangerColor : theme.secondaryText;
+    final titleColor = danger ? dangerColor : theme.primaryText;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: danger ? Colors.red.withValues(alpha: 0.2) : theme.dividerColor),
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        boxShadow: theme.shadowCard,
       ),
       child: Row(
         children: [
@@ -1125,23 +1293,26 @@ class ProfileScreen extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                     color: titleColor,
                   ),
                 ),
+                const SizedBox(height: 1),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11,
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 12,
                     color: theme.mutedText,
                   ),
                 ),
               ],
             ),
           ),
+          if (showChevron)
+            Icon(LucideIcons.chevronRight, size: 16, color: theme.mutedText),
         ],
       ),
     );
@@ -1150,24 +1321,40 @@ class ProfileScreen extends StatelessWidget {
   // ── CE-11: Dialog methods ──
 
   void _showResetProgressDialog(
-      BuildContext context, ThemeProvider theme, HifzProfileProvider hifz) {
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProfileProvider hifz,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: theme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(AppLocalizations.of(context)!.profileResetProgress,
-            style: TextStyle(fontFamily: 'Inter', color: theme.primaryText)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.profileResetProgress,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            color: theme.primaryText,
+          ),
+        ),
         content: Text(
           AppLocalizations.of(context)!.profileResetProgressDesc,
-          style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.secondaryText),
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 13,
+            color: theme.secondaryText,
+          ),
         ),
         actions: [
-          TextButton(
+          GeistButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppLocalizations.of(context)!.actionCancel, style: TextStyle(color: theme.mutedText)),
+            label: AppLocalizations.of(context)!.actionCancel,
+            type: GeistButtonType.tertiary,
+            size: GeistButtonSize.small,
           ),
-          TextButton(
+          GeistButton(
             onPressed: () async {
               Navigator.pop(ctx);
               final db = context.read<HifzDatabaseService>();
@@ -1179,11 +1366,17 @@ class ProfileScreen extends StatelessWidget {
               await hifz.refresh();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)!.profileProgressReset)),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context)!.profileProgressReset,
+                    ),
+                  ),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.actionReset, style: TextStyle(color: Colors.red.shade400)),
+            label: AppLocalizations.of(context)!.actionReset,
+            type: GeistButtonType.error,
+            size: GeistButtonSize.small,
           ),
         ],
       ),
@@ -1191,24 +1384,40 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showDeleteProfileDialog(
-      BuildContext context, ThemeProvider theme, HifzProfileProvider hifz) {
+    BuildContext context,
+    ThemeProvider theme,
+    HifzProfileProvider hifz,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: theme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(AppLocalizations.of(context)!.profileDeleteProfile,
-            style: TextStyle(fontFamily: 'Inter', color: theme.primaryText)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.profileDeleteProfile,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            color: theme.primaryText,
+          ),
+        ),
         content: Text(
           AppLocalizations.of(context)!.profileDeleteProfileDesc,
-          style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.secondaryText),
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 13,
+            color: theme.secondaryText,
+          ),
         ),
         actions: [
-          TextButton(
+          GeistButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppLocalizations.of(context)!.actionCancel, style: TextStyle(color: theme.mutedText)),
+            label: AppLocalizations.of(context)!.actionCancel,
+            type: GeistButtonType.tertiary,
+            size: GeistButtonSize.small,
           ),
-          TextButton(
+          GeistButton(
             onPressed: () async {
               Navigator.pop(ctx);
               final profileId = hifz.activeProfile!.id;
@@ -1224,9 +1433,69 @@ class ProfileScreen extends StatelessWidget {
                 }
               }
             },
-            child: Text(AppLocalizations.of(context)!.actionDelete, style: TextStyle(color: Colors.red.shade400)),
+            label: AppLocalizations.of(context)!.actionDelete,
+            type: GeistButtonType.error,
+            size: GeistButtonSize.small,
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MINI SEGMENTED CONTROL — compact inline toggle for settings rows
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class _MiniSegmentedControl extends StatelessWidget {
+  final ThemeProvider theme;
+  final List<String> options;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  const _MiniSegmentedControl({
+    required this.theme,
+    required this.options,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: Border.all(color: theme.dividerColor, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(options.length, (i) {
+          final isActive = i == selectedIndex;
+          return GestureDetector(
+            onTap: () => onSelected(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isActive ? theme.primaryText : Colors.transparent,
+                borderRadius: BorderRadius.circular(theme.radiusMd),
+              ),
+              child: Text(
+                options[i],
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive
+                      ? theme.scaffoldBackground
+                      : theme.mutedText,
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }

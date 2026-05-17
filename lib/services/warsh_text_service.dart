@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Service that fetches and caches Warsh Quran text from the
 /// fawazahmed0/quran-api CDN (King Fahd Complex, Version 8).
@@ -31,7 +31,7 @@ class WarshTextService {
     _loading = true;
 
     try {
-      debugPrint('[WarshTextService] Fetching Warsh text from CDN...');
+      AppLogger.info('Warsh', '[WarshTextService] Fetching Warsh text from CDN...');
       final response = await http
           .get(Uri.parse(_cdnUrl))
           .timeout(const Duration(seconds: 15));
@@ -48,12 +48,12 @@ class WarshTextService {
           _cache!['$chapter:$verse'] = text;
         }
 
-        debugPrint('[WarshTextService] Loaded ${_cache!.length} Warsh verses.');
+        AppLogger.info('Warsh', '[WarshTextService] Loaded ${_cache!.length} Warsh verses.');
       } else {
-        debugPrint('[WarshTextService] CDN returned ${response.statusCode}');
+        AppLogger.info('Warsh', '[WarshTextService] CDN returned ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('[WarshTextService] Failed to load Warsh text: $e');
+      AppLogger.info('Warsh', '[WarshTextService] Failed to load Warsh text: $e');
     } finally {
       _loading = false;
     }

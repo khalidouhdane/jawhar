@@ -33,6 +33,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navProfile => 'الإعدادات';
 
   @override
+  String get navUnderstand => 'الفهم';
+
+  @override
   String get homeGreeting => 'السلام عليكم';
 
   @override
@@ -234,10 +237,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileReading => 'القراءة';
 
   @override
-  String get profileThemeClassic => 'كلاسيكي';
-
-  @override
-  String get profileThemeWarm => 'دافئ';
+  String get profileThemeLight => 'فاتح';
 
   @override
   String get profileThemeDark => 'داكن';
@@ -285,10 +285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get themeAppearance => 'المظهر';
 
   @override
-  String get themeClassic => 'كلاسيكي';
-
-  @override
-  String get themeWarm => 'دافئ';
+  String get themeLight => 'فاتح';
 
   @override
   String get themeDark => 'داكن';
@@ -1739,4 +1736,79 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hifzCtaButton => 'إنشاء ملف شخصي';
+
+  @override
+  String get homeRestDayTitle => 'يوم راحة';
+
+  @override
+  String get homeRestDaySubtitle => 'اليوم يوم راحتك. استرح وعد أقوى.';
+
+  @override
+  String get homeRestDayContinueReading => 'أكمل القراءة';
+
+  @override
+  String get homeRestDayStartAnyway => 'ابدأ جلسة على أي حال';
+
+  @override
+  String get undExploreDeeper => 'اكتشف معاني القرآن العميقة';
+
+  @override
+  String get undSearchSurahs => 'ابحث عن سورة...';
+
+  @override
+  String get undAllSurahs => '114 سورة';
+
+  @override
+  String get undResults => 'نتيجة';
+
+  @override
+  String get profileQfTitle => 'مؤسسة القرآن';
+
+  @override
+  String get profileQfConnected => 'متصل · مزامنة العلامات والجلسات';
+
+  @override
+  String get profileQfActive => 'نشط';
+
+  @override
+  String get profileQfDisconnect => 'قطع الاتصال';
+
+  @override
+  String get profileQfDisconnected => 'تم قطع الاتصال بمؤسسة القرآن';
+
+  @override
+  String get profileQfSignIn => 'تسجيل الدخول بمؤسسة القرآن';
+
+  @override
+  String get profileQfSignInDesc => 'مزامنة العلامات والسلاسل وجلسات القراءة';
+
+  @override
+  String get profileQfConnectedSuccess => 'تم الاتصال بمؤسسة القرآن';
+
+  @override
+  String get profileQfSignInFailed => 'تم إلغاء أو فشل تسجيل الدخول';
+
+  @override
+  String get profilePreferences => 'التفضيلات';
+
+  @override
+  String get profileFeatures => 'الميزات';
+
+  @override
+  String get profileAccounts => 'الحسابات';
+
+  @override
+  String get profileTabSettings => 'الإعدادات';
+
+  @override
+  String get profileTabHifz => 'الحفظ';
+
+  @override
+  String get profileTabAccount => 'الحساب';
+
+  @override
+  String get undStories => 'القصص';
+
+  @override
+  String get undThemes => 'المواضيع';
 }

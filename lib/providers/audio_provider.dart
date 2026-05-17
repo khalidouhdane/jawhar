@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:quran_app/models/quran_models.dart';
-import 'package:quran_app/services/quran_auth_service.dart';
+import 'package:quran_app/services/api_client.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
 import 'package:quran_app/services/mp3quran_service.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Surah names for media notification display.
 const List<String> _surahNames = [
@@ -438,8 +438,7 @@ class AudioProvider extends ChangeNotifier {
             );
           }).toList();
         } catch (e) {
-          debugPrint(
-            'No timing data found for MP3Quran reciter $_reciterId: $e',
+          AppLogger.info('Audio', 'No timing data found for MP3Quran reciter $_reciterId: $e',
           );
         }
 
@@ -448,18 +447,15 @@ class AudioProvider extends ChangeNotifier {
         return data;
       }
 
-      // Quran.com fetch
+      // Quran.com fetch — uses ApiClient for timeout + retry
       final uri = Uri.parse(
         'https://apis.quran.foundation/content/api/v4/chapter_recitations/$_reciterId/$chapterNumber?segments=true',
       );
 
-      final token = await QuranAuthService.getValidToken();
-      final response = await http.get(
+      final response = await ApiClient.get(
         uri,
-        headers: {
-          'x-auth-token': token,
-          'x-client-id': QuranAuthService.clientId,
-        },
+        timeout: const Duration(seconds: 15),
+        maxRetries: 2,
       );
 
       if (response.statusCode == 200) {
@@ -507,7 +503,7 @@ class AudioProvider extends ChangeNotifier {
         return data;
       }
     } catch (e) {
-      debugPrint('Error fetching chapter audio: $e');
+      AppLogger.info('Audio', 'Error fetching chapter audio: $e');
     }
     return null;
   }
@@ -558,8 +554,7 @@ class AudioProvider extends ChangeNotifier {
 
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
-      debugPrint(
-        '[AudioProvider] verse=${startVerse.verseKey}, '
+      AppLogger.info('Audio', '[AudioProvider] verse=${startVerse.verseKey}, '
         'timings=${data.timings.length}, '
         'timing found=${timing != null}, '
         'seekMs=${timing?.firstSegmentMs}, '
@@ -583,8 +578,7 @@ class AudioProvider extends ChangeNotifier {
           if (gen != _generation) return;
           await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
           if (gen != _generation) return;
-          debugPrint(
-            '[AudioProvider] MP3Quran seek to ${timing.firstSegmentMs}ms',
+          AppLogger.info('Audio', '[AudioProvider] MP3Quran seek to ${timing.firstSegmentMs}ms',
           );
         } else {
           await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
@@ -604,7 +598,7 @@ class AudioProvider extends ChangeNotifier {
       _syncNotificationState();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error in playVerseList: $e');
+      AppLogger.info('Audio', 'Error in playVerseList: $e');
       if (gen != _generation) return;
       _isSeeking = false;
       _isLoading = false;

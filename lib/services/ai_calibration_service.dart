@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/ai_plan_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Generates AI-powered weekly calibration suggestions based on performance data.
 ///
@@ -19,7 +19,8 @@ class AICalibrationService {
 
   /// Check whether a calibration is due based on total session count.
   bool isCalibrationDue(int totalSessionCount) {
-    return totalSessionCount > 0 && totalSessionCount % calibrationInterval == 0;
+    return totalSessionCount > 0 &&
+        totalSessionCount % calibrationInterval == 0;
   }
 
   /// Generate AI-powered calibration suggestions.
@@ -49,7 +50,7 @@ class AICalibrationService {
 
       return _parseCalibrationResponse(raw);
     } catch (e) {
-      debugPrint('AI calibration failed, falling back: $e');
+      AppLogger.info('AICalib', 'AI calibration failed, falling back: $e');
       return [];
     }
   }
@@ -104,18 +105,20 @@ class AICalibrationService {
       final type = _parseSuggestionType(typeStr);
       if (type == null) continue;
 
-      suggestions.add(Suggestion(
-        id: 'ai_cal_${DateTime.now().millisecondsSinceEpoch}_${suggestions.length}',
-        type: type,
-        emoji: item['emoji'] as String? ?? '💡',
-        title: item['title'] as String? ?? 'Suggestion',
-        message: item['message'] as String? ?? '',
-        createdAt: DateTime.now(),
-        data: {
-          'reasoning': item['reasoning'] as String? ?? '',
-          'source': 'ai_calibration',
-        },
-      ));
+      suggestions.add(
+        Suggestion(
+          id: 'ai_cal_${DateTime.now().millisecondsSinceEpoch}_${suggestions.length}',
+          type: type,
+          iconKey: item['iconKey'] as String? ?? 'lightbulb',
+          title: item['title'] as String? ?? 'Suggestion',
+          message: item['message'] as String? ?? '',
+          createdAt: DateTime.now(),
+          data: {
+            'reasoning': item['reasoning'] as String? ?? '',
+            'source': 'ai_calibration',
+          },
+        ),
+      );
     }
 
     // Safety: max 3 suggestions per calibration
@@ -179,7 +182,7 @@ Each suggestion should be actionable and compassionate.
   "suggestions": [
     {
       "type": "increase_load",
-      "emoji": "🚀",
+      "iconKey": "rocket",
       "title": "You're ready for more!",
       "message": "Your strong assessments this week show solid retention. Consider adding one extra page to your daily sabaq.",
       "reasoning": "85% completion rate with 70% strong assessments indicates capacity for increased load."

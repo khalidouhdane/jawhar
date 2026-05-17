@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/providers/social_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/sharing_service.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Widget for shareable milestone completion cards.
 /// Displays juz completion, khatm completion, or streak milestones
@@ -52,18 +54,15 @@ class MilestoneCard extends StatelessWidget {
       child: Column(
         children: [
           // ── Icon ──
-          Text(
-            config.emoji,
-            style: const TextStyle(fontSize: 40),
-          ),
+          Icon(config.icon, size: 40, color: Colors.white),
           const SizedBox(height: 14),
 
           // ── Title ──
           Text(
             config.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Inter',
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -76,7 +75,7 @@ class MilestoneCard extends StatelessWidget {
             config.subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               color: Colors.white.withValues(alpha: 0.85),
             ),
@@ -91,9 +90,7 @@ class MilestoneCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -107,7 +104,7 @@ class MilestoneCard extends StatelessWidget {
                   Text(
                     'Share',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Colors.white.withValues(alpha: 0.9),
@@ -122,9 +119,9 @@ class MilestoneCard extends StatelessWidget {
 
           // ── Branding ──
           Text(
-            'Le Quran',
+            'Jawhar',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: Colors.white.withValues(alpha: 0.5),
@@ -156,46 +153,40 @@ class MilestoneCard extends StatelessWidget {
     switch (type) {
       case MilestoneType.juzComplete:
         return _MilestoneConfig(
-          emoji: '🎉',
+          icon: LucideIcons.partyPopper,
           title: 'Juz $juzNumber Complete!',
-          subtitle: 'Alhamdulillah — $profileName has completed Juz $juzNumber of the Quran.',
-          gradientColors: [
-            const Color(0xFF1A454E),
-            const Color(0xFF2D7A6F),
-          ],
+          subtitle:
+              'Alhamdulillah — $profileName has completed Juz $juzNumber of the Quran.',
+          gradientColors: SemanticColors.milestoneJuz,
         );
       case MilestoneType.khatmComplete:
         return _MilestoneConfig(
-          emoji: '🏆',
+          icon: LucideIcons.trophy,
           title: 'Quran Complete!',
-          subtitle: 'MashaAllah — $profileName has memorized the entire Quran! May Allah accept it.',
-          gradientColors: [
-            const Color(0xFFB8860B),
-            const Color(0xFFDAA520),
-          ],
+          subtitle:
+              'MashaAllah — $profileName has memorized the entire Quran! May Allah accept it.',
+          gradientColors: SemanticColors.milestoneKhatm,
         );
       case MilestoneType.streakMilestone:
         return _MilestoneConfig(
-          emoji: '🔥',
+          icon: LucideIcons.flame,
           title: '$streakDays-Day Streak!',
-          subtitle: '$profileName has been consistent for $streakDays days. Consistency is key!',
-          gradientColors: [
-            const Color(0xFFD84315),
-            const Color(0xFFFF6D00),
-          ],
+          subtitle:
+              '$profileName has been consistent for $streakDays days. Consistency is key!',
+          gradientColors: SemanticColors.milestoneStreak,
         );
     }
   }
 }
 
 class _MilestoneConfig {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final List<Color> gradientColors;
 
   const _MilestoneConfig({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.gradientColors,

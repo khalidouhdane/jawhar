@@ -1,9 +1,9 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
 import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Generates flashcards from memorized content.
 /// Creates verse-specific cards using the quran package for offline text.
@@ -22,12 +22,14 @@ class CardGenerationService {
     final stats = await _db.getFlashcardStats(profileId);
     final dueCount = (stats['due'] as num?)?.toInt() ?? 0;
     if (dueCount >= _maxDueCards) {
-      debugPrint('[Flashcard Gen] Already $dueCount due cards — skipping generation');
+      AppLogger.info('CardGen', '[Flashcard Gen] Already $dueCount due cards — skipping generation',
+      );
       return 0;
     }
 
     final progress = await _db.getAllPageProgress(profileId);
-    debugPrint('[Flashcard Gen] Profile: $profileId, progress: ${progress.length} pages');
+    AppLogger.info('CardGen', '[Flashcard Gen] Profile: $profileId, progress: ${progress.length} pages',
+    );
     if (progress.isEmpty) return 0;
 
     // Collect all verses from eligible pages
@@ -49,7 +51,7 @@ class CardGenerationService {
       }
     }
 
-    debugPrint('[Flashcard Gen] Total eligible verses: ${verses.length}');
+    AppLogger.info('CardGen', '[Flashcard Gen] Total eligible verses: ${verses.length}');
     if (verses.isEmpty) return 0;
 
     final random = Random();
@@ -63,16 +65,45 @@ class CardGenerationService {
     final vcBudget = perType;
     final pvBudget = perType;
     final csBudget = perType;
-    final mdBudget = (budget - nvBudget - sdBudget - vcBudget - pvBudget - csBudget).clamp(0, budget);
+    final mdBudget =
+        (budget - nvBudget - sdBudget - vcBudget - pvBudget - csBudget).clamp(
+          0,
+          budget,
+        );
 
-    created += await _generateNextVerseCards(profileId, verses, random, max: nvBudget);
-    created += await _generateSurahDetectiveCards(profileId, verses, random, max: sdBudget);
-    created += await _generateVerseCompletionCards(profileId, verses, random, max: vcBudget);
-    created += await _generatePreviousVerseCards(profileId, verses, random, max: pvBudget);
-    created += await _generateConnectSequenceCards(profileId, verses, random, max: csBudget);
+    created += await _generateNextVerseCards(
+      profileId,
+      verses,
+      random,
+      max: nvBudget,
+    );
+    created += await _generateSurahDetectiveCards(
+      profileId,
+      verses,
+      random,
+      max: sdBudget,
+    );
+    created += await _generateVerseCompletionCards(
+      profileId,
+      verses,
+      random,
+      max: vcBudget,
+    );
+    created += await _generatePreviousVerseCards(
+      profileId,
+      verses,
+      random,
+      max: pvBudget,
+    );
+    created += await _generateConnectSequenceCards(
+      profileId,
+      verses,
+      random,
+      max: csBudget,
+    );
     created += await _generateMutashabihatDuelCards(profileId, max: mdBudget);
 
-    debugPrint('[Flashcard Gen] Total created: $created new flashcards');
+    AppLogger.info('CardGen', '[Flashcard Gen] Total created: $created new flashcards');
     return created;
   }
 
@@ -86,7 +117,9 @@ class CardGenerationService {
     if (max <= 0) return 0;
     int created = 0;
     // Pick up to max random verses (not the last verse of a surah)
-    final eligible = verses.where((v) => v.verse < quran.getVerseCount(v.surah)).toList();
+    final eligible = verses
+        .where((v) => v.verse < quran.getVerseCount(v.surah))
+        .toList();
     if (eligible.isEmpty) return 0;
 
     eligible.shuffle(random);
@@ -97,7 +130,9 @@ class CardGenerationService {
       final verseKey = '${v.surah}:${v.verse}';
 
       final exists = await _db.flashcardExists(
-        profileId, verseKey, FlashcardType.nextVerse,
+        profileId,
+        verseKey,
+        FlashcardType.nextVerse,
       );
       if (exists) continue;
 
@@ -151,7 +186,9 @@ class CardGenerationService {
       final verseKey = '${v.surah}:${v.verse}';
 
       final exists = await _db.flashcardExists(
-        profileId, verseKey, FlashcardType.surahDetective,
+        profileId,
+        verseKey,
+        FlashcardType.surahDetective,
       );
       if (exists) continue;
 
@@ -189,7 +226,10 @@ class CardGenerationService {
   }
 
   /// Mutashabihat Duel: from imported mutashabihat dataset.
-  Future<int> _generateMutashabihatDuelCards(String profileId, {int max = 5}) async {
+  Future<int> _generateMutashabihatDuelCards(
+    String profileId, {
+    int max = 5,
+  }) async {
     if (max <= 0) return 0;
     int created = 0;
     final groups = await _db.getMutashabihatByStatus(
@@ -201,7 +241,9 @@ class CardGenerationService {
 
       final verseKey = group.sourceVerseKey;
       final exists = await _db.flashcardExists(
-        profileId, verseKey, FlashcardType.mutashabihatDuel,
+        profileId,
+        verseKey,
+        FlashcardType.mutashabihatDuel,
       );
       if (exists) continue;
 
@@ -218,7 +260,7 @@ class CardGenerationService {
         final simVerse = int.parse(simParts[1]);
         similarText = quran.getVerse(simSurah, simVerse);
       } catch (e) {
-        debugPrint('[Flashcard Gen] Failed to parse mutashabihat verse: $e');
+        AppLogger.info('CardGen', '[Flashcard Gen] Failed to parse mutashabihat verse: $e');
         continue;
       }
 
@@ -274,16 +316,22 @@ class CardGenerationService {
       final verseKey = '${v.surah}:${v.verse}';
 
       final exists = await _db.flashcardExists(
-        profileId, verseKey, FlashcardType.verseCompletion,
+        profileId,
+        verseKey,
+        FlashcardType.verseCompletion,
       );
       if (exists) continue;
 
       final fullText = quran.getVerse(v.surah, v.verse);
       final words = fullText.split(' ');
       // Blank out last ~30% of words
-      final visibleCount = (words.length * 0.7).round().clamp(2, words.length - 1);
+      final visibleCount = (words.length * 0.7).round().clamp(
+        2,
+        words.length - 1,
+      );
       final visibleText = words.sublist(0, visibleCount).join(' ');
-      final blankedText = '$visibleText ${'___ ' * (words.length - visibleCount)}'.trim();
+      final blankedText =
+          '$visibleText ${'___ ' * (words.length - visibleCount)}'.trim();
       final surahName = quran.getSurahNameArabic(v.surah);
 
       final card = Flashcard(
@@ -336,7 +384,9 @@ class CardGenerationService {
       final verseKey = '${v.surah}:${v.verse}';
 
       final exists = await _db.flashcardExists(
-        profileId, verseKey, FlashcardType.previousVerse,
+        profileId,
+        verseKey,
+        FlashcardType.previousVerse,
       );
       if (exists) continue;
 
@@ -410,17 +460,23 @@ class CardGenerationService {
       final anchorKey = '${seq[0].surah}:${seq[0].verse}-${seq[2].verse}';
 
       final exists = await _db.flashcardExists(
-        profileId, anchorKey, FlashcardType.connectSequence,
+        profileId,
+        anchorKey,
+        FlashcardType.connectSequence,
       );
       if (exists) continue;
 
       final surahName = quran.getSurahNameArabic(seq[0].surah);
       // Build verse data in correct order
-      final correctOrder = seq.map((v) => {
-        'surah': v.surah,
-        'verse': v.verse,
-        'text': quran.getVerse(v.surah, v.verse),
-      }).toList();
+      final correctOrder = seq
+          .map(
+            (v) => {
+              'surah': v.surah,
+              'verse': v.verse,
+              'text': quran.getVerse(v.surah, v.verse),
+            },
+          )
+          .toList();
 
       // Create a shuffled index order
       final indices = [0, 1, 2];
@@ -432,7 +488,8 @@ class CardGenerationService {
         profileId: profileId,
         verseKey: anchorKey,
         questionData: {
-          'instruction': '\u0631\u062a\u0628 \u0627\u0644\u0622\u064a\u0627\u062a',
+          'instruction':
+              '\u0631\u062a\u0628 \u0627\u0644\u0622\u064a\u0627\u062a',
           'surahName': surahName,
           'surah': seq[0].surah,
           'page': seq[0].page,

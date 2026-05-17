@@ -7,6 +7,7 @@ import 'package:quran_app/providers/session_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/widgets/hifz/session_overlay.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Scoped reading canvas for Hifz sessions (Phase 4 — Digital Session Mode).
 ///
@@ -45,9 +46,9 @@ class SessionReadingView extends StatefulWidget {
 
   /// Optional callback to skip the current phase.
   final VoidCallback? onSkip;
-
-  /// Optional callback to toggle pause.
   final VoidCallback? onTogglePause;
+  final VoidCallback onMinimize;
+  final VoidCallback onExit;
 
   const SessionReadingView({
     super.key,
@@ -58,6 +59,8 @@ class SessionReadingView extends StatefulWidget {
     required this.onDone,
     this.onSkip,
     this.onTogglePause,
+    required this.onMinimize,
+    required this.onExit,
   });
 
   @override
@@ -88,29 +91,14 @@ class _SessionReadingViewState extends State<SessionReadingView> {
     }
   }
 
-  Future<void> _loadPageVerses() async {
+  void _loadPageVerses() {
+    final readingProvider = context.read<QuranReadingProvider>();
+    final verses = readingProvider.getPageVerses(widget.pageNumber);
     setState(() {
-      _isLoading = true;
+      _verses = verses;
+      _isLoading = false;
       _error = null;
     });
-
-    try {
-      final readingProvider = context.read<QuranReadingProvider>();
-      final verses = await readingProvider.getPageVerses(widget.pageNumber);
-      if (mounted) {
-        setState(() {
-          _verses = verses;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = AppLocalizations.of(context)!.failedToLoadPage(widget.pageNumber);
-          _isLoading = false;
-        });
-      }
-    }
   }
 
   @override
@@ -153,6 +141,8 @@ class _SessionReadingViewState extends State<SessionReadingView> {
             onTogglePause: widget.onTogglePause,
             verses: _verses!,
             isFullScreen: _isFullScreen,
+            onMinimize: widget.onMinimize,
+            onExit: widget.onExit,
           ),
       ],
     );
@@ -177,7 +167,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
             Text(
               AppLocalizations.of(context)!.loadingPage(widget.pageNumber),
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 14,
                 color: theme.secondaryText,
               ),
@@ -200,7 +190,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
             Text(
               _error ?? 'Unable to load page',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 14,
                 color: theme.secondaryText,
               ),
@@ -209,15 +199,18 @@ class _SessionReadingViewState extends State<SessionReadingView> {
             GestureDetector(
               onTap: _loadPageVerses,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: theme.accentColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   'Retry',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

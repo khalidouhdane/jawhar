@@ -4,9 +4,11 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/werd_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/widgets/sheets/werd_setup_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Home-screen card for the daily recitation (werd) feature.
 ///
@@ -44,12 +46,8 @@ class WerdCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
         decoration: BoxDecoration(
           color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: theme.accentColor.withValues(alpha: 0.25),
-            width: 1.5,
-            strokeAlign: BorderSide.strokeAlignInside,
-          ),
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          border: Border.all(color: theme.dividerColor, width: 1),
         ),
         child: Column(
           children: [
@@ -67,42 +65,25 @@ class WerdCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            Text(
-              l.werdSetTitle,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: theme.primaryText,
-                letterSpacing: -0.2,
-              ),
-            ),
+            Text(l.werdSetTitle, style: theme.textBodyStrong),
             const SizedBox(height: 6),
             Text(
               l.werdSetDesc,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: theme.secondaryText,
-                height: 1.5,
-              ),
+              style: theme.textBodySmall,
             ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
                 color: theme.accentColor,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(theme.radiusMd),
+                boxShadow: theme.shadowRing,
               ),
               child: Text(
                 l.werdGetStarted,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                style: theme.textButton.copyWith(
+                  color: theme.scaffoldBackground,
                 ),
               ),
             ),
@@ -125,27 +106,11 @@ class WerdCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(theme.radiusLg),
         border: Border.all(color: theme.dividerColor, width: 1),
       ),
       child: Column(
         children: [
-          // ── Top accent bar ──
-          Container(
-            height: 4,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.accentColor.withValues(alpha: 0.7),
-                  theme.accentColor,
-                  theme.accentColor.withValues(alpha: 0.7),
-                ],
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(15),
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Column(
@@ -161,12 +126,8 @@ class WerdCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       l.werdDaily,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      style: theme.textCaption.copyWith(
                         color: theme.accentColor,
-                        letterSpacing: 0.5,
                       ),
                     ),
                     const Spacer(),
@@ -200,7 +161,7 @@ class WerdCard extends StatelessWidget {
                       accentColor: theme.accentColor,
                       trackColor: theme.dividerColor,
                       textColor: theme.primaryText,
-                      completeColor: const Color(0xFF4CAF50),
+                      completeColor: SemanticColors.progressMemorized,
                     ),
 
                     const SizedBox(width: 20),
@@ -214,26 +175,14 @@ class WerdCard extends StatelessWidget {
                             config.isComplete
                                 ? l.werdComplete
                                 : '${config.pagesReadToday} ${l.werdPagesOf} ${config.todayTarget} ${l.werdPagesLabel}',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: theme.primaryText,
-                              letterSpacing: -0.2,
-                            ),
+                            style: theme.textBodyStrong,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             config.isComplete
                                 ? l.werdCompleteDesc
                                 : _subtitle(config, l),
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: theme.secondaryText,
-                              height: 1.4,
-                            ),
+                            style: theme.textBodySmall,
                           ),
                           const SizedBox(height: 14),
                           if (!config.isComplete)
@@ -247,15 +196,15 @@ class WerdCard extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: theme.accentColor,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(
+                                    theme.radiusMd,
+                                  ),
+                                  boxShadow: theme.shadowRing,
                                 ),
                                 child: Text(
                                   l.werdStartReading,
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                  style: theme.textButton.copyWith(
+                                    color: theme.scaffoldBackground,
                                   ),
                                 ),
                               ),
@@ -372,9 +321,9 @@ class _ProgressRingState extends State<_ProgressRing>
                   : Text(
                       '${(value * 100).round()}%',
                       style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: widget.textColor,
                       ),
                     ),

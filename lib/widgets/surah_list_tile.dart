@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 class SurahListTile extends StatelessWidget {
   final int number;
@@ -54,7 +55,7 @@ class SurahListTile extends StatelessWidget {
                   Text(
                     '$number',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: theme.accentColor,
@@ -74,7 +75,7 @@ class SurahListTile extends StatelessWidget {
                   Text(
                     nameSimple,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: theme.primaryText,
@@ -84,7 +85,7 @@ class SurahListTile extends StatelessWidget {
                   Text(
                     '$versesCount Verses',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),

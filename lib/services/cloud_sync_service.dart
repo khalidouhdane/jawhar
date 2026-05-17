@@ -7,6 +7,7 @@ import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Sync status for UI display.
 enum SyncStatus { idle, syncing, synced, error }
@@ -59,7 +60,7 @@ class CloudSyncService extends ChangeNotifier {
     _lastError = null;
 
     try {
-      debugPrint('[SYNC] Starting initial sync for $uid');
+      AppLogger.info('Sync', '[SYNC] Starting initial sync for $uid');
 
       // Check if cloud profile exists
       final cloudProfile = await _userDoc(uid).get();
@@ -71,26 +72,26 @@ class CloudSyncService extends ChangeNotifier {
 
       if (hasCloudData && !hasLocalData) {
         // New device: pull everything from cloud
-        debugPrint('[SYNC] New device detected — pulling from cloud');
+        AppLogger.info('Sync', '[SYNC] New device detected — pulling from cloud');
         await _pullAllFromCloud(uid);
       } else if (!hasCloudData && hasLocalData) {
         // First login ever: push local data to cloud
-        debugPrint('[SYNC] First login — pushing local data to cloud');
+        AppLogger.info('Sync', '[SYNC] First login — pushing local data to cloud');
         await _pushAllToCloud(uid, localProfile);
       } else if (hasCloudData && hasLocalData) {
         // Both exist: merge strategy
-        debugPrint('[SYNC] Both local and cloud data exist — merging');
+        AppLogger.info('Sync', '[SYNC] Both local and cloud data exist — merging');
         await _mergeData(uid, localProfile);
       } else {
         // No data anywhere — fresh user
-        debugPrint('[SYNC] No data found locally or in cloud');
+        AppLogger.info('Sync', '[SYNC] No data found locally or in cloud');
       }
 
       _lastSyncTime = DateTime.now();
       _setStatus(SyncStatus.synced);
-      debugPrint('[SYNC] Initial sync complete');
+      AppLogger.info('Sync', '[SYNC] Initial sync complete');
     } catch (e) {
-      debugPrint('[SYNC] Initial sync error: $e');
+      AppLogger.info('Sync', '[SYNC] Initial sync error: $e');
       _lastError = e.toString();
       _setStatus(SyncStatus.error);
     }
@@ -112,16 +113,19 @@ class CloudSyncService extends ChangeNotifier {
       await _withRetry(() => _pushAllToCloud(uid, profile));
       _lastSyncTime = DateTime.now();
       _setStatus(SyncStatus.synced);
-      debugPrint('[SYNC] Full sync complete');
+      AppLogger.info('Sync', '[SYNC] Full sync complete');
     } catch (e) {
-      debugPrint('[SYNC] Full sync error: $e');
+      AppLogger.info('Sync', '[SYNC] Full sync error: $e');
       _lastError = e.toString();
       _setStatus(SyncStatus.error);
     }
   }
 
   /// Retry wrapper with exponential backoff (3 attempts, 1s → 2s → 4s).
-  Future<T> _withRetry<T>(Future<T> Function() fn, {int maxAttempts = 3}) async {
+  Future<T> _withRetry<T>(
+    Future<T> Function() fn, {
+    int maxAttempts = 3,
+  }) async {
     int attempt = 0;
     while (true) {
       try {
@@ -130,7 +134,8 @@ class CloudSyncService extends ChangeNotifier {
         attempt++;
         if (attempt >= maxAttempts) rethrow;
         final delay = Duration(seconds: 1 << (attempt - 1)); // 1s, 2s, 4s
-        debugPrint('[SYNC] Retry $attempt/$maxAttempts after ${delay.inSeconds}s');
+        AppLogger.info('Sync', '[SYNC] Retry $attempt/$maxAttempts after ${delay.inSeconds}s',
+        );
         await Future.delayed(delay);
       }
     }
@@ -147,9 +152,9 @@ class CloudSyncService extends ChangeNotifier {
         ...profile.toMap(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      debugPrint('[SYNC] Profile pushed');
+      AppLogger.info('Sync', '[SYNC] Profile pushed');
     } catch (e) {
-      debugPrint('[SYNC] Profile push error: $e');
+      AppLogger.info('Sync', '[SYNC] Profile push error: $e');
     }
   }
 
@@ -174,59 +179,53 @@ class CloudSyncService extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      await _userDoc(uid).collection('meta').doc('settings').set(
-            settings,
-            SetOptions(merge: true),
-          );
-      debugPrint('[SYNC] Settings pushed');
+      await _userDoc(uid)
+          .collection('meta')
+          .doc('settings')
+          .set(settings, SetOptions(merge: true));
+      AppLogger.info('Sync', '[SYNC] Settings pushed');
     } catch (e) {
-      debugPrint('[SYNC] Settings push error: $e');
+      AppLogger.info('Sync', '[SYNC] Settings push error: $e');
     }
   }
 
   /// Push a single page progress update.
-  Future<void> syncProgress(String uid, int pageNumber,
-      Map<String, dynamic> progressData) async {
+  Future<void> syncProgress(
+    String uid,
+    int pageNumber,
+    Map<String, dynamic> progressData,
+  ) async {
     try {
-      await _userDoc(uid)
-          .collection('progress')
-          .doc('$pageNumber')
-          .set({
+      await _userDoc(uid).collection('progress').doc('$pageNumber').set({
         ...progressData,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('[SYNC] Progress push error for page $pageNumber: $e');
+      AppLogger.info('Sync', '[SYNC] Progress push error for page $pageNumber: $e');
     }
   }
 
   /// Push a session record (append-only).
   Future<void> syncSession(String uid, SessionRecord session) async {
     try {
-      await _userDoc(uid)
-          .collection('sessions')
-          .doc(session.id)
-          .set({
+      await _userDoc(uid).collection('sessions').doc(session.id).set({
         ...session.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('[SYNC] Session push error: $e');
+      AppLogger.info('Sync', '[SYNC] Session push error: $e');
     }
   }
 
   /// Push a daily plan (append-only).
   Future<void> syncPlan(String uid, DailyPlan plan) async {
     try {
-      await _userDoc(uid)
-          .collection('plans')
-          .doc(plan.id)
-          .set({
+      await _userDoc(uid).collection('plans').doc(plan.id).set({
         ...plan.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('[SYNC] Plan push error: $e');
+      AppLogger.info('Sync', '[SYNC] Plan push error: $e');
     }
   }
 
@@ -239,7 +238,7 @@ class CloudSyncService extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('[SYNC] Streak push error: $e');
+      AppLogger.info('Sync', '[SYNC] Streak push error: $e');
     }
   }
 
@@ -257,12 +256,13 @@ class CloudSyncService extends ChangeNotifier {
       data.remove('updatedAt');
       final profile = MemoryProfile.fromMap(data);
       await _db.createProfile(profile);
-      debugPrint('[SYNC] Profile pulled from cloud');
+      AppLogger.info('Sync', '[SYNC] Profile pulled from cloud');
     }
 
     // 2. Pull settings
-    final settingsDoc =
-        await _userDoc(uid).collection('meta').doc('settings').get();
+    final settingsDoc = await _userDoc(
+      uid,
+    ).collection('meta').doc('settings').get();
     if (settingsDoc.exists) {
       final data = settingsDoc.data()!;
       final prefs = await SharedPreferences.getInstance();
@@ -277,7 +277,8 @@ class CloudSyncService extends ChangeNotifier {
       }
       if (data['autoScrollSpeed'] != null) {
         storage.saveAutoScrollSpeed(
-            (data['autoScrollSpeed'] as num).toDouble());
+          (data['autoScrollSpeed'] as num).toDouble(),
+        );
       }
       if (data['bookmarks'] != null) {
         storage.saveBookmarks(data['bookmarks'] as String);
@@ -298,12 +299,13 @@ class CloudSyncService extends ChangeNotifier {
           verseKey: data['lastReadVerseKey'] as String?,
         );
       }
-      debugPrint('[SYNC] Settings pulled from cloud');
+      AppLogger.info('Sync', '[SYNC] Settings pulled from cloud');
     }
 
     // 3. Pull streak
-    final streakDoc =
-        await _userDoc(uid).collection('meta').doc('streak').get();
+    final streakDoc = await _userDoc(
+      uid,
+    ).collection('meta').doc('streak').get();
     if (streakDoc.exists) {
       final data = streakDoc.data()!;
       final db = await _db.database;
@@ -316,44 +318,50 @@ class CloudSyncService extends ChangeNotifier {
           'lastActiveDate': data['lastActiveDate'],
         });
       }
-      debugPrint('[SYNC] Streak pulled from cloud');
+      AppLogger.info('Sync', '[SYNC] Streak pulled from cloud');
     }
 
     // 4. Pull page progress
-    final progressSnap =
-        await _userDoc(uid).collection('progress').get();
+    final progressSnap = await _userDoc(uid).collection('progress').get();
     for (final doc in progressSnap.docs) {
       final data = doc.data();
       data.remove('updatedAt');
       final db = await _db.database;
-      await db.insert('page_progress', data,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await db.insert(
+        'page_progress',
+        data,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
     }
-    debugPrint('[SYNC] Pulled ${progressSnap.docs.length} progress records');
+    AppLogger.info('Sync', '[SYNC] Pulled ${progressSnap.docs.length} progress records');
 
     // 5. Pull session history
-    final sessionsSnap =
-        await _userDoc(uid).collection('sessions').get();
+    final sessionsSnap = await _userDoc(uid).collection('sessions').get();
     for (final doc in sessionsSnap.docs) {
       final data = doc.data();
       data.remove('createdAt');
       final db = await _db.database;
-      await db.insert('session_history', data,
-          conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert(
+        'session_history',
+        data,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
-    debugPrint('[SYNC] Pulled ${sessionsSnap.docs.length} session records');
+    AppLogger.info('Sync', '[SYNC] Pulled ${sessionsSnap.docs.length} session records');
 
     // 6. Pull daily plans
-    final plansSnap =
-        await _userDoc(uid).collection('plans').get();
+    final plansSnap = await _userDoc(uid).collection('plans').get();
     for (final doc in plansSnap.docs) {
       final data = doc.data();
       data.remove('createdAt');
       final db = await _db.database;
-      await db.insert('daily_plans', data,
-          conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert(
+        'daily_plans',
+        data,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
-    debugPrint('[SYNC] Pulled ${plansSnap.docs.length} plan records');
+    AppLogger.info('Sync', '[SYNC] Pulled ${plansSnap.docs.length} plan records');
   }
 
   /// Push all local data to Firestore.
@@ -370,77 +378,77 @@ class CloudSyncService extends ChangeNotifier {
 
     // 4. Push all page progress
     final db = await _db.database;
-    final progressRows = await db.query('page_progress',
-        where: 'profileId = ?', whereArgs: [profile.id]);
+    final progressRows = await db.query(
+      'page_progress',
+      where: 'profileId = ?',
+      whereArgs: [profile.id],
+    );
     for (final row in progressRows) {
       await _userDoc(uid)
           .collection('progress')
           .doc('${row['pageNumber']}')
-          .set({
-        ...row,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+          .set({...row, 'updatedAt': FieldValue.serverTimestamp()});
     }
-    debugPrint('[SYNC] Pushed ${progressRows.length} progress records');
+    AppLogger.info('Sync', '[SYNC] Pushed ${progressRows.length} progress records');
 
     // 5. Push all session history
-    final sessionRows = await db.query('session_history',
-        where: 'profileId = ?', whereArgs: [profile.id]);
+    final sessionRows = await db.query(
+      'session_history',
+      where: 'profileId = ?',
+      whereArgs: [profile.id],
+    );
     for (final row in sessionRows) {
-      await _userDoc(uid)
-          .collection('sessions')
-          .doc(row['id'] as String)
-          .set({
+      await _userDoc(uid).collection('sessions').doc(row['id'] as String).set({
         ...row,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
-    debugPrint('[SYNC] Pushed ${sessionRows.length} session records');
+    AppLogger.info('Sync', '[SYNC] Pushed ${sessionRows.length} session records');
 
     // 6. Push all daily plans
-    final planRows = await db.query('daily_plans',
-        where: 'profileId = ?', whereArgs: [profile.id]);
+    final planRows = await db.query(
+      'daily_plans',
+      where: 'profileId = ?',
+      whereArgs: [profile.id],
+    );
     for (final row in planRows) {
-      await _userDoc(uid)
-          .collection('plans')
-          .doc(row['id'] as String)
-          .set({
+      await _userDoc(uid).collection('plans').doc(row['id'] as String).set({
         ...row,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
-    debugPrint('[SYNC] Pushed ${planRows.length} plan records');
+    AppLogger.info('Sync', '[SYNC] Pushed ${planRows.length} plan records');
 
     // 7. Push all flashcards
-    final cardRows = await db.query('flashcards',
-        where: 'profile_id = ?', whereArgs: [profile.id]);
+    final cardRows = await db.query(
+      'flashcards',
+      where: 'profile_id = ?',
+      whereArgs: [profile.id],
+    );
     for (final row in cardRows) {
-      await _userDoc(uid)
-          .collection('flashcards')
-          .doc(row['id'] as String)
-          .set({
-        ...row,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _userDoc(uid).collection('flashcards').doc(row['id'] as String).set(
+        {...row, 'updatedAt': FieldValue.serverTimestamp()},
+        SetOptions(merge: true),
+      );
     }
-    debugPrint('[SYNC] Pushed ${cardRows.length} flashcard records');
+    AppLogger.info('Sync', '[SYNC] Pushed ${cardRows.length} flashcard records');
 
     // 8. Push flashcard reviews
     final reviewRows = await db.query('flashcard_reviews');
     // Filter reviews for cards belonging to this profile
     final profileCardIds = cardRows.map((r) => r['id']).toSet();
-    final profileReviews = reviewRows.where((r) => profileCardIds.contains(r['card_id'])).toList();
+    final profileReviews = reviewRows
+        .where((r) => profileCardIds.contains(r['card_id']))
+        .toList();
     for (final row in profileReviews) {
       final reviewId = '${row['card_id']}_${row['reviewed_at']}';
-      await _userDoc(uid)
-          .collection('flashcard_reviews')
-          .doc(reviewId)
-          .set({
+      await _userDoc(uid).collection('flashcard_reviews').doc(reviewId).set({
         ...row,
         'syncedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
-    debugPrint('[SYNC] Pushed ${profileReviews.length} flashcard review records');
+    AppLogger.info('Sync', '[SYNC] Pushed ${profileReviews.length} flashcard review records',
+    );
   }
 
   /// Merge local and cloud data.
@@ -456,17 +464,18 @@ class CloudSyncService extends ChangeNotifier {
         final cloudProfile = MemoryProfile.fromMap(cloudData);
         // Update local with cloud profile
         await _db.updateProfile(cloudProfile);
-        debugPrint('[SYNC] Profile merged (cloud wins)');
+        AppLogger.info('Sync', '[SYNC] Profile merged (cloud wins)');
       } catch (e) {
-        debugPrint('[SYNC] Cloud profile parse error, keeping local: $e');
+        AppLogger.info('Sync', '[SYNC] Cloud profile parse error, keeping local: $e');
         // If cloud data is corrupted, push local
         await syncProfile(uid, localProfile);
       }
     }
 
     // Pull settings (cloud wins)
-    final cloudSettings =
-        await _userDoc(uid).collection('meta').doc('settings').get();
+    final cloudSettings = await _userDoc(
+      uid,
+    ).collection('meta').doc('settings').get();
     if (cloudSettings.exists) {
       // Apply cloud settings locally
       final data = cloudSettings.data()!;
@@ -479,15 +488,14 @@ class CloudSyncService extends ChangeNotifier {
       if (data['bookmarkCollections'] != null) {
         storage.saveCollections(data['bookmarkCollections'] as String);
       }
-      debugPrint('[SYNC] Settings merged (cloud wins)');
+      AppLogger.info('Sync', '[SYNC] Settings merged (cloud wins)');
     } else {
       // No cloud settings — push local
       await syncSettings(uid);
     }
 
     // Merge progress: higher status wins, sum review counts
-    final cloudProgress =
-        await _userDoc(uid).collection('progress').get();
+    final cloudProgress = await _userDoc(uid).collection('progress').get();
     final db = await _db.database;
 
     for (final doc in cloudProgress.docs) {
@@ -495,15 +503,20 @@ class CloudSyncService extends ChangeNotifier {
       final pageNum = int.tryParse(doc.id);
       if (pageNum == null) continue;
 
-      final localRows = await db.query('page_progress',
-          where: 'pageNumber = ? AND profileId = ?',
-          whereArgs: [pageNum, localProfile.id]);
+      final localRows = await db.query(
+        'page_progress',
+        where: 'pageNumber = ? AND profileId = ?',
+        whereArgs: [pageNum, localProfile.id],
+      );
 
       if (localRows.isEmpty) {
         // Cloud has it, local doesn't — insert
         cloudData.remove('updatedAt');
-        await db.insert('page_progress', cloudData,
-            conflictAlgorithm: ConflictAlgorithm.replace);
+        await db.insert(
+          'page_progress',
+          cloudData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       } else {
         // Both have it — take higher status, max review count
         final local = localRows.first;
@@ -515,40 +528,46 @@ class CloudSyncService extends ChangeNotifier {
         final merged = {
           ...local,
           'status': cloudStatus > localStatus ? cloudStatus : localStatus,
-          'reviewCount':
-              cloudReviews > localReviews ? cloudReviews : localReviews,
+          'reviewCount': cloudReviews > localReviews
+              ? cloudReviews
+              : localReviews,
           'memorizedAt': cloudData['memorizedAt'] ?? local['memorizedAt'],
         };
 
-        await db.update('page_progress', merged,
-            where: 'pageNumber = ? AND profileId = ?',
-            whereArgs: [pageNum, localProfile.id]);
+        await db.update(
+          'page_progress',
+          merged,
+          where: 'pageNumber = ? AND profileId = ?',
+          whereArgs: [pageNum, localProfile.id],
+        );
       }
     }
-    debugPrint(
-        '[SYNC] Progress merged (${cloudProgress.docs.length} cloud records)');
+    AppLogger.info('Sync', '[SYNC] Progress merged (${cloudProgress.docs.length} cloud records)',
+    );
 
     // Push merged local progress back to cloud
-    final allProgress = await db.query('page_progress',
-        where: 'profileId = ?', whereArgs: [localProfile.id]);
+    final allProgress = await db.query(
+      'page_progress',
+      where: 'profileId = ?',
+      whereArgs: [localProfile.id],
+    );
     for (final row in allProgress) {
-      await _userDoc(uid)
-          .collection('progress')
-          .doc('${row['pageNumber']}')
-          .set({
+      await _userDoc(
+        uid,
+      ).collection('progress').doc('${row['pageNumber']}').set({
         ...row,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     // Push local sessions that cloud might not have
-    final localSessions = await db.query('session_history',
-        where: 'profileId = ?', whereArgs: [localProfile.id]);
+    final localSessions = await db.query(
+      'session_history',
+      where: 'profileId = ?',
+      whereArgs: [localProfile.id],
+    );
     for (final row in localSessions) {
-      await _userDoc(uid)
-          .collection('sessions')
-          .doc(row['id'] as String)
-          .set({
+      await _userDoc(uid).collection('sessions').doc(row['id'] as String).set({
         ...row,
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -556,8 +575,9 @@ class CloudSyncService extends ChangeNotifier {
 
     // Streak: take max
     final localStreak = await _db.getStreak(localProfile.id);
-    final cloudStreak =
-        await _userDoc(uid).collection('meta').doc('streak').get();
+    final cloudStreak = await _userDoc(
+      uid,
+    ).collection('meta').doc('streak').get();
     if (cloudStreak.exists) {
       final cloudDays = cloudStreak.data()!['totalActiveDays'] as int? ?? 0;
       final maxDays = localStreak.totalActiveDays > cloudDays
@@ -599,18 +619,18 @@ class CloudSyncService extends ChangeNotifier {
       }
       // Delete user root document
       await _userDoc(uid).delete();
-      debugPrint('[SYNC] All cloud data deleted for $uid');
+      AppLogger.info('Sync', '[SYNC] All cloud data deleted for $uid');
 
       // Delete Firebase Auth user
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await user.delete();
-        debugPrint('[SYNC] Firebase Auth user deleted');
+        AppLogger.info('Sync', '[SYNC] Firebase Auth user deleted');
       }
 
       _setStatus(SyncStatus.idle);
     } catch (e) {
-      debugPrint('[SYNC] Account deletion error: $e');
+      AppLogger.info('Sync', '[SYNC] Account deletion error: $e');
       _lastError = e.toString();
       _setStatus(SyncStatus.error);
       rethrow;
@@ -620,31 +640,26 @@ class CloudSyncService extends ChangeNotifier {
   /// Push a single flashcard update.
   Future<void> syncFlashcard(String uid, Flashcard card) async {
     try {
-      await _userDoc(uid)
-          .collection('flashcards')
-          .doc(card.id)
-          .set({
+      await _userDoc(uid).collection('flashcards').doc(card.id).set({
         ...card.toMap(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('[SYNC] Flashcard push error: $e');
+      AppLogger.info('Sync', '[SYNC] Flashcard push error: $e');
     }
   }
 
   /// Push a flashcard review.
   Future<void> syncFlashcardReview(String uid, FlashcardReview review) async {
     try {
-      final reviewId = '${review.cardId}_${review.reviewedAt.toIso8601String()}';
-      await _userDoc(uid)
-          .collection('flashcard_reviews')
-          .doc(reviewId)
-          .set({
+      final reviewId =
+          '${review.cardId}_${review.reviewedAt.toIso8601String()}';
+      await _userDoc(uid).collection('flashcard_reviews').doc(reviewId).set({
         ...review.toMap(),
         'syncedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('[SYNC] Flashcard review push error: $e');
+      AppLogger.info('Sync', '[SYNC] Flashcard review push error: $e');
     }
   }
 }

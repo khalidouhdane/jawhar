@@ -60,11 +60,7 @@ class AIPlanValidator {
     final sabqi = _validateSabqi(plan['sabqi'] as Map<String, dynamic>?);
     final manzil = _validateManzil(plan['manzil'] as Map<String, dynamic>?);
 
-    return {
-      'sabaq': sabaq,
-      'sabqi': sabqi,
-      'manzil': manzil,
-    };
+    return {'sabaq': sabaq, 'sabqi': sabqi, 'manzil': manzil};
   }
 
   static Map<String, dynamic> _validateSabaq(Map<String, dynamic>? sabaq) {
@@ -136,9 +132,18 @@ class AIPlanValidator {
     }
 
     return {
-      'sabaq': _validateRecipe(recipes['sabaq'] as Map<String, dynamic>?, 'sabaq'),
-      'sabqi': _validateRecipe(recipes['sabqi'] as Map<String, dynamic>?, 'sabqi'),
-      'manzil': _validateRecipe(recipes['manzil'] as Map<String, dynamic>?, 'manzil'),
+      'sabaq': _validateRecipe(
+        recipes['sabaq'] as Map<String, dynamic>?,
+        'sabaq',
+      ),
+      'sabqi': _validateRecipe(
+        recipes['sabqi'] as Map<String, dynamic>?,
+        'sabqi',
+      ),
+      'manzil': _validateRecipe(
+        recipes['manzil'] as Map<String, dynamic>?,
+        'manzil',
+      ),
     };
   }
 
@@ -161,7 +166,10 @@ class AIPlanValidator {
       }
     }
 
-    final estimatedMinutes = _toInt(recipe['estimatedMinutes'], fallback: 10).clamp(5, 120);
+    final estimatedMinutes = _toInt(
+      recipe['estimatedMinutes'],
+      fallback: 10,
+    ).clamp(5, 120);
 
     final rawTips = recipe['tips'];
     final tips = <String>[];
@@ -173,19 +181,22 @@ class AIPlanValidator {
       }
     }
 
-    return {
-      'steps': steps,
-      'estimatedMinutes': estimatedMinutes,
-      'tips': tips,
-    };
+    return {'steps': steps, 'estimatedMinutes': estimatedMinutes, 'tips': tips};
   }
 
-  static Map<String, dynamic> _validateStep(Map<String, dynamic> step, int index) {
+  static Map<String, dynamic> _validateStep(
+    Map<String, dynamic> step,
+    int index,
+  ) {
     final action = _validateAction(step['action']?.toString() ?? 'read_solo');
-    final instruction = step['instruction']?.toString() ?? 'Continue with this step.';
-    final target = _toInt(step['target'], fallback: 1).clamp(1, 20); // Max 20 reps
+    final instruction =
+        step['instruction']?.toString() ?? 'Continue with this step.';
+    final target = _toInt(
+      step['target'],
+      fallback: 1,
+    ).clamp(1, 20); // Max 20 reps
     final unit = _validateUnit(step['unit']?.toString() ?? 'times');
-    final icon = step['icon']?.toString() ?? '📖';
+    final icon = step['icon']?.toString() ?? 'book_open';
 
     return {
       'stepNumber': index,
@@ -199,7 +210,9 @@ class AIPlanValidator {
 
   // ── Framework Params Validation ──
 
-  static Map<String, dynamic> _validateFrameworkParams(Map<String, dynamic>? params) {
+  static Map<String, dynamic> _validateFrameworkParams(
+    Map<String, dynamic>? params,
+  ) {
     if (params == null) {
       return {
         'dailySabaqLoad': 'unknown',
@@ -213,15 +226,23 @@ class AIPlanValidator {
     return {
       'dailySabaqLoad': params['dailySabaqLoad']?.toString() ?? 'unknown',
       'minReps': _toInt(params['minReps'], fallback: 10).clamp(1, 30),
-      'sabqiDaysBack': _toInt(params['sabqiDaysBack'], fallback: 7).clamp(3, 30),
-      'manzilPagesPerDay': _toInt(params['manzilPagesPerDay'], fallback: 4).clamp(1, 20),
+      'sabqiDaysBack': _toInt(
+        params['sabqiDaysBack'],
+        fallback: 7,
+      ).clamp(3, 30),
+      'manzilPagesPerDay': _toInt(
+        params['manzilPagesPerDay'],
+        fallback: 4,
+      ).clamp(1, 20),
       'timeDistribution': _validateTimeDistribution(
         params['timeDistribution'] as Map<String, dynamic>?,
       ),
     };
   }
 
-  static Map<String, dynamic> _validateTimeDistribution(Map<String, dynamic>? dist) {
+  static Map<String, dynamic> _validateTimeDistribution(
+    Map<String, dynamic>? dist,
+  ) {
     if (dist == null) {
       return {'sabaq': 45, 'sabqi': 30, 'manzil': 25};
     }
@@ -255,15 +276,18 @@ class AIPlanValidator {
     final sabaq = plan['sabaq'] as Map<String, dynamic>;
     final sabqi = plan['sabqi'] as Map<String, dynamic>;
     final manzil = plan['manzil'] as Map<String, dynamic>;
-    final frameworkParams = validated['frameworkParams'] as Map<String, dynamic>;
-    final timeDist = frameworkParams['timeDistribution'] as Map<String, dynamic>;
+    final frameworkParams =
+        validated['frameworkParams'] as Map<String, dynamic>;
+    final timeDist =
+        frameworkParams['timeDistribution'] as Map<String, dynamic>;
 
     final sabqiPages = (sabqi['pages'] as List).cast<int>();
     final manzilPages = (manzil['pages'] as List).cast<int>();
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final planId = '${profile.id}_${today.toIso8601String()}_ai_${now.millisecondsSinceEpoch}';
+    final planId =
+        '${profile.id}_${today.toIso8601String()}_ai_${now.millisecondsSinceEpoch}';
 
     return DailyPlan(
       id: planId,
@@ -276,10 +300,14 @@ class AIPlanValidator {
       sabaqTargetMinutes: _toInt(timeDist['sabaq'], fallback: 25),
       sabaqRepetitionTarget: _toInt(frameworkParams['minReps'], fallback: 10),
       sabqiPages: sabqiPages,
-      sabqiTargetMinutes: sabqiPages.isEmpty ? 0 : _toInt(timeDist['sabqi'], fallback: 15),
+      sabqiTargetMinutes: sabqiPages.isEmpty
+          ? 0
+          : _toInt(timeDist['sabqi'], fallback: 15),
       manzilJuz: manzil['juz'] as int,
       manzilPages: manzilPages,
-      manzilTargetMinutes: manzilPages.isEmpty ? 0 : _toInt(timeDist['manzil'], fallback: 10),
+      manzilTargetMinutes: manzilPages.isEmpty
+          ? 0
+          : _toInt(timeDist['manzil'], fallback: 10),
       // Auto-skip empty phases
       sabqiDoneOffline: sabqiPages.isEmpty,
       manzilDoneOffline: manzilPages.isEmpty,
@@ -292,14 +320,20 @@ class AIPlanValidator {
   // ── Helpers ──
 
   static Map<String, dynamic> _emptyRecipe() => {
-        'steps': <Map<String, dynamic>>[],
-        'estimatedMinutes': 0,
-        'tips': <String>[],
-      };
+    'steps': <Map<String, dynamic>>[],
+    'estimatedMinutes': 0,
+    'tips': <String>[],
+  };
 
   static const _validActions = {
-    'listen', 'read_along', 'read_solo', 'recite_memory',
-    'link_practice', 'write', 'review_meaning', 'self_test',
+    'listen',
+    'read_along',
+    'read_solo',
+    'recite_memory',
+    'link_practice',
+    'write',
+    'review_meaning',
+    'self_test',
   };
 
   static String _validateAction(String action) {

@@ -6,6 +6,8 @@ import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/session_screen.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Lightweight bottom sheet that replaces the old full-page pre-session screen.
 /// Shows active phases with offline-skip toggles and a prominent Start button.
@@ -18,10 +20,7 @@ class PreSessionSheet extends StatefulWidget {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: theme.cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (_) => const PreSessionSheet(),
     );
   }
@@ -72,9 +71,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
       // Close the sheet first, then navigate
       nav.pop(true);
       nav.push(
-        MaterialPageRoute(
-          builder: (_) => SessionScreen(plan: updatedPlan),
-        ),
+        MaterialPageRoute(builder: (_) => SessionScreen(plan: updatedPlan)),
       );
     }
   }
@@ -110,15 +107,20 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
     final hasManzil = plan.manzilPages.isNotEmpty;
     final estMinutes = _activeMinutes(plan);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Drag Handle ──
-          const SizedBox(height: 12),
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Drag Handle ──
+            const SizedBox(height: 12),
           Container(
             width: 40,
             height: 4,
@@ -141,7 +143,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                       Text(
                         AppLocalizations.of(context)!.preSessionDoneOffline,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: theme.primaryText,
@@ -151,7 +153,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                       Text(
                         AppLocalizations.of(context)!.preSessionCheckPhases,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           color: theme.mutedText,
                         ),
@@ -162,7 +164,9 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                 // Estimated time badge
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.accentColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -170,7 +174,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                   child: Text(
                     '~${estMinutes}m',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: theme.accentColor,
@@ -191,9 +195,13 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                 _phaseRow(
                   theme,
                   icon: LucideIcons.bookOpen,
-                  iconColor: const Color(0xFF4ECDC4),
+                  iconColor: SemanticColors.phaseSabaq.fg(theme.isDark),
                   title: AppLocalizations.of(context)!.planSabaqNew,
-                  detail: AppLocalizations.of(context)!.planPageLines(plan.sabaqPage, plan.sabaqLineStart, plan.sabaqLineEnd),
+                  detail: AppLocalizations.of(context)!.planPageLines(
+                    plan.sabaqPage,
+                    plan.sabaqLineStart,
+                    plan.sabaqLineEnd,
+                  ),
                   minutes: plan.sabaqTargetMinutes,
                   isDone: _sabaqOffline,
                   onToggle: (val) => setState(() => _sabaqOffline = val),
@@ -205,9 +213,11 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                   _phaseRow(
                     theme,
                     icon: LucideIcons.repeat,
-                    iconColor: const Color(0xFF6C63FF),
+                    iconColor: SemanticColors.phaseSabqi.fg(theme.isDark),
                     title: AppLocalizations.of(context)!.planSabqiReview,
-                    detail: AppLocalizations.of(context)!.planPagesCount(plan.sabqiPages.length),
+                    detail: AppLocalizations.of(
+                      context,
+                    )!.planPagesCount(plan.sabqiPages.length),
                     minutes: plan.sabqiTargetMinutes,
                     isDone: _sabqiOffline,
                     onToggle: (val) => setState(() => _sabqiOffline = val),
@@ -220,9 +230,11 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                   _phaseRow(
                     theme,
                     icon: LucideIcons.library,
-                    iconColor: const Color(0xFFF5A623),
+                    iconColor: SemanticColors.phaseManzil.fg(theme.isDark),
                     title: AppLocalizations.of(context)!.planManzilRevision,
-                    detail: AppLocalizations.of(context)!.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
+                    detail: AppLocalizations.of(
+                      context,
+                    )!.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
                     minutes: plan.manzilTargetMinutes,
                     isDone: _manzilOffline,
                     onToggle: (val) => setState(() => _manzilOffline = val),
@@ -260,16 +272,18 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                     Icon(
                       _allDone ? LucideIcons.checkCircle : LucideIcons.play,
                       size: 18,
-                      color: Colors.white,
+                      color: theme.scaffoldBackground,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _allDone ? AppLocalizations.of(context)!.preSessionMarkDone : AppLocalizations.of(context)!.planStartSession,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
+                      _allDone
+                          ? AppLocalizations.of(context)!.preSessionMarkDone
+                          : AppLocalizations.of(context)!.planStartSession,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: theme.scaffoldBackground,
                       ),
                     ),
                   ],
@@ -280,7 +294,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
           const SizedBox(height: 24),
         ],
       ),
-    );
+    ));
   }
 
   Widget _phaseRow(
@@ -315,8 +329,9 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: (isDone ? Colors.grey : iconColor)
-                    .withValues(alpha: 0.12),
+                color: (isDone ? Colors.grey : iconColor).withValues(
+                  alpha: 0.12,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -335,7 +350,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: isDone ? theme.mutedText : theme.primaryText,
@@ -345,7 +360,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                   Text(
                     '$detail · ~${minutes}m',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 11,
                       color: isDone
                           ? theme.mutedText.withValues(alpha: 0.6)
@@ -371,8 +386,7 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
                 ),
               ),
               child: isDone
-                  ? Icon(LucideIcons.check,
-                      size: 14, color: theme.accentColor)
+                  ? Icon(LucideIcons.check, size: 14, color: theme.accentColor)
                   : null,
             ),
           ],

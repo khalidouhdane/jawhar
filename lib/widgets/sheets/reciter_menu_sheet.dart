@@ -5,6 +5,7 @@ import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 class ReciterMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
@@ -33,6 +34,47 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
     _recentIds.remove(id);
     _recentIds.insert(0, id);
     if (_recentIds.length > 10) _recentIds.removeLast();
+  }
+
+  /// Reciter IDs that have an image in assets/images/reciters/
+  static const _reciterImageIds = <int>{
+    1, 2, 3, 4, 5, 6, 7, 12, 13, 19, 97, 158, 159, 160, 161, 173, 174, 175,
+  };
+
+  /// Build initials from a reciter name (first + last).
+  static String _initials(String name) {
+    final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    return parts.isNotEmpty ? parts.first[0].toUpperCase() : '?';
+  }
+
+  Widget _buildReciterAvatar(dynamic reciter, ThemeProvider theme) {
+    const double size = 44;
+    if (_reciterImageIds.contains(reciter.id)) {
+      return CircleAvatar(
+        radius: size / 2,
+        backgroundColor: theme.pillBackground,
+        backgroundImage: AssetImage('assets/images/reciters/${reciter.id}.jpg'),
+        onBackgroundImageError: (e, _) {
+          AppLogger.info('ReciterMenu', '[ReciterImage] Asset decode error for ${reciter.id}');
+        },
+      );
+    }
+    // Fallback: themed initials circle
+    return CircleAvatar(
+      radius: size / 2,
+      backgroundColor: theme.inputFill,
+      child: Text(
+        _initials(reciter.reciterName),
+        style: TextStyle(
+          color: theme.mutedText,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   @override
@@ -176,30 +218,14 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                             theme: theme,
                           ),
                           const SizedBox(width: 8),
-                          _buildTab(
-                            l.reciterTabRecent,
-                            'recent',
-                            theme: theme,
-                          ),
+                          _buildTab(l.reciterTabRecent, 'recent', theme: theme),
                           const SizedBox(width: 8),
-                          _buildTab(
-                            l.reciterTabAll,
-                            'all',
-                            theme: theme,
-                          ),
+                          _buildTab(l.reciterTabAll, 'all', theme: theme),
                         ]
                       : [
-                          _buildTab(
-                            l.reciterTabAll,
-                            'all',
-                            theme: theme,
-                          ),
+                          _buildTab(l.reciterTabAll, 'all', theme: theme),
                           const SizedBox(width: 8),
-                          _buildTab(
-                            l.reciterTabRecent,
-                            'recent',
-                            theme: theme,
-                          ),
+                          _buildTab(l.reciterTabRecent, 'recent', theme: theme),
                           const SizedBox(width: 8),
                           _buildTab(
                             l.reciterTabFavorites,
@@ -323,25 +349,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                         },
                         leading: Stack(
                           children: [
-                            CircleAvatar(
-                              backgroundColor: theme.pillBackground,
-                              child: ClipOval(
-                                child: Image.asset(
-                                  'assets/images/reciters/${reciter.id}.jpg',
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Image.network(
-                                      "https://api.dicebear.com/7.x/initials/png?seed=${reciter.reciterName}&backgroundColor=transparent&textColor=a1a1aa&fontWeight=600",
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
+                            _buildReciterAvatar(reciter, theme),
                             if (isActive)
                               Positioned(
                                 bottom: 0,

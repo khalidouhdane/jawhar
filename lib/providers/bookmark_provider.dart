@@ -6,6 +6,8 @@ import 'package:quran_app/models/bookmark_collection.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/services/qf_user_api_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Predefined bookmark color palette (12 colors).
 class BookmarkColors {
@@ -30,10 +32,16 @@ class BookmarkProvider extends ChangeNotifier {
   final LocalStorageService _storage;
   final AuthService _auth;
   final CloudSyncService _sync;
+  final QfUserApiService? _qfApi;
   List<Bookmark> _bookmarks = [];
   List<BookmarkCollection> _collections = [];
 
-  BookmarkProvider(this._storage, this._auth, this._sync) {
+  BookmarkProvider(
+    this._storage,
+    this._auth,
+    this._sync, {
+    QfUserApiService? qfApi,
+  }) : _qfApi = qfApi {
     _load();
   }
 
@@ -51,8 +59,10 @@ class BookmarkProvider extends ChangeNotifier {
   Timer? _highlightTimer;
   String? get highlightVerseKey => _highlightVerseKey;
 
-  void setHighlight(String verseKey,
-      {Duration duration = const Duration(seconds: 2)}) {
+  void setHighlight(
+    String verseKey, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
     _highlightTimer?.cancel();
     _highlightVerseKey = verseKey;
     notifyListeners();
@@ -78,13 +88,13 @@ class BookmarkProvider extends ChangeNotifier {
     return filtered;
   }
 
-  bool isVerseBookmarked(String verseKey) =>
-      _bookmarks
-          .any((b) => b.type == BookmarkType.verse && b.verseKey == verseKey);
+  bool isVerseBookmarked(String verseKey) => _bookmarks.any(
+    (b) => b.type == BookmarkType.verse && b.verseKey == verseKey,
+  );
 
-  bool isPageBookmarked(int page) =>
-      _bookmarks
-          .any((b) => b.type == BookmarkType.page && b.pageNumber == page);
+  bool isPageBookmarked(int page) => _bookmarks.any(
+    (b) => b.type == BookmarkType.page && b.pageNumber == page,
+  );
 
   Bookmark? getVerseBookmark(String verseKey) {
     try {
@@ -120,6 +130,14 @@ class BookmarkProvider extends ChangeNotifier {
     _bookmarks.add(bookmark);
     _save();
     notifyListeners();
+
+    // QF User API sync (fire-and-forget)
+    final qfApi = _qfApi;
+    if (qfApi != null && qfApi.isAvailable && bookmark.verseKey != null) {
+      qfApi.createBookmark(verseKey: bookmark.verseKey!).then((_) {
+        AppLogger.info('Bookmark', '[QF_SYNC] Bookmark synced: ${bookmark.verseKey}');
+      });
+    }
   }
 
   void removeBookmark(String id) {
@@ -138,14 +156,16 @@ class BookmarkProvider extends ChangeNotifier {
       removeBookmark(existing.id);
       return false;
     } else {
-      addBookmark(Bookmark(
-        id: Bookmark.generateId(),
-        type: BookmarkType.verse,
-        verseKey: verseKey,
-        pageNumber: pageNumber,
-        surahName: surahName,
-        createdAt: DateTime.now(),
-      ));
+      addBookmark(
+        Bookmark(
+          id: Bookmark.generateId(),
+          type: BookmarkType.verse,
+          verseKey: verseKey,
+          pageNumber: pageNumber,
+          surahName: surahName,
+          createdAt: DateTime.now(),
+        ),
+      );
       return true;
     }
   }
@@ -159,13 +179,15 @@ class BookmarkProvider extends ChangeNotifier {
       removeBookmark(existing.id);
       return false;
     } else {
-      addBookmark(Bookmark(
-        id: Bookmark.generateId(),
-        type: BookmarkType.page,
-        pageNumber: pageNumber,
-        surahName: surahName,
-        createdAt: DateTime.now(),
-      ));
+      addBookmark(
+        Bookmark(
+          id: Bookmark.generateId(),
+          type: BookmarkType.page,
+          pageNumber: pageNumber,
+          surahName: surahName,
+          createdAt: DateTime.now(),
+        ),
+      );
       return true;
     }
   }
@@ -223,12 +245,14 @@ class BookmarkProvider extends ChangeNotifier {
   // ── Collection CRUD ──
 
   void createCollection(String name, {int iconIndex = 0}) {
-    _collections.add(BookmarkCollection(
-      id: BookmarkCollection.generateId(),
-      name: name,
-      iconIndex: iconIndex,
-      createdAt: DateTime.now(),
-    ));
+    _collections.add(
+      BookmarkCollection(
+        id: BookmarkCollection.generateId(),
+        name: name,
+        iconIndex: iconIndex,
+        createdAt: DateTime.now(),
+      ),
+    );
     _saveCollections();
     notifyListeners();
   }
@@ -267,7 +291,7 @@ class BookmarkProvider extends ChangeNotifier {
   String exportAsText({String? collectionId}) {
     final bks = collectionId == null ? getAll() : getByCollection(collectionId);
     final buffer = StringBuffer();
-    buffer.writeln('📖 My Bookmarks — Le Quran');
+    buffer.writeln('My Bookmarks - Jawhar');
     buffer.writeln();
 
     if (collectionId != null) {
@@ -277,7 +301,9 @@ class BookmarkProvider extends ChangeNotifier {
 
     for (final b in bks) {
       if (b.type == BookmarkType.verse) {
-        buffer.writeln('• ${b.verseKey} — ${b.surahName} (Page ${b.pageNumber})');
+        buffer.writeln(
+          '• ${b.verseKey} — ${b.surahName} (Page ${b.pageNumber})',
+        );
       } else {
         buffer.writeln('• Page ${b.pageNumber} — ${b.surahName}');
       }
@@ -297,8 +323,7 @@ class BookmarkProvider extends ChangeNotifier {
 
   void _load() {
     _bookmarks = Bookmark.decodeList(_storage.getBookmarks());
-    _collections =
-        BookmarkCollection.decodeList(_storage.getCollections());
+    _collections = BookmarkCollection.decodeList(_storage.getCollections());
   }
 
   void _save() {

@@ -85,7 +85,7 @@ class RecipeStep {
     required this.instruction,
     required this.target,
     this.unit = StepUnit.times,
-    this.icon = '📖',
+    this.icon = 'book_open',
   });
 
   Map<String, dynamic> toMap() => {
@@ -104,7 +104,7 @@ class RecipeStep {
       instruction: map['instruction'] as String? ?? '',
       target: map['target'] as int? ?? 1,
       unit: StepUnit.fromJson(map['unit'] as String? ?? 'times'),
-      icon: map['icon'] as String? ?? '📖',
+      icon: map['icon'] as String? ?? 'book_open',
     );
   }
 }

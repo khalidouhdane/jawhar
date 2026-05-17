@@ -44,10 +44,7 @@ class TranslationOverlay extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.pillBackground,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: theme.dividerColor,
-          width: 0.5,
-        ),
+        boxShadow: theme.shadowRing,
       ),
       child: translationText != null
           ? _buildContent(theme, translationText!)
@@ -91,15 +88,11 @@ class TranslationOverlay extends StatelessWidget {
         // Header row
         Row(
           children: [
-            Icon(
-              Icons.translate,
-              size: 14,
-              color: theme.accentColor,
-            ),
+            Icon(Icons.translate, size: 14, color: theme.accentColor),
             const SizedBox(width: 6),
             Text(
               verseKey,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: theme.accentColor,
@@ -109,11 +102,7 @@ class TranslationOverlay extends StatelessWidget {
             if (showDismiss)
               GestureDetector(
                 onTap: onDismiss,
-                child: Icon(
-                  Icons.close,
-                  size: 16,
-                  color: theme.mutedText,
-                ),
+                child: Icon(Icons.close, size: 16, color: theme.mutedText),
               ),
           ],
         ),
@@ -123,7 +112,7 @@ class TranslationOverlay extends StatelessWidget {
         ExcludeSemantics(
           child: Text(
             text,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.ibmPlexSansArabic(
               fontSize: 13,
               height: 1.5,
               color: theme.secondaryText,
@@ -145,7 +134,7 @@ class TranslationOverlay extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               verseKey,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: theme.accentColor,

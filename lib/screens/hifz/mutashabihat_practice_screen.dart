@@ -6,6 +6,8 @@ import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran/quran.dart' as quran;
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 
 /// Practice modes for mutashabihat (similar verses).
 /// Three modes: Spot the Difference, Context Anchoring, Quick Quiz.
@@ -44,12 +46,15 @@ class _MutashabihatPracticeScreenState
     final db = context.read<HifzDatabaseService>();
     final all = await db.getAllMutashabihat();
     // Prioritize "needsPractice", then "notStudied" — skip mastered
-    final filtered = all
-        .where((g) =>
-            g.userStatus != MutashabihatStatus.mastered &&
-            g.similarVerses.isNotEmpty)
-        .toList()
-      ..shuffle();
+    final filtered =
+        all
+            .where(
+              (g) =>
+                  g.userStatus != MutashabihatStatus.mastered &&
+                  g.similarVerses.isNotEmpty,
+            )
+            .toList()
+          ..shuffle();
     if (mounted) {
       setState(() {
         _groups = filtered;
@@ -109,7 +114,7 @@ class _MutashabihatPracticeScreenState
         title: Text(
           AppLocalizations.of(context)!.pracMutashabihat,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: theme.primaryText,
@@ -117,57 +122,57 @@ class _MutashabihatPracticeScreenState
         ),
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: theme.accentColor),
-            )
+          ? Center(child: CircularProgressIndicator(color: theme.accentColor))
           : _groups.isEmpty
-              ? _buildEmpty(theme)
-              : Column(
-                  children: [
-                    // Mode selector
-                    _buildModeSelector(theme),
-                    const SizedBox(height: 8),
-                    // Progress
-                    if (_currentIdx < _groups.length)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${_currentIdx + 1} / ${_groups.length}',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 12,
-                                color: theme.mutedText,
-                              ),
-                            ),
-                            const Spacer(),
-                            if (_totalAttempted > 0)
-                              Text(
-                                '$_correctCount/$_totalAttempted correct',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.green.shade600,
-                                ),
-                              ),
-                          ],
+          ? _buildEmpty(theme)
+          : Column(
+              children: [
+                // Mode selector
+                _buildModeSelector(theme),
+                const SizedBox(height: 8),
+                // Progress
+                if (_currentIdx < _groups.length)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${_currentIdx + 1} / ${_groups.length}',
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 12,
+                            color: theme.mutedText,
+                          ),
                         ),
-                      ),
-                    const SizedBox(height: 8),
-                    // Content
-                    Expanded(
-                      child: _currentIdx >= _groups.length
-                          ? _buildSummary(theme)
-                          : SingleChildScrollView(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 8),
-                              child: _buildCurrentCard(theme),
+                        const Spacer(),
+                        if (_totalAttempted > 0)
+                          Text(
+                            '$_correctCount/$_totalAttempted correct',
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green.shade600,
                             ),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
+                const SizedBox(height: 8),
+                // Content
+                Expanded(
+                  child: _currentIdx >= _groups.length
+                      ? _buildSummary(theme)
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          child: _buildCurrentCard(theme),
+                        ),
                 ),
+              ],
+            ),
     );
   }
 
@@ -180,22 +185,31 @@ class _MutashabihatPracticeScreenState
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          _modeChip(theme, _PracticeMode.spotDiff, '🔎', AppLocalizations.of(context)!.pracSpotDiff),
+          _modeChip(
+            theme,
+            _PracticeMode.spotDiff,
+            LucideIcons.search,
+            AppLocalizations.of(context)!.pracSpotDiff,
+          ),
           const SizedBox(width: 8),
-          _modeChip(theme, _PracticeMode.context, '🔗', 'Context'),
+          _modeChip(theme, _PracticeMode.context, LucideIcons.link, 'Context'),
           const SizedBox(width: 8),
-          _modeChip(theme, _PracticeMode.quiz, '📋', 'Quiz'),
+          _modeChip(theme, _PracticeMode.quiz, LucideIcons.clipboardList, 'Quiz'),
         ],
       ),
     );
   }
 
   Widget _modeChip(
-      ThemeProvider theme, _PracticeMode mode, String emoji, String label) {
+    ThemeProvider theme,
+    _PracticeMode mode,
+    IconData icon,
+    String label,
+  ) {
     final isActive = _mode == mode;
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
+      child: GeistButton(
+        onPressed: () {
           setState(() {
             _mode = mode;
             _currentIdx = 0;
@@ -206,26 +220,10 @@ class _MutashabihatPracticeScreenState
             _quizCorrect = null;
           });
         },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isActive
-                ? theme.accentColor
-                : theme.accentColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              '$emoji $label',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isActive ? Colors.white : theme.secondaryText,
-              ),
-            ),
-          ),
-        ),
+        label: label,
+        prefix: Icon(icon, size: 14),
+        type: isActive ? GeistButtonType.primary : GeistButtonType.secondary,
+        size: GeistButtonSize.small,
       ),
     );
   }
@@ -255,8 +253,9 @@ class _MutashabihatPracticeScreenState
         ? group.sourceText
         : _getVerseText(group.sourceVerseKey);
     final mutVerse = group.similarVerses.first;
-    final mutText =
-        mutVerse.text.isNotEmpty ? mutVerse.text : _getVerseText(mutVerse.verseKey);
+    final mutText = mutVerse.text.isNotEmpty
+        ? mutVerse.text
+        : _getVerseText(mutVerse.verseKey);
     final srcName = _getSurahName(group.sourceVerseKey);
     final mutName = _getSurahName(mutVerse.verseKey);
     final srcWords = group.uniqueWords['src'] ?? [];
@@ -304,8 +303,13 @@ class _MutashabihatPracticeScreenState
     );
   }
 
-  Widget _diffSummary(ThemeProvider theme, List<String> srcWords,
-      List<String> mutWords, String srcName, String mutName) {
+  Widget _diffSummary(
+    ThemeProvider theme,
+    List<String> srcWords,
+    List<String> mutWords,
+    String srcName,
+    String mutName,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -320,7 +324,7 @@ class _MutashabihatPracticeScreenState
             'الفرق',
             textDirection: TextDirection.rtl,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: theme.accentColor,
@@ -332,7 +336,7 @@ class _MutashabihatPracticeScreenState
               '$srcName: ${srcWords.join(' · ')}',
               textDirection: TextDirection.rtl,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 12,
                 color: const Color(0xFF3B82F6),
                 fontWeight: FontWeight.w600,
@@ -343,7 +347,7 @@ class _MutashabihatPracticeScreenState
               '$mutName: ${mutWords.join(' · ')}',
               textDirection: TextDirection.rtl,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 12,
                 color: const Color(0xFFF59E0B),
                 fontWeight: FontWeight.w600,
@@ -368,9 +372,11 @@ class _MutashabihatPracticeScreenState
 
     // Get 2 before and 2 after
     final contextVerses = <MapEntry<int, String>>[];
-    for (int v = (mutAyah - 2).clamp(1, totalVerses);
-        v <= (mutAyah + 2).clamp(1, totalVerses);
-        v++) {
+    for (
+      int v = (mutAyah - 2).clamp(1, totalVerses);
+      v <= (mutAyah + 2).clamp(1, totalVerses);
+      v++
+    ) {
       try {
         contextVerses.add(MapEntry(v, quran.getVerse(mutSurah, v)));
       } catch (_) {}
@@ -397,7 +403,7 @@ class _MutashabihatPracticeScreenState
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: theme.accentColor,
@@ -420,7 +426,7 @@ class _MutashabihatPracticeScreenState
               Text(
                 mutSurahName,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: theme.accentColor,
@@ -499,7 +505,7 @@ class _MutashabihatPracticeScreenState
           Text(
             AppLocalizations.of(context)!.pracNoDiffWords,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),
@@ -529,7 +535,7 @@ class _MutashabihatPracticeScreenState
             'في أي سورة الكلمة:',
             textDirection: TextDirection.rtl,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: theme.secondaryText,
@@ -564,9 +570,7 @@ class _MutashabihatPracticeScreenState
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (_quizCorrect == true
-                        ? Colors.green
-                        : Colors.red)
+                color: (_quizCorrect == true ? Colors.green : Colors.red)
                     .withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -574,10 +578,12 @@ class _MutashabihatPracticeScreenState
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    _quizCorrect == true ? AppLocalizations.of(context)!.pracCorrect : AppLocalizations.of(context)!.pracWrong,
+                    _quizCorrect == true
+                        ? AppLocalizations.of(context)!.pracCorrect
+                        : AppLocalizations.of(context)!.pracWrong,
                     textDirection: TextDirection.rtl,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: _quizCorrect == true
@@ -591,7 +597,7 @@ class _MutashabihatPracticeScreenState
                       '$srcName: ${srcWords.join(' · ')}',
                       textDirection: TextDirection.rtl,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
                         color: theme.secondaryText,
                       ),
@@ -601,7 +607,7 @@ class _MutashabihatPracticeScreenState
                       '$mutName: ${mutWords.join(' · ')}',
                       textDirection: TextDirection.rtl,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
                         color: theme.secondaryText,
                       ),
@@ -618,7 +624,11 @@ class _MutashabihatPracticeScreenState
   }
 
   Widget _quizOption(
-      ThemeProvider theme, int idx, String surahName, bool isCorrect) {
+    ThemeProvider theme,
+    int idx,
+    String surahName,
+    bool isCorrect,
+  ) {
     final isSelected = _quizChoice == idx;
     Color bgColor = theme.cardColor;
     Color borderColor = theme.dividerColor;
@@ -658,7 +668,7 @@ class _MutashabihatPracticeScreenState
           textAlign: TextAlign.center,
           textDirection: TextDirection.rtl,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: theme.primaryText,
@@ -687,7 +697,9 @@ class _MutashabihatPracticeScreenState
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: hidden ? theme.dividerColor : highlightColor.withValues(alpha: 0.3),
+          color: hidden
+              ? theme.dividerColor
+              : highlightColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -703,7 +715,7 @@ class _MutashabihatPracticeScreenState
               label,
               textDirection: TextDirection.rtl,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: highlightColor,
@@ -724,23 +736,28 @@ class _MutashabihatPracticeScreenState
                     child: Center(
                       child: Text(
                         '؟',
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: theme.mutedText,
-                        ),
+                        style: TextStyle(fontSize: 24, color: theme.mutedText),
                       ),
                     ),
                   )
                 : _buildHighlightedText(
-                    theme, text, highlightWords, highlightColor),
+                    theme,
+                    text,
+                    highlightWords,
+                    highlightColor,
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHighlightedText(ThemeProvider theme, String text,
-      List<String> highlightWords, Color color) {
+  Widget _buildHighlightedText(
+    ThemeProvider theme,
+    String text,
+    List<String> highlightWords,
+    Color color,
+  ) {
     if (highlightWords.isEmpty) {
       return Text(
         text,
@@ -760,20 +777,22 @@ class _MutashabihatPracticeScreenState
     final spans = <TextSpan>[];
     for (int i = 0; i < words.length; i++) {
       final w = words[i];
-      final isHighlight =
-          highlightWords.any((hw) => w.contains(hw) || hw.contains(w));
-      spans.add(TextSpan(
-        text: i > 0 ? ' $w' : w,
-        style: TextStyle(
-          fontFamily: AppLocalizations.of(context)!.pracHafsScript,
-          fontSize: 18,
-          height: 2.0,
-          color: isHighlight ? color : theme.primaryText,
-          fontWeight: isHighlight ? FontWeight.w700 : FontWeight.normal,
-          backgroundColor:
-              isHighlight ? color.withValues(alpha: 0.1) : null,
+      final isHighlight = highlightWords.any(
+        (hw) => w.contains(hw) || hw.contains(w),
+      );
+      spans.add(
+        TextSpan(
+          text: i > 0 ? ' $w' : w,
+          style: TextStyle(
+            fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+            fontSize: 18,
+            height: 2.0,
+            color: isHighlight ? color : theme.primaryText,
+            fontWeight: isHighlight ? FontWeight.w700 : FontWeight.normal,
+            backgroundColor: isHighlight ? color.withValues(alpha: 0.1) : null,
+          ),
         ),
-      ));
+      );
     }
 
     return RichText(
@@ -784,49 +803,25 @@ class _MutashabihatPracticeScreenState
   }
 
   Widget _actionButton(ThemeProvider theme, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: theme.accentColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.accentColor.withValues(alpha: 0.3)),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: theme.accentColor,
-          ),
-        ),
+    return SizedBox(
+      width: double.infinity,
+      child: GeistButton(
+        onPressed: onTap,
+        label: label,
+        type: GeistButtonType.secondary,
+        size: GeistButtonSize.large,
       ),
     );
   }
 
   Widget _nextButton(ThemeProvider theme) {
-    return GestureDetector(
-      onTap: _next,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: theme.accentColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(AppLocalizations.of(context)!.pracNext,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
+    return SizedBox(
+      width: double.infinity,
+      child: GeistButton(
+        onPressed: _next,
+        label: AppLocalizations.of(context)!.pracNext,
+        type: GeistButtonType.primary,
+        size: GeistButtonSize.large,
       ),
     );
   }
@@ -841,7 +836,7 @@ class _MutashabihatPracticeScreenState
           Text(
             AppLocalizations.of(context)!.pracComplete,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -851,31 +846,17 @@ class _MutashabihatPracticeScreenState
           Text(
             '$_correctCount / $_totalAttempted correct',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 16,
               color: theme.secondaryText,
             ),
           ),
           const SizedBox(height: 24),
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              decoration: BoxDecoration(
-                color: theme.accentColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Done',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+          GeistButton(
+            onPressed: () => Navigator.of(context).pop(),
+            label: 'Done',
+            type: GeistButtonType.primary,
+            size: GeistButtonSize.large,
           ),
         ],
       ),
@@ -892,7 +873,7 @@ class _MutashabihatPracticeScreenState
           Text(
             AppLocalizations.of(context)!.pracNoMut,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: theme.primaryText,
@@ -902,7 +883,7 @@ class _MutashabihatPracticeScreenState
           Text(
             AppLocalizations.of(context)!.pracCheckConn,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),

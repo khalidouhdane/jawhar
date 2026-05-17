@@ -22,6 +22,7 @@ import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran/quran.dart' as quran;
+import 'package:quran_app/theme/geist_typography.dart';
 
 class ReadingScreen extends StatefulWidget {
   final int initialPage;
@@ -121,13 +122,13 @@ class _ReadingScreenState extends State<ReadingScreen> {
   void _findAndSlideTo(
     String verseKey,
     QuranReadingProvider readingProvider,
-  ) async {
+  ) {
     final currentPage = readingProvider.activePage;
 
     // Try the next page first (most common case: audio advancing forward)
     final nextPage = currentPage + 1;
     if (nextPage <= _totalPages) {
-      final nextVerses = await readingProvider.getPageVerses(nextPage);
+      final nextVerses = readingProvider.getPageVerses(nextPage);
       if (nextVerses.any((v) => v.verseKey == verseKey)) {
         _goToPage(nextPage);
         return;
@@ -137,7 +138,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
     // Try previous page (less common but possible with RTL)
     final prevPage = currentPage - 1;
     if (prevPage >= 1) {
-      final prevVerses = await readingProvider.getPageVerses(prevPage);
+      final prevVerses = readingProvider.getPageVerses(prevPage);
       if (prevVerses.any((v) => v.verseKey == verseKey)) {
         _goToPage(prevPage);
         return;
@@ -170,7 +171,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   0.1, // Leave top space
             ),
             child: DefaultTextStyle(
-              style: const TextStyle(fontFamily: 'Inter'),
+              style: TextStyle(fontFamily: 'Inter'),
               child: sheetBuilder(sheetContext),
             ),
           ),
@@ -202,11 +203,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   void _openThemePicker() {
-    _showOverlay(
-      (ctx) => ThemePickerSheet(onClose: () => Navigator.pop(ctx)),
-    );
+    _showOverlay((ctx) => ThemePickerSheet(onClose: () => Navigator.pop(ctx)));
   }
-
 
   void _goToPage(int page) {
     final readingProvider = context.read<QuranReadingProvider>();
@@ -278,24 +276,24 @@ class _ReadingScreenState extends State<ReadingScreen> {
 
     if (oldRead < target / 2 && newRead >= target / 2) {
       if (newRead < target) {
-        message = "Halfway there! Keep it up. 🌟";
+        message = "Halfway there! Keep it up.";
         icon = LucideIcons.star;
         iconColor = Colors.orangeAccent;
       }
     } else if (oldRead < target * 0.8 &&
         newRead >= target * 0.8 &&
         newRead < target) {
-      message = "Almost there! Just a bit more. 💪";
+      message = "Almost there! Just a bit more.";
       icon = LucideIcons.flame;
       iconColor = Colors.orangeAccent;
     } else if (oldRead < target && newRead >= target) {
-      message = "Masha'Allah! Daily Goal Completed! 🎉";
+      message = "Masha'Allah! Daily Goal Completed!";
       icon = LucideIcons.checkCircle2;
       iconColor = Colors.green;
     } else if (oldRead == target &&
         newRead > target &&
         !_hasExceededGoalThisSession) {
-      message = "Exceeding your daily goal! May Allah reward you. 🌺";
+      message = "Exceeding your daily goal! May Allah reward you.";
       icon = LucideIcons.heart;
       iconColor = Colors.pinkAccent;
       _hasExceededGoalThisSession = true;
@@ -321,7 +319,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
               child: Text(
                 message,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: theme.primaryText,
@@ -332,7 +330,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
         ),
         backgroundColor: theme.cardColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+        ),
         margin: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         duration: const Duration(seconds: 4),
         elevation: 4,
@@ -350,7 +350,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
         child: Stack(
           children: [
             // Reading Canvas — PageView for swipe navigation
-             Consumer<QuranReadingProvider>(
+            Consumer<QuranReadingProvider>(
               builder: (context, readingProvider, child) {
                 // Force LTR so swipe direction is always consistent:
                 // drag left→right = next page. Our index math already
@@ -358,28 +358,28 @@ class _ReadingScreenState extends State<ReadingScreen> {
                 return Directionality(
                   textDirection: TextDirection.ltr,
                   child: PageView.builder(
-                  controller: _pageController,
-                  reverse: false,
-                  itemCount: _totalPages,
-                  onPageChanged: (index) {
-                    final page = _totalPages - index;
-                    readingProvider.setActivePage(page);
+                    controller: _pageController,
+                    reverse: false,
+                    itemCount: _totalPages,
+                    onPageChanged: (index) {
+                      final page = _totalPages - index;
+                      readingProvider.setActivePage(page);
 
-                    // Save last-read position for the Home Screen hero card
-                    _saveLastReadPosition(page, readingProvider);
+                      // Save last-read position for the Home Screen hero card
+                      _saveLastReadPosition(page, readingProvider);
 
-                    // Track Werd reading progress
-                    _startPageReadTimer(page);
-                  },
-                  itemBuilder: (context, index) {
-                    final page = _totalPages - index;
-                    return _QuranPage(
-                      pageNumber: page,
-                      onCanvasTapped: _toggleFullScreen,
-                      readMode: readMode,
-                    );
-                  },
-                ),
+                      // Track Werd reading progress
+                      _startPageReadTimer(page);
+                    },
+                    itemBuilder: (context, index) {
+                      final page = _totalPages - index;
+                      return _QuranPage(
+                        pageNumber: page,
+                        onCanvasTapped: _toggleFullScreen,
+                        readMode: readMode,
+                      );
+                    },
+                  ),
                 );
               },
             ),
@@ -398,26 +398,36 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   onReadModeChanged: (mode) => setState(() => readMode = mode),
                   onThemeTapped: _openThemePicker,
                   onNavMenuTapped: _openNavMenu,
-                  isBookmarked: context.watch<BookmarkProvider>().isPageBookmarked(
-                    context.watch<QuranReadingProvider>().activePage,
-                  ),
+                  isBookmarked: context
+                      .watch<BookmarkProvider>()
+                      .isPageBookmarked(
+                        context.watch<QuranReadingProvider>().activePage,
+                      ),
                   onBookmarkTapped: () {
                     final rp = context.read<QuranReadingProvider>();
                     final l = AppLocalizations.of(context);
                     String sName = '';
                     if (rp.verses.isNotEmpty && rp.chapters.isNotEmpty) {
-                      final chId = int.tryParse(rp.verses.first.verseKey.split(':')[0]) ?? 1;
+                      final chId =
+                          int.tryParse(
+                            rp.verses.first.verseKey.split(':')[0],
+                          ) ??
+                          1;
                       try {
                         final ch = rp.chapters.firstWhere((c) => c.id == chId);
-                        sName = l!.localeName == 'ar' ? ch.nameArabic : ch.nameSimple;
+                        sName = l!.localeName == 'ar'
+                            ? ch.nameArabic
+                            : ch.nameSimple;
                       } catch (_) {
                         sName = 'Surah $chId';
                       }
                     }
-                    final added = context.read<BookmarkProvider>().togglePageBookmark(
-                      pageNumber: rp.activePage,
-                      surahName: sName,
-                    );
+                    final added = context
+                        .read<BookmarkProvider>()
+                        .togglePageBookmark(
+                          pageNumber: rp.activePage,
+                          surahName: sName,
+                        );
                     ScaffoldMessenger.of(context).clearSnackBars();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -425,12 +435,20 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           added
                               ? '${l!.homePage} ${rp.activePage} bookmarked'
                               : 'Bookmark removed',
-                          style: const TextStyle(fontFamily: 'Inter', fontSize: 13),
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 13,
+                          ),
                         ),
                         duration: const Duration(seconds: 2),
                         behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(theme.radiusMd),
+                        ),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                     );
                   },
@@ -448,8 +466,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                 if (readingProvider.verses.isNotEmpty &&
                     readingProvider.chapters.isNotEmpty) {
                   final firstVerse = readingProvider.verses.first;
-                  hizbName =
-                      '${l.readingHizb} ${firstVerse.hizbNumber}';
+                  hizbName = '${l.readingHizb} ${firstVerse.hizbNumber}';
 
                   int chapterId =
                       int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
@@ -509,8 +526,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     playingVerseLabel =
                         '$playingSurahName - ${l.readingVerse} ${parts[1]}';
                   } else {
-                    playingVerseLabel =
-                        '$surahName - ${l.readingPlaying}';
+                    playingVerseLabel = '$surahName - ${l.readingPlaying}';
                   }
                 }
                 // Determine if we are currently viewing the page that is playing
@@ -521,8 +537,6 @@ class _ReadingScreenState extends State<ReadingScreen> {
                   isViewingPlayingPage = readingProvider.verses.any(
                     (v) => v.verseKey == audioProvider.activeVerseKey,
                   );
-
-
 
                   if (!isViewingPlayingPage) {
                     final parts = audioProvider.activeVerseKey!.split(':');
@@ -617,8 +631,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     final firstVerse = readingProvider.verses.first;
                     juzName =
                         '${l.readingJuz} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
-                    hizbName =
-                        '${l.readingHizb} ${firstVerse.hizbNumber}';
+                    hizbName = '${l.readingHizb} ${firstVerse.hizbNumber}';
 
                     int chapterId =
                         int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
@@ -774,18 +787,19 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                 width: double.infinity,
                                 child: Stack(
                                   children: [
-                                      Align(
-                                        alignment: pageNumberAlignment,
-                                        child: _OverlayText(
-                                          text: '${readingProvider.activePage}',
-                                        ),
+                                    Align(
+                                      alignment: pageNumberAlignment,
+                                      child: _OverlayText(
+                                        text: '${readingProvider.activePage}',
                                       ),
-                                      if (hizbAlignment != null)
-                                        Align(
-                                          alignment: hizbAlignment,
-                                          child: _OverlayText(text: juzName),
-                                        ),
-                                    if (indicatorAlignment != null && effectiveShowBookIcon)
+                                    ),
+                                    if (hizbAlignment != null)
+                                      Align(
+                                        alignment: hizbAlignment,
+                                        child: _OverlayText(text: juzName),
+                                      ),
+                                    if (indicatorAlignment != null &&
+                                        effectiveShowBookIcon)
                                       Align(
                                         alignment: indicatorAlignment,
                                         child: _BookSideIndicator(
@@ -822,7 +836,7 @@ class _OverlayText extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: GeistTypography.primaryFontFamily,
         fontSize: theme.overlayFontSize,
         fontWeight: FontWeight.w500,
         color: theme.overlayTextColor.withValues(alpha: theme.overlayOpacity),
@@ -863,15 +877,13 @@ class _QuranPageState extends State<_QuranPage>
     _loadPage();
   }
 
-  Future<void> _loadPage() async {
+  void _loadPage() {
     final provider = context.read<QuranReadingProvider>();
-    final verses = await provider.getPageVerses(widget.pageNumber);
-    if (mounted) {
-      setState(() {
-        _verses = verses;
-        _isLoading = false;
-      });
-    }
+    final verses = provider.getPageVerses(widget.pageNumber);
+    setState(() {
+      _verses = verses;
+      _isLoading = false;
+    });
   }
 
   /// Get the verse key for the currently selected verse.
@@ -884,7 +896,6 @@ class _QuranPageState extends State<_QuranPage>
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -896,9 +907,53 @@ class _QuranPageState extends State<_QuranPage>
 
     if (_verses!.isEmpty) {
       return Center(
-        child: Text(
-          'Page not available',
-          style: TextStyle(color: theme.mutedText),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              LucideIcons.wifiOff,
+              size: 32,
+              color: theme.mutedText.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Could not load page ${widget.pageNumber}',
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 14,
+                color: theme.mutedText,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () {
+                final provider = context.read<QuranReadingProvider>();
+                provider.retryPage(widget.pageNumber);
+                final retried = provider.getPageVerses(widget.pageNumber);
+                setState(() {
+                  _verses = retried;
+                  _isLoading = false;
+                });
+              },
+              icon: Icon(LucideIcons.refreshCw, size: 16, color: theme.accentColor),
+              label: Text(
+                'Retry',
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: theme.accentColor,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(theme.radiusMd),
+                  side: BorderSide(color: theme.mutedText.withValues(alpha: 0.3)),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -974,7 +1029,7 @@ class _QuranPageState extends State<_QuranPage>
             Text(
               'Loading translations...',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
                 color: theme.mutedText,
               ),
@@ -1010,16 +1065,18 @@ class _QuranPageState extends State<_QuranPage>
               alignment: Alignment.centerRight,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: theme.accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(theme.radiusLg),
                 ),
                 child: Text(
                   verse.verseKey,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: theme.accentColor,
@@ -1048,7 +1105,7 @@ class _QuranPageState extends State<_QuranPage>
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(theme.radiusLg),
                   border: Border.all(
                     color: theme.dividerColor.withValues(alpha: 0.3),
                   ),
@@ -1056,7 +1113,7 @@ class _QuranPageState extends State<_QuranPage>
                 child: Text(
                   translation.text,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 14,
                     height: 1.6,
                     color: theme.secondaryText,
@@ -1068,12 +1125,12 @@ class _QuranPageState extends State<_QuranPage>
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: theme.cardColor.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(theme.radiusLg),
                 ),
                 child: Text(
                   'Translation loading...',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 13,
                     fontStyle: FontStyle.italic,
                     color: theme.mutedText,
@@ -1081,13 +1138,14 @@ class _QuranPageState extends State<_QuranPage>
                 ),
               ),
             // Asbab al-nuzul card (if verse has revelation context)
-            if (contextProvider.asbabService.hasOccasionByKey(
-                verse.verseKey))
+            if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey))
               _buildAsbabCard(
                 theme,
                 verse.verseKey,
                 contextProvider.asbabService.getOccasionsByKey(
-                    verse.verseKey) ?? [],
+                      verse.verseKey,
+                    ) ??
+                    [],
               ),
             if (index < _verses!.length - 1)
               Divider(
@@ -1113,10 +1171,8 @@ class _QuranPageState extends State<_QuranPage>
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.accentColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.accentColor.withValues(alpha: 0.15),
-        ),
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: Border.all(color: theme.accentColor.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1124,11 +1180,7 @@ class _QuranPageState extends State<_QuranPage>
           // Header
           Row(
             children: [
-              Icon(
-                Icons.history_edu,
-                size: 16,
-                color: theme.accentColor,
-              ),
+              Icon(Icons.history_edu, size: 16, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
                 'سبب النزول',
@@ -1143,7 +1195,7 @@ class _QuranPageState extends State<_QuranPage>
               Text(
                 'Occasion of Revelation',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 10,
                   color: theme.mutedText,
                 ),
@@ -1193,7 +1245,7 @@ class _QuranPageState extends State<_QuranPage>
                 child: Text(
                   'Read full narration →',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: theme.accentColor,
@@ -1206,7 +1258,6 @@ class _QuranPageState extends State<_QuranPage>
     );
   }
 }
-
 
 class _BookSideIndicator extends StatelessWidget {
   final bool isRightPage;

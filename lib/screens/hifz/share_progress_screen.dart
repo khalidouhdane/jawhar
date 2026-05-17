@@ -7,6 +7,7 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/social_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Screen for sharing Hifz progress as text or PDF report.
 class ShareProgressScreen extends StatefulWidget {
@@ -82,7 +83,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
         title: Text(
           'Share Progress',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: theme.primaryText,
@@ -125,7 +126,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                   Text(
                     profile.name,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -135,7 +136,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                   Text(
                     'Hifz Progress Report',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.secondaryText,
                     ),
@@ -192,7 +193,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                   Text(
                     'Started: ${profile.startDate.toString().split(' ').first}',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 11,
                       color: theme.mutedText,
                     ),
@@ -206,7 +207,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
             Text(
               'Share as',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: theme.primaryText,
@@ -222,10 +223,8 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
               title: 'Share as Text',
               subtitle: 'Quick summary for messaging apps',
               isLoading: false,
-              onTap: () => social.shareProgressText(
-                profile: profile,
-                streak: streak,
-              ),
+              onTap: () =>
+                  social.shareProgressText(profile: profile, streak: streak),
             ),
             const SizedBox(height: 10),
 
@@ -237,10 +236,8 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
               title: 'Share as PDF',
               subtitle: 'Detailed report for teachers & mentors',
               isLoading: social.isGenerating,
-              onTap: () => social.shareProgressPdf(
-                profile: profile,
-                streak: streak,
-              ),
+              onTap: () =>
+                  social.shareProgressPdf(profile: profile, streak: streak),
             ),
             const SizedBox(height: 24),
 
@@ -253,17 +250,13 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    LucideIcons.info,
-                    size: 16,
-                    color: theme.accentColor,
-                  ),
+                  Icon(LucideIcons.info, size: 16, color: theme.accentColor),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context)!.sharePrivacyNotice,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         color: theme.secondaryText,
                       ),
@@ -294,7 +287,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                       child: Text(
                         social.error!,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 11,
                           color: Colors.red.shade400,
                         ),
@@ -323,7 +316,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
         Text(
           value,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w800,
             color: theme.primaryText,
@@ -333,7 +326,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 10,
             fontWeight: FontWeight.w500,
             color: theme.mutedText,
@@ -380,7 +373,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: theme.primaryText,
@@ -389,7 +382,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 11,
                       color: theme.mutedText,
                     ),
@@ -407,11 +400,7 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                 ),
               )
             else
-              Icon(
-                LucideIcons.share2,
-                size: 18,
-                color: theme.mutedText,
-              ),
+              Icon(LucideIcons.share2, size: 18, color: theme.mutedText),
           ],
         ),
       ),

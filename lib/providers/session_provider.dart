@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/card_generation_service.dart';
+import 'package:quran_app/services/qf_user_api_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Manages the active Hifz session state.
 /// Tracks timer, rep counts, phase progression, and self-assessments.
@@ -12,6 +15,7 @@ class SessionProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
   final AuthService _auth;
   final CloudSyncService _sync;
+  final QfUserApiService? _qfApi;
 
   DailyPlan? _plan;
   SessionPhase _currentPhase = SessionPhase.sabaq;
@@ -40,8 +44,8 @@ class SessionProvider extends ChangeNotifier {
   // Actual coverage tracking (CE-3)
   bool _showingCoverageDialog = false;
   List<int> _actualPagesCovered = [];
-  int? _lastVerseLearned;     // CE-9: verse-level coverage
-  int? _totalVersesOnPage;    // CE-9: total verses on the page
+  int? _lastVerseLearned; // CE-9: verse-level coverage
+  int? _totalVersesOnPage; // CE-9: total verses on the page
 
   // ── Recipe-guided mode ──
   bool _isGuidedMode = true;
@@ -49,7 +53,8 @@ class SessionProvider extends ChangeNotifier {
   int _currentStepIndex = 0;
   int _stepRepCount = 0; // rep count for current step
 
-  SessionProvider(this._db, this._auth, this._sync);
+  SessionProvider(this._db, this._auth, this._sync, {QfUserApiService? qfApi})
+    : _qfApi = qfApi;
 
   // ── Getters ──
 
@@ -62,7 +67,8 @@ class SessionProvider extends ChangeNotifier {
   int get repCount => _repCount;
 
   /// Seconds remaining on the countdown (negative = overtime).
-  int get remainingSeconds => _targetSeconds > 0 ? _targetSeconds - _elapsedSeconds : 0;
+  int get remainingSeconds =>
+      _targetSeconds > 0 ? _targetSeconds - _elapsedSeconds : 0;
 
   /// Whether the user has gone past the allocated time.
   bool get isOvertime => _targetSeconds > 0 && _elapsedSeconds > _targetSeconds;
@@ -144,19 +150,27 @@ class SessionProvider extends ChangeNotifier {
 
   String get currentPhaseLabel {
     switch (_currentPhase) {
-      case SessionPhase.sabaq: return 'New Memorization';
-      case SessionPhase.sabqi: return 'Recent Review';
-      case SessionPhase.manzil: return 'Long-term Review';
-      case SessionPhase.flashcards: return 'Flashcards';
+      case SessionPhase.sabaq:
+        return 'New Memorization';
+      case SessionPhase.sabqi:
+        return 'Recent Review';
+      case SessionPhase.manzil:
+        return 'Long-term Review';
+      case SessionPhase.flashcards:
+        return 'Flashcards';
     }
   }
 
-  String get currentPhaseEmoji {
+  IconData get currentPhaseIcon {
     switch (_currentPhase) {
-      case SessionPhase.sabaq: return '📖';
-      case SessionPhase.sabqi: return '🔁';
-      case SessionPhase.manzil: return '📚';
-      case SessionPhase.flashcards: return '🃏';
+      case SessionPhase.sabaq:
+        return LucideIcons.bookOpen;
+      case SessionPhase.sabqi:
+        return LucideIcons.repeat;
+      case SessionPhase.manzil:
+        return LucideIcons.library;
+      case SessionPhase.flashcards:
+        return LucideIcons.layers;
     }
   }
 
@@ -303,7 +317,11 @@ class SessionProvider extends ChangeNotifier {
   /// Set the actual pages covered during sabaq and advance.
   /// [pages] is the list of page numbers actually covered.
   /// CE-9: [lastVerseLearned] and [totalVersesOnPage] track partial page progress.
-  void setActualCoverage(List<int> pages, {int? lastVerseLearned, int? totalVersesOnPage}) {
+  void setActualCoverage(
+    List<int> pages, {
+    int? lastVerseLearned,
+    int? totalVersesOnPage,
+  }) {
     _actualPagesCovered = pages;
     _lastVerseLearned = lastVerseLearned;
     _totalVersesOnPage = totalVersesOnPage;
@@ -320,10 +338,17 @@ class SessionProvider extends ChangeNotifier {
   /// Skip the current phase.
   void skipPhase() {
     switch (_currentPhase) {
-      case SessionPhase.sabaq: _sabaqDone = true; break;
-      case SessionPhase.sabqi: _sabqiDone = true; break;
-      case SessionPhase.manzil: _manzilDone = true; break;
-      case SessionPhase.flashcards: break;
+      case SessionPhase.sabaq:
+        _sabaqDone = true;
+        break;
+      case SessionPhase.sabqi:
+        _sabqiDone = true;
+        break;
+      case SessionPhase.manzil:
+        _manzilDone = true;
+        break;
+      case SessionPhase.flashcards:
+        break;
     }
     _repCount = 0;
     _stepRepCount = 0;
@@ -432,15 +457,17 @@ class SessionProvider extends ChangeNotifier {
         // Check if this page already exists (to increment reviewCount)
         final existing = await _db.getAllPageProgress(_plan!.profileId);
         final prev = existing[page];
-        await _db.savePageProgress(PageProgress(
-          pageNumber: page,
-          profileId: _plan!.profileId,
-          status: PageStatus.learning,
-          lastReviewedAt: DateTime.now(),
-          reviewCount: (prev?.reviewCount ?? 0) + 1,
-          lastVerseLearned: isLastPage ? _lastVerseLearned : null,
-          totalVersesOnPage: isLastPage ? _totalVersesOnPage : null,
-        ));
+        await _db.savePageProgress(
+          PageProgress(
+            pageNumber: page,
+            profileId: _plan!.profileId,
+            status: PageStatus.learning,
+            lastReviewedAt: DateTime.now(),
+            reviewCount: (prev?.reviewCount ?? 0) + 1,
+            lastVerseLearned: isLastPage ? _lastVerseLearned : null,
+            totalVersesOnPage: isLastPage ? _totalVersesOnPage : null,
+          ),
+        );
       }
     }
 
@@ -449,31 +476,37 @@ class SessionProvider extends ChangeNotifier {
       final existing = await _db.getAllPageProgress(_plan!.profileId);
       for (final page in _plan!.sabqiPages) {
         final prev = existing[page];
-        await _db.savePageProgress(PageProgress(
-          pageNumber: page,
-          profileId: _plan!.profileId,
-          status: PageStatus.reviewing,
-          lastReviewedAt: DateTime.now(),
-          reviewCount: (prev?.reviewCount ?? 0) + 1,
-        ));
+        await _db.savePageProgress(
+          PageProgress(
+            pageNumber: page,
+            profileId: _plan!.profileId,
+            status: PageStatus.reviewing,
+            lastReviewedAt: DateTime.now(),
+            reviewCount: (prev?.reviewCount ?? 0) + 1,
+          ),
+        );
       }
     }
 
     // Manzil pages → memorized (if Strong) or reviewing (if weaker)
     if (_manzilDone && _plan != null) {
-      final isStrong = _manzilAssessment == 'strong';
+      final isStrong = _manzilAssessment == SelfAssessment.strong;
       final existing = await _db.getAllPageProgress(_plan!.profileId);
       for (final page in _plan!.manzilPages) {
         final prev = existing[page];
-        final newStatus = isStrong ? PageStatus.memorized : PageStatus.reviewing;
-        await _db.savePageProgress(PageProgress(
-          pageNumber: page,
-          profileId: _plan!.profileId,
-          status: newStatus,
-          lastReviewedAt: DateTime.now(),
-          reviewCount: (prev?.reviewCount ?? 0) + 1,
-          memorizedAt: isStrong ? DateTime.now() : prev?.memorizedAt,
-        ));
+        final newStatus = isStrong
+            ? PageStatus.memorized
+            : PageStatus.reviewing;
+        await _db.savePageProgress(
+          PageProgress(
+            pageNumber: page,
+            profileId: _plan!.profileId,
+            status: newStatus,
+            lastReviewedAt: DateTime.now(),
+            reviewCount: (prev?.reviewCount ?? 0) + 1,
+            memorizedAt: isStrong ? DateTime.now() : prev?.memorizedAt,
+          ),
+        );
       }
     }
 
@@ -488,10 +521,10 @@ class SessionProvider extends ChangeNotifier {
         final gen = CardGenerationService(_db);
         final count = await gen.generateCards(_plan!.profileId);
         if (count > 0) {
-          debugPrint('Generated $count flashcards after session completion');
+          AppLogger.info('Session', 'Generated $count flashcards after session completion');
         }
       } catch (e) {
-        debugPrint('Flashcard generation after session failed: $e');
+        AppLogger.info('Session', 'Flashcard generation after session failed: $e');
       }
     }
 
@@ -508,6 +541,33 @@ class SessionProvider extends ChangeNotifier {
           _sync.syncProgress(uid, page, p.toMap());
         }
       }
+    }
+
+    // ── QF User API sync (fire-and-forget) ──
+    final qfApi = _qfApi;
+    if (qfApi != null && qfApi.isAvailable && _plan != null) {
+      // Record reading session
+      final startPage = coveredPages.isNotEmpty
+          ? coveredPages.first
+          : _plan!.sabaqPage;
+      final endPage = coveredPages.isNotEmpty
+          ? coveredPages.last
+          : _plan!.sabaqPage;
+      qfApi
+          .createReadingSession(
+            startPage: startPage,
+            endPage: endPage,
+            durationSeconds: _elapsedSeconds,
+          )
+          .then((_) {
+            AppLogger.info('Session', '[QF_SYNC] Reading session recorded: pages $startPage-$endPage',
+            );
+          });
+
+      // Record streak activity
+      qfApi.recordStreakActivity().then((_) {
+        AppLogger.info('Session', '[QF_SYNC] Streak activity recorded');
+      });
     }
 
     notifyListeners();

@@ -67,10 +67,7 @@ class SessionAudioHelper {
   ///
   /// Returns true if [AudioProvider.activeVerseKey] matches any verse
   /// in the provided list.
-  static bool isPlayingOnPage(
-    AudioProvider audioProvider,
-    List<Verse> verses,
-  ) {
+  static bool isPlayingOnPage(AudioProvider audioProvider, List<Verse> verses) {
     final activeKey = audioProvider.activeVerseKey;
     if (activeKey == null) return false;
     return verses.any((v) => v.verseKey == activeKey);

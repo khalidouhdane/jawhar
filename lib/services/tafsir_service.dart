@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:quran_app/services/quran_auth_service.dart';
+import 'package:quran_app/services/api_client.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Data model for a translation/tafsir resource (from /resources/* endpoints).
 class TafsirResource {
@@ -51,8 +50,7 @@ class VerseText {
 /// - `/verses/by_page/{page}?translations={id}` — all page translations
 /// - `/verses/by_key/{key}?tafsirs={id}` — single verse tafsir
 class TafsirService {
-  static const String _baseUrl =
-      'https://apis.quran.foundation/content/api/v4';
+  static const String _baseUrl = 'https://apis.quran.foundation/content/api/v4';
 
   // Default resource IDs (verified working in v4 API)
   // Defaults are English since the default app locale is 'en'.
@@ -73,11 +71,7 @@ class TafsirService {
   List<TafsirResource>? _availableTranslations;
   List<TafsirResource>? _availableTafsirs;
 
-  /// Helper to get authenticated headers.
-  Future<Map<String, String>> _getAuthHeaders() async {
-    final token = await QuranAuthService.getValidToken();
-    return {'x-auth-token': token, 'x-client-id': QuranAuthService.clientId};
-  }
+
 
   // ── Translation Methods ──
 
@@ -100,8 +94,11 @@ class TafsirService {
         '?translations=$translationId',
       );
 
-      final headers = await _getAuthHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await ApiClient.get(
+        uri,
+        timeout: const Duration(seconds: 10),
+        maxRetries: 2,
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -120,13 +117,12 @@ class TafsirService {
           return result;
         }
       } else {
-        debugPrint(
-          'TafsirService: Failed to fetch translation for $verseKey: '
+        AppLogger.info('Tafsir', 'TafsirService: Failed to fetch translation for $verseKey: '
           '${response.statusCode}',
         );
       }
     } catch (e) {
-      debugPrint('TafsirService: Error fetching translation for $verseKey: $e');
+      AppLogger.info('Tafsir', 'TafsirService: Error fetching translation for $verseKey: $e');
     }
     return null;
   }
@@ -147,8 +143,10 @@ class TafsirService {
         '&per_page=50',
       );
 
-      final headers = await _getAuthHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await ApiClient.get(
+        uri,
+        timeout: const Duration(seconds: 12),
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -159,8 +157,9 @@ class TafsirService {
             final vk = v['verse_key'] as String?;
             final translations = v['translations'] as List<dynamic>?;
             if (vk != null && translations != null && translations.isNotEmpty) {
-              final text =
-                  _stripHtml(translations.first['text'] as String? ?? '');
+              final text = _stripHtml(
+                translations.first['text'] as String? ?? '',
+              );
               final vt = VerseText(
                 verseKey: vk,
                 text: text,
@@ -172,13 +171,12 @@ class TafsirService {
           }
         }
       } else {
-        debugPrint(
-          'TafsirService: Failed to fetch page translations: '
+        AppLogger.info('Tafsir', 'TafsirService: Failed to fetch page translations: '
           '${response.statusCode}',
         );
       }
     } catch (e) {
-      debugPrint('TafsirService: Error fetching page translations: $e');
+      AppLogger.info('Tafsir', 'TafsirService: Error fetching page translations: $e');
     }
     return results;
   }
@@ -204,8 +202,11 @@ class TafsirService {
         '?tafsirs=$tafsirId',
       );
 
-      final headers = await _getAuthHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await ApiClient.get(
+        uri,
+        timeout: const Duration(seconds: 10),
+        maxRetries: 2,
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -224,13 +225,12 @@ class TafsirService {
           return result;
         }
       } else {
-        debugPrint(
-          'TafsirService: Failed to fetch tafsir for $verseKey: '
+        AppLogger.info('Tafsir', 'TafsirService: Failed to fetch tafsir for $verseKey: '
           '${response.statusCode}',
         );
       }
     } catch (e) {
-      debugPrint('TafsirService: Error fetching tafsir for $verseKey: $e');
+      AppLogger.info('Tafsir', 'TafsirService: Error fetching tafsir for $verseKey: $e');
     }
     return null;
   }
@@ -243,20 +243,23 @@ class TafsirService {
 
     try {
       final uri = Uri.parse('$_baseUrl/resources/translations');
-      final headers = await _getAuthHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await ApiClient.get(
+        uri,
+        timeout: const Duration(seconds: 8),
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final list = data['translations'] as List<dynamic>?;
         if (list != null) {
-          _availableTranslations =
-              list.map((j) => TafsirResource.fromJson(j)).toList();
+          _availableTranslations = list
+              .map((j) => TafsirResource.fromJson(j))
+              .toList();
           return _availableTranslations!;
         }
       }
     } catch (e) {
-      debugPrint('TafsirService: Error fetching translations list: $e');
+      AppLogger.info('Tafsir', 'TafsirService: Error fetching translations list: $e');
     }
     return [];
   }
@@ -267,20 +270,23 @@ class TafsirService {
 
     try {
       final uri = Uri.parse('$_baseUrl/resources/tafsirs');
-      final headers = await _getAuthHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await ApiClient.get(
+        uri,
+        timeout: const Duration(seconds: 8),
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final list = data['tafsirs'] as List<dynamic>?;
         if (list != null) {
-          _availableTafsirs =
-              list.map((j) => TafsirResource.fromJson(j)).toList();
+          _availableTafsirs = list
+              .map((j) => TafsirResource.fromJson(j))
+              .toList();
           return _availableTafsirs!;
         }
       }
     } catch (e) {
-      debugPrint('TafsirService: Error fetching tafsirs list: $e');
+      AppLogger.info('Tafsir', 'TafsirService: Error fetching tafsirs list: $e');
     }
     return [];
   }

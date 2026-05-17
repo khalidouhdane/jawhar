@@ -13,12 +13,17 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
+import 'package:quran_app/screens/hifz/share_progress_screen.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/plan_generation_service.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/hifz/session_reading_view.dart';
 import 'package:quran_app/widgets/hifz/recipe_guide_widget.dart';
+import 'package:quran_app/widgets/sheets/session_settings_sheet.dart';
 import 'package:quran/quran.dart' as quran;
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Full-screen Hifz session experience.
 /// Phases: Pre-session → Active session → Self-assessment → Complete.
@@ -32,13 +37,23 @@ class SessionScreen extends StatefulWidget {
 }
 
 class _SessionScreenState extends State<SessionScreen> {
-  Timer? _timer;
   bool _isDigitalMode = false; // Phase 4: physical ↔ digital toggle
   int _coverageEndPage = 0; // for "more than planned" picker
   int _lastVerseLearned = 5; // CE-9: verse picker default
   int _totalVersesOnPage = 15; // CE-9: default (typical Quran page)
   bool _hasMutashabihat = false; // Integration trigger: alert banner
   bool _mutBannerDismissed = false;
+  // Timer management
+  Timer? _timer;
+
+  void _showSessionSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const SessionSettingsSheet(),
+    );
+  }
 
   @override
   void initState() {
@@ -70,8 +85,10 @@ class _SessionScreenState extends State<SessionScreen> {
       final db = context.read<HifzDatabaseService>();
       recipes = await db.getRecipesForPlan(widget.plan.id);
     } catch (e) {
-      debugPrint('Recipe DB load failed: $e');
+      AppLogger.info('SessionUI', 'Recipe DB load failed: $e');
     }
+
+    if (!mounted) return;
 
     // Layer 2: Try PlanProvider's in-memory recipes
     if (recipes.isEmpty) {
@@ -154,12 +171,12 @@ class _SessionScreenState extends State<SessionScreen> {
         child: session.isSessionComplete
             ? _buildCompleteView(theme, session)
             : session.showingCoverageDialog
-                ? _buildCoverageView(theme, session)
-                : session.showingAssessment
-                    ? _buildAssessmentView(theme, session)
-                    : _isDigitalMode
-                        ? _buildDigitalView(theme, session)
-                        : _buildActiveView(theme, session),
+            ? _buildCoverageView(theme, session)
+            : session.showingAssessment
+            ? _buildAssessmentView(theme, session)
+            : _isDigitalMode
+            ? _buildDigitalView(theme, session)
+            : _buildActiveView(theme, session),
       ),
     );
   }
@@ -173,13 +190,11 @@ class _SessionScreenState extends State<SessionScreen> {
     final isOvertime = session.isOvertime;
     final displaySeconds = isCountdown
         ? (isOvertime
-            ? session.elapsedSeconds - session.targetSeconds
-            : session.remainingSeconds)
+              ? session.elapsedSeconds - session.targetSeconds
+              : session.remainingSeconds)
         : session.elapsedSeconds;
     final timerPrefix = isOvertime ? '+' : '';
-    final timerColor = isOvertime
-        ? const Color(0xFFF59E0B)
-        : theme.primaryText;
+    final timerColor = isOvertime ? const Color(0xFFF59E0B) : theme.primaryText;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -188,23 +203,18 @@ class _SessionScreenState extends State<SessionScreen> {
           // ── Top bar: close + phase badge + pause/digital ──
           Row(
             children: [
-              GestureDetector(
-                onTap: () => _exitSession(context, session),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.dividerColor),
-                  ),
-                  child: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
-                ),
+              GeistButton.icon(
+                onPressed: () => _exitSession(context, session),
+                icon: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
+                type: GeistButtonType.secondary,
               ),
               const Spacer(),
               // Phase indicator
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: theme.accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -212,12 +222,16 @@ class _SessionScreenState extends State<SessionScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(session.currentPhaseEmoji, style: const TextStyle(fontSize: 14)),
+                    Icon(
+                      session.currentPhaseIcon,
+                      size: 14,
+                      color: theme.accentColor,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       '${_getPhaseLabel(context, session.currentPhase)} · ${session.currentStepNumber}/${session.activePhaseCount}',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: theme.accentColor,
@@ -227,6 +241,25 @@ class _SessionScreenState extends State<SessionScreen> {
                 ),
               ),
               const Spacer(),
+              // Settings button
+              GestureDetector(
+                onTap: () => _showSessionSettings(context),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Icon(
+                    LucideIcons.sliders,
+                    size: 18,
+                    color: theme.primaryText,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               // Pause button
               GestureDetector(
                 onTap: () => session.togglePause(),
@@ -247,7 +280,9 @@ class _SessionScreenState extends State<SessionScreen> {
                   child: Icon(
                     session.isPaused ? LucideIcons.play : LucideIcons.pause,
                     size: 18,
-                    color: session.isPaused ? theme.accentColor : theme.primaryText,
+                    color: session.isPaused
+                        ? theme.accentColor
+                        : theme.primaryText,
                   ),
                 ),
               ),
@@ -259,7 +294,7 @@ class _SessionScreenState extends State<SessionScreen> {
           Text(
             _phaseDetailText(session),
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               color: theme.secondaryText,
             ),
@@ -267,260 +302,84 @@ class _SessionScreenState extends State<SessionScreen> {
           const SizedBox(height: 16),
 
           // ── BIG countdown timer ──
-          Text(
-            '$timerPrefix${_formatTime(displaySeconds)}',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 56,
-              fontWeight: FontWeight.w200,
-              color: timerColor,
-              letterSpacing: 2,
-            ),
-          ),
-          if (session.isPaused)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'PAUSED',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 3,
-                  color: theme.accentColor,
-                ),
-              ),
-            ),
-
-          const SizedBox(height: 8),
-
-          // ── ±1 minute time adjustment ──
-          if (isCountdown)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () => session.adjustTime(-1),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.dividerColor),
-                    ),
-                    child: Icon(LucideIcons.minus, size: 14, color: theme.secondaryText),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    '${(session.targetSeconds / 60).ceil()} min',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: theme.mutedText,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => session.adjustTime(1),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.dividerColor),
-                    ),
-                    child: Icon(LucideIcons.plus, size: 14, color: theme.secondaryText),
-                  ),
-                ),
-              ],
-            ),
-          const SizedBox(height: 16),
-
-          // ── Mutashabihat alert banner ──
-          if (_hasMutashabihat && !_mutBannerDismissed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Text('⚠️', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.overlaySimilarVerses,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: theme.primaryText,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const MutashabihatPracticeScreen(),
-                        ),
-                      ),
-                      child: Text(
-                        'Practice',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFF59E0B),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => setState(() => _mutBannerDismissed = true),
-                      child: Icon(LucideIcons.x, size: 14, color: theme.mutedText),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // ── Guided/Free toggle ──
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              GestureDetector(
-                onTap: () => session.setGuidedMode(true),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: session.isGuidedMode && session.hasRecipes
-                        ? theme.accentColor.withValues(alpha: 0.12)
-                        : Colors.transparent,
-                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
-                    border: Border.all(
-                      color: session.isGuidedMode && session.hasRecipes
-                          ? theme.accentColor.withValues(alpha: 0.3)
-                          : theme.dividerColor,
+              if (isCountdown)
+                GeistButton.icon(
+                  onPressed: () => session.adjustTime(-1),
+                  icon: Icon(LucideIcons.minus, size: 14, color: theme.primaryText),
+                  type: GeistButtonType.secondary,
+                ),
+              if (isCountdown) const SizedBox(width: 24),
+              Column(
+                children: [
+                  Text(
+                    '$timerPrefix${_formatTime(displaySeconds)}',
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 56,
+                      fontWeight: FontWeight.w200,
+                      color: timerColor,
+                      letterSpacing: 2,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        LucideIcons.bookOpen,
-                        size: 13,
-                        color: session.isGuidedMode && session.hasRecipes
-                            ? theme.accentColor
-                            : theme.mutedText,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        AppLocalizations.of(context)!.overlayGuidedMode,
+                  if (session.isPaused)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'PAUSED',
                         style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: session.isGuidedMode && session.hasRecipes
-                              ? theme.accentColor
-                              : theme.mutedText,
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 3,
+                          color: theme.accentColor,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => session.setGuidedMode(false),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: !session.isGuidedMode
-                        ? theme.accentColor.withValues(alpha: 0.12)
-                        : Colors.transparent,
-                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
-                    border: Border.all(
-                      color: !session.isGuidedMode
-                          ? theme.accentColor.withValues(alpha: 0.3)
-                          : theme.dividerColor,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        LucideIcons.move,
-                        size: 13,
-                        color: !session.isGuidedMode
-                            ? theme.accentColor
-                            : theme.mutedText,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        AppLocalizations.of(context)!.overlayFreeMode,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: !session.isGuidedMode
-                              ? theme.accentColor
-                              : theme.mutedText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-              const SizedBox(width: 12),
-              // Physical ↔ Digital mode toggle
-              GestureDetector(
-                onTap: () => setState(() => _isDigitalMode = !_isDigitalMode),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: _isDigitalMode
-                        ? theme.accentColor.withValues(alpha: 0.15)
-                        : theme.cardColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _isDigitalMode
-                          ? theme.accentColor.withValues(alpha: 0.4)
-                          : theme.dividerColor,
-                    ),
-                  ),
-                  child: Icon(
-                    _isDigitalMode ? LucideIcons.hand : LucideIcons.bookOpen,
-                    size: 16,
-                    color: _isDigitalMode ? theme.accentColor : theme.secondaryText,
-                  ),
+              if (isCountdown) const SizedBox(width: 24),
+              if (isCountdown)
+                GeistButton.icon(
+                  onPressed: () => session.adjustTime(1),
+                  icon: Icon(LucideIcons.plus, size: 14, color: theme.primaryText),
+                  type: GeistButtonType.secondary,
                 ),
-              ),
             ],
           ),
+          
+          if (isCountdown)
+             Padding(
+               padding: const EdgeInsets.only(top: 8),
+               child: Text(
+                 '${(session.targetSeconds / 60).ceil()} min',
+                 style: TextStyle(
+                   fontFamily: GeistTypography.primaryFontFamily,
+                   fontSize: 12,
+                   fontWeight: FontWeight.w500,
+                   color: theme.mutedText,
+                 ),
+               ),
+             ),
           const SizedBox(height: 16),
+
 
           // ── Guided recipe view OR Free-mode rep counter ──
           Expanded(
             child: session.isGuidedMode && session.hasRecipes
-                ? const SingleChildScrollView(
-                    child: RecipeGuideWidget(),
-                  )
+                ? const SingleChildScrollView(child: RecipeGuideWidget())
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Rep counter with target
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.cardColor,
                           borderRadius: BorderRadius.circular(16),
@@ -532,7 +391,7 @@ class _SessionScreenState extends State<SessionScreen> {
                             Text(
                               'Reps: ',
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 14,
                                 color: theme.secondaryText,
                               ),
@@ -540,17 +399,18 @@ class _SessionScreenState extends State<SessionScreen> {
                             Text(
                               '${session.repCount}',
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w800,
                                 color: theme.accentColor,
                               ),
                             ),
-                            if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
+                            if (session.currentPhase == SessionPhase.sabaq &&
+                                session.plan != null)
                               Text(
                                 ' / ${session.plan!.sabaqRepetitionTarget}',
                                 style: TextStyle(
-                                  fontFamily: 'Inter',
+                                  fontFamily: GeistTypography.primaryFontFamily,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                   color: theme.mutedText,
@@ -571,24 +431,11 @@ class _SessionScreenState extends State<SessionScreen> {
                             label: 'Skip',
                             onTap: () => session.skipPhase(),
                           ),
-                          GestureDetector(
-                            onTap: () => session.countRep(),
-                            child: Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: theme.accentColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: theme.accentColor.withValues(alpha: 0.3),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(LucideIcons.plus, size: 28, color: Colors.white),
-                            ),
+                          GeistButton.icon(
+                            onPressed: () => session.countRep(),
+                            icon: const Icon(LucideIcons.plus, size: 28),
+                            type: GeistButtonType.primary,
+                            size: GeistButtonSize.large,
                           ),
                           _controlButton(
                             theme,
@@ -602,6 +449,17 @@ class _SessionScreenState extends State<SessionScreen> {
                   ),
           ),
           const SizedBox(height: 16),
+          // ── Open Digital Quran Button ──
+          SizedBox(
+            width: double.infinity,
+            child: GeistButton(
+              onPressed: () => setState(() => _isDigitalMode = true),
+              label: 'Open Digital Quran',
+              prefix: const Icon(LucideIcons.bookOpen, size: 18, color: Colors.white),
+              type: GeistButtonType.primary,
+              size: GeistButtonSize.large,
+            ),
+          ),
         ],
       ),
     );
@@ -616,67 +474,25 @@ class _SessionScreenState extends State<SessionScreen> {
     final pageNumber = session.currentPhase == SessionPhase.sabaq
         ? (session.plan?.sabaqPage ?? 1)
         : session.currentPhase == SessionPhase.sabqi
-            ? (session.plan?.sabqiPages.isNotEmpty == true
-                ? session.plan!.sabqiPages.first
-                : 1)
-            : session.currentPhase == SessionPhase.manzil
-                ? (session.plan?.manzilPages.isNotEmpty == true
-                    ? session.plan!.manzilPages.first
-                    : 1)
-                : 1;
+        ? (session.plan?.sabqiPages.isNotEmpty == true
+              ? session.plan!.sabqiPages.first
+              : 1)
+        : session.currentPhase == SessionPhase.manzil
+        ? (session.plan?.manzilPages.isNotEmpty == true
+              ? session.plan!.manzilPages.first
+              : 1)
+        : 1;
 
-    return Stack(
-      children: [
-        // Full-screen reading canvas with overlay
-        SessionReadingView(
-          pageNumber: pageNumber,
-          showOverlay: true,
-          session: session,
-          onRepTap: () => session.countRep(),
-          onDone: () => session.finishPhase(),
-          onSkip: () => session.skipPhase(),
-          onTogglePause: () => session.togglePause(),
-        ),
-        // Top-left close button + top-right mode toggle
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _exitSession(context, session),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.cardColor.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.dividerColor),
-                    ),
-                    child: Icon(LucideIcons.x, size: 16, color: theme.primaryText),
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(() => _isDigitalMode = false),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.accentColor.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: theme.accentColor.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Icon(LucideIcons.hand, size: 16, color: theme.accentColor),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return SessionReadingView(
+      pageNumber: pageNumber,
+      showOverlay: true,
+      session: session,
+      onRepTap: () => session.countRep(),
+      onDone: () => session.finishPhase(),
+      onSkip: () => session.skipPhase(),
+      onTogglePause: () => session.togglePause(),
+      onMinimize: () => setState(() => _isDigitalMode = false),
+      onExit: () => _exitSession(context, session),
     );
   }
 
@@ -686,7 +502,11 @@ class _SessionScreenState extends State<SessionScreen> {
         final plan = session.plan;
         final lineInfo = plan?.sabaqStartVerse != null
             ? 'from verse ${plan!.sabaqStartVerse}'
-            : AppLocalizations.of(context)!.planPageLines(plan?.sabaqPage ?? 0, plan?.sabaqLineStart ?? 1, plan?.sabaqLineEnd ?? 15);
+            : AppLocalizations.of(context)!.planPageLines(
+                plan?.sabaqPage ?? 0,
+                plan?.sabaqLineStart ?? 1,
+                plan?.sabaqLineEnd ?? 15,
+              );
         return 'Page ${plan?.sabaqPage ?? "?"} · $lineInfo';
       case SessionPhase.sabqi:
         return '${session.plan?.sabqiPages.length ?? 0} pages to review';
@@ -697,33 +517,29 @@ class _SessionScreenState extends State<SessionScreen> {
     }
   }
 
-  Widget _controlButton(ThemeProvider theme,
-      {required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Icon(icon, size: 20, color: theme.secondaryText),
+  Widget _controlButton(
+    ThemeProvider theme, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      children: [
+        GeistButton.icon(
+          onPressed: onTap,
+          icon: Icon(icon, size: 20, color: theme.primaryText),
+          type: GeistButtonType.secondary,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 11,
+            color: theme.mutedText,
           ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 11,
-              color: theme.mutedText,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -738,9 +554,9 @@ class _SessionScreenState extends State<SessionScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '${session.currentPhaseEmoji} ${AppLocalizations.of(context)!.sessionHowDidItGo}',
+            AppLocalizations.of(context)!.sessionHowDidItGo,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -748,25 +564,39 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.sessionRatePerformance(_getPhaseLabel(context, session.currentPhase).toLowerCase()),
+            AppLocalizations.of(context)!.sessionRatePerformance(
+              _getPhaseLabel(context, session.currentPhase).toLowerCase(),
+            ),
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),
           ),
           const SizedBox(height: 32),
-          _assessmentOption(theme, '💪', AppLocalizations.of(context)!.sessionAssessmentStrong,
-              AppLocalizations.of(context)!.sessionAssessmentStrongDesc,
-              () => session.submitAssessment(SelfAssessment.strong)),
+          _assessmentOption(
+            theme,
+            LucideIcons.dumbbell,
+            AppLocalizations.of(context)!.sessionAssessmentStrong,
+            AppLocalizations.of(context)!.sessionAssessmentStrongDesc,
+            () => session.submitAssessment(SelfAssessment.strong),
+          ),
           const SizedBox(height: 12),
-          _assessmentOption(theme, '🤔', AppLocalizations.of(context)!.sessionAssessmentOkay,
-              AppLocalizations.of(context)!.sessionAssessmentOkayDesc,
-              () => session.submitAssessment(SelfAssessment.okay)),
+          _assessmentOption(
+            theme,
+            LucideIcons.helpCircle,
+            AppLocalizations.of(context)!.sessionAssessmentOkay,
+            AppLocalizations.of(context)!.sessionAssessmentOkayDesc,
+            () => session.submitAssessment(SelfAssessment.okay),
+          ),
           const SizedBox(height: 12),
-          _assessmentOption(theme, '😬', AppLocalizations.of(context)!.sessionAssessmentNeedsWork,
-              AppLocalizations.of(context)!.sessionAssessmentNeedsWorkDesc,
-              () => session.submitAssessment(SelfAssessment.needsWork)),
+          _assessmentOption(
+            theme,
+            LucideIcons.alertCircle,
+            AppLocalizations.of(context)!.sessionAssessmentNeedsWork,
+            AppLocalizations.of(context)!.sessionAssessmentNeedsWorkDesc,
+            () => session.submitAssessment(SelfAssessment.needsWork),
+          ),
         ],
       ),
     );
@@ -782,7 +612,11 @@ class _SessionScreenState extends State<SessionScreen> {
     final plan = session.plan;
     final lineInfo = plan?.sabaqStartVerse != null
         ? 'from verse ${plan!.sabaqStartVerse}'
-        : AppLocalizations.of(context)!.planPageLines(plan?.sabaqPage ?? 0, plan?.sabaqLineStart ?? 1, plan?.sabaqLineEnd ?? 15);
+        : AppLocalizations.of(context)!.planPageLines(
+            plan?.sabaqPage ?? 0,
+            plan?.sabaqLineStart ?? 1,
+            plan?.sabaqLineEnd ?? 15,
+          );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -790,9 +624,9 @@ class _SessionScreenState extends State<SessionScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '📖 ${AppLocalizations.of(context)!.coverageHowMuch}',
+            AppLocalizations.of(context)!.coverageHowMuch,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -800,9 +634,11 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.coveragePlanned(sabaqPage.toString(), lineInfo),
+            AppLocalizations.of(
+              context,
+            )!.coveragePlanned(sabaqPage.toString(), lineInfo),
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),
@@ -812,9 +648,11 @@ class _SessionScreenState extends State<SessionScreen> {
           // Option 1: Full page (all planned lines)
           _coverageOption(
             theme,
-            '✅',
+            LucideIcons.checkCircle2,
             AppLocalizations.of(context)!.coverageAllLines,
-            AppLocalizations.of(context)!.coverageAllLinesDesc(sabaqPage.toString(), lineInfo),
+            AppLocalizations.of(
+              context,
+            )!.coverageAllLinesDesc(sabaqPage.toString(), lineInfo),
             () => session.setActualCoverage([sabaqPage]),
           ),
           const SizedBox(height: 12),
@@ -822,7 +660,7 @@ class _SessionScreenState extends State<SessionScreen> {
           // Option 2: Partial page (CE-9 with verse picker)
           _coverageOption(
             theme,
-            '📄',
+            LucideIcons.fileText,
             AppLocalizations.of(context)!.coveragePartOfPage,
             AppLocalizations.of(context)!.coveragePartOfPageDesc,
             () => _showVerseRangePicker(theme, session, sabaqPage),
@@ -832,7 +670,7 @@ class _SessionScreenState extends State<SessionScreen> {
           // Option 3: More than planned
           _coverageOption(
             theme,
-            '📚',
+            LucideIcons.library,
             AppLocalizations.of(context)!.coverageMoreThanPlanned,
             AppLocalizations.of(context)!.coverageMoreThanPlannedDesc,
             () => _showPageRangePicker(theme, session, sabaqPage),
@@ -842,8 +680,13 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  Widget _coverageOption(ThemeProvider theme, String emoji, String title,
-      String subtitle, VoidCallback onTap) {
+  Widget _coverageOption(
+    ThemeProvider theme,
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -856,7 +699,7 @@ class _SessionScreenState extends State<SessionScreen> {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 28)),
+            Icon(icon, size: 28, color: theme.accentColor),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -865,7 +708,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -874,7 +717,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
@@ -889,7 +732,10 @@ class _SessionScreenState extends State<SessionScreen> {
   }
 
   void _showPageRangePicker(
-      ThemeProvider theme, SessionProvider session, int sabaqPage) {
+    ThemeProvider theme,
+    SessionProvider session,
+    int sabaqPage,
+  ) {
     _coverageEndPage = sabaqPage + 1; // Default to one extra page
 
     showModalBottomSheet(
@@ -910,7 +756,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     'Pages covered',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -920,7 +766,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     'Page $sabaqPage to $_coverageEndPage ($pageCount pages)',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.secondaryText,
                     ),
@@ -934,35 +780,24 @@ class _SessionScreenState extends State<SessionScreen> {
                     activeColor: theme.accentColor,
                     label: 'Page $_coverageEndPage',
                     onChanged: (v) => setSheetState(
-                        () => _coverageEndPage = v.round().clamp(1, 604)),
+                      () => _coverageEndPage = v.round().clamp(1, 604),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () {
-                      final pages = List.generate(
-                        _coverageEndPage - sabaqPage + 1,
-                        (i) => sabaqPage + i,
-                      );
-                      Navigator.of(ctx).pop();
-                      session.setActualCoverage(pages);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: theme.accentColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Confirm — $pageCount page${pageCount > 1 ? 's' : ''}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: GeistButton(
+                      onPressed: () {
+                        final pages = List.generate(
+                          _coverageEndPage - sabaqPage + 1,
+                          (i) => sabaqPage + i,
+                        );
+                        Navigator.of(ctx).pop();
+                        session.setActualCoverage(pages);
+                      },
+                      label: 'Confirm — $pageCount page${pageCount > 1 ? 's' : ''}',
+                      type: GeistButtonType.primary,
+                      size: GeistButtonSize.large,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -975,17 +810,16 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  // CE-9: Verse-level partial page picker — auto-detects verse count from API
+  // CE-9: Verse-level partial page picker — auto-detects verse count from local data
   void _showVerseRangePicker(
-      ThemeProvider theme, SessionProvider session, int sabaqPage) async {
-    // Fetch actual verse count from API
+    ThemeProvider theme,
+    SessionProvider session,
+    int sabaqPage,
+  ) {
+    // Get actual verse count from local data (instant)
     final quranProvider = context.read<QuranReadingProvider>();
-    try {
-      final verses = await quranProvider.getPageVerses(sabaqPage);
-      _totalVersesOnPage = verses.length;
-    } catch (_) {
-      _totalVersesOnPage = 15; // Fallback if API fails
-    }
+    final verses = quranProvider.getPageVerses(sabaqPage);
+    _totalVersesOnPage = verses.length;
 
     // If carry-over from previous session, start from that verse
     final startVerse = session.plan?.sabaqStartVerse ?? 1;
@@ -1010,7 +844,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     'Verses covered on Page $sabaqPage',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -1021,7 +855,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     '$_totalVersesOnPage verses on this page'
                     '${startVerse > 1 ? ' · starting from verse $startVerse' : ''}',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
@@ -1031,17 +865,23 @@ class _SessionScreenState extends State<SessionScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(AppLocalizations.of(context)!.sessionLastVerseLearned,
-                          style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 13,
-                              color: theme.secondaryText)),
-                      Text('${AppLocalizations.of(context)!.readingVerse} $_lastVerseLearned',
-                          style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: theme.accentColor)),
+                      Text(
+                        AppLocalizations.of(context)!.sessionLastVerseLearned,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 13,
+                          color: theme.secondaryText,
+                        ),
+                      ),
+                      Text(
+                        '${AppLocalizations.of(context)!.readingVerse} $_lastVerseLearned',
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.accentColor,
+                        ),
+                      ),
                     ],
                   ),
                   Slider(
@@ -1051,8 +891,8 @@ class _SessionScreenState extends State<SessionScreen> {
                     divisions: (_totalVersesOnPage - startVerse).clamp(1, 100),
                     activeColor: theme.accentColor,
                     label: 'Verse $_lastVerseLearned',
-                    onChanged: (v) => setSheetState(
-                        () => _lastVerseLearned = v.round()),
+                    onChanged: (v) =>
+                        setSheetState(() => _lastVerseLearned = v.round()),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -1060,44 +900,32 @@ class _SessionScreenState extends State<SessionScreen> {
                         ? 'Full page covered ✅'
                         : 'Next time starts from verse ${_lastVerseLearned + 1}',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(ctx).pop();
-                      if (_lastVerseLearned >= _totalVersesOnPage) {
-                        // Full page — no verse tracking needed
-                        session.setActualCoverage([sabaqPage]);
-                      } else {
-                        // Partial page — save verse progress
-                        session.setActualCoverage(
-                          [sabaqPage],
-                          lastVerseLearned: _lastVerseLearned,
-                          totalVersesOnPage: _totalVersesOnPage,
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: theme.accentColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Confirm — verse${startVerse > 1 ? 's $startVerse' : ' 1'} to $_lastVerseLearned',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: GeistButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        if (_lastVerseLearned >= _totalVersesOnPage) {
+                          // Full page — no verse tracking needed
+                          session.setActualCoverage([sabaqPage]);
+                        } else {
+                          // Partial page — save verse progress
+                          session.setActualCoverage(
+                            [sabaqPage],
+                            lastVerseLearned: _lastVerseLearned,
+                            totalVersesOnPage: _totalVersesOnPage,
+                          );
+                        }
+                      },
+                      label: 'Confirm — verse${startVerse > 1 ? 's $startVerse' : ' 1'} to $_lastVerseLearned',
+                      type: GeistButtonType.primary,
+                      size: GeistButtonSize.large,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1110,8 +938,13 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  Widget _assessmentOption(ThemeProvider theme, String emoji, String title,
-      String subtitle, VoidCallback onTap) {
+  Widget _assessmentOption(
+    ThemeProvider theme,
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1124,7 +957,7 @@ class _SessionScreenState extends State<SessionScreen> {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 28)),
+            Icon(icon, size: 28, color: theme.accentColor),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -1133,7 +966,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -1142,7 +975,7 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
@@ -1166,12 +999,12 @@ class _SessionScreenState extends State<SessionScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🎉', style: TextStyle(fontSize: 64)),
+          Icon(LucideIcons.partyPopper, size: 64, color: theme.accentColor),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.completeSessionComplete,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 26,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -1181,7 +1014,7 @@ class _SessionScreenState extends State<SessionScreen> {
           Text(
             _getCompletionMessage(),
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),
@@ -1199,28 +1032,48 @@ class _SessionScreenState extends State<SessionScreen> {
             ),
             child: Column(
               children: [
-                _summaryRow(theme, '⏱', AppLocalizations.of(context)!.completeTimeSpent,
-                    _formatTime(session.elapsedSeconds)),
+                _summaryRow(
+                  theme,
+                  LucideIcons.clock,
+                  AppLocalizations.of(context)!.completeTimeSpent,
+                  _formatTime(session.elapsedSeconds),
+                ),
                 const SizedBox(height: 12),
-                _summaryRow(theme, '🔄', AppLocalizations.of(context)!.completeTotalReps,
-                    '${session.totalRepCount}'),
+                _summaryRow(
+                  theme,
+                  LucideIcons.rotateCcw,
+                  AppLocalizations.of(context)!.completeTotalReps,
+                  '${session.totalRepCount}',
+                ),
                 if (session.sabaqAssessment != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: _summaryRow(theme, '📖', 'Sabaq',
-                        _assessmentLabel(session.sabaqAssessment!)),
+                    child: _summaryRow(
+                      theme,
+                      LucideIcons.bookOpen,
+                      'Sabaq',
+                      _assessmentLabel(session.sabaqAssessment!),
+                    ),
                   ),
                 if (session.sabqiAssessment != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: _summaryRow(theme, '🔁', 'Sabqi',
-                        _assessmentLabel(session.sabqiAssessment!)),
+                    child: _summaryRow(
+                      theme,
+                      LucideIcons.repeat,
+                      'Sabqi',
+                      _assessmentLabel(session.sabqiAssessment!),
+                    ),
                   ),
                 if (session.manzilAssessment != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: _summaryRow(theme, '📚', 'Manzil',
-                        _assessmentLabel(session.manzilAssessment!)),
+                    child: _summaryRow(
+                      theme,
+                      LucideIcons.library,
+                      'Manzil',
+                      _assessmentLabel(session.manzilAssessment!),
+                    ),
                   ),
               ],
             ),
@@ -1239,20 +1092,28 @@ class _SessionScreenState extends State<SessionScreen> {
                   decoration: BoxDecoration(
                     color: theme.accentColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.accentColor.withValues(alpha: 0.15)),
+                    border: Border.all(
+                      color: theme.accentColor.withValues(alpha: 0.15),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Text('🌅', style: const TextStyle(fontSize: 20)),
+                      Icon(
+                        LucideIcons.sunrise,
+                        size: 20,
+                        color: theme.accentColor,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              AppLocalizations.of(context)!.completeTomorrowsPreview,
+                              AppLocalizations.of(
+                                context,
+                              )!.completeTomorrowsPreview,
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: theme.accentColor,
@@ -1262,7 +1123,7 @@ class _SessionScreenState extends State<SessionScreen> {
                             Text(
                               snapshot.data!,
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 12,
                                 color: theme.secondaryText,
                               ),
@@ -1286,38 +1147,24 @@ class _SessionScreenState extends State<SessionScreen> {
               if (due <= 0) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const FlashcardReviewScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: theme.accentColor.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('🃏', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 8),
-                        Text(
-                          AppLocalizations.of(context)!.completePracticeFlashcards(due),
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: theme.accentColor,
-                          ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GeistButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const FlashcardReviewScreen(),
                         ),
-                      ],
+                      );
+                    },
+                    label: AppLocalizations.of(context)!.completePracticeFlashcards(due),
+                    prefix: Icon(
+                      LucideIcons.layers,
+                      size: 16,
+                      color: theme.primaryText,
                     ),
+                    type: GeistButtonType.secondary,
+                    size: GeistButtonSize.large,
                   ),
                 ),
               );
@@ -1325,51 +1172,32 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
 
           // Back to Dashboard
-          GestureDetector(
-            onTap: () async {
-              await session.completeSession();
-              // Phase 1.9: Smart-skip today's notification
-              if (mounted) {
-                context.read<NotificationProvider>().onSessionCompleted();
-              }
-              // Mark the CURRENT plan as completed first,
-              // then regenerate so the next session picks up
-              // the advanced page/line range.
-              if (mounted) {
-                final profile = context.read<HifzProfileProvider>();
-                final planProvider = context.read<PlanProvider>();
-                await planProvider.completePlan();
-                if (profile.activeProfile != null) {
-                  await planProvider.regeneratePlan(profile.activeProfile!);
+          SizedBox(
+            width: double.infinity,
+            child: GeistButton(
+              onPressed: () async {
+                await session.completeSession();
+                // Phase 1.9: Smart-skip today's notification
+                if (mounted) {
+                  context.read<NotificationProvider>().onSessionCompleted();
                 }
-                await profile.refresh();
-                if (mounted) Navigator.of(context).pop();
-              }
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: theme.accentColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.accentColor.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.completeBackToDashboard,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
+                // Mark the CURRENT plan as completed first,
+                // then regenerate so the next session picks up
+                // the advanced page/line range.
+                if (mounted) {
+                  final profile = context.read<HifzProfileProvider>();
+                  final planProvider = context.read<PlanProvider>();
+                  await planProvider.completePlan();
+                  if (profile.activeProfile != null) {
+                    await planProvider.regeneratePlan(profile.activeProfile!);
+                  }
+                  await profile.refresh();
+                  if (mounted) Navigator.of(context).pop();
+                }
+              },
+              label: AppLocalizations.of(context)!.completeBackToDashboard,
+              type: GeistButtonType.primary,
+              size: GeistButtonSize.large,
             ),
           ),
         ],
@@ -1377,16 +1205,21 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  Widget _summaryRow(ThemeProvider theme, String emoji, String label, String value) {
+  Widget _summaryRow(
+    ThemeProvider theme,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+        Icon(icon, size: 18, color: theme.accentColor),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),
@@ -1395,7 +1228,7 @@ class _SessionScreenState extends State<SessionScreen> {
         Text(
           value,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: theme.primaryText,
@@ -1407,9 +1240,12 @@ class _SessionScreenState extends State<SessionScreen> {
 
   String _assessmentLabel(SelfAssessment a) {
     switch (a) {
-      case SelfAssessment.strong: return '💪 ${AppLocalizations.of(context)!.sessionAssessmentStrong}';
-      case SelfAssessment.okay: return '🤔 ${AppLocalizations.of(context)!.sessionAssessmentOkay}';
-      case SelfAssessment.needsWork: return '😬 ${AppLocalizations.of(context)!.sessionAssessmentNeedsWork}';
+      case SelfAssessment.strong:
+        return AppLocalizations.of(context)!.sessionAssessmentStrong;
+      case SelfAssessment.okay:
+        return AppLocalizations.of(context)!.sessionAssessmentOkay;
+      case SelfAssessment.needsWork:
+        return AppLocalizations.of(context)!.sessionAssessmentNeedsWork;
     }
   }
 
@@ -1428,17 +1264,21 @@ class _SessionScreenState extends State<SessionScreen> {
         title: Text(AppLocalizations.of(context)!.sessionExitTitle),
         content: Text(AppLocalizations.of(context)!.sessionExitDesc),
         actions: [
-          TextButton(
+          GeistButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(AppLocalizations.of(context)!.actionContinue),
+            label: AppLocalizations.of(context)!.actionContinue,
+            type: GeistButtonType.tertiary,
+            size: GeistButtonSize.small,
           ),
-          TextButton(
+          GeistButton(
             onPressed: () {
               session.clearSession();
               Navigator.of(ctx).pop();
               Navigator.of(context).pop();
             },
-            child: Text(AppLocalizations.of(context)!.actionExit),
+            label: AppLocalizations.of(context)!.actionExit,
+            type: GeistButtonType.error,
+            size: GeistButtonSize.small,
           ),
         ],
       ),
@@ -1469,7 +1309,7 @@ class _SessionScreenState extends State<SessionScreen> {
 
       // Time-based encouragement
       if (minutes >= 30) {
-        return 'Masha\'Allah! $minutes minutes of focused memorization. Your dedication is inspiring! 💪';
+        return 'Masha\'Allah! $minutes minutes of focused memorization. Your dedication is inspiring!';
       }
       if (minutes >= 15) {
         return AppLocalizations.of(context)!.feedbackTime(minutes);
@@ -1497,10 +1337,14 @@ class _SessionScreenState extends State<SessionScreen> {
 
   String _getPhaseLabel(BuildContext context, SessionPhase phase) {
     switch (phase) {
-      case SessionPhase.sabaq: return AppLocalizations.of(context)!.phaseSabaq;
-      case SessionPhase.sabqi: return AppLocalizations.of(context)!.phaseSabqi;
-      case SessionPhase.manzil: return AppLocalizations.of(context)!.phaseManzil;
-      case SessionPhase.flashcards: return AppLocalizations.of(context)!.phaseFlashcards;
+      case SessionPhase.sabaq:
+        return AppLocalizations.of(context)!.phaseSabaq;
+      case SessionPhase.sabqi:
+        return AppLocalizations.of(context)!.phaseSabqi;
+      case SessionPhase.manzil:
+        return AppLocalizations.of(context)!.phaseManzil;
+      case SessionPhase.flashcards:
+        return AppLocalizations.of(context)!.phaseFlashcards;
     }
   }
 }

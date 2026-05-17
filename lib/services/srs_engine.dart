@@ -40,7 +40,9 @@ class SrsEngine {
 
     final now = DateTime.now();
     final nextDue = DateTime(
-      now.year, now.month, now.day,
+      now.year,
+      now.month,
+      now.day,
     ).add(Duration(days: newInterval.round()));
 
     return card.copyWith(

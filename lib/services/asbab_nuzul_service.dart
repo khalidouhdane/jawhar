@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// A single asbab al-nuzul entry: the occasion(s) of revelation for specific
 /// ayahs within a surah.
@@ -66,29 +66,28 @@ class AsbabNuzulService {
       // Try loading from local cache first
       final cacheFile = await _getCacheFile();
       if (await cacheFile.exists()) {
-        debugPrint('AsbabNuzulService: Loading from local cache');
+        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Loading from local cache');
         jsonString = await cacheFile.readAsString();
       } else {
         // Download from GitHub
-        debugPrint('AsbabNuzulService: Downloading dataset from GitHub...');
+        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Downloading dataset from GitHub...');
         jsonString = await _downloadDataset();
         if (jsonString != null) {
           // Save to local cache
           await cacheFile.writeAsString(jsonString);
-          debugPrint('AsbabNuzulService: Dataset cached locally');
+          AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Dataset cached locally');
         }
       }
 
       if (jsonString != null) {
         _parseDataset(jsonString);
         _isLoaded = true;
-        debugPrint(
-          'AsbabNuzulService: Loaded ${_entries.length} entries, '
+        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Loaded ${_entries.length} entries, '
           '${_lookup.length} verse keys indexed',
         );
       }
     } catch (e) {
-      debugPrint('AsbabNuzulService: Error importing dataset: $e');
+      AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Error importing dataset: $e');
     } finally {
       _isLoading = false;
     }
@@ -141,12 +140,11 @@ class AsbabNuzulService {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        debugPrint(
-          'AsbabNuzulService: Download failed: ${response.statusCode}',
+        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Download failed: ${response.statusCode}',
         );
       }
     } catch (e) {
-      debugPrint('AsbabNuzulService: Download error: $e');
+      AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Download error: $e');
     }
     return null;
   }

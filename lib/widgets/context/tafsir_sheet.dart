@@ -82,7 +82,9 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
     // Load detailed tafsir on demand
     _tabController.addListener(() {
       if (!mounted) return;
-      if (_tabController.index == 1 && _detailedTafsir == null && !_isLoadingDetailed) {
+      if (_tabController.index == 1 &&
+          _detailedTafsir == null &&
+          !_isLoadingDetailed) {
         widget.contextProvider.loadDetailedTafsir(widget.verseKey);
       }
     });
@@ -118,16 +120,10 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
         return Container(
           decoration: BoxDecoration(
             color: theme.sheetBackground,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(20),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(
+              top: BorderSide(color: theme.dividerColor, width: 0.5),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.shadowColor,
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
           ),
           child: Column(
             children: [
@@ -166,7 +162,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                         children: [
                           Text(
                             'Tafsir — ${widget.verseKey}',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.ibmPlexSansArabic(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               color: theme.primaryText,
@@ -175,7 +171,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                           if (widget.surahName != null)
                             Text(
                               widget.surahName!,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.ibmPlexSansArabic(
                                 fontSize: 12,
                                 color: theme.secondaryText,
                               ),
@@ -214,11 +210,11 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                   dividerColor: Colors.transparent,
                   labelColor: theme.chipSelectedText,
                   unselectedLabelColor: theme.secondaryText,
-                  labelStyle: GoogleFonts.inter(
+                  labelStyle: GoogleFonts.ibmPlexSansArabic(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
-                  unselectedLabelStyle: GoogleFonts.inter(
+                  unselectedLabelStyle: GoogleFonts.ibmPlexSansArabic(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -251,10 +247,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                       emptyMessage: 'Tap the Detailed tab to load.',
                       theme: theme,
                     ),
-                    _OccasionView(
-                      occasions: _occasions,
-                      theme: theme,
-                    ),
+                    _OccasionView(occasions: _occasions, theme: theme),
                   ],
                 ),
               ),
@@ -297,9 +290,15 @@ class _TafsirTextView extends StatelessWidget {
           text!,
           style: isArabic
               ? GoogleFonts.amiri(
-                  fontSize: 18, height: 2.0, color: theme.primaryText)
-              : GoogleFonts.inter(
-                  fontSize: 15, height: 1.8, color: theme.primaryText),
+                  fontSize: 18,
+                  height: 2.0,
+                  color: theme.primaryText,
+                )
+              : GoogleFonts.ibmPlexSansArabic(
+                  fontSize: 15,
+                  height: 1.8,
+                  color: theme.primaryText,
+                ),
           textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
         ),
       ),
@@ -339,7 +338,10 @@ class _TafsirTextView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               emptyMessage,
-              style: GoogleFonts.inter(fontSize: 14, color: theme.secondaryText),
+              style: GoogleFonts.ibmPlexSansArabic(
+                fontSize: 14,
+                color: theme.secondaryText,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -354,10 +356,7 @@ class _OccasionView extends StatelessWidget {
   final List<String>? occasions;
   final ThemeProvider theme;
 
-  const _OccasionView({
-    required this.occasions,
-    required this.theme,
-  });
+  const _OccasionView({required this.occasions, required this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -390,8 +389,10 @@ class _OccasionView extends StatelessWidget {
                 const Spacer(),
                 Text(
                   '${occasions!.length} ${occasions!.length == 1 ? 'narration' : 'narrations'}',
-                  style: GoogleFonts.inter(
-                    fontSize: 11, color: theme.secondaryText),
+                  style: GoogleFonts.ibmPlexSansArabic(
+                    fontSize: 11,
+                    color: theme.secondaryText,
+                  ),
                 ),
               ],
             ),
@@ -421,7 +422,10 @@ class _OccasionView extends StatelessWidget {
                   child: Text(
                     text,
                     style: GoogleFonts.amiri(
-                      fontSize: 17, height: 2.0, color: theme.primaryText),
+                      fontSize: 17,
+                      height: 2.0,
+                      color: theme.primaryText,
+                    ),
                     textDirection: TextDirection.rtl,
                   ),
                 ),
@@ -451,7 +455,10 @@ class _OccasionView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'No occasion of revelation recorded\nfor this verse.',
-              style: GoogleFonts.inter(fontSize: 14, color: theme.secondaryText),
+              style: GoogleFonts.ibmPlexSansArabic(
+                fontSize: 14,
+                color: theme.secondaryText,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

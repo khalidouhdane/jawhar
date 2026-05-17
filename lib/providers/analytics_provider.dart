@@ -29,8 +29,9 @@ class AnalyticsProvider extends ChangeNotifier {
 
   WeeklySnapshot? get currentWeek => _currentWeek;
   WeeklySnapshot? get previousWeek => _previousWeek;
-  List<Suggestion> get activeSuggestions =>
-      _activeSuggestions.where((s) => s.action == SuggestionAction.pending).toList();
+  List<Suggestion> get activeSuggestions => _activeSuggestions
+      .where((s) => s.action == SuggestionAction.pending)
+      .toList();
   List<Suggestion> get allSuggestions => _activeSuggestions;
   Map<String, dynamic>? get paceData => _paceData;
   bool get isLoading => _isLoading;
@@ -42,7 +43,10 @@ class AnalyticsProvider extends ChangeNotifier {
 
   /// Load all analytics data for a profile.
   /// Call this when the dashboard loads or when the user opens analytics.
-  Future<void> loadAnalytics(MemoryProfile profile, {int totalSessionCount = 0}) async {
+  Future<void> loadAnalytics(
+    MemoryProfile profile, {
+    int totalSessionCount = 0,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -108,8 +112,8 @@ class AnalyticsProvider extends ChangeNotifier {
       }
 
       // Generate smart notifications
-      final smartNotifications =
-          await _notificationService.generateSmartNotifications(profile.id);
+      final smartNotifications = await _notificationService
+          .generateSmartNotifications(profile.id);
 
       // Merge, keeping existing dismissed/accepted state
       _mergeSuggestions([...calibrationSuggestions, ...smartNotifications]);
@@ -198,9 +202,11 @@ class AnalyticsProvider extends ChangeNotifier {
   /// Preserves dismissed/accepted status for matching types.
   void _mergeSuggestions(List<Suggestion> newSuggestions) {
     final dismissedTypes = _activeSuggestions
-        .where((s) =>
-            s.action == SuggestionAction.dismissed ||
-            s.action == SuggestionAction.accepted)
+        .where(
+          (s) =>
+              s.action == SuggestionAction.dismissed ||
+              s.action == SuggestionAction.accepted,
+        )
         .map((s) => s.type)
         .toSet();
 

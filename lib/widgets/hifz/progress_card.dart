@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
 
 /// Dashboard card showing rich memorization progress summary.
 /// CE-10: Shows active juz progress bar, pace, streak, last session.
@@ -15,7 +16,7 @@ class ProgressCard extends StatelessWidget {
   final StreakData? streak;
   final int? currentJuz;
   final int? currentJuzProgress; // pages memorized in current juz
-  final int? currentJuzTotal;    // total pages in current juz
+  final int? currentJuzTotal; // total pages in current juz
   final SessionRecord? lastSession;
   final double? pagesPerWeek;
 
@@ -48,8 +49,8 @@ class ProgressCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor),
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          boxShadow: theme.shadowCard,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,47 +58,65 @@ class ProgressCard extends StatelessWidget {
             // Header
             Row(
               children: [
-                Icon(LucideIcons.trendingUp, size: 16, color: theme.accentColor),
+                Icon(
+                  LucideIcons.trendingUp,
+                  size: 16,
+                  color: theme.accentColor,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   AppLocalizations.of(context)!.progYourProgress,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: theme.primaryText,
-                  ),
+                  style: theme.textBodyStrong,
                 ),
                 const Spacer(),
                 // Streak (CE-10.4)
                 if (activeDays > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: SemanticColors.practiceAmber.bg(theme.isDark),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
-                      '🔥 $activeDays ${AppLocalizations.of(context)!.progressDays}',
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.orange,
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.flame,
+                          size: 12,
+                          color: SemanticColors.practiceAmber.fg(theme.isDark),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$activeDays ${AppLocalizations.of(context)!.progressDays}',
+                          style: theme.textCaption.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: SemanticColors.practiceAmber.fg(
+                              theme.isDark,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 if (onTap != null)
                   Padding(
                     padding: const EdgeInsets.only(left: 6),
-                    child: Icon(LucideIcons.chevronRight, size: 16, color: theme.mutedText),
+                    child: Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: theme.mutedText,
+                    ),
                   ),
               ],
             ),
             const SizedBox(height: 14),
 
             // Active juz progress bar (CE-10.1)
-            if (currentJuz != null && currentJuzTotal != null && currentJuzTotal! > 0) ...[
+            if (currentJuz != null &&
+                currentJuzTotal != null &&
+                currentJuzTotal! > 0) ...[
               _buildJuzProgress(context),
               const SizedBox(height: 14),
             ],
@@ -117,12 +136,16 @@ class ProgressCard extends StatelessWidget {
                     if (reviewing > 0)
                       Expanded(
                         flex: reviewing,
-                        child: Container(color: theme.accentColor.withValues(alpha: 0.5)),
+                        child: Container(
+                          color: theme.accentColor.withValues(alpha: 0.5),
+                        ),
                       ),
                     if (learning > 0)
                       Expanded(
                         flex: learning,
-                        child: Container(color: theme.accentColor.withValues(alpha: 0.25)),
+                        child: Container(
+                          color: theme.accentColor.withValues(alpha: 0.25),
+                        ),
                       ),
                     Expanded(
                       flex: (604 - total).clamp(1, 604),
@@ -136,11 +159,7 @@ class ProgressCard extends StatelessWidget {
             // Percentage label
             Text(
               '${(total / 604 * 100).toStringAsFixed(1)}% ${AppLocalizations.of(context)!.progOfQuran} · $total/604 ${AppLocalizations.of(context)!.progPages}',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 10,
-                color: theme.mutedText,
-              ),
+              style: theme.textCaption.copyWith(color: theme.mutedText),
             ),
             const SizedBox(height: 14),
 
@@ -148,16 +167,36 @@ class ProgressCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _statItem('$memorized', AppLocalizations.of(context)!.progMemorized, Colors.green),
+                _statItem(
+                  '$memorized',
+                  AppLocalizations.of(context)!.progMemorized,
+                  SemanticColors.progressMemorized,
+                ),
                 _statDivider(),
-                _statItem('$reviewing', AppLocalizations.of(context)!.progReviewing, Colors.blue),
+                _statItem(
+                  '$reviewing',
+                  AppLocalizations.of(context)!.progReviewing,
+                  SemanticColors.progressReviewing,
+                ),
                 _statDivider(),
-                _statItem('$learning', AppLocalizations.of(context)!.progLearning, Colors.orange),
+                _statItem(
+                  '$learning',
+                  AppLocalizations.of(context)!.progLearning,
+                  SemanticColors.progressLearning,
+                ),
                 _statDivider(),
                 if (pagesPerWeek != null) ...[
-                  _statItem(pagesPerWeek!.toStringAsFixed(1), AppLocalizations.of(context)!.progPagesPerWeek, theme.accentColor),
+                  _statItem(
+                    pagesPerWeek!.toStringAsFixed(1),
+                    AppLocalizations.of(context)!.progPagesPerWeek,
+                    theme.accentColor,
+                  ),
                 ] else ...[
-                  _statItem('$activeDays', AppLocalizations.of(context)!.progActiveDays, theme.accentColor),
+                  _statItem(
+                    '$activeDays',
+                    AppLocalizations.of(context)!.progActiveDays,
+                    theme.accentColor,
+                  ),
                 ],
               ],
             ),
@@ -182,7 +221,7 @@ class ProgressCard extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: theme.accentColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(theme.radiusMd),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,9 +230,7 @@ class ProgressCard extends StatelessWidget {
             children: [
               Text(
                 '${AppLocalizations.of(context)!.readTabJuz} $currentJuz',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
+                style: theme.textCaption.copyWith(
                   fontWeight: FontWeight.w700,
                   color: theme.primaryText,
                 ),
@@ -201,9 +238,7 @@ class ProgressCard extends StatelessWidget {
               const Spacer(),
               Text(
                 '$pct% · $progress/$total pages',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
+                style: theme.textCaption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.accentColor,
                 ),
@@ -227,7 +262,8 @@ class ProgressCard extends StatelessWidget {
 
   Widget _buildLastSession(BuildContext context) {
     final session = lastSession!;
-    final time = '${session.date.hour.toString().padLeft(2, '0')}:'
+    final time =
+        '${session.date.hour.toString().padLeft(2, '0')}:'
         '${session.date.minute.toString().padLeft(2, '0')}';
     final assessment = session.sabaqAssessment != null
         ? _assessmentText(context, session.sabaqAssessment!)
@@ -237,7 +273,7 @@ class ProgressCard extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: theme.scaffoldBackground,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(theme.radiusMd),
       ),
       child: Row(
         children: [
@@ -245,18 +281,12 @@ class ProgressCard extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '${AppLocalizations.of(context)!.progressLast}: $time · ${session.durationMinutes}${AppLocalizations.of(context)!.timeMin}',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 11,
-              color: theme.secondaryText,
-            ),
+            style: theme.textCaption.copyWith(color: theme.secondaryText),
           ),
           if (session.sabaqPage != null) ...[
             Text(
               ' · p.${session.sabaqPage}',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 11,
+              style: theme.textCaption.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.primaryText,
               ),
@@ -266,11 +296,7 @@ class ProgressCard extends StatelessWidget {
             const Spacer(),
             Text(
               assessment,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 10,
-                color: theme.accentColor,
-              ),
+              style: theme.textMicroBadge.copyWith(color: theme.accentColor),
             ),
           ],
         ],
@@ -282,7 +308,9 @@ class ProgressCard extends StatelessWidget {
     return switch (a) {
       SelfAssessment.strong => AppLocalizations.of(context)!.progAssStrong,
       SelfAssessment.okay => AppLocalizations.of(context)!.progAssOkay,
-      SelfAssessment.needsWork => AppLocalizations.of(context)!.progAssNeedsWork,
+      SelfAssessment.needsWork => AppLocalizations.of(
+        context,
+      )!.progAssNeedsWork,
     };
   }
 
@@ -291,22 +319,16 @@ class ProgressCard extends StatelessWidget {
       children: [
         Text(
           value,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 20,
+          style: theme.textBodyLarge.copyWith(
             fontWeight: FontWeight.w800,
             color: color,
+            height: 1.0,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-            color: theme.mutedText,
-          ),
+          style: theme.textMicroBadge.copyWith(color: theme.mutedText),
         ),
       ],
     );

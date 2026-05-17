@@ -5,13 +5,13 @@
 
 /// Age group — affects session length, daily load ceiling, and UI tone.
 enum AgeGroup {
-  child,       // 7-12: fastest absorption, short attention span
-  teen,        // 13-17: strong memory, moderate attention
-  youngAdult,  // 18-30: peak cognitive, can handle aggressive plans
-  adult,       // 31-45: good memory, busier schedules
-  middleAged,  // 46-55: slower encoding, stronger discipline
-  senior,      // 56-70: noticeably slower, shorter sessions
-  elderly,     // 71+: fragile retention, very gentle pace
+  child, // 7-12: fastest absorption, short attention span
+  teen, // 13-17: strong memory, moderate attention
+  youngAdult, // 18-30: peak cognitive, can handle aggressive plans
+  adult, // 31-45: good memory, busier schedules
+  middleAged, // 46-55: slower encoding, stronger discipline
+  senior, // 56-70: noticeably slower, shorter sessions
+  elderly, // 71+: fragile retention, very gentle pace
 }
 
 /// Pace preference — how aggressively the user wants to progress.
@@ -55,7 +55,8 @@ class MemoryProfile {
   final String name;
   final int avatarIndex;
   final DateTime createdAt;
-  final int age; // Actual age (7-100)
+  final DateTime? birthday; // NEW: stored, nullable for migration
+  final int _ageFallback; // Legacy age value for old profiles without birthday
   final AgeGroup ageGroup;
   final EncodingSpeed encodingSpeed;
   final RetentionStrength retentionStrength;
@@ -73,12 +74,36 @@ class MemoryProfile {
   final PacePreference pacePreference;
   final HifzExperience hifzExperience;
 
+  /// Computed age from birthday. Falls back to stored age for legacy profiles.
+  int get age {
+    if (birthday == null) return _ageFallback;
+    final now = DateTime.now();
+    int years = now.year - birthday!.year;
+    if (now.month < birthday!.month ||
+        (now.month == birthday!.month && now.day < birthday!.day)) {
+      years--;
+    }
+    return years.clamp(7, 100);
+  }
+
+  /// Static helper to calculate age from a birthday for use before profile creation.
+  static int calculateAge(DateTime birthday) {
+    final now = DateTime.now();
+    int years = now.year - birthday.year;
+    if (now.month < birthday.month ||
+        (now.month == birthday.month && now.day < birthday.day)) {
+      years--;
+    }
+    return years.clamp(0, 120);
+  }
+
   const MemoryProfile({
     required this.id,
     required this.name,
     this.avatarIndex = 0,
     required this.createdAt,
-    this.age = 25,
+    this.birthday,
+    int age = 25,
     this.ageGroup = AgeGroup.youngAdult,
     this.encodingSpeed = EncodingSpeed.moderate,
     this.retentionStrength = RetentionStrength.moderate,
@@ -95,7 +120,7 @@ class MemoryProfile {
     this.activeDays = const [0, 1, 2, 3, 4, 5, 6], // All days active by default
     this.pacePreference = PacePreference.steady,
     this.hifzExperience = HifzExperience.fresh,
-  });
+  }) : _ageFallback = age;
 
   /// Maps an actual age to the appropriate AgeGroup.
   static AgeGroup ageGroupFromAge(int age) {
@@ -113,6 +138,8 @@ class MemoryProfile {
     String? name,
     int? avatarIndex,
     DateTime? createdAt,
+    DateTime? birthday,
+    bool clearBirthday = false,
     int? age,
     AgeGroup? ageGroup,
     EncodingSpeed? encodingSpeed,
@@ -136,7 +163,8 @@ class MemoryProfile {
       name: name ?? this.name,
       avatarIndex: avatarIndex ?? this.avatarIndex,
       createdAt: createdAt ?? this.createdAt,
-      age: age ?? this.age,
+      birthday: clearBirthday ? null : (birthday ?? this.birthday),
+      age: age ?? _ageFallback,
       ageGroup: ageGroup ?? this.ageGroup,
       encodingSpeed: encodingSpeed ?? this.encodingSpeed,
       retentionStrength: retentionStrength ?? this.retentionStrength,
@@ -162,7 +190,8 @@ class MemoryProfile {
     'name': name,
     'avatarIndex': avatarIndex,
     'createdAt': createdAt.toIso8601String(),
-    'age': age,
+    'birthday': birthday?.toIso8601String(),
+    'age': age, // Computed or fallback — kept for backward compat
     'ageGroup': ageGroup.index,
     'encodingSpeed': encodingSpeed.index,
     'retentionStrength': retentionStrength.index,
@@ -187,34 +216,46 @@ class MemoryProfile {
     // in the new 7-value enum index 2 is 'youngAdult' — map old 'adult' (2) to new 'youngAdult' (2)
     // which is a reasonable default for existing users.
     final ageGroupIndex = (map['ageGroup'] as int?) ?? 2;
-    final safeAgeGroupIndex = ageGroupIndex.clamp(0, AgeGroup.values.length - 1);
+    final safeAgeGroupIndex = ageGroupIndex.clamp(
+      0,
+      AgeGroup.values.length - 1,
+    );
 
     return MemoryProfile(
       id: map['id'] as String,
       name: map['name'] as String,
       avatarIndex: map['avatarIndex'] as int? ?? 0,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      birthday: map['birthday'] != null
+          ? DateTime.tryParse(map['birthday'] as String)
+          : null,
       age: map['age'] as int? ?? 25,
       ageGroup: AgeGroup.values[safeAgeGroupIndex],
       encodingSpeed: EncodingSpeed.values[(map['encodingSpeed'] as int?) ?? 1],
-      retentionStrength: RetentionStrength.values[(map['retentionStrength'] as int?) ?? 1],
-      learningPreference: LearningPreference.values[(map['learningPreference'] as int?) ?? 0],
+      retentionStrength:
+          RetentionStrength.values[(map['retentionStrength'] as int?) ?? 1],
+      learningPreference:
+          LearningPreference.values[(map['learningPreference'] as int?) ?? 0],
       dailyTimeMinutes: map['dailyTimeMinutes'] as int? ?? 30,
-      preferredTimeOfDay: StudyTimeOfDay.values[(map['preferredTimeOfDay'] as int?) ?? 0],
+      preferredTimeOfDay:
+          StudyTimeOfDay.values[(map['preferredTimeOfDay'] as int?) ?? 0],
       goal: HifzGoal.values[(map['goal'] as int?) ?? 0],
       goalDetails: (map['goalDetails'] as String?)?.isNotEmpty == true
           ? (map['goalDetails'] as String).split(',').map(int.parse).toList()
           : [],
       defaultReciterId: map['defaultReciterId'] as int? ?? 7,
-      defaultReciterSource: ReciterSource.values[(map['defaultReciterSource'] as int?) ?? 0],
+      defaultReciterSource:
+          ReciterSource.values[(map['defaultReciterSource'] as int?) ?? 0],
       startingPage: map['startingPage'] as int? ?? 582,
       startDate: DateTime.parse(map['startDate'] as String),
       isActive: (map['isActive'] as int?) == 1,
       activeDays: (map['activeDays'] as String?)?.isNotEmpty == true
           ? (map['activeDays'] as String).split(',').map(int.parse).toList()
           : [0, 1, 2, 3, 4, 5, 6],
-      pacePreference: PacePreference.values[(map['pacePreference'] as int?) ?? 1],
-      hifzExperience: HifzExperience.values[(map['hifzExperience'] as int?) ?? 0],
+      pacePreference:
+          PacePreference.values[(map['pacePreference'] as int?) ?? 1],
+      hifzExperience:
+          HifzExperience.values[(map['hifzExperience'] as int?) ?? 0],
     );
   }
 }
@@ -227,8 +268,8 @@ class PageProgress {
   final DateTime? lastReviewedAt;
   final int reviewCount;
   final DateTime? memorizedAt;
-  final int? lastVerseLearned;    // CE-9: last verse covered (null = full page)
-  final int? totalVersesOnPage;   // CE-9: total verses on this page
+  final int? lastVerseLearned; // CE-9: last verse covered (null = full page)
+  final int? totalVersesOnPage; // CE-9: total verses on this page
 
   const PageProgress({
     required this.pageNumber,
@@ -302,7 +343,8 @@ class DailyPlan {
   final int sabaqLineEnd;
   final int sabaqTargetMinutes;
   final int sabaqRepetitionTarget;
-  final int? sabaqStartVerse; // CE-9: resume from this verse (partial page carry-over)
+  final int?
+  sabaqStartVerse; // CE-9: resume from this verse (partial page carry-over)
 
   // Sabqi: recent review
   final List<int> sabqiPages; // page numbers from last 7-10 days
@@ -376,7 +418,8 @@ class DailyPlan {
       sabaqLineStart: sabaqLineStart,
       sabaqLineEnd: sabaqLineEnd,
       sabaqTargetMinutes: sabaqTargetMinutes ?? this.sabaqTargetMinutes,
-      sabaqRepetitionTarget: sabaqRepetitionTarget ?? this.sabaqRepetitionTarget,
+      sabaqRepetitionTarget:
+          sabaqRepetitionTarget ?? this.sabaqRepetitionTarget,
       sabaqStartVerse: sabaqStartVerse ?? this.sabaqStartVerse,
       sabqiPages: sabqiPages ?? this.sabqiPages,
       sabqiTargetMinutes: sabqiTargetMinutes ?? this.sabqiTargetMinutes,
@@ -540,23 +583,20 @@ class StreakData {
   final int totalActiveDays;
   final DateTime? lastActiveDate;
 
-  const StreakData({
-    this.totalActiveDays = 0,
-    this.lastActiveDate,
-  });
+  const StreakData({this.totalActiveDays = 0, this.lastActiveDate});
 }
 
 // ── Phase 5: Analytics & Adaptive Intelligence ──
 
 /// Type of adaptive suggestion shown to the user.
 enum SuggestionType {
-  increaseLoad,    // Doing great → suggest more
-  decreaseLoad,    // Struggling → suggest less
-  moreReview,      // Weak assessments → more review time
-  takeBreak,       // Missing sessions → lighter plan
+  increaseLoad, // Doing great → suggest more
+  decreaseLoad, // Struggling → suggest less
+  moreReview, // Weak assessments → more review time
+  takeBreak, // Missing sessions → lighter plan
   aheadOfSchedule, // Ahead → celebrate + optional extra review
-  neglectedJuz,    // Juz not reviewed in N days
-  strugglePage,    // Consistently weak section detected
+  neglectedJuz, // Juz not reviewed in N days
+  strugglePage, // Consistently weak section detected
 }
 
 /// User action on a suggestion.
@@ -569,17 +609,18 @@ enum AnalyticsPeriod { week, month }
 class Suggestion {
   final String id;
   final SuggestionType type;
-  final String emoji;
+  final String iconKey;
   final String title;
   final String message;
   final SuggestionAction action;
   final DateTime createdAt;
-  final Map<String, dynamic> data; // Context-specific payload (e.g., juz number)
+  final Map<String, dynamic>
+  data; // Context-specific payload (e.g., juz number)
 
   const Suggestion({
     required this.id,
     required this.type,
-    required this.emoji,
+    required this.iconKey,
     required this.title,
     required this.message,
     this.action = SuggestionAction.pending,
@@ -591,7 +632,7 @@ class Suggestion {
     return Suggestion(
       id: id,
       type: type,
-      emoji: emoji,
+      iconKey: iconKey,
       title: title,
       message: message,
       action: action ?? this.action,
@@ -613,8 +654,8 @@ class WeeklySnapshot {
   final Map<int, int> sessionsPerDay; // day-of-week (1=Mon) → count
 
   // Completion
-  final int plannedDays;    // days with a plan
-  final int completedDays;  // days plan was completed
+  final int plannedDays; // days with a plan
+  final int completedDays; // days plan was completed
   final double completionRate; // 0.0–1.0
 
   // Assessment distribution (across all sessions)
@@ -623,9 +664,9 @@ class WeeklySnapshot {
   final int needsWorkCount;
 
   // Progress
-  final int pagesMemorized;    // new pages memorized this period
-  final int pagesReviewed;     // pages reviewed this period
-  final double pagesPerWeek;   // pace calculation
+  final int pagesMemorized; // new pages memorized this period
+  final int pagesReviewed; // pages reviewed this period
+  final double pagesPerWeek; // pace calculation
 
   const WeeklySnapshot({
     required this.startDate,

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/models/bookmark_model.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// A bottom sheet for editing a single bookmark (color, note, collection, delete).
 class BookmarkEditSheet extends StatefulWidget {
@@ -82,7 +84,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   child: Text(
                     l!.bmEditTitle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: theme.primaryText,
@@ -91,11 +93,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 ),
                 GestureDetector(
                   onTap: widget.onClose,
-                  child: Icon(
-                    LucideIcons.x,
-                    size: 20,
-                    color: theme.mutedText,
-                  ),
+                  child: Icon(LucideIcons.x, size: 20, color: theme.mutedText),
                 ),
               ],
             ),
@@ -120,7 +118,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                       ? '${bm.verseKey} · ${bm.surahName}'
                       : '${l.navPage} ${bm.pageNumber} · ${bm.surahName}',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     color: theme.mutedText,
                   ),
@@ -140,7 +138,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 Text(
                   l.bmColor,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: theme.mutedText,
@@ -152,11 +150,19 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   runSpacing: 8,
                   children: [
                     // "None" option
-                    _colorCircle(theme, null, bm.colorIndex == null && bm.customColor == null, bp),
+                    _colorCircle(
+                      theme,
+                      null,
+                      bm.colorIndex == null && bm.customColor == null,
+                      bp,
+                    ),
                     // Preset palette
                     ...List.generate(BookmarkColors.palette.length, (i) {
                       return _colorCircle(
-                        theme, i, bm.colorIndex == i && bm.customColor == null, bp,
+                        theme,
+                        i,
+                        bm.colorIndex == i && bm.customColor == null,
+                        bp,
                       );
                     }),
                     // Custom color circle
@@ -178,7 +184,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 Text(
                   l.bmNote,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: theme.mutedText,
@@ -189,14 +195,14 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   controller: _noteController,
                   maxLines: 3,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 14,
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
                     hintText: l.bmNoteHint,
                     hintStyle: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 14,
                       color: theme.mutedText.withValues(alpha: 0.5),
                     ),
@@ -212,8 +218,10 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: theme.accentColor, width: 1.5),
+                      borderSide: BorderSide(
+                        color: theme.accentColor,
+                        width: 1.5,
+                      ),
                     ),
                     contentPadding: const EdgeInsets.all(14),
                   ),
@@ -237,7 +245,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   Text(
                     l.bmCollection,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: theme.mutedText,
@@ -255,13 +263,15 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                         bm.collectionId == null,
                         bp,
                       ),
-                      ...bp.collections.map((col) => _collectionChip(
-                            theme,
-                            col.name,
-                            col.id,
-                            bm.collectionId == col.id,
-                            bp,
-                          )),
+                      ...bp.collections.map(
+                        (col) => _collectionChip(
+                          theme,
+                          col.name,
+                          col.id,
+                          bm.collectionId == col.id,
+                          bp,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -275,23 +285,15 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SizedBox(
               width: double.infinity,
-              child: TextButton.icon(
+              child: GeistButton(
                 onPressed: () {
                   bp.removeBookmark(widget.bookmarkId);
                   widget.onClose();
                 },
-                icon: const Icon(LucideIcons.trash2, size: 16),
-                label: Text(l.bmDelete),
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFEF5350),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: const Color(0xFFEF5350).withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
+                prefix: const Icon(LucideIcons.trash2),
+                label: l.bmDelete,
+                type: GeistButtonType.error,
+                size: GeistButtonSize.large,
               ),
             ),
           ),
@@ -382,11 +384,12 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
             return AlertDialog(
               backgroundColor: theme.scaffoldBackground,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: Text(
                 'Custom Color',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: theme.primaryText,
@@ -402,8 +405,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     decoration: BoxDecoration(
                       color: preview,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                          color: theme.dividerColor, width: 2),
+                      border: Border.all(color: theme.dividerColor, width: 2),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -413,7 +415,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     maxLength: 6,
                     textCapitalization: TextCapitalization.characters,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: theme.primaryText,
@@ -422,34 +424,31 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     decoration: InputDecoration(
                       prefixText: '#',
                       prefixStyle: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: theme.mutedText,
                       ),
                       hintText: 'FF5733',
                       hintStyle: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         color: theme.mutedText.withValues(alpha: 0.3),
                       ),
                       counterText: '',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: theme.dividerColor),
+                        borderSide: BorderSide(color: theme.dividerColor),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: theme.accentColor),
+                        borderSide: BorderSide(color: theme.accentColor),
                       ),
                     ),
                     onChanged: (val) {
                       if (val.length == 6) {
                         final parsed = int.tryParse('FF$val', radix: 16);
                         if (parsed != null) {
-                          setDialogState(
-                              () => preview = Color(parsed));
+                          setDialogState(() => preview = Color(parsed));
                         }
                       }
                     },
@@ -459,56 +458,64 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: [
-                      0xFFFF5733, 0xFF33FF57, 0xFF3357FF,
-                      0xFFFF33A8, 0xFF33FFF5, 0xFFFFC300,
-                      0xFF8E44AD, 0xFF1ABC9C,
-                    ].map((c) {
-                      return GestureDetector(
-                        onTap: () {
-                          setDialogState(() => preview = Color(c));
-                          hexController.text =
-                              c.toRadixString(16).substring(2).toUpperCase();
-                        },
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: Color(c),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                    children:
+                        [
+                          0xFFFF5733,
+                          0xFF33FF57,
+                          0xFF3357FF,
+                          0xFFFF33A8,
+                          0xFF33FFF5,
+                          0xFFFFC300,
+                          0xFF8E44AD,
+                          0xFF1ABC9C,
+                        ].map((c) {
+                          return GestureDetector(
+                            onTap: () {
+                              setDialogState(() => preview = Color(c));
+                              hexController.text = c
+                                  .toRadixString(16)
+                                  .substring(2)
+                                  .toUpperCase();
+                            },
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: Color(c),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          );
+                        }).toList(),
                   ),
                 ],
               ),
               actions: [
-                TextButton(
+                GeistButton(
                   onPressed: () {
                     if (bm.customColor != null) {
                       bp.updateCustomColor(widget.bookmarkId, null);
                     }
                     Navigator.pop(ctx);
                   },
-                  child: Text('Clear',
-                      style: TextStyle(color: theme.mutedText)),
+                  label: 'Clear',
+                  type: GeistButtonType.tertiary,
+                  size: GeistButtonSize.small,
                 ),
-                TextButton(
+                GeistButton(
                   onPressed: () {
                     final hex = hexController.text.trim();
                     if (hex.length == 6) {
-                      final parsed =
-                          int.tryParse('FF$hex', radix: 16);
+                      final parsed = int.tryParse('FF$hex', radix: 16);
                       if (parsed != null) {
-                        bp.updateCustomColor(
-                            widget.bookmarkId, parsed);
+                        bp.updateCustomColor(widget.bookmarkId, parsed);
                       }
                     }
                     Navigator.pop(ctx);
                   },
-                  child: Text('Apply',
-                      style: TextStyle(color: theme.accentColor)),
+                  label: 'Apply',
+                  type: GeistButtonType.primary,
+                  size: GeistButtonSize.small,
                 ),
               ],
             );
@@ -542,7 +549,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
             color: isActive ? theme.accentColor : theme.primaryText,

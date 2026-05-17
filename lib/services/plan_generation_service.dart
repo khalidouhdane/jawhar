@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Pure logic class for generating daily memorization plans.
 /// Takes a profile + current progress → produces a DailyPlan.
@@ -36,7 +36,10 @@ class PlanGenerationService {
 
     // Generate sabaq (new material) — with line + verse carry-over
     final sabaqAssignment = _findNextSabaqAssignment(
-      profile, allProgress, params, previousPlan,
+      profile,
+      allProgress,
+      params,
+      previousPlan,
     );
 
     // Generate sabqi (recent review) — only pages we've actually studied
@@ -51,7 +54,8 @@ class PlanGenerationService {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final planId = '${profile.id}_${today.toIso8601String()}_${now.millisecondsSinceEpoch}';
+    final planId =
+        '${profile.id}_${today.toIso8601String()}_${now.millisecondsSinceEpoch}';
 
     // ── Smart time redistribution ──
     // Always use the full daily budget. Redistribute unused phase time
@@ -82,10 +86,11 @@ class PlanGenerationService {
       manzilMin = params.manzilMinutes;
     }
 
-    debugPrint('[PLAN] Time redistribution: '
-        'hasReview=$hasReviewContent, hasManzil=$hasManzilContent → '
-        'sabaq=${sabaqMin}m, sabqi=${sabqiMin}m, manzil=${manzilMin}m '
-        '(total=${sabaqMin + sabqiMin + manzilMin}m / daily=${profile.dailyTimeMinutes}m)');
+    AppLogger.info('PlanGen', '[PLAN] Time redistribution: '
+      'hasReview=$hasReviewContent, hasManzil=$hasManzilContent → '
+      'sabaq=${sabaqMin}m, sabqi=${sabqiMin}m, manzil=${manzilMin}m '
+      '(total=${sabaqMin + sabqiMin + manzilMin}m / daily=${profile.dailyTimeMinutes}m)',
+    );
 
     final plan = DailyPlan(
       id: planId,
@@ -131,26 +136,33 @@ class PlanGenerationService {
       final prevPage = previousPlan.sabaqPage;
       final prevLineEnd = previousPlan.sabaqLineEnd;
 
-      debugPrint('[PLAN] Previous plan: page=$prevPage, lineEnd=$prevLineEnd, linesPerSession=${params.linesPerSession}');
+      AppLogger.info('PlanGen', '[PLAN] Previous plan: page=$prevPage, lineEnd=$prevLineEnd, linesPerSession=${params.linesPerSession}',
+      );
 
       if (prevLineEnd >= 15) {
         // Full page was assigned — advance to next page
-        debugPrint('[PLAN] Full page done → advancing to next page');
+        AppLogger.info('PlanGen', '[PLAN] Full page done → advancing to next page');
         return _findNextUnstartedPage(profile, progress, params);
       } else {
         // Partial page — continue from next line on same page
         final nextLineStart = prevLineEnd + 1;
-        var nextLineEnd = (nextLineStart + params.linesPerSession - 1).clamp(1, 15);
+        var nextLineEnd = (nextLineStart + params.linesPerSession - 1).clamp(
+          1,
+          15,
+        );
 
         // Smart remainder absorption: if the lines left after this chunk
         // would be too few (< half of linesPerSession), absorb them now.
         // This prevents awkward 1-2 line sessions.
         final remainingAfter = 15 - nextLineEnd;
-        if (remainingAfter > 0 && remainingAfter < (params.linesPerSession / 2).ceil()) {
+        if (remainingAfter > 0 &&
+            remainingAfter < (params.linesPerSession / 2).ceil()) {
           nextLineEnd = 15;
-          debugPrint('[PLAN] Absorbing $remainingAfter remaining lines → $nextLineStart-$nextLineEnd');
+          AppLogger.info('PlanGen', '[PLAN] Absorbing $remainingAfter remaining lines → $nextLineStart-$nextLineEnd',
+          );
         } else {
-          debugPrint('[PLAN] Partial page → next lines: $nextLineStart-$nextLineEnd');
+          AppLogger.info('PlanGen', '[PLAN] Partial page → next lines: $nextLineStart-$nextLineEnd',
+          );
         }
 
         return _SabaqAssignment(
@@ -162,7 +174,7 @@ class PlanGenerationService {
     }
 
     // First plan of the day — find the right page and start lines from 1
-    debugPrint('[PLAN] First plan of the day');
+    AppLogger.info('PlanGen', '[PLAN] First plan of the day');
     return _findNextUnstartedPage(profile, progress, params);
   }
 
@@ -185,11 +197,7 @@ class PlanGenerationService {
         if (remaining > 0 && remaining < (params.linesPerSession / 2).ceil()) {
           lineEnd = 15;
         }
-        return _SabaqAssignment(
-          page: current,
-          lineStart: 1,
-          lineEnd: lineEnd,
-        );
+        return _SabaqAssignment(page: current, lineStart: 1, lineEnd: lineEnd);
       }
       // CE-9: Check for partial page via verse tracking
       if (p.status == PageStatus.learning &&
@@ -222,14 +230,19 @@ class PlanGenerationService {
     final now = DateTime.now();
     final cutoff = now.subtract(Duration(days: params.sabqiDaysBack));
 
-    final candidates = progress.values
-        .where((p) =>
-            p.status == PageStatus.learning &&
-            p.lastReviewedAt != null &&
-            p.lastReviewedAt!.isAfter(cutoff))
-        .toList()
-      ..sort((a, b) =>
-          (a.lastReviewedAt ?? now).compareTo(b.lastReviewedAt ?? now));
+    final candidates =
+        progress.values
+            .where(
+              (p) =>
+                  p.status == PageStatus.learning &&
+                  p.lastReviewedAt != null &&
+                  p.lastReviewedAt!.isAfter(cutoff),
+            )
+            .toList()
+          ..sort(
+            (a, b) =>
+                (a.lastReviewedAt ?? now).compareTo(b.lastReviewedAt ?? now),
+          );
 
     return candidates
         .take(params.sabqiMaxPages)
@@ -259,7 +272,11 @@ class PlanGenerationService {
 
     // Pick a subset of pages for today's manzil
     final manzilPages = <int>[];
-    for (int p = juzStartPage; p <= juzEndPage && manzilPages.length < params.manzilPagesPerDay; p++) {
+    for (
+      int p = juzStartPage;
+      p <= juzEndPage && manzilPages.length < params.manzilPagesPerDay;
+      p++
+    ) {
       manzilPages.add(p);
     }
 
@@ -319,28 +336,52 @@ class PlanGenerationService {
     int linesPerSession;
     if (totalMinutes <= 30) {
       switch (encoding) {
-        case EncodingSpeed.fast:    linesPerSession = 7; break;
-        case EncodingSpeed.moderate: linesPerSession = 4; break;
-        case EncodingSpeed.slow:    linesPerSession = 3; break;
+        case EncodingSpeed.fast:
+          linesPerSession = 7;
+          break;
+        case EncodingSpeed.moderate:
+          linesPerSession = 4;
+          break;
+        case EncodingSpeed.slow:
+          linesPerSession = 3;
+          break;
       }
     } else if (totalMinutes <= 60) {
       switch (encoding) {
-        case EncodingSpeed.fast:    linesPerSession = 12; break;
-        case EncodingSpeed.moderate: linesPerSession = 7; break;
-        case EncodingSpeed.slow:    linesPerSession = 4; break;
+        case EncodingSpeed.fast:
+          linesPerSession = 12;
+          break;
+        case EncodingSpeed.moderate:
+          linesPerSession = 7;
+          break;
+        case EncodingSpeed.slow:
+          linesPerSession = 4;
+          break;
       }
     } else if (totalMinutes <= 120) {
       switch (encoding) {
-        case EncodingSpeed.fast:    linesPerSession = 15; break;
-        case EncodingSpeed.moderate: linesPerSession = 12; break;
-        case EncodingSpeed.slow:    linesPerSession = 7; break;
+        case EncodingSpeed.fast:
+          linesPerSession = 15;
+          break;
+        case EncodingSpeed.moderate:
+          linesPerSession = 12;
+          break;
+        case EncodingSpeed.slow:
+          linesPerSession = 7;
+          break;
       }
     } else {
       // 4+ hours
       switch (encoding) {
-        case EncodingSpeed.fast:    linesPerSession = 15; break;
-        case EncodingSpeed.moderate: linesPerSession = 15; break;
-        case EncodingSpeed.slow:    linesPerSession = 12; break;
+        case EncodingSpeed.fast:
+          linesPerSession = 15;
+          break;
+        case EncodingSpeed.moderate:
+          linesPerSession = 15;
+          break;
+        case EncodingSpeed.slow:
+          linesPerSession = 12;
+          break;
       }
     }
 
@@ -377,12 +418,41 @@ class PlanGenerationService {
   /// Approximate juz start pages (Madani mushaf).
   static int _juzStartPage(int juz) {
     const starts = [
-      0, 1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
-      201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
-      402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+      0,
+      1,
+      22,
+      42,
+      62,
+      82,
+      102,
+      121,
+      142,
+      162,
+      182,
+      201,
+      222,
+      242,
+      262,
+      282,
+      302,
+      322,
+      342,
+      362,
+      382,
+      402,
+      422,
+      442,
+      462,
+      482,
+      502,
+      522,
+      542,
+      562,
+      582,
     ];
     return starts[juz.clamp(1, 30)];
   }
+
   /// Generate sensible default recipes for any deterministic plan.
   /// Ensures RecipeGuideWidget always has step-by-step instructions.
   /// When [profile] is provided, repetition targets adapt to the user's
@@ -471,106 +541,120 @@ class PlanGenerationService {
     reciteReps = reciteReps.clamp(3, 10);
 
     // ── Sabaq recipe (new memorization) ──
-    recipes.add(SessionRecipe(
-      id: '${plan.id}_sabaq_$now',
-      planId: plan.id,
-      phase: 'sabaq',
-      estimatedMinutes: plan.sabaqTargetMinutes,
-      steps: [
-        RecipeStep(
-          stepNumber: 1,
-          action: RecipeAction.listen,
-          instruction: 'Listen to the page being recited. Focus on the melody and pronunciation.',
-          target: listenReps,
-          icon: '🎧',
-        ),
-        RecipeStep(
-          stepNumber: 2,
-          action: RecipeAction.readAlong,
-          instruction: 'Read along with the audio. Match the reciter\'s pace and tajweed.',
-          target: readAlongReps,
-          icon: '📖',
-        ),
-        RecipeStep(
-          stepNumber: 3,
-          action: RecipeAction.readSolo,
-          instruction: 'Read on your own without audio. Check your accuracy after each attempt.',
-          target: readSoloReps,
-          icon: '📝',
-        ),
-        RecipeStep(
-          stepNumber: 4,
-          action: RecipeAction.reciteMemory,
-          instruction: 'Close the mushaf and recite from memory. Repeat until confident.',
-          target: reciteReps,
-          icon: '🧠',
-        ),
-      ],
-      tips: [
-        'Focus on 2-3 lines at a time, then connect them together.',
-        'Record yourself and compare with the reciter to spot mistakes.',
-        'Review the meaning to build deeper neural connections.',
-      ],
-    ));
-
-    // ── Sabqi recipe (recent review) ──
-    if (plan.sabqiPages.isNotEmpty) {
-      recipes.add(SessionRecipe(
-        id: '${plan.id}_sabqi_$now',
+    recipes.add(
+      SessionRecipe(
+        id: '${plan.id}_sabaq_$now',
         planId: plan.id,
-        phase: 'sabqi',
-        estimatedMinutes: plan.sabqiTargetMinutes,
+        phase: 'sabaq',
+        estimatedMinutes: plan.sabaqTargetMinutes,
         steps: [
-          const RecipeStep(
+          RecipeStep(
             stepNumber: 1,
-            action: RecipeAction.readSolo,
-            instruction: 'Read through the review pages. Note any areas that feel uncertain.',
-            target: 2,
-            icon: '📖',
+            action: RecipeAction.listen,
+            instruction:
+                'Listen to the page being recited. Focus on the melody and pronunciation.',
+            target: listenReps,
+            icon: 'headphones',
           ),
-          const RecipeStep(
+          RecipeStep(
             stepNumber: 2,
-            action: RecipeAction.selfTest,
-            instruction: 'Close the mushaf and recite each page from memory. Check and correct.',
-            target: 2,
-            icon: '✅',
+            action: RecipeAction.readAlong,
+            instruction:
+                'Read along with the audio. Match the reciter\'s pace and tajweed.',
+            target: readAlongReps,
+            icon: 'book_open',
+          ),
+          RecipeStep(
+            stepNumber: 3,
+            action: RecipeAction.readSolo,
+            instruction:
+                'Read on your own without audio. Check your accuracy after each attempt.',
+            target: readSoloReps,
+            icon: 'pencil',
+          ),
+          RecipeStep(
+            stepNumber: 4,
+            action: RecipeAction.reciteMemory,
+            instruction:
+                'Close the mushaf and recite from memory. Repeat until confident.',
+            target: reciteReps,
+            icon: 'brain',
           ),
         ],
         tips: [
-          'Don\'t skip pages that feel easy — even strong pages need maintenance.',
-          'If a page feels weak, add an extra repetition.',
+          'Focus on 2-3 lines at a time, then connect them together.',
+          'Record yourself and compare with the reciter to spot mistakes.',
+          'Review the meaning to build deeper neural connections.',
         ],
-      ));
+      ),
+    );
+
+    // ── Sabqi recipe (recent review) ──
+    if (plan.sabqiPages.isNotEmpty) {
+      recipes.add(
+        SessionRecipe(
+          id: '${plan.id}_sabqi_$now',
+          planId: plan.id,
+          phase: 'sabqi',
+          estimatedMinutes: plan.sabqiTargetMinutes,
+          steps: [
+            const RecipeStep(
+              stepNumber: 1,
+              action: RecipeAction.readSolo,
+              instruction:
+                  'Read through the review pages. Note any areas that feel uncertain.',
+              target: 2,
+              icon: 'book_open',
+            ),
+            const RecipeStep(
+              stepNumber: 2,
+              action: RecipeAction.selfTest,
+              instruction:
+                  'Close the mushaf and recite each page from memory. Check and correct.',
+              target: 2,
+              icon: 'check_circle',
+            ),
+          ],
+          tips: [
+            'Don\'t skip pages that feel easy — even strong pages need maintenance.',
+            'If a page feels weak, add an extra repetition.',
+          ],
+        ),
+      );
     }
 
     // ── Manzil recipe (long-term review) ──
     if (plan.manzilPages.isNotEmpty) {
-      recipes.add(SessionRecipe(
-        id: '${plan.id}_manzil_$now',
-        planId: plan.id,
-        phase: 'manzil',
-        estimatedMinutes: plan.manzilTargetMinutes,
-        steps: [
-          const RecipeStep(
-            stepNumber: 1,
-            action: RecipeAction.readSolo,
-            instruction: 'Read through the manzil pages at a steady pace. Focus on fluency.',
-            target: 1,
-            icon: '📚',
-          ),
-          const RecipeStep(
-            stepNumber: 2,
-            action: RecipeAction.selfTest,
-            instruction: 'Recite from memory. Use the mushaf only to check uncertain sections.',
-            target: 1,
-            icon: '✅',
-          ),
-        ],
-        tips: [
-          'Manzil keeps your long-term memorization strong.',
-          'Consistency matters more than perfection here.',
-        ],
-      ));
+      recipes.add(
+        SessionRecipe(
+          id: '${plan.id}_manzil_$now',
+          planId: plan.id,
+          phase: 'manzil',
+          estimatedMinutes: plan.manzilTargetMinutes,
+          steps: [
+            const RecipeStep(
+              stepNumber: 1,
+              action: RecipeAction.readSolo,
+              instruction:
+                  'Read through the manzil pages at a steady pace. Focus on fluency.',
+              target: 1,
+              icon: 'library',
+            ),
+            const RecipeStep(
+              stepNumber: 2,
+              action: RecipeAction.selfTest,
+              instruction:
+                  'Recite from memory. Use the mushaf only to check uncertain sections.',
+              target: 1,
+              icon: 'check_circle',
+            ),
+          ],
+          tips: [
+            'Manzil keeps your long-term memorization strong.',
+            'Consistency matters more than perfection here.',
+          ],
+        ),
+      );
     }
 
     return recipes;

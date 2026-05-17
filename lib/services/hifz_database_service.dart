@@ -9,7 +9,7 @@ import 'package:quran_app/models/session_recipe_models.dart';
 /// flashcards, and mutashabihat groups.
 class HifzDatabaseService {
   static const _dbName = 'hifz_data.db';
-  static const _dbVersion = 6;
+  static const _dbVersion = 7;
 
   Database? _db;
 
@@ -55,7 +55,8 @@ class HifzDatabaseService {
         age INTEGER DEFAULT 25,
         activeDays TEXT DEFAULT '0,1,2,3,4,5,6',
         pacePreference INTEGER DEFAULT 1,
-        hifzExperience INTEGER DEFAULT 0
+        hifzExperience INTEGER DEFAULT 0,
+        birthday TEXT
       )
     ''');
 
@@ -159,20 +160,36 @@ class HifzDatabaseService {
     }
     if (oldVersion < 3) {
       // CE-9: Add verse-level tracking columns
-      await db.execute('ALTER TABLE page_progress ADD COLUMN lastVerseLearned INTEGER');
-      await db.execute('ALTER TABLE page_progress ADD COLUMN totalVersesOnPage INTEGER');
-      await db.execute('ALTER TABLE daily_plans ADD COLUMN sabaqStartVerse INTEGER');
+      await db.execute(
+        'ALTER TABLE page_progress ADD COLUMN lastVerseLearned INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE page_progress ADD COLUMN totalVersesOnPage INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE daily_plans ADD COLUMN sabaqStartVerse INTEGER',
+      );
     }
     if (oldVersion < 4) {
       // AI Plan Generation: new profile fields
-      await db.execute("ALTER TABLE profiles ADD COLUMN age INTEGER DEFAULT 25");
-      await db.execute("ALTER TABLE profiles ADD COLUMN activeDays TEXT DEFAULT '0,1,2,3,4,5,6'");
-      await db.execute('ALTER TABLE profiles ADD COLUMN pacePreference INTEGER DEFAULT 1');
-      await db.execute('ALTER TABLE profiles ADD COLUMN hifzExperience INTEGER DEFAULT 0');
+      await db.execute(
+        "ALTER TABLE profiles ADD COLUMN age INTEGER DEFAULT 25",
+      );
+      await db.execute(
+        "ALTER TABLE profiles ADD COLUMN activeDays TEXT DEFAULT '0,1,2,3,4,5,6'",
+      );
+      await db.execute(
+        'ALTER TABLE profiles ADD COLUMN pacePreference INTEGER DEFAULT 1',
+      );
+      await db.execute(
+        'ALTER TABLE profiles ADD COLUMN hifzExperience INTEGER DEFAULT 0',
+      );
     }
     if (oldVersion < 5) {
       // AI Plan Generation: plan metadata columns
-      await db.execute('ALTER TABLE daily_plans ADD COLUMN isAiGenerated INTEGER DEFAULT 0');
+      await db.execute(
+        'ALTER TABLE daily_plans ADD COLUMN isAiGenerated INTEGER DEFAULT 0',
+      );
       await db.execute('ALTER TABLE daily_plans ADD COLUMN aiReasoning TEXT');
       // Session recipes table
       await _createSessionRecipesTable(db);
@@ -180,6 +197,10 @@ class HifzDatabaseService {
     if (oldVersion < 6) {
       // Ensure session_recipes table exists (was missing for some v5 users)
       await _createSessionRecipesTable(db);
+    }
+    if (oldVersion < 7) {
+      // Birthday column for profiles
+      await db.execute('ALTER TABLE profiles ADD COLUMN birthday TEXT');
     }
   }
 
@@ -292,8 +313,16 @@ class HifzDatabaseService {
     await resetProgress(profileId);
     final db = await database;
     await db.delete('profiles', where: 'id = ?', whereArgs: [profileId]);
-    await db.delete('streak_data', where: 'profileId = ?', whereArgs: [profileId]);
-    await db.delete('manzil_rotation', where: 'profileId = ?', whereArgs: [profileId]);
+    await db.delete(
+      'streak_data',
+      where: 'profileId = ?',
+      whereArgs: [profileId],
+    );
+    await db.delete(
+      'manzil_rotation',
+      where: 'profileId = ?',
+      whereArgs: [profileId],
+    );
   }
 
   // ════════════════════════════════════════════
@@ -375,7 +404,11 @@ class HifzDatabaseService {
   Future<DailyPlan?> getTodayPlan(String profileId) async {
     final db = await database;
     final today = DateTime.now();
-    final dateStr = DateTime(today.year, today.month, today.day).toIso8601String();
+    final dateStr = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).toIso8601String();
     final results = await db.query(
       'daily_plans',
       where: 'profileId = ? AND date = ?',
@@ -391,7 +424,11 @@ class HifzDatabaseService {
   Future<void> deleteTodayPlans(String profileId) async {
     final db = await database;
     final today = DateTime.now();
-    final dateStr = DateTime(today.year, today.month, today.day).toIso8601String();
+    final dateStr = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).toIso8601String();
     await db.delete(
       'daily_plans',
       where: 'profileId = ? AND date = ?',
@@ -495,20 +532,19 @@ class HifzDatabaseService {
       if (todayDate.isAtSameMomentAs(lastDate)) return; // Already counted
     }
 
-    await db.insert(
-      'streak_data',
-      {
-        'profileId': profileId,
-        'totalActiveDays': streak.totalActiveDays + 1,
-        'lastActiveDate': todayDate.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('streak_data', {
+      'profileId': profileId,
+      'totalActiveDays': streak.totalActiveDays + 1,
+      'lastActiveDate': todayDate.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// Get the number of missed *active* days since last activity.
   /// Only counts days the user was supposed to be active (not rest days).
-  Future<int> getMissedDays(String profileId, {List<int> activeDays = const [0,1,2,3,4,5,6]}) async {
+  Future<int> getMissedDays(
+    String profileId, {
+    List<int> activeDays = const [0, 1, 2, 3, 4, 5, 6],
+  }) async {
     final streak = await getStreak(profileId);
     if (streak.lastActiveDate == null) return 0;
     final today = DateTime.now();
@@ -544,16 +580,12 @@ class HifzDatabaseService {
   /// Add a juz to the manzil rotation.
   Future<void> addJuzToRotation(String profileId, int juzNumber) async {
     final db = await database;
-    await db.insert(
-      'manzil_rotation',
-      {
-        'profileId': profileId,
-        'juzNumber': juzNumber,
-        'isInRotation': 1,
-        'currentDay': 0,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('manzil_rotation', {
+      'profileId': profileId,
+      'juzNumber': juzNumber,
+      'isInRotation': 1,
+      'currentDay': 0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// Get all juz in the rotation for a profile.
@@ -598,15 +630,20 @@ class HifzDatabaseService {
     final db = await database;
     final batch = db.batch();
     for (final card in cards) {
-      batch.insert('flashcards', card.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      batch.insert(
+        'flashcards',
+        card.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
     }
     await batch.commit(noResult: true);
   }
 
   /// Get all due cards for a profile (due_date <= now), ordered by priority.
-  Future<List<Flashcard>> getDueFlashcards(String profileId,
-      {int limit = 25}) async {
+  Future<List<Flashcard>> getDueFlashcards(
+    String profileId, {
+    int limit = 25,
+  }) async {
     final db = await database;
     final now = DateTime.now().toIso8601String();
     final results = await db.query(
@@ -662,7 +699,8 @@ class HifzDatabaseService {
 
   /// Get per-type due counts for a profile. Returns {FlashcardType: {total, due}}.
   Future<Map<int, Map<String, int>>> getFlashcardStatsByType(
-      String profileId) async {
+    String profileId,
+  ) async {
     final db = await database;
     final now = DateTime.now().toIso8601String();
 
@@ -706,8 +744,10 @@ class HifzDatabaseService {
   }
 
   /// Get recent review history for analytics.
-  Future<List<FlashcardReview>> getRecentReviews(String profileId,
-      {int limit = 100}) async {
+  Future<List<FlashcardReview>> getRecentReviews(
+    String profileId, {
+    int limit = 100,
+  }) async {
     final db = await database;
     final results = await db.rawQuery(
       '''SELECT fr.* FROM flashcard_reviews fr
@@ -756,13 +796,19 @@ class HifzDatabaseService {
       'DELETE FROM flashcard_reviews WHERE card_id IN (SELECT id FROM flashcards WHERE profile_id = ?)',
       [profileId],
     );
-    await db.delete('flashcards',
-        where: 'profile_id = ?', whereArgs: [profileId]);
+    await db.delete(
+      'flashcards',
+      where: 'profile_id = ?',
+      whereArgs: [profileId],
+    );
   }
 
   /// Check if a flashcard already exists for a given verse + type + profile.
   Future<bool> flashcardExists(
-      String profileId, String verseKey, FlashcardType type) async {
+    String profileId,
+    String verseKey,
+    FlashcardType type,
+  ) async {
     final db = await database;
     final results = await db.query(
       'flashcards',
@@ -782,8 +828,11 @@ class HifzDatabaseService {
     final db = await database;
     final batch = db.batch();
     for (final group in groups) {
-      batch.insert('mutashabihat_groups', group.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.ignore);
+      batch.insert(
+        'mutashabihat_groups',
+        group.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
     await batch.commit(noResult: true);
   }
@@ -791,14 +840,17 @@ class HifzDatabaseService {
   /// Get all mutashabihat groups.
   Future<List<MutashabihatGroup>> getAllMutashabihat() async {
     final db = await database;
-    final results = await db.query('mutashabihat_groups',
-        orderBy: 'source_verse_key ASC');
+    final results = await db.query(
+      'mutashabihat_groups',
+      orderBy: 'source_verse_key ASC',
+    );
     return results.map(MutashabihatGroup.fromMap).toList();
   }
 
   /// Get mutashabihat groups by user status.
   Future<List<MutashabihatGroup>> getMutashabihatByStatus(
-      MutashabihatStatus status) async {
+    MutashabihatStatus status,
+  ) async {
     final db = await database;
     final results = await db.query(
       'mutashabihat_groups',
@@ -810,7 +862,9 @@ class HifzDatabaseService {
 
   /// Update a mutashabihat group's user status.
   Future<void> updateMutashabihatStatus(
-      String groupId, MutashabihatStatus status) async {
+    String groupId,
+    MutashabihatStatus status,
+  ) async {
     final db = await database;
     await db.update(
       'mutashabihat_groups',
@@ -824,7 +878,8 @@ class HifzDatabaseService {
   Future<int> getMutashabihatCount() async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as count FROM mutashabihat_groups');
+      'SELECT COUNT(*) as count FROM mutashabihat_groups',
+    );
     return result.first['count'] as int? ?? 0;
   }
 
@@ -836,7 +891,8 @@ class HifzDatabaseService {
 
   /// Get mutashabihat groups that involve a specific verse.
   Future<List<MutashabihatGroup>> getMutashabihatForVerse(
-      String verseKey) async {
+    String verseKey,
+  ) async {
     final db = await database;
     final results = await db.query(
       'mutashabihat_groups',
@@ -850,17 +906,37 @@ class HifzDatabaseService {
   /// Erases: page_progress, session_history, daily_plans, flashcards, streak data.
   Future<void> resetProgress(String profileId) async {
     final db = await database;
-    await db.delete('page_progress', where: 'profileId = ?', whereArgs: [profileId]);
-    await db.delete('session_history', where: 'profileId = ?', whereArgs: [profileId]);
-    await db.delete('daily_plans', where: 'profileId = ?', whereArgs: [profileId]);
+    await db.delete(
+      'page_progress',
+      where: 'profileId = ?',
+      whereArgs: [profileId],
+    );
+    await db.delete(
+      'session_history',
+      where: 'profileId = ?',
+      whereArgs: [profileId],
+    );
+    await db.delete(
+      'daily_plans',
+      where: 'profileId = ?',
+      whereArgs: [profileId],
+    );
     // flashcard_reviews has no profileId — delete reviews for cards owned by this profile
     await db.rawDelete(
       'DELETE FROM flashcard_reviews WHERE card_id IN (SELECT id FROM flashcards WHERE profile_id = ?)',
       [profileId],
     );
-    await db.delete('flashcards', where: 'profile_id = ?', whereArgs: [profileId]);
+    await db.delete(
+      'flashcards',
+      where: 'profile_id = ?',
+      whereArgs: [profileId],
+    );
     // Reset streak
-    await db.delete('streak_data', where: 'profileId = ?', whereArgs: [profileId]);
+    await db.delete(
+      'streak_data',
+      where: 'profileId = ?',
+      whereArgs: [profileId],
+    );
   }
 
   /// Close the database.

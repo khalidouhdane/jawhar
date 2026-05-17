@@ -12,6 +12,9 @@ import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/hifz/verse_highlighter.dart';
 import 'package:quran_app/widgets/overlays.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
+import 'package:quran_app/theme/icon_resolver.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Floating session controls overlay for the digital reading mode (Phase 4).
 ///
@@ -30,6 +33,8 @@ class SessionOverlay extends StatefulWidget {
   final VoidCallback? onTogglePause;
   final List<Verse> verses;
   final bool isFullScreen;
+  final VoidCallback onMinimize;
+  final VoidCallback onExit;
 
   const SessionOverlay({
     super.key,
@@ -41,6 +46,8 @@ class SessionOverlay extends StatefulWidget {
     this.onTogglePause,
     required this.verses,
     this.isFullScreen = false,
+    required this.onMinimize,
+    required this.onExit,
   });
 
   @override
@@ -57,10 +64,8 @@ class _SessionOverlayState extends State<SessionOverlay> {
   }
 
   String _formatDuration(Duration d) {
-    final minutes =
-        d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds =
-        d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     if (d.inHours > 0) return '${d.inHours}:$minutes:$seconds';
     return '$minutes:$seconds';
   }
@@ -71,11 +76,9 @@ class _SessionOverlayState extends State<SessionOverlay> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(ctx).size.height * 0.1,
-        ),
+        padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
         child: DefaultTextStyle(
-          style: const TextStyle(fontFamily: 'Inter'),
+          style: TextStyle(fontFamily: 'Inter'),
           child: ReciterMenuSheet(onClose: () => Navigator.pop(ctx)),
         ),
       ),
@@ -88,11 +91,9 @@ class _SessionOverlayState extends State<SessionOverlay> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(ctx).size.height * 0.1,
-        ),
+        padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
         child: DefaultTextStyle(
-          style: const TextStyle(fontFamily: 'Inter'),
+          style: TextStyle(fontFamily: 'Inter'),
           child: ThemePickerSheet(onClose: () => Navigator.pop(ctx)),
         ),
       ),
@@ -105,11 +106,9 @@ class _SessionOverlayState extends State<SessionOverlay> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(ctx).size.height * 0.1,
-        ),
+        padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
         child: DefaultTextStyle(
-          style: const TextStyle(fontFamily: 'Inter'),
+          style: TextStyle(fontFamily: 'Inter'),
           child: AudioSettingsSheet(onClose: () => Navigator.pop(ctx)),
         ),
       ),
@@ -127,14 +126,14 @@ class _SessionOverlayState extends State<SessionOverlay> {
           AnimatedSlide(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            offset: widget.isFullScreen
-                ? const Offset(0, -1.5)
-                : Offset.zero,
+            offset: widget.isFullScreen ? const Offset(0, -1.5) : Offset.zero,
             child: _TopPhaseBar(
               session: widget.session,
               pageNumber: widget.pageNumber,
               theme: theme,
               onThemeTap: _showThemePicker,
+              onMinimize: widget.onMinimize,
+              onExit: widget.onExit,
             ),
           ),
 
@@ -144,9 +143,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
           AnimatedSlide(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            offset: widget.isFullScreen
-                ? const Offset(0, 1.5)
-                : Offset.zero,
+            offset: widget.isFullScreen ? const Offset(0, 1.5) : Offset.zero,
             child: _buildBottomSection(theme),
           ),
         ],
@@ -162,8 +159,8 @@ class _SessionOverlayState extends State<SessionOverlay> {
     final totalDurStr = _formatDuration(audioProvider.totalDuration);
     final progress = audioProvider.totalDuration.inMilliseconds > 0
         ? (audioProvider.currentPosition.inMilliseconds /
-                audioProvider.totalDuration.inMilliseconds)
-            .clamp(0.0, 1.0)
+                  audioProvider.totalDuration.inMilliseconds)
+              .clamp(0.0, 1.0)
         : 0.0;
 
     // Build the playing title
@@ -179,188 +176,106 @@ class _SessionOverlayState extends State<SessionOverlay> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Session Controls Row ──
+            // ── Floating Recipe Tooltip (if guided mode) ──
+            if (session.isGuidedMode && session.currentStep != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.cardColor.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.dividerColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: _buildRecipeStepBanner(theme, session),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // ── Action Dock Row ──
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.cardColor.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: theme.dividerColor.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Row 1: Timer · Reps
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Timer
-                          GestureDetector(
-                            onTap: widget.onTogglePause,
-                            child: _chip(
-                              theme,
-                              icon: session.isPaused
-                                  ? LucideIcons.pause
-                                  : LucideIcons.timer,
-                              label: _formatTime(session.elapsedSeconds),
-                            ),
+                      // Timer Pill
+                      GestureDetector(
+                        onTap: widget.onTogglePause,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
                           ),
-                          const SizedBox(width: 12),
-                          // Rep counter
-                          GestureDetector(
-                            onTap: widget.onRepTap,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: theme.accentColor
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.accentColor
-                                      .withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(LucideIcons.repeat,
-                                      size: 14, color: theme.accentColor),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${session.repCount}',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color: theme.accentColor,
-                                    ),
-                                  ),
-                                  if (session.currentPhase ==
-                                          SessionPhase.sabaq &&
-                                      session.plan != null)
-                                    Text(
-                                      '/${session.plan!.sabaqRepetitionTarget}',
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: 12,
-                                        color: theme.mutedText,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
+                          decoration: BoxDecoration(
+                            color: theme.pillBackground,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ],
+                          child: _chip(
+                            theme,
+                            icon: session.isPaused
+                                ? LucideIcons.pause
+                                : LucideIcons.timer,
+                            label: _formatTime(session.elapsedSeconds),
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 10),
-                      Divider(
-                        height: 1,
-                        color: theme.dividerColor.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Recipe step instruction banner (guided mode)
-                      if (session.isGuidedMode && session.currentStep != null)
-                        _buildRecipeStepBanner(theme, session),
-
-                      // Row 2: Skip · +REP (large) · Done
+                      
+                      // Action Controls
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           if (session.isGuidedMode && session.currentStep != null) ...[
-                            // In guided mode: Prev · +REP · Next/Finish
                             _ActionButton(
                               icon: LucideIcons.chevronLeft,
-                              label: AppLocalizations.of(context)!.overlayPrev,
                               theme: theme,
                               onTap: () => session.previousStep(),
                             ),
-                            GestureDetector(
-                              onTap: widget.onRepTap,
-                              child: Container(
-                                width: 52,
-                                height: 52,
-                                decoration: BoxDecoration(
-                                  color: session.isStepComplete
-                                      ? const Color(0xFF10B981)
-                                      : theme.accentColor,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: (session.isStepComplete
-                                              ? const Color(0xFF10B981)
-                                              : theme.accentColor)
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  session.isStepComplete ? LucideIcons.check : LucideIcons.plus,
-                                  size: 22,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                            const SizedBox(width: 12),
+                            _buildBigAddRepButton(theme, session),
+                            const SizedBox(width: 12),
                             if (session.currentStepIndex < (session.currentRecipe?.steps.length ?? 1) - 1)
                               _ActionButton(
                                 icon: LucideIcons.chevronRight,
-                                label: session.isStepComplete ? AppLocalizations.of(context)!.overlayNext : AppLocalizations.of(context)!.overlaySkip,
                                 theme: theme,
                                 onTap: () => session.nextStep(),
                               )
                             else
                               _ActionButton(
                                 icon: LucideIcons.checkCircle,
-                                label: AppLocalizations.of(context)!.overlayFinish,
                                 theme: theme,
                                 isPrimary: true,
                                 onTap: widget.onDone,
                               ),
                           ] else ...[
-                            // Free mode: Skip · +REP · Done
                             _ActionButton(
                               icon: LucideIcons.skipForward,
-                              label: AppLocalizations.of(context)!.overlaySkip,
                               theme: theme,
                               onTap: widget.onSkip ?? () {},
                             ),
-                            GestureDetector(
-                              onTap: widget.onRepTap,
-                              child: Container(
-                                width: 52,
-                                height: 52,
-                                decoration: BoxDecoration(
-                                  color: theme.accentColor,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: theme.accentColor
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  LucideIcons.plus,
-                                  size: 22,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                            const SizedBox(width: 12),
+                            _buildBigAddRepButton(theme, session),
+                            const SizedBox(width: 12),
                             _ActionButton(
                               icon: LucideIcons.check,
-                              label: AppLocalizations.of(context)!.overlayDone,
                               theme: theme,
                               isPrimary: true,
                               onTap: widget.onDone,
@@ -368,12 +283,50 @@ class _SessionOverlayState extends State<SessionOverlay> {
                           ],
                         ],
                       ),
+
+                      // Rep counter
+                      GestureDetector(
+                        onTap: widget.onRepTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.accentColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${session.repCount}',
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: theme.accentColor,
+                                ),
+                              ),
+                              if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
+                                Text(
+                                  '/${session.plan!.sabaqRepetitionTarget}',
+                                  style: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 11,
+                                    color: theme.accentColor.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
-
+            
             const SizedBox(height: 8),
 
             // ── Full Audio Player Bridge ──
@@ -422,62 +375,95 @@ class _SessionOverlayState extends State<SessionOverlay> {
     final totalSteps = recipe.steps.length;
     final unitLabel = step.unit == StepUnit.minutes ? 'min' : '×';
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.accentColor.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Text(step.icon, style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                step.instruction,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  color: theme.secondaryText,
-                  height: 1.3,
-                ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Icon(
+            IconResolver.resolve(step.icon),
+            size: 16,
+            color: theme.accentColor,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              step.instruction,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 11,
+                color: theme.secondaryText,
+                height: 1.3,
               ),
             ),
-            const SizedBox(width: 8),
-            // Step progress badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(
+          ),
+          const SizedBox(width: 8),
+          // Step progress badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: session.isStepComplete
+                  ? SemanticColors.practiceEmerald
+                        .fg(theme.isDark)
+                        .withValues(alpha: 0.15)
+                  : theme.pillBackground,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '${session.currentStepIndex + 1}/$totalSteps · ${session.stepRepCount}/${step.target}$unitLabel',
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
                 color: session.isStepComplete
-                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                    : theme.cardColor,
-                borderRadius: BorderRadius.circular(6),
+                    ? SemanticColors.practiceEmerald.fg(theme.isDark)
+                    : theme.accentColor,
               ),
-              child: Text(
-                '${session.currentStepIndex + 1}/$totalSteps · ${session.stepRepCount}/${step.target}$unitLabel',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: session.isStepComplete
-                      ? const Color(0xFF10B981)
-                      : theme.accentColor,
-                ),
-              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBigAddRepButton(ThemeProvider theme, SessionProvider session) {
+    return GestureDetector(
+      onTap: widget.onRepTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: session.isStepComplete
+              ? SemanticColors.practiceEmerald.fg(theme.isDark)
+              : theme.accentColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: (session.isStepComplete
+                      ? SemanticColors.practiceEmerald.fg(theme.isDark)
+                      : theme.accentColor)
+                  .withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
+        ),
+        child: Icon(
+          session.isStepComplete ? LucideIcons.check : LucideIcons.plus,
+          size: 20,
+          color: theme.scaffoldBackground,
         ),
       ),
     );
   }
 
-  Widget _chip(ThemeProvider theme,
-      {required IconData icon, required String label}) {
+  Widget _chip(
+    ThemeProvider theme, {
+    required IconData icon,
+    required String label,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -486,7 +472,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: theme.primaryText,
@@ -506,12 +492,16 @@ class _TopPhaseBar extends StatelessWidget {
   final int pageNumber;
   final ThemeProvider theme;
   final VoidCallback onThemeTap;
+  final VoidCallback onMinimize;
+  final VoidCallback onExit;
 
   const _TopPhaseBar({
     required this.session,
     required this.pageNumber,
     required this.theme,
     required this.onThemeTap,
+    required this.onMinimize,
+    required this.onExit,
   });
 
   @override
@@ -535,31 +525,66 @@ class _TopPhaseBar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // Phase emoji + label
-                  Text(
-                    session.currentPhaseEmoji,
-                    style: const TextStyle(fontSize: 18),
+                  // Minimize button
+                  GestureDetector(
+                    onTap: onMinimize,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: theme.scaffoldBackground.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.minimize2,
+                        size: 14,
+                        color: theme.secondaryText,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
+                  // Phase label & details
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          _getPhaseLabel(context, session.currentPhase).toUpperCase(),
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: theme.accentColor,
-                            letterSpacing: 1.2,
-                          ),
+                        Row(
+                          children: [
+                            Icon(
+                              session.currentPhaseIcon,
+                              size: 14,
+                              color: theme.accentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                _getPhaseLabel(
+                                  context,
+                                  session.currentPhase,
+                                ).toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: theme.accentColor,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 2),
                         Text(
-                          AppLocalizations.of(context)!.overlayPageLines(pageNumber, 1, 15),
+                          AppLocalizations.of(
+                            context,
+                          )!.overlayPageLines(pageNumber, 1, 15),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,
                             color: theme.secondaryText,
                           ),
@@ -588,7 +613,7 @@ class _TopPhaseBar extends StatelessWidget {
                   // Step indicator chip
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
+                      horizontal: 8,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
@@ -598,10 +623,28 @@ class _TopPhaseBar extends StatelessWidget {
                     child: Text(
                       '${session.currentStepNumber}/${session.activePhaseCount}',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: theme.accentColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Close button
+                  GestureDetector(
+                    onTap: onExit,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: theme.scaffoldBackground.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.x,
+                        size: 14,
+                        color: theme.secondaryText,
                       ),
                     ),
                   ),
@@ -616,10 +659,14 @@ class _TopPhaseBar extends StatelessWidget {
 
   String _getPhaseLabel(BuildContext context, SessionPhase phase) {
     switch (phase) {
-      case SessionPhase.sabaq: return AppLocalizations.of(context)!.phaseSabaq;
-      case SessionPhase.sabqi: return AppLocalizations.of(context)!.phaseSabqi;
-      case SessionPhase.manzil: return AppLocalizations.of(context)!.phaseManzil;
-      case SessionPhase.flashcards: return AppLocalizations.of(context)!.phaseFlashcards;
+      case SessionPhase.sabaq:
+        return AppLocalizations.of(context)!.phaseSabaq;
+      case SessionPhase.sabqi:
+        return AppLocalizations.of(context)!.phaseSabqi;
+      case SessionPhase.manzil:
+        return AppLocalizations.of(context)!.phaseManzil;
+      case SessionPhase.flashcards:
+        return AppLocalizations.of(context)!.phaseFlashcards;
     }
   }
 }
@@ -631,14 +678,14 @@ class _TopPhaseBar extends StatelessWidget {
 /// Small action button (Skip, Done) with icon and label.
 class _ActionButton extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final String? label;
   final ThemeProvider theme;
   final VoidCallback onTap;
   final bool isPrimary;
 
   const _ActionButton({
     required this.icon,
-    required this.label,
+    this.label,
     required this.theme,
     required this.onTap,
     this.isPrimary = false,
@@ -671,16 +718,18 @@ class _ActionButton extends StatelessWidget {
               color: isPrimary ? theme.accentColor : theme.secondaryText,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: isPrimary ? theme.accentColor : theme.mutedText,
+          if (label != null && label!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              label!,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isPrimary ? theme.accentColor : theme.mutedText,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

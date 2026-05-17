@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/ai_plan_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Detects extended breaks (3+ missed days) and generates a compassionate
 /// review-first recovery plan to ease the user back into memorization.
@@ -19,7 +19,7 @@ class BreakRecoveryService {
   static const int breakThresholdDays = 3;
 
   BreakRecoveryService(this._db, {AIPlanService? aiService})
-      : _aiService = aiService;
+    : _aiService = aiService;
 
   /// Check if the user is returning from a break.
   ///
@@ -43,24 +43,30 @@ class BreakRecoveryService {
   RecoveryMessage getRecoveryMessage(int missedDays) {
     if (missedDays <= 5) {
       return const RecoveryMessage(
-        emoji: '🌱',
+        emoji: 'sprout',
         title: 'Welcome back!',
-        message: "A few days away is perfectly fine. Let's do a light review to refresh your memory before continuing.",
-        encouragement: 'Your previous progress is still there — it just needs a gentle refresh.',
+        message:
+            "A few days away is perfectly fine. Let's do a light review to refresh your memory before continuing.",
+        encouragement:
+            'Your previous progress is still there — it just needs a gentle refresh.',
       );
     } else if (missedDays <= 14) {
       return RecoveryMessage(
-        emoji: '🌿',
+        emoji: 'leaf',
         title: 'Great to see you again!',
-        message: "It's been $missedDays days. Let's start with a focused review session to rebuild your confidence.",
-        encouragement: 'The fact that you came back shows real commitment. That matters more than any streak.',
+        message:
+            "It's been $missedDays days. Let's start with a focused review session to rebuild your confidence.",
+        encouragement:
+            'The fact that you came back shows real commitment. That matters more than any streak.',
       );
     } else {
       return RecoveryMessage(
-        emoji: '🌳',
+        emoji: 'tree_deciduous',
         title: "You're back — that's what counts!",
-        message: "It's been a while ($missedDays days), but every return is a victory. Let's review at your own pace.",
-        encouragement: 'The Quran is patient with those who return to it. So are we. No rush, no pressure.',
+        message:
+            "It's been a while ($missedDays days), but every return is a victory. Let's review at your own pace.",
+        encouragement:
+            'The Quran is patient with those who return to it. So are we. No rush, no pressure.',
       );
     }
   }
@@ -91,7 +97,7 @@ class BreakRecoveryService {
         );
         return result;
       } catch (e) {
-        debugPrint('AI recovery plan failed, using template: $e');
+        AppLogger.info('Recovery', 'AI recovery plan failed, using template: $e');
       }
     }
 
@@ -100,12 +106,15 @@ class BreakRecoveryService {
   }
 
   /// Build a progress snapshot for the AI context.
-  Future<Map<String, dynamic>> _buildProgressSnapshot(MemoryProfile profile) async {
+  Future<Map<String, dynamic>> _buildProgressSnapshot(
+    MemoryProfile profile,
+  ) async {
     try {
       final sessions = await _db.getSessionHistory(profile.id, limit: 10);
       final totalPages = sessions.length;
-      final strongSessions = sessions.where((s) =>
-          s.sabaqAssessment == SelfAssessment.strong).length;
+      final strongSessions = sessions
+          .where((s) => s.sabaqAssessment == SelfAssessment.strong)
+          .length;
 
       return {
         'totalSessions': totalPages,
@@ -113,7 +122,7 @@ class BreakRecoveryService {
         'currentSabaqPage': profile.startingPage,
       };
     } catch (e) {
-      debugPrint('[AI] Break recovery progress fetch failed: $e');
+      AppLogger.info('Recovery', '[AI] Break recovery progress fetch failed: $e');
       return {
         'totalSessions': 0,
         'strongSessions': 0,
@@ -162,15 +171,17 @@ class BreakRecoveryService {
               'action': 'listen',
               'target': 3,
               'unit': 'repetitions',
-              'instruction': 'Listen to the page being recited. Just listen — no pressure to follow along.',
-              'icon': '🎧',
+              'instruction':
+                  'Listen to the page being recited. Just listen — no pressure to follow along.',
+              'icon': 'headphones',
             },
             {
               'action': 'read_aloud',
               'target': 2,
               'unit': 'repetitions',
-              'instruction': 'Read along softly with the audio. Let the words come back naturally.',
-              'icon': '📖',
+              'instruction':
+                  'Read along softly with the audio. Let the words come back naturally.',
+              'icon': 'book_open',
             },
           ],
           'tips': [

@@ -23,8 +23,11 @@ class AnalyticsService {
 
     // Normalize dates to midnight
     final start = DateTime(startDate.year, startDate.month, startDate.day);
-    final end = DateTime(endDate.year, endDate.month, endDate.day)
-        .add(const Duration(days: 1));
+    final end = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+    ).add(const Duration(days: 1));
 
     // ── Sessions in range ──
     final sessionRows = await db.query(
@@ -45,10 +48,11 @@ class AnalyticsService {
 
     // ── Session metrics ──
     final totalSessions = sessions.length;
-    final totalDuration =
-        sessions.fold<int>(0, (sum, s) => sum + s.durationMinutes);
-    final avgDuration =
-        totalSessions > 0 ? totalDuration / totalSessions : 0.0;
+    final totalDuration = sessions.fold<int>(
+      0,
+      (sum, s) => sum + s.durationMinutes,
+    );
+    final avgDuration = totalSessions > 0 ? totalDuration / totalSessions : 0.0;
 
     // Sessions per day-of-week (1=Mon..7=Sun)
     final sessionsPerDay = <int, int>{};
@@ -60,26 +64,34 @@ class AnalyticsService {
     // ── Completion rate ──
     final plannedDays = plans.length;
     final completedDays = plans.where((p) => p.isCompleted).length;
-    final completionRate =
-        plannedDays > 0 ? completedDays / plannedDays : 0.0;
+    final completionRate = plannedDays > 0 ? completedDays / plannedDays : 0.0;
 
     // ── Assessment distribution ──
     int strong = 0, okay = 0, needsWork = 0;
     for (final s in sessions) {
-      _tallyAssessment(s.sabaqAssessment, strong, okay, needsWork,
-          (st, ok, nw) {
+      _tallyAssessment(s.sabaqAssessment, strong, okay, needsWork, (
+        st,
+        ok,
+        nw,
+      ) {
         strong = st;
         okay = ok;
         needsWork = nw;
       });
-      _tallyAssessment(s.sabqiAssessment, strong, okay, needsWork,
-          (st, ok, nw) {
+      _tallyAssessment(s.sabqiAssessment, strong, okay, needsWork, (
+        st,
+        ok,
+        nw,
+      ) {
         strong = st;
         okay = ok;
         needsWork = nw;
       });
-      _tallyAssessment(s.manzilAssessment, strong, okay, needsWork,
-          (st, ok, nw) {
+      _tallyAssessment(s.manzilAssessment, strong, okay, needsWork, (
+        st,
+        ok,
+        nw,
+      ) {
         strong = st;
         okay = ok;
         needsWork = nw;
@@ -104,8 +116,7 @@ class AnalyticsService {
 
     // ── Pace (pages per week) ──
     final daySpan = end.difference(start).inDays;
-    final pagesPerWeek =
-        daySpan > 0 ? pagesMemorized * 7 / daySpan : 0.0;
+    final pagesPerWeek = daySpan > 0 ? pagesMemorized * 7 / daySpan : 0.0;
 
     return WeeklySnapshot(
       startDate: start,
@@ -165,57 +176,65 @@ class AnalyticsService {
     if (current.completionRate >= 0.8 &&
         current.totalAssessments > 0 &&
         current.strongCount / current.totalAssessments > 0.6) {
-      suggestions.add(Suggestion(
-        id: 'increase_${now.millisecondsSinceEpoch}',
-        type: SuggestionType.increaseLoad,
-        emoji: '🌟',
-        title: "You're doing great!",
-        message:
-            'Your consistency and strong reviews show real progress. Want to increase your daily load?',
-        createdAt: now,
-      ));
+      suggestions.add(
+        Suggestion(
+          id: 'increase_${now.millisecondsSinceEpoch}',
+          type: SuggestionType.increaseLoad,
+          iconKey: 'star',
+          title: "You're doing great!",
+          message:
+              'Your consistency and strong reviews show real progress. Want to increase your daily load?',
+          createdAt: now,
+        ),
+      );
     }
 
     // ── Signal 2: Missing sessions frequently → suggest lighter plan ──
     if (current.completionRate < 0.5 && current.plannedDays >= 5) {
-      suggestions.add(Suggestion(
-        id: 'decrease_${now.millisecondsSinceEpoch}',
-        type: SuggestionType.takeBreak,
-        emoji: '💡',
-        title: 'Looks like things have been busy',
-        message:
-            'No worries — life happens! Would a lighter daily plan work better for your schedule?',
-        createdAt: now,
-      ));
+      suggestions.add(
+        Suggestion(
+          id: 'decrease_${now.millisecondsSinceEpoch}',
+          type: SuggestionType.takeBreak,
+          iconKey: 'lightbulb',
+          title: 'Looks like things have been busy',
+          message:
+              'No worries — life happens! Would a lighter daily plan work better for your schedule?',
+          createdAt: now,
+        ),
+      );
     }
 
     // ── Signal 3: Mostly weak assessments → suggest more review ──
     if (current.totalAssessments > 0 &&
         current.needsWorkCount / current.totalAssessments > 0.4) {
-      suggestions.add(Suggestion(
-        id: 'review_${now.millisecondsSinceEpoch}',
-        type: SuggestionType.moreReview,
-        emoji: '💪',
-        title: 'Review can help solidify things',
-        message:
-            'Consider spending an extra day reviewing before adding new material. Want to reduce your daily load temporarily?',
-        createdAt: now,
-      ));
+      suggestions.add(
+        Suggestion(
+          id: 'review_${now.millisecondsSinceEpoch}',
+          type: SuggestionType.moreReview,
+          iconKey: 'dumbbell',
+          title: 'Review can help solidify things',
+          message:
+              'Consider spending an extra day reviewing before adding new material. Want to reduce your daily load temporarily?',
+          createdAt: now,
+        ),
+      );
     }
 
     // ── Signal 4: Ahead of schedule ──
     if (previous != null &&
         current.pagesMemorized > previous.pagesMemorized * 1.3 &&
         current.completionRate >= 0.8) {
-      suggestions.add(Suggestion(
-        id: 'ahead_${now.millisecondsSinceEpoch}',
-        type: SuggestionType.aheadOfSchedule,
-        emoji: '🎉',
-        title: "You're ahead of schedule!",
-        message:
-            'Amazing progress! Keep going at this pace, or take an extra review day to consolidate.',
-        createdAt: now,
-      ));
+      suggestions.add(
+        Suggestion(
+          id: 'ahead_${now.millisecondsSinceEpoch}',
+          type: SuggestionType.aheadOfSchedule,
+          iconKey: 'party_popper',
+          title: "You're ahead of schedule!",
+          message:
+              'Amazing progress! Keep going at this pace, or take an extra review day to consolidate.',
+          createdAt: now,
+        ),
+      );
     }
 
     return suggestions;
@@ -241,8 +260,7 @@ class AnalyticsService {
     final memorizedPages = memResult.first['count'] as int? ?? 0;
 
     // Pages memorized in last 30 days
-    final thirtyDaysAgo =
-        DateTime.now().subtract(const Duration(days: 30));
+    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
     final recentResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM page_progress '
       'WHERE profileId = ? AND memorizedAt >= ?',
@@ -271,8 +289,9 @@ class AnalyticsService {
       'remainingPages': remainingPages,
       'pagesPerMonth': pagesPerMonth,
       'monthsRemaining': monthsRemaining.ceil(),
-      'progressPercent':
-          totalGoalPages > 0 ? memorizedPages / totalGoalPages : 0.0,
+      'progressPercent': totalGoalPages > 0
+          ? memorizedPages / totalGoalPages
+          : 0.0,
     };
   }
 
@@ -287,8 +306,7 @@ class AnalyticsService {
     int thresholdDays = 5,
   }) async {
     final db = await _db.database;
-    final threshold =
-        DateTime.now().subtract(Duration(days: thresholdDays));
+    final threshold = DateTime.now().subtract(Duration(days: thresholdDays));
 
     final results = await db.rawQuery(
       'SELECT pageNumber FROM page_progress '
@@ -311,11 +329,11 @@ class AnalyticsService {
       juzGroups.putIfAbsent(juz, () => []).add(page);
     }
 
-    return juzGroups.entries.map((e) => {
-      'juz': e.key,
-      'pages': e.value,
-      'pageCount': e.value.length,
-    }).toList();
+    return juzGroups.entries
+        .map(
+          (e) => {'juz': e.key, 'pages': e.value, 'pageCount': e.value.length},
+        )
+        .toList();
   }
 
   /// Detect pages where assessments are consistently weak.
@@ -323,8 +341,7 @@ class AnalyticsService {
     final db = await _db.database;
 
     // Get last 14 days of sessions
-    final twoWeeksAgo =
-        DateTime.now().subtract(const Duration(days: 14));
+    final twoWeeksAgo = DateTime.now().subtract(const Duration(days: 14));
     final sessionRows = await db.query(
       'session_history',
       where: 'profileId = ? AND date >= ?',
@@ -335,9 +352,9 @@ class AnalyticsService {
     // Track pages with weak sabaq assessments
     final weakPageCounts = <int, int>{};
     for (final s in sessions) {
-      if (s.sabaqAssessment == SelfAssessment.needsWork && s.sabaqPage != null) {
-        weakPageCounts[s.sabaqPage!] =
-            (weakPageCounts[s.sabaqPage!] ?? 0) + 1;
+      if (s.sabaqAssessment == SelfAssessment.needsWork &&
+          s.sabaqPage != null) {
+        weakPageCounts[s.sabaqPage!] = (weakPageCounts[s.sabaqPage!] ?? 0) + 1;
       }
     }
 
@@ -351,9 +368,36 @@ class AnalyticsService {
   /// Convert page number to juz number.
   static int _pageToJuz(int page) {
     const starts = [
-      1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
-      201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
-      402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+      1,
+      22,
+      42,
+      62,
+      82,
+      102,
+      121,
+      142,
+      162,
+      182,
+      201,
+      222,
+      242,
+      262,
+      282,
+      302,
+      322,
+      342,
+      362,
+      382,
+      402,
+      422,
+      442,
+      462,
+      482,
+      502,
+      522,
+      542,
+      562,
+      582,
     ];
     for (int j = starts.length - 1; j >= 0; j--) {
       if (page >= starts[j]) return j + 1;

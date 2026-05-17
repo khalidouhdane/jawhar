@@ -6,28 +6,24 @@ import 'dart:convert';
 
 /// The 6 flashcard types (3 implemented for MVP).
 enum FlashcardType {
-  nextVerse,         // Show verse → "What comes next?"
-  surahDetective,    // Verse without ref → pick the surah
-  mutashabihatDuel,  // Two similar verses → pick correct surah
-  verseCompletion,   // Partially hidden verse → fill in  (later)
-  previousVerse,     // Show verse → "What came before?"   (later)
-  connectSequence,   // Reorder scrambled verses            (later)
+  nextVerse, // Show verse → "What comes next?"
+  surahDetective, // Verse without ref → pick the surah
+  mutashabihatDuel, // Two similar verses → pick correct surah
+  verseCompletion, // Partially hidden verse → fill in  (later)
+  previousVerse, // Show verse → "What came before?"   (later)
+  connectSequence, // Reorder scrambled verses            (later)
 }
 
 /// How well the user recalled the answer.
 enum FlashcardRating {
-  strong,  // Instant recall   → interval × 2.5
-  ok,      // Recalled w/ effort → interval × 1.5
-  weak,    // Struggled          → interval stays
-  forgot,  // Couldn't recall   → reset to 1 day
+  strong, // Instant recall   → interval × 2.5
+  ok, // Recalled w/ effort → interval × 1.5
+  weak, // Struggled          → interval stays
+  forgot, // Couldn't recall   → reset to 1 day
 }
 
 /// User's mastery status on a mutashabihat group.
-enum MutashabihatStatus {
-  notStudied,
-  needsPractice,
-  mastered,
-}
+enum MutashabihatStatus { notStudied, needsPractice, mastered }
 
 /// Category of mutashabihat difference.
 enum MutashabihatCategory {
@@ -75,8 +71,12 @@ class Flashcard {
     DateTime? lastReviewedAt,
     int? reviewCount,
   }) => Flashcard(
-    id: id, type: type, profileId: profileId, verseKey: verseKey,
-    questionData: questionData, answerData: answerData,
+    id: id,
+    type: type,
+    profileId: profileId,
+    verseKey: verseKey,
+    questionData: questionData,
+    answerData: answerData,
     interval: interval ?? this.interval,
     easeFactor: easeFactor ?? this.easeFactor,
     dueDate: dueDate ?? this.dueDate,
@@ -109,7 +109,8 @@ class Flashcard {
     easeFactor: (m['ease_factor'] as num).toDouble(),
     dueDate: DateTime.parse(m['due_date']),
     lastReviewedAt: m['last_reviewed_at'] != null
-        ? DateTime.parse(m['last_reviewed_at']) : null,
+        ? DateTime.parse(m['last_reviewed_at'])
+        : null,
     reviewCount: m['review_count'] ?? 0,
   );
 }
@@ -169,10 +170,14 @@ class MutashabihatGroup {
 
   MutashabihatGroup copyWith({MutashabihatStatus? userStatus}) =>
       MutashabihatGroup(
-        groupId: groupId, sourceVerseKey: sourceVerseKey,
-        sourceText: sourceText, similarVerses: similarVerses,
-        uniqueWords: uniqueWords, category: category,
-        difficulty: difficulty, needsContext: needsContext,
+        groupId: groupId,
+        sourceVerseKey: sourceVerseKey,
+        sourceText: sourceText,
+        similarVerses: similarVerses,
+        uniqueWords: uniqueWords,
+        category: category,
+        difficulty: difficulty,
+        needsContext: needsContext,
         userStatus: userStatus ?? this.userStatus,
       );
 
@@ -190,7 +195,8 @@ class MutashabihatGroup {
 
   factory MutashabihatGroup.fromMap(Map<String, dynamic> m) {
     final similars = jsonDecode(m['similar_verses'] ?? '[]') as List;
-    final wordsRaw = jsonDecode(m['unique_words'] ?? '{}') as Map<String, dynamic>;
+    final wordsRaw =
+        jsonDecode(m['unique_words'] ?? '{}') as Map<String, dynamic>;
     return MutashabihatGroup(
       groupId: m['group_id'],
       sourceVerseKey: m['source_verse_key'],
@@ -198,8 +204,9 @@ class MutashabihatGroup {
       similarVerses: similars
           .map((s) => MutashabihatVerse.fromMap(Map<String, dynamic>.from(s)))
           .toList(),
-      uniqueWords: wordsRaw.map((k, v) =>
-          MapEntry(k, (v as List).map((e) => e.toString()).toList())),
+      uniqueWords: wordsRaw.map(
+        (k, v) => MapEntry(k, (v as List).map((e) => e.toString()).toList()),
+      ),
       category: MutashabihatCategory.values[(m['category'] ?? 0) as int],
       difficulty: m['difficulty'] ?? 'medium',
       needsContext: m['needs_context'] == 1,

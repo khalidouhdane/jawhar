@@ -1,5 +1,7 @@
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -7,9 +9,15 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 
+import 'package:quran_app/theme/icon_resolver.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 /// 11-screen assessment wizard for creating a Hifz memory profile.
-/// Collects: name/avatar → age → experience → learning pref → encoding speed →
-/// retention → schedule+time → active days → goal+pace → reciter → starting point → summary.
+/// Collects: name/avatar â†’ age â†’ experience â†’ learning pref â†’ encoding speed â†’
+/// retention â†’ schedule+time â†’ active days â†’ goal+pace â†’ reciter â†’ starting point â†’ summary.
 class AssessmentScreen extends StatefulWidget {
   final bool isRetake;
 
@@ -22,12 +30,16 @@ class AssessmentScreen extends StatefulWidget {
 class _AssessmentScreenState extends State<AssessmentScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  static const _totalPages = 12;
+  static const _totalPages = 7;
 
-  // ── Collected data ──
+  // â”€â”€ Collected data â”€â”€
   String _name = '';
   int _avatarIndex = 0;
-  int _age = 25;
+  // Birthday scroll picker state
+  DateTime _birthday = DateTime(2000, 1, 1);
+  late FixedExtentScrollController _dayController;
+  late FixedExtentScrollController _monthController;
+  late FixedExtentScrollController _yearController;
   AgeGroup _ageGroup = AgeGroup.youngAdult;
   HifzExperience _hifzExperience = HifzExperience.fresh;
   LearningPreference _learningPref = LearningPreference.visual;
@@ -42,14 +54,22 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   int _startingPage = 582; // Juz 30
   int _selectedReciterId = 7; // Mishary al-Afasy (default)
 
+  // Reciter sample audio
+  final AudioPlayer _samplePlayer = AudioPlayer();
+  int? _playingReciterId;
+
+
   final _nameController = TextEditingController();
-  final _ageController = TextEditingController(text: '25');
   String? _existingProfileId;
   DateTime? _existingCreatedAt;
 
   @override
   void initState() {
     super.initState();
+    // Initialize birthday scroll controllers
+    _dayController = FixedExtentScrollController(initialItem: _birthday.day - 1);
+    _monthController = FixedExtentScrollController(initialItem: _birthday.month - 1);
+    _yearController = FixedExtentScrollController(initialItem: _birthday.year - 1940);
     // Pre-populate from existing profile ONLY if retaking assessment
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.isRetake) {
@@ -62,9 +82,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             _name = p.name;
             _nameController.text = p.name;
             _avatarIndex = p.avatarIndex;
-            _age = p.age;
-            _ageController.text = '${p.age}';
+            if (p.birthday != null) {
+              _birthday = p.birthday!;
+            } else {
+              // Legacy: approximate birthday from stored age
+              _birthday = DateTime(DateTime.now().year - p.age, 1, 1);
+            }
             _ageGroup = p.ageGroup;
+            _dayController.jumpToItem(_birthday.day - 1);
+            _monthController.jumpToItem(_birthday.month - 1);
+            _yearController.jumpToItem(_birthday.year - 1940);
             _hifzExperience = p.hifzExperience;
             _learningPref = p.learningPreference;
             _encodingSpeed = p.encodingSpeed;
@@ -86,7 +113,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
-    _ageController.dispose();
+    _dayController.dispose();
+    _monthController.dispose();
+    _yearController.dispose();
+    _samplePlayer.dispose();
     super.dispose();
   }
 
@@ -115,12 +145,20 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   Future<void> _createProfile() async {
     final profileProvider = context.read<HifzProfileProvider>();
     final now = DateTime.now();
+    // Compute age from birthday for the fallback field
+    int computedAge = now.year - _birthday.year;
+    if (now.month < _birthday.month ||
+        (now.month == _birthday.month && now.day < _birthday.day)) {
+      computedAge--;
+    }
+    computedAge = computedAge.clamp(7, 100);
     final profile = MemoryProfile(
       id: _existingProfileId ?? '${now.millisecondsSinceEpoch}',
       name: _name.trim(),
       avatarIndex: _avatarIndex,
       createdAt: _existingCreatedAt ?? now,
-      age: _age,
+      birthday: _birthday,
+      age: computedAge,
       ageGroup: _ageGroup,
       encodingSpeed: _encodingSpeed,
       retentionStrength: _retention,
@@ -156,27 +194,22 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── Top bar: back + progress ──
+            // â”€â”€ Top bar: back + progress â”€â”€
             _buildTopBar(theme),
-            // ── Page content ──
+            // â”€â”€ Page content â”€â”€
             Expanded(
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 children: [
-                  _buildWelcomePage(theme),        // 0
-                  _buildAgePage(theme),             // 1 — age number input
-                  _buildExperiencePage(theme),      // 2 — NEW: hifz experience
-                  _buildLearningPrefPage(theme),    // 3
-                  _buildEncodingSpeedPage(theme),   // 4
-                  _buildRetentionPage(theme),       // 5
-                  _buildScheduleTimePage(theme),    // 6 — time + time-of-day
-                  _buildWeeklySchedulePage(theme),  // 7 — NEW: active days
-                  _buildGoalPacePage(theme),        // 8 — goal + pace
-                  _buildReciterPage(theme),         // 9
-                  _buildStartingPointPage(theme),   // 10
-                  _buildSummaryPage(theme),          // 11
+                  _buildIdentityPage(theme), // 0 â€” name + avatar + birthday
+                  _buildExperiencePage(theme), // 1 â€” hifz experience
+                  _buildMemoryProfilePage(theme), // 2 â€” encoding + retention + learning pref
+                  _buildSchedulePage(theme), // 3 â€” time + time-of-day + active days
+                  _buildGoalPage(theme), // 4 â€” goal + pace + starting point
+                  _buildReciterPage(theme), // 5 â€” reciter + sample audio
+                  _buildSummaryPage(theme), // 6 â€” summary
                 ],
               ),
             ),
@@ -186,9 +219,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // TOP BAR
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Widget _buildTopBar(ThemeProvider theme) {
     return Padding(
@@ -196,40 +229,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       child: Row(
         children: [
           if (_currentPage > 0)
-            GestureDetector(
-              onTap: _prevPage,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.dividerColor),
-                ),
-                child: Icon(
-                  LucideIcons.arrowLeft,
-                  size: 18,
-                  color: theme.primaryText,
-                ),
-              ),
+            GeistButton.icon(
+              onPressed: _prevPage,
+              icon: Icon(LucideIcons.arrowLeft, size: 18, color: theme.primaryText),
+              type: GeistButtonType.secondary,
             )
           else
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.dividerColor),
-                ),
-                child: Icon(
-                  LucideIcons.x,
-                  size: 18,
-                  color: theme.primaryText,
-                ),
-              ),
+            GeistButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
+              type: GeistButtonType.secondary,
             ),
           const SizedBox(width: 16),
           // Progress bar
@@ -248,7 +257,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           Text(
             '${_currentPage + 1}/$_totalPages',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: theme.mutedText,
@@ -259,11 +268,43 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 1: WELCOME
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PAGE 0: IDENTITY (name + avatar + birthday)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  Widget _buildWelcomePage(ThemeProvider theme) {
+  static const _monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  void _updateBirthday() {
+    final year = 1940 + _yearController.selectedItem;
+    final month = 1 + _monthController.selectedItem;
+    final maxDay = DateTime(year, month + 1, 0).day;
+    final day = (_dayController.selectedItem + 1).clamp(1, maxDay);
+    final newBirthday = DateTime(year, month, day);
+    final now = DateTime.now();
+    int age = now.year - newBirthday.year;
+    if (now.month < newBirthday.month ||
+        (now.month == newBirthday.month && now.day < newBirthday.day)) {
+      age--;
+    }
+    setState(() {
+      _birthday = newBirthday;
+      _ageGroup = MemoryProfile.ageGroupFromAge(age.clamp(7, 100));
+    });
+  }
+
+  Widget _buildIdentityPage(ThemeProvider theme) {
+    // Compute current age for display
+    final now = DateTime.now();
+    int displayAge = now.year - _birthday.year;
+    if (now.month < _birthday.month ||
+        (now.month == _birthday.month && now.day < _birthday.day)) {
+      displayAge--;
+    }
+    displayAge = displayAge.clamp(0, 120);
+
     return _pageWrapper(
       theme,
       icon: LucideIcons.sparkles,
@@ -276,29 +317,29 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             controller: _nameController,
             onChanged: (v) => setState(() => _name = v),
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 16,
               color: theme.primaryText,
             ),
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context)!.assessNameHint,
               hintStyle: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 color: theme.mutedText,
               ),
               filled: true,
               fillColor: theme.cardColor,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: theme.dividerColor),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: theme.dividerColor),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: theme.accentColor, width: 2),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.accentColor, width: 1),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -306,53 +347,134 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           // Avatar picker
           Text(
             AppLocalizations.of(context)!.assessChooseAvatar,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
               color: theme.secondaryText,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           SizedBox(
-            height: 70,
+            height: 56,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: _avatarEmojis.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemCount: IconResolver.avatarIcons.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
               itemBuilder: (context, i) {
                 final isSelected = _avatarIndex == i;
                 return GestureDetector(
                   onTap: () => setState(() => _avatarIndex = i),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: 60,
-                    height: 60,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? theme.accentColor.withValues(alpha: 0.15)
+                          ? theme.primaryText
                           : theme.cardColor,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected
-                            ? theme.accentColor
-                            : theme.dividerColor,
-                        width: isSelected ? 2.5 : 1,
-                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.primaryText.withValues(alpha: 0.08),
+                          blurRadius: 0, spreadRadius: 1,
+                        ),
+                      ],
                     ),
                     child: Center(
-                      child: Text(
-                        _avatarEmojis[i],
-                        style: const TextStyle(fontSize: 28),
+                      child: Icon(
+                        IconResolver.avatarIcons[i],
+                        size: 22,
+                        color: isSelected
+                            ? theme.scaffoldBackground
+                            : theme.secondaryText,
                       ),
                     ),
                   ),
                 );
               },
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Birthday picker label
+          Text(
+            'Date of Birth',
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: theme.secondaryText,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Birthday scroll wheels
+          Container(
+            height: 130,
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.primaryText.withValues(alpha: 0.08),
+                  blurRadius: 0, spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Day
+                Expanded(child: _scrollWheel(
+                  theme,
+                  controller: _dayController,
+                  itemCount: 31,
+                  labelBuilder: (i) => '${i + 1}',
+                  onChanged: (_) => _updateBirthday(),
+                )),
+                Container(width: 1, color: theme.dividerColor),
+                // Month
+                Expanded(child: _scrollWheel(
+                  theme,
+                  controller: _monthController,
+                  itemCount: 12,
+                  labelBuilder: (i) => _monthNames[i],
+                  onChanged: (_) => _updateBirthday(),
+                )),
+                Container(width: 1, color: theme.dividerColor),
+                // Year
+                Expanded(child: _scrollWheel(
+                  theme,
+                  controller: _yearController,
+                  itemCount: DateTime.now().year - 1940 + 1,
+                  labelBuilder: (i) => '${1940 + i}',
+                  onChanged: (_) => _updateBirthday(),
+                )),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Computed age badge
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              key: ValueKey(displayAge),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.primaryText.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              child: Text(
+                'Age $displayAge Â· ${_ageGroup.name}',
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: theme.secondaryText,
+                ),
+              ),
             ),
           ),
         ],
@@ -361,117 +483,46 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  static const _avatarEmojis = [
-    '🌙', '⭐', '📖', '🕌', '🌿', '🕋', '💎', '🌸',
-  ];
-
-  // ════════════════════════════════
-  // PAGE 2: AGE (Number Input)
-  // ════════════════════════════════
-
-  Widget _buildAgePage(ThemeProvider theme) {
-
-    // Human-friendly age group label
-    final groupLabel = switch (_ageGroup) {
-      AgeGroup.child => '🧒 Child (7-12)',
-      AgeGroup.teen => '🧑 Teen (13-17)',
-      AgeGroup.youngAdult => '💪 Young Adult (18-30)',
-      AgeGroup.adult => '🧔 Adult (31-45)',
-      AgeGroup.middleAged => '🌟 Middle-Aged (46-55)',
-      AgeGroup.senior => '📿 Senior (56-70)',
-      AgeGroup.elderly => '🤲 Elderly (71+)',
-    };
-
-    return _pageWrapper(
-      theme,
-      icon: LucideIcons.users,
-      title: AppLocalizations.of(context)!.assessHowOld,
-      subtitle: AppLocalizations.of(context)!.assessAgeSubtitle,
-      child: Column(
-        children: [
-          // Age number input
-          SizedBox(
-            width: 140,
-            child: TextField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
+  /// Reusable scroll wheel column for the birthday picker.
+  Widget _scrollWheel(
+    ThemeProvider theme, {
+    required FixedExtentScrollController controller,
+    required int itemCount,
+    required String Function(int) labelBuilder,
+    required ValueChanged<int> onChanged,
+  }) {
+    return ListWheelScrollView.useDelegate(
+      controller: controller,
+      itemExtent: 36,
+      physics: const FixedExtentScrollPhysics(),
+      diameterRatio: 1.5,
+      perspective: 0.003,
+      onSelectedItemChanged: onChanged,
+      childDelegate: ListWheelChildBuilderDelegate(
+        childCount: itemCount,
+        builder: (context, index) {
+          final isSelected = controller.hasClients
+              ? controller.selectedItem == index
+              : false;
+          return Center(
+            child: Text(
+              labelBuilder(index),
               style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 32,
-                fontWeight: FontWeight.w800,
-                color: theme.primaryText,
-              ),
-              decoration: InputDecoration(
-                hintText: '25',
-                hintStyle: TextStyle(color: theme.mutedText),
-                filled: true,
-                fillColor: theme.cardColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: theme.accentColor, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-              onChanged: (v) {
-                final age = int.tryParse(v);
-                if (age != null && age >= 7 && age <= 100) {
-                  setState(() {
-                    _age = age;
-                    _ageGroup = MemoryProfile.ageGroupFromAge(age);
-                  });
-                }
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Auto-mapped group label
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Container(
-              key: ValueKey(_ageGroup),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: theme.accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: theme.accentColor.withValues(alpha: 0.3)),
-              ),
-              child: Text(
-                groupLabel,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: theme.accentColor,
-                ),
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: isSelected ? 18 : 14,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                color: isSelected ? theme.primaryText : theme.mutedText,
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.assessAgeAuto,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 12,
-              color: theme.mutedText,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PAGE 3: HIFZ EXPERIENCE (NEW)
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Widget _buildExperiencePage(ThemeProvider theme) {
     return _pageWrapper(
@@ -481,128 +532,225 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       subtitle: AppLocalizations.of(context)!.assessShapesPlan,
       child: Column(
         children: [
-          _optionCard(theme, '🌱', AppLocalizations.of(context)!.assessFresh,
-              AppLocalizations.of(context)!.assessFreshDesc,
-              _hifzExperience == HifzExperience.fresh,
-              () => setState(() => _hifzExperience = HifzExperience.fresh)),
+          _optionCard(
+            theme,
+            LucideIcons.sprout,
+            AppLocalizations.of(context)!.assessFresh,
+            AppLocalizations.of(context)!.assessFreshDesc,
+            _hifzExperience == HifzExperience.fresh,
+            () => setState(() => _hifzExperience = HifzExperience.fresh),
+          ),
           const SizedBox(height: 12),
-          _optionCard(theme, '🔄', AppLocalizations.of(context)!.assessResuming,
-              AppLocalizations.of(context)!.assessResumingDesc,
-              _hifzExperience == HifzExperience.resuming,
-              () => setState(() => _hifzExperience = HifzExperience.resuming)),
+          _optionCard(
+            theme,
+            LucideIcons.rotateCcw,
+            AppLocalizations.of(context)!.assessResuming,
+            AppLocalizations.of(context)!.assessResumingDesc,
+            _hifzExperience == HifzExperience.resuming,
+            () => setState(() => _hifzExperience = HifzExperience.resuming),
+          ),
           const SizedBox(height: 12),
-          _optionCard(theme, '📖', AppLocalizations.of(context)!.assessReviewing,
-              AppLocalizations.of(context)!.assessReviewingDesc,
-              _hifzExperience == HifzExperience.reviewing,
-              () => setState(() => _hifzExperience = HifzExperience.reviewing)),
+          _optionCard(
+            theme,
+            LucideIcons.bookOpen,
+            AppLocalizations.of(context)!.assessReviewing,
+            AppLocalizations.of(context)!.assessReviewingDesc,
+            _hifzExperience == HifzExperience.reviewing,
+            () => setState(() => _hifzExperience = HifzExperience.reviewing),
+          ),
         ],
       ),
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 3: LEARNING PREFERENCE
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PAGE 2: MEMORY PROFILE (encoding + retention + learning pref)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  Widget _buildLearningPrefPage(ThemeProvider theme) {
+  Widget _buildMemoryProfilePage(ThemeProvider theme) {
     return _pageWrapper(
       theme,
       icon: LucideIcons.brain,
-      title: AppLocalizations.of(context)!.assessWhatHelps,
-      subtitle: AppLocalizations.of(context)!.assessNoWrong,
+      title: 'Your Memory Profile',
+      subtitle: 'Help us understand how you learn best',
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _optionCard(theme, '👁️', AppLocalizations.of(context)!.assessPrefVisual,
-              AppLocalizations.of(context)!.assessPrefVisualDesc,
-              _learningPref == LearningPreference.visual,
-              () => setState(() => _learningPref = LearningPreference.visual)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '👂', 'Listening',
-              'I listen to it over and over',
-              _learningPref == LearningPreference.auditory,
-              () => setState(() => _learningPref = LearningPreference.auditory)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '✍️', AppLocalizations.of(context)!.assessPrefWriting,
-              AppLocalizations.of(context)!.assessPrefWritingDesc,
-              _learningPref == LearningPreference.kinesthetic,
-              () => setState(() => _learningPref = LearningPreference.kinesthetic)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '🔄', AppLocalizations.of(context)!.assessPrefVerbal,
-              AppLocalizations.of(context)!.assessPrefVerbalDesc,
-              _learningPref == LearningPreference.repetition,
-              () => setState(() => _learningPref = LearningPreference.repetition)),
+          // Encoding Speed
+          _sectionLabel(theme, 'Encoding Speed', 'After 30 mins of practice...'),
+          const SizedBox(height: 8),
+          _segmentedPills<EncodingSpeed>(
+            theme,
+            values: EncodingSpeed.values,
+            selected: _encodingSpeed,
+            labels: {
+              EncodingSpeed.fast: 'Fast',
+              EncodingSpeed.moderate: 'Moderate',
+              EncodingSpeed.slow: 'Gradual',
+            },
+            icons: {
+              EncodingSpeed.fast: LucideIcons.rocket,
+              EncodingSpeed.moderate: LucideIcons.bookOpen,
+              EncodingSpeed.slow: LucideIcons.gauge,
+            },
+            onChanged: (v) => setState(() => _encodingSpeed = v),
+          ),
+          const SizedBox(height: 24),
+          // Retention Strength
+          _sectionLabel(theme, 'Retention', 'When reciting from memory...'),
+          const SizedBox(height: 8),
+          _segmentedPills<RetentionStrength>(
+            theme,
+            values: RetentionStrength.values,
+            selected: _retention,
+            labels: {
+              RetentionStrength.strong: 'Strong',
+              RetentionStrength.moderate: 'Moderate',
+              RetentionStrength.fragile: 'Fragile',
+            },
+            icons: {
+              RetentionStrength.strong: LucideIcons.dumbbell,
+              RetentionStrength.moderate: LucideIcons.helpCircle,
+              RetentionStrength.fragile: LucideIcons.alertCircle,
+            },
+            onChanged: (v) => setState(() => _retention = v),
+          ),
+          const SizedBox(height: 24),
+          // Learning Preference
+          _sectionLabel(theme, 'Learning Style', 'What helps you memorize?'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _pillChip(theme, LucideIcons.eye, 'Visual',
+                  _learningPref == LearningPreference.visual,
+                  () => setState(() => _learningPref = LearningPreference.visual)),
+              _pillChip(theme, LucideIcons.ear, 'Listening',
+                  _learningPref == LearningPreference.auditory,
+                  () => setState(() => _learningPref = LearningPreference.auditory)),
+              _pillChip(theme, LucideIcons.pencil, 'Writing',
+                  _learningPref == LearningPreference.kinesthetic,
+                  () => setState(() => _learningPref = LearningPreference.kinesthetic)),
+              _pillChip(theme, LucideIcons.repeat, 'Repetition',
+                  _learningPref == LearningPreference.repetition,
+                  () => setState(() => _learningPref = LearningPreference.repetition)),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 4: ENCODING SPEED
-  // ════════════════════════════════
+  Widget _sectionLabel(ThemeProvider theme, String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(
+          fontFamily: GeistTypography.primaryFontFamily,
+          fontSize: 14, fontWeight: FontWeight.w600, color: theme.primaryText,
+        )),
+        const SizedBox(height: 2),
+        Text(subtitle, style: TextStyle(
+          fontFamily: GeistTypography.primaryFontFamily,
+          fontSize: 12, color: theme.mutedText,
+        )),
+      ],
+    );
+  }
 
-  Widget _buildEncodingSpeedPage(ThemeProvider theme) {
-    return _pageWrapper(
-      theme,
-      icon: LucideIcons.zap,
-      title: AppLocalizations.of(context)!.assessImaginePage,
-      subtitle: AppLocalizations.of(context)!.assessAfter_30,
-      child: Column(
-        children: [
-          _optionCard(theme, '🚀', AppLocalizations.of(context)!.assessMostPage,
-              AppLocalizations.of(context)!.assessMostPageDesc,
-              _encodingSpeed == EncodingSpeed.fast,
-              () => setState(() => _encodingSpeed = EncodingSpeed.fast)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '📖', AppLocalizations.of(context)!.assessHalfPage,
-              AppLocalizations.of(context)!.assessHalfPageDesc,
-              _encodingSpeed == EncodingSpeed.moderate,
-              () => setState(() => _encodingSpeed = EncodingSpeed.moderate)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '🐢', AppLocalizations.of(context)!.assessFewLines,
-              AppLocalizations.of(context)!.assessFewLinesDesc,
-              _encodingSpeed == EncodingSpeed.slow,
-              () => setState(() => _encodingSpeed = EncodingSpeed.slow)),
-        ],
+  Widget _segmentedPills<T>(
+    ThemeProvider theme, {
+    required List<T> values,
+    required T selected,
+    required Map<T, String> labels,
+    required Map<T, IconData> icons,
+    required ValueChanged<T> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [BoxShadow(
+          color: theme.primaryText.withValues(alpha: 0.08),
+          blurRadius: 0, spreadRadius: 1,
+        )],
+      ),
+      child: Row(
+        children: values.map((v) {
+          final isActive = v == selected;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(v),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isActive ? theme.primaryText : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icons[v], size: 14,
+                      color: isActive ? theme.scaffoldBackground : theme.mutedText),
+                    const SizedBox(width: 4),
+                    Text(labels[v]!, style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 12, fontWeight: FontWeight.w600,
+                      color: isActive ? theme.scaffoldBackground : theme.mutedText,
+                    )),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 5: RETENTION
-  // ════════════════════════════════
-
-  Widget _buildRetentionPage(ThemeProvider theme) {
-    return _pageWrapper(
-      theme,
-      icon: LucideIcons.refreshCw,
-      title: AppLocalizations.of(context)!.assessThinkLastMonth,
-      subtitle: AppLocalizations.of(context)!.assessIfAsked,
-      child: Column(
-        children: [
-          _optionCard(theme, '💪', AppLocalizations.of(context)!.assessPrettySmooth,
-              AppLocalizations.of(context)!.assessPrettySmoothDesc,
-              _retention == RetentionStrength.strong,
-              () => setState(() => _retention = RetentionStrength.strong)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '🤔', AppLocalizations.of(context)!.assessQuickRefresh,
-              AppLocalizations.of(context)!.assessQuickRefreshDesc,
-              _retention == RetentionStrength.moderate,
-              () => setState(() => _retention = RetentionStrength.moderate)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '😅', AppLocalizations.of(context)!.assessStruggle,
-              AppLocalizations.of(context)!.assessStruggleDesc,
-              _retention == RetentionStrength.fragile,
-              () => setState(() => _retention = RetentionStrength.fragile)),
-        ],
+  Widget _pillChip(ThemeProvider theme, IconData icon, String label, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? theme.primaryText : theme.cardColor,
+          borderRadius: BorderRadius.circular(9999),
+          boxShadow: [BoxShadow(
+            color: theme.primaryText.withValues(alpha: 0.08),
+            blurRadius: 0, spreadRadius: 1,
+          )],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14,
+              color: isSelected ? theme.scaffoldBackground : theme.mutedText),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 12, fontWeight: FontWeight.w600,
+              color: isSelected ? theme.scaffoldBackground : theme.secondaryText,
+            )),
+          ],
+        ),
       ),
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 7: SCHEDULE + TIME
-  // ════════════════════════════════
 
-  Widget _buildScheduleTimePage(ThemeProvider theme) {
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PAGE 3: SCHEDULE (time + tod + active days)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+  static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _dayIcons = IconResolver.dayIcons;
+
+  Widget _buildSchedulePage(ThemeProvider theme) {
     return _pageWrapper(
       theme,
       icon: LucideIcons.clock,
@@ -612,91 +760,40 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Time slider
-          Text(
-            'Daily time: $_dailyMinutes minutes',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: theme.primaryText,
-            ),
-          ),
+          _sectionLabel(theme, 'Daily time: $_dailyMinutes minutes', ''),
           const SizedBox(height: 8),
-          Slider(
-            value: _dailyMinutes.toDouble(),
-            min: 15,
-            max: 240,
-            divisions: 15,
-            activeColor: theme.accentColor,
-            inactiveColor: theme.dividerColor,
-            label: '$_dailyMinutes min',
-            onChanged: (v) => setState(() => _dailyMinutes = v.round()),
-          ),
-          const SizedBox(height: 16),
-          // Time of day chips
-          Text(
-            AppLocalizations.of(context)!.assessPrefTime,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: theme.primaryText,
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: theme.primaryText,
+              inactiveTrackColor: theme.dividerColor,
+              thumbColor: theme.primaryText,
+              overlayColor: theme.primaryText.withValues(alpha: 0.1),
+              trackHeight: 4,
+            ),
+            child: Slider(
+              value: _dailyMinutes.toDouble(),
+              min: 15, max: 240, divisions: 15,
+              label: '$_dailyMinutes min',
+              onChanged: (v) => setState(() => _dailyMinutes = v.round()),
             ),
           ),
+          const SizedBox(height: 20),
+          // Time of day
+          _sectionLabel(theme, AppLocalizations.of(context)!.assessPrefTime, ''),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: StudyTimeOfDay.values.map((t) {
               final isSelected = _timeOfDay == t;
-              return GestureDetector(
-                onTap: () => setState(() => _timeOfDay = t),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? theme.accentColor.withValues(alpha: 0.15)
-                        : theme.cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? theme.accentColor : theme.dividerColor,
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: Text(
-                    _timeOfDayLabel(t),
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? theme.accentColor : theme.secondaryText,
-                    ),
-                  ),
-                ),
-              );
+              return _pillChip(theme, _timeOfDayIcon(t), _timeOfDayLabel(t),
+                  isSelected, () => setState(() => _timeOfDay = t));
             }).toList(),
           ),
-        ],
-      ),
-    );
-  }
-
-  // ════════════════════════════════
-  // PAGE 8: WEEKLY SCHEDULE (NEW)
-  // ════════════════════════════════
-
-  static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  static const _dayEmojis = ['🌙', '🌙', '🌙', '🌙', '🕌', '☀️', '☀️'];
-
-  Widget _buildWeeklySchedulePage(ThemeProvider theme) {
-    return _pageWrapper(
-      theme,
-      icon: LucideIcons.calendarDays,
-      title: AppLocalizations.of(context)!.assessWhichDays,
-      subtitle: AppLocalizations.of(context)!.assessTapToggle,
-      child: Column(
-        children: [
-          // 7-day grid
+          const SizedBox(height: 24),
+          // Active days
+          _sectionLabel(theme, AppLocalizations.of(context)!.assessWhichDays, ''),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(7, (i) {
@@ -705,10 +802,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 onTap: () {
                   setState(() {
                     if (isActive) {
-                      // Don't allow deactivating all days
-                      if (_activeDays.length > 1) {
-                        _activeDays.remove(i);
-                      }
+                      if (_activeDays.length > 1) _activeDays.remove(i);
                     } else {
                       _activeDays.add(i);
                       _activeDays.sort();
@@ -717,83 +811,78 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 44,
-                  height: 68,
+                  width: 42,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: isActive
-                        ? theme.accentColor.withValues(alpha: 0.15)
-                        : theme.cardColor,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isActive ? theme.accentColor : theme.dividerColor,
-                      width: isActive ? 2 : 1,
-                    ),
+                    color: isActive ? theme.primaryText : theme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [BoxShadow(
+                      color: theme.primaryText.withValues(alpha: 0.08),
+                      blurRadius: 0, spreadRadius: 1,
+                    )],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        _dayEmojis[i],
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isActive ? null : theme.mutedText,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _dayLabels[i],
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                          color: isActive ? theme.accentColor : theme.mutedText,
-                        ),
-                      ),
+                      Icon(_dayIcons[i], size: 12,
+                        color: isActive ? theme.scaffoldBackground : theme.mutedText),
+                      const SizedBox(height: 3),
+                      Text(_dayLabels[i], style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 10, fontWeight: FontWeight.w600,
+                        color: isActive ? theme.scaffoldBackground : theme.mutedText,
+                      )),
                     ],
                   ),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 20),
-          // Active count
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: theme.accentColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
+          const SizedBox(height: 12),
+          Center(
             child: Text(
               '${_activeDays.length} active day${_activeDays.length != 1 ? 's' : ''} / week',
               style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: theme.accentColor,
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 12, fontWeight: FontWeight.w500, color: theme.mutedText,
               ),
             ),
           ),
-          if (_activeDays.length < 7) ...[
-            const SizedBox(height: 8),
-            Text(
-              '${7 - _activeDays.length} rest day${(7 - _activeDays.length) != 1 ? 's' : ''} — great for retention!',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                color: theme.mutedText,
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 9: GOAL + PACE
-  // ════════════════════════════════
+  IconData _timeOfDayIcon(StudyTimeOfDay t) {
+    return switch (t) {
+      StudyTimeOfDay.fajr => LucideIcons.sunrise,
+      StudyTimeOfDay.morning => LucideIcons.sun,
+      StudyTimeOfDay.afternoon => LucideIcons.cloudSun,
+      StudyTimeOfDay.evening => LucideIcons.sunset,
+      StudyTimeOfDay.night => LucideIcons.moon,
+    };
+  }
 
-  Widget _buildGoalPacePage(ThemeProvider theme) {
+  String _timeOfDayLabel(StudyTimeOfDay t) {
+    switch (t) {
+      case StudyTimeOfDay.fajr:
+        return 'Fajr';
+      case StudyTimeOfDay.morning:
+        return 'Morning';
+      case StudyTimeOfDay.afternoon:
+        return 'Afternoon';
+      case StudyTimeOfDay.evening:
+        return 'Evening';
+      case StudyTimeOfDay.night:
+        return 'Night';
+    }
+  }
+
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PAGE 4: GOAL (goal + pace + starting point)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+  Widget _buildGoalPage(ThemeProvider theme) {
     return _pageWrapper(
       theme,
       icon: LucideIcons.target,
@@ -802,72 +891,137 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Goal selection
-          Text(
-            AppLocalizations.of(context)!.assessWhatAim,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: theme.primaryText,
-            ),
+          // Goal
+          _sectionLabel(theme, AppLocalizations.of(context)!.assessWhatAim, ''),
+          const SizedBox(height: 8),
+          _segmentedPills<HifzGoal>(
+            theme,
+            values: HifzGoal.values,
+            selected: _goal,
+            labels: {
+              HifzGoal.fullQuran: 'Full Quran',
+              HifzGoal.specificJuz: 'Juz',
+              HifzGoal.specificSurahs: 'Surahs',
+            },
+            icons: {
+              HifzGoal.fullQuran: LucideIcons.bookOpen,
+              HifzGoal.specificJuz: LucideIcons.fileStack,
+              HifzGoal.specificSurahs: LucideIcons.fileText,
+            },
+            onChanged: (v) => setState(() => _goal = v),
           ),
-          const SizedBox(height: 12),
-          _optionCard(theme, '📖', AppLocalizations.of(context)!.assessEntireQuran, AppLocalizations.of(context)!.assessEntireQuranDesc,
-              _goal == HifzGoal.fullQuran,
-              () => setState(() => _goal = HifzGoal.fullQuran)),
-          const SizedBox(height: 10),
-          _optionCard(theme, '📑', AppLocalizations.of(context)!.assessSpecificJuz, AppLocalizations.of(context)!.assessSpecificJuzDesc,
-              _goal == HifzGoal.specificJuz,
-              () => setState(() => _goal = HifzGoal.specificJuz)),
-          const SizedBox(height: 10),
-          _optionCard(theme, '📄', AppLocalizations.of(context)!.assessSpecificSurah, AppLocalizations.of(context)!.assessSpecificSurahDesc,
-              _goal == HifzGoal.specificSurahs,
-              () => setState(() => _goal = HifzGoal.specificSurahs)),
           const SizedBox(height: 24),
-          // Pace preference
-          Text(
-            AppLocalizations.of(context)!.assessHowFast,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: theme.primaryText,
-            ),
+          // Pace
+          _sectionLabel(theme, AppLocalizations.of(context)!.assessHowFast, ''),
+          const SizedBox(height: 8),
+          _segmentedPills<PacePreference>(
+            theme,
+            values: PacePreference.values,
+            selected: _pacePreference,
+            labels: {
+              PacePreference.aggressive: 'Push Me',
+              PacePreference.steady: 'Steady',
+              PacePreference.gentle: 'Gentle',
+            },
+            icons: {
+              PacePreference.aggressive: LucideIcons.rocket,
+              PacePreference.steady: LucideIcons.scale,
+              PacePreference.gentle: LucideIcons.leaf,
+            },
+            onChanged: (v) => setState(() => _pacePreference = v),
+          ),
+          const SizedBox(height: 24),
+          // Starting Point
+          _sectionLabel(theme, AppLocalizations.of(context)!.assessWhereStart, ''),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _pillChip(theme, LucideIcons.star, 'Juz 30 (p.582)',
+                  _startingPage == 582,
+                  () => setState(() => _startingPage = 582)),
+              _pillChip(theme, LucideIcons.star, 'Al-Baqarah (p.2)',
+                  _startingPage == 2,
+                  () => setState(() => _startingPage = 2)),
+            ],
           ),
           const SizedBox(height: 12),
-          _optionCard(theme, '🚀', AppLocalizations.of(context)!.assessPushMe,
-              AppLocalizations.of(context)!.assessPushMeDesc,
-              _pacePreference == PacePreference.aggressive,
-              () => setState(() => _pacePreference = PacePreference.aggressive)),
-          const SizedBox(height: 10),
-          _optionCard(theme, '⚖️', 'Steady',
-              AppLocalizations.of(context)!.assessBalanced,
-              _pacePreference == PacePreference.steady,
-              () => setState(() => _pacePreference = PacePreference.steady)),
-          const SizedBox(height: 10),
-          _optionCard(theme, '🌿', 'Gentle',
-              AppLocalizations.of(context)!.assessBalancedDesc,
-              _pacePreference == PacePreference.gentle,
-              () => setState(() => _pacePreference = PacePreference.gentle)),
+          // Custom page input
+          Row(
+            children: [
+              Text('Or page:', style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 12, color: theme.mutedText,
+              )),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 14, fontWeight: FontWeight.w600,
+                    color: theme.primaryText,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '$_startingPage',
+                    hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
+                    filled: true,
+                    fillColor: theme.cardColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  ),
+                  onChanged: (v) {
+                    final page = int.tryParse(v);
+                    if (page != null && page >= 1 && page <= 604) {
+                      setState(() => _startingPage = page);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  String _timeOfDayLabel(StudyTimeOfDay t) {
-    switch (t) {
-      case StudyTimeOfDay.fajr: return '🌅 Fajr';
-      case StudyTimeOfDay.morning: return '☀️ Morning';
-      case StudyTimeOfDay.afternoon: return '🌤️ Afternoon';
-      case StudyTimeOfDay.evening: return '🌆 Evening';
-      case StudyTimeOfDay.night: return '🌙 Night';
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // PAGE 5: RECITER (with audio preview)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+  Future<void> _playSample(int reciterId) async {
+    try {
+      // Stop current playback
+      await _samplePlayer.stop();
+      setState(() => _playingReciterId = reciterId);
+      // Play Surah Al-Fatiha as a sample
+      final url = 'https://api.quran.com/api/v4/chapter_recitations/$reciterId/1';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final audioUrl = data['audio_file']?['audio_url'] as String?;
+        if (audioUrl != null) {
+          final fullUrl = audioUrl.startsWith('http') ? audioUrl : 'https://audio.qurancdn.com/$audioUrl';
+          await _samplePlayer.play(UrlSource(fullUrl));
+          // Stop after 10 seconds for a short preview
+          Future.delayed(const Duration(seconds: 10), () {
+            if (_playingReciterId == reciterId && mounted) {
+              _samplePlayer.stop();
+              setState(() => _playingReciterId = null);
+            }
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) setState(() => _playingReciterId = null);
     }
   }
-
-  // ════════════════════════════════
-  // PAGE 7: RECITER (simplified)
-  // ════════════════════════════════
 
   Widget _buildReciterPage(ThemeProvider theme) {
     final readingProvider = context.watch<QuranReadingProvider>();
@@ -882,12 +1036,15 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ? Center(
               child: Column(
                 children: [
-                  CircularProgressIndicator(color: theme.accentColor),
+                  CircularProgressIndicator(
+                    color: theme.primaryText,
+                    strokeWidth: 2,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     AppLocalizations.of(context)!.assessLoadingReciters,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.mutedText,
                     ),
@@ -899,64 +1056,62 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               height: 320,
               child: ListView.separated(
                 itemCount: reciters.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 6),
                 itemBuilder: (ctx, i) {
                   final reciter = reciters[i];
                   final isSelected = _selectedReciterId == reciter.id;
+                  final isPlaying = _playingReciterId == reciter.id;
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedReciterId = reciter.id),
-                    child: Container(
+                    onTap: () =>
+                        setState(() => _selectedReciterId = reciter.id),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
+                        horizontal: 12, vertical: 10,
+                      ),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? theme.accentColor.withValues(alpha: 0.1)
-                            : theme.cardColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isSelected
-                              ? theme.accentColor
-                              : theme.dividerColor,
-                          width: isSelected ? 1.5 : 1,
-                        ),
+                        color: isSelected ? theme.primaryText : theme.cardColor,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [BoxShadow(
+                          color: theme.primaryText.withValues(alpha: 0.08),
+                          blurRadius: 0, spreadRadius: 1,
+                        )],
                       ),
                       child: Row(
                         children: [
                           // Reciter avatar
                           Container(
-                            width: 40,
-                            height: 40,
+                            width: 36, height: 36,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: theme.cardColor,
-                              border: Border.all(color: theme.dividerColor),
+                              color: isSelected
+                                  ? theme.scaffoldBackground.withValues(alpha: 0.2)
+                                  : theme.dividerColor.withValues(alpha: 0.3),
                             ),
                             child: ClipOval(
                               child: Image.asset(
                                 'assets/images/reciters/${reciter.id}.jpg',
-                                width: 40,
-                                height: 40,
+                                width: 36, height: 36,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, _, _) => Center(
                                   child: Text(
                                     reciter.reciterName.isNotEmpty
-                                        ? reciter.reciterName
-                                            .trim()
-                                            .characters
-                                            .first
+                                        ? reciter.reciterName.trim().characters.first
                                         : '?',
                                     style: TextStyle(
-                                      fontFamily: 'Inter',
+                                      fontFamily: GeistTypography.primaryFontFamily,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: theme.mutedText,
+                                      fontSize: 14,
+                                      color: isSelected
+                                          ? theme.scaffoldBackground
+                                          : theme.mutedText,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -964,11 +1119,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                                 Text(
                                   reciter.reciterName,
                                   style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 13, fontWeight: FontWeight.w600,
                                     color: isSelected
-                                        ? theme.accentColor
+                                        ? theme.scaffoldBackground
                                         : theme.primaryText,
                                   ),
                                   maxLines: 1,
@@ -978,17 +1132,48 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                                   Text(
                                     reciter.style!,
                                     style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 11,
-                                      color: theme.mutedText,
+                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontSize: 10,
+                                      color: isSelected
+                                          ? theme.scaffoldBackground.withValues(alpha: 0.7)
+                                          : theme.mutedText,
                                     ),
                                   ),
                               ],
                             ),
                           ),
-                          if (isSelected)
-                            Icon(LucideIcons.checkCircle2,
-                                size: 20, color: theme.accentColor),
+                          // Play sample button
+                          GestureDetector(
+                            onTap: () {
+                              if (isPlaying) {
+                                _samplePlayer.stop();
+                                setState(() => _playingReciterId = null);
+                              } else {
+                                _playSample(reciter.id);
+                              }
+                            },
+                            child: Container(
+                              width: 28, height: 28,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isPlaying
+                                    ? (isSelected ? theme.scaffoldBackground : theme.primaryText)
+                                    : Colors.transparent,
+                              ),
+                              child: Icon(
+                                isPlaying ? LucideIcons.pause : LucideIcons.play,
+                                size: 14,
+                                color: isPlaying
+                                    ? (isSelected ? theme.primaryText : theme.scaffoldBackground)
+                                    : (isSelected ? theme.scaffoldBackground : theme.mutedText),
+                              ),
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(width: 6),
+                            Icon(LucideIcons.checkCircle2, size: 18,
+                              color: theme.scaffoldBackground),
+                          ],
                         ],
                       ),
                     ),
@@ -999,89 +1184,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  // ════════════════════════════════
-  // PAGE 8: STARTING POINT
-  // ════════════════════════════════
-
-  Widget _buildStartingPointPage(ThemeProvider theme) {
-    return _pageWrapper(
-      theme,
-      icon: LucideIcons.mapPin,
-      title: AppLocalizations.of(context)!.assessWhereStart,
-      subtitle: AppLocalizations.of(context)!.assessPickAny,
-      child: Column(
-        children: [
-          // Suggested options
-          _optionCard(theme, '⭐', AppLocalizations.of(context)!.assessJuz_30,
-              AppLocalizations.of(context)!.assessJuz_30Desc,
-              _startingPage == 582,
-              () => setState(() => _startingPage = 582)),
-          const SizedBox(height: 12),
-          _optionCard(theme, '⭐', AppLocalizations.of(context)!.assessSurahBaqarah,
-              AppLocalizations.of(context)!.assessSurahBaqarahDesc,
-              _startingPage == 2,
-              () => setState(() => _startingPage = 2)),
-          const SizedBox(height: 20),
-          // Custom page input
-          Text(
-            AppLocalizations.of(context)!.assessPickSpecific,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: theme.secondaryText,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 120,
-            child: TextField(
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: theme.primaryText,
-              ),
-              decoration: InputDecoration(
-                hintText: '$_startingPage',
-                hintStyle: TextStyle(color: theme.mutedText),
-                filled: true,
-                fillColor: theme.cardColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: theme.accentColor, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-              ),
-              onChanged: (v) {
-                final page = int.tryParse(v);
-                if (page != null && page >= 1 && page <= 604) {
-                  setState(() => _startingPage = page);
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PAGE 9: SUMMARY
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Widget _buildSummaryPage(ThemeProvider theme) {
     // Pre-compute plan params for the summary
@@ -1106,9 +1211,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               border: Border.all(color: theme.accentColor, width: 2),
             ),
             child: Center(
-              child: Text(
-                _avatarEmojis[_avatarIndex],
-                style: const TextStyle(fontSize: 36),
+              child: Icon(
+                IconResolver.avatarIcons[_avatarIndex],
+                size: 36,
+                color: theme.accentColor,
               ),
             ),
           ),
@@ -1116,7 +1222,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           Text(
             _name.trim(),
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -1124,11 +1230,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── 2-Axis Memory Profile ──
+          // â”€â”€ 2-Axis Memory Profile â”€â”€
           _buildProfileChart(theme),
           const SizedBox(height: 16),
 
-          // ── Your Plan ──
+          // â”€â”€ Your Plan â”€â”€
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -1143,35 +1249,69 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 Text(
                   AppLocalizations.of(context)!.assessYourPlan,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: theme.primaryText,
                   ),
                 ),
                 const SizedBox(height: 16),
-                _paramRow(theme, '🎂', 'Age', '$_age (${_ageGroup.name})'),
+                _paramRow(
+                  theme,
+                  LucideIcons.cake,
+                  'Age',
+                  '${MemoryProfile.calculateAge(_birthday)} (${_ageGroup.name})',
+                ),
                 const SizedBox(height: 10),
-                _paramRow(theme, '🌱', 'Experience', _hifzExperience.name),
+                _paramRow(
+                  theme,
+                  LucideIcons.sprout,
+                  'Experience',
+                  _hifzExperience.name,
+                ),
                 const SizedBox(height: 10),
-                _paramRow(theme, '📅', AppLocalizations.of(context)!.assessActiveDays, '${_activeDays.length}/7 days'),
+                _paramRow(
+                  theme,
+                  LucideIcons.calendarDays,
+                  AppLocalizations.of(context)!.assessActiveDays,
+                  '${_activeDays.length}/7 days',
+                ),
                 const SizedBox(height: 10),
-                _paramRow(theme, '⚡', 'Pace', _pacePreference.name),
+                _paramRow(theme, LucideIcons.zap, 'Pace', _pacePreference.name),
                 const SizedBox(height: 10),
-                _paramRow(theme, '📖', AppLocalizations.of(context)!.assessDailyNew, load),
+                _paramRow(
+                  theme,
+                  LucideIcons.bookOpen,
+                  AppLocalizations.of(context)!.assessDailyNew,
+                  load,
+                ),
                 const SizedBox(height: 10),
-                _paramRow(theme, '🔁', AppLocalizations.of(context)!.assessTargetReps,
-                    _targetRepsDescription()),
+                _paramRow(
+                  theme,
+                  LucideIcons.repeat,
+                  AppLocalizations.of(context)!.assessTargetReps,
+                  _targetRepsDescription(),
+                ),
                 const SizedBox(height: 10),
-                _paramRow(theme, '⏱', AppLocalizations.of(context)!.assessTimeSplit, timeSplit),
+                _paramRow(
+                  theme,
+                  LucideIcons.clock,
+                  AppLocalizations.of(context)!.assessTimeSplit,
+                  timeSplit,
+                ),
                 const SizedBox(height: 10),
-                _paramRow(theme, '📍', AppLocalizations.of(context)!.assessStartingAt, 'Page $_startingPage'),
+                _paramRow(
+                  theme,
+                  LucideIcons.mapPin,
+                  AppLocalizations.of(context)!.assessStartingAt,
+                  'Page $_startingPage',
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // ── Estimated Timeline ──
+          // â”€â”€ Estimated Timeline â”€â”€
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -1184,7 +1324,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
             child: Row(
               children: [
-                Text('🎯', style: const TextStyle(fontSize: 22)),
+                Icon(LucideIcons.target, size: 22, color: theme.accentColor),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -1193,7 +1333,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                       Text(
                         AppLocalizations.of(context)!.assessEstTimeline,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: theme.accentColor,
@@ -1203,7 +1343,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                       Text(
                         timeline,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           color: theme.accentColor.withValues(alpha: 0.8),
                           height: 1.3,
@@ -1217,34 +1357,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── Start Button ──
+          // â”€â”€ Start Button â”€â”€
           SizedBox(
             width: double.infinity,
-            child: GestureDetector(
-              onTap: _createProfile,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: theme.accentColor,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.accentColor.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Text(AppLocalizations.of(context)!.assessStartJourney,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+            child: GeistButton(
+              onPressed: _createProfile,
+              label: AppLocalizations.of(context)!.assessStartJourney,
+              type: GeistButtonType.primary,
+              size: GeistButtonSize.large,
             ),
           ),
           const SizedBox(height: 32),
@@ -1253,7 +1373,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  // ── 2-Axis Memory Profile Chart ──
+  // â”€â”€ 2-Axis Memory Profile Chart â”€â”€
 
   Widget _buildProfileChart(ThemeProvider theme) {
     // Map encoding/retention to 0.0-1.0 positions
@@ -1282,7 +1402,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           Text(
             AppLocalizations.of(context)!.assessYourProfile,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: theme.primaryText,
@@ -1322,33 +1442,41 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     Positioned(
                       left: 0,
                       top: 0,
-                      child: Text('💪',
-                          style: TextStyle(
-                              fontSize: 11, color: theme.mutedText)),
+                      child: Icon(
+                        LucideIcons.dumbbell,
+                        size: 11,
+                        color: theme.mutedText,
+                      ),
                     ),
                     // Y-axis label (bottom)
                     Positioned(
                       left: 0,
                       top: chartH - 14,
-                      child: Text('😅',
-                          style: TextStyle(
-                              fontSize: 11, color: theme.mutedText)),
+                      child: Icon(
+                        LucideIcons.helpCircle,
+                        size: 11,
+                        color: theme.mutedText,
+                      ),
                     ),
                     // X-axis label (left)
                     Positioned(
                       left: pad + 2,
                       bottom: 0,
-                      child: Text('🐢',
-                          style: TextStyle(
-                              fontSize: 11, color: theme.mutedText)),
+                      child: Icon(
+                        LucideIcons.gauge,
+                        size: 11,
+                        color: theme.mutedText,
+                      ),
                     ),
                     // X-axis label (right)
                     Positioned(
                       right: 2,
                       bottom: 0,
-                      child: Text('🚀',
-                          style: TextStyle(
-                              fontSize: 11, color: theme.mutedText)),
+                      child: Icon(
+                        LucideIcons.rocket,
+                        size: 11,
+                        color: theme.mutedText,
+                      ),
                     ),
                     // User dot
                     Positioned(
@@ -1361,13 +1489,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                           color: theme.accentColor,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  theme.accentColor.withValues(alpha: 0.4),
-                              blurRadius: 8,
-                            ),
-                          ],
+                          boxShadow: theme.shadowCard,
                         ),
                       ),
                     ),
@@ -1401,7 +1523,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       child: Text(
         text[0].toUpperCase() + text.substring(1),
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: GeistTypography.primaryFontFamily,
           fontSize: 10,
           fontWeight: FontWeight.w600,
           color: theme.accentColor,
@@ -1410,13 +1532,13 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  // ── Plan Calculations (from plan-generation.md § Step 2) ──
+  // â”€â”€ Plan Calculations (from plan-generation.md Â§ Step 2) â”€â”€
 
-  /// Daily load using the full time × encoding speed table.
-  /// Daily load as a fixed amount (not a range) — pace determines the value.
+  /// Daily load using the full time Ã— encoding speed table.
+  /// Daily load as a fixed amount (not a range) â€” pace determines the value.
   /// Steady = base amount, aggressive = higher, gentle = lower.
   String _computeDailyLoad() {
-    // Base lines from time × encoding speed
+    // Base lines from time Ã— encoding speed
     int baseLines;
     if (_dailyMinutes <= 30) {
       baseLines = switch (_encodingSpeed) {
@@ -1484,10 +1606,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       pagesPerDay = 1.5;
     } else if (loadText.contains('1 page')) {
       pagesPerDay = 1.0;
-    } else if (loadText.contains('½')) {
+    } else if (loadText.contains('Â½')) {
       pagesPerDay = 0.5;
     } else if (loadText.contains('5-8 lines')) {
-      pagesPerDay = 0.4; // ~6 lines ≈ 0.4 pages
+      pagesPerDay = 0.4; // ~6 lines â‰ˆ 0.4 pages
     } else if (loadText.contains('3-5 lines')) {
       pagesPerDay = 0.25;
     } else if (loadText.contains('2-3 lines')) {
@@ -1506,7 +1628,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         totalPages = _goalDetails.isEmpty ? 20 : _goalDetails.length * 20;
         break;
       case HifzGoal.specificSurahs:
-        totalPages = _goalDetails.isEmpty ? 10 : _goalDetails.length * 5; // rough
+        totalPages = _goalDetails.isEmpty
+            ? 10
+            : _goalDetails.length * 5; // rough
         break;
     }
 
@@ -1538,30 +1662,36 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     }
   }
 
-  /// Research-based repetition targets — real hifz pedagogy requires
+  /// Research-based repetition targets â€” real hifz pedagogy requires
   /// high repetitions for lasting memorization.
   String _targetRepsDescription() {
-    if (_encodingSpeed == EncodingSpeed.slow || _retention == RetentionStrength.fragile) {
+    if (_encodingSpeed == EncodingSpeed.slow ||
+        _retention == RetentionStrength.fragile) {
       return '30+ per section';
     }
-    if (_encodingSpeed == EncodingSpeed.fast && _retention == RetentionStrength.strong) {
+    if (_encodingSpeed == EncodingSpeed.fast &&
+        _retention == RetentionStrength.strong) {
       return '15 per section';
     }
     return '20 per section';
   }
 
-
-  Widget _paramRow(ThemeProvider theme, String emoji, String label, String value) {
+  Widget _paramRow(
+    ThemeProvider theme,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+        Icon(icon, size: 18, color: theme.accentColor),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               color: theme.secondaryText,
             ),
@@ -1573,7 +1703,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             value,
             textAlign: TextAlign.end,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: theme.primaryText,
@@ -1584,9 +1714,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // SHARED WIDGETS
-  // ════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   /// Standard page layout wrapper with title, subtitle, content, and continue button.
   Widget _pageWrapper(
@@ -1619,7 +1749,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           Text(
             title,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -1631,7 +1761,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           Text(
             subtitle,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               fontWeight: FontWeight.w400,
               color: theme.secondaryText,
@@ -1645,30 +1775,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           // Continue button
           SizedBox(
             width: double.infinity,
-            child: GestureDetector(
-              onTap: canProceed ? _nextPage : null,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: canProceed
-                      ? theme.accentColor
-                      : theme.accentColor.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.assessContinue,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: canProceed
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
+            child: GeistButton(
+              onPressed: canProceed ? _nextPage : null,
+              label: AppLocalizations.of(context)!.assessContinue,
+              type: GeistButtonType.primary,
+              size: GeistButtonSize.large,
             ),
           ),
           const SizedBox(height: 16),
@@ -1680,7 +1791,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   /// Reusable option card for single/multi selection.
   Widget _optionCard(
     ThemeProvider theme,
-    String emoji,
+    IconData icon,
     String title,
     String subtitle,
     bool isSelected,
@@ -1703,7 +1814,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected ? theme.accentColor : theme.secondaryText,
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -1712,19 +1827,17 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? theme.accentColor
-                          : theme.primaryText,
+                      color: isSelected ? theme.accentColor : theme.primaryText,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
@@ -1733,7 +1846,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               ),
             ),
             if (isSelected)
-              Icon(LucideIcons.checkCircle2, size: 20, color: theme.accentColor),
+              Icon(
+                LucideIcons.checkCircle2,
+                size: 20,
+                color: theme.accentColor,
+              ),
           ],
         ),
       ),

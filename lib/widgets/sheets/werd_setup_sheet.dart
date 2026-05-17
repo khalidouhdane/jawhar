@@ -6,6 +6,8 @@ import 'package:quran_app/models/werd_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 
 /// Bottom sheet for creating or editing a daily werd configuration.
 class WerdSetupSheet extends StatefulWidget {
@@ -85,7 +87,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                     Text(
                       l!.werdSetupTitle,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: theme.primaryText,
@@ -100,7 +102,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                   child: Text(
                     l.werdSetupDesc,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.secondaryText,
                     ),
@@ -134,51 +136,24 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                   children: [
                     // Delete / Reset button (only if editing)
                     if (context.read<WerdProvider>().hasWerd)
-                      GestureDetector(
-                        onTap: () {
+                      GeistButton.icon(
+                        icon: const Icon(LucideIcons.trash2, size: 18),
+                        type: GeistButtonType.error,
+                        size: GeistButtonSize.large,
+                        onPressed: () {
                           context.read<WerdProvider>().resetWerd();
                           Navigator.pop(context);
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            LucideIcons.trash2,
-                            size: 18,
-                            color: Colors.red.shade400,
-                          ),
-                        ),
                       ),
                     if (context.read<WerdProvider>().hasWerd)
                       const SizedBox(width: 12),
                     // Save button
                     Expanded(
-                      child: GestureDetector(
-                        onTap: _save,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: theme.accentColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              l.werdSave,
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: GeistButton(
+                        label: l.werdSave,
+                        type: GeistButtonType.primary,
+                        size: GeistButtonSize.large,
+                        onPressed: _save,
                       ),
                     ),
                   ],
@@ -198,7 +173,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: theme.pillBackground,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(theme.radiusLg),
       ),
       child: Row(
         children: [
@@ -237,7 +212,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected ? theme.accentColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(theme.radiusMd),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -245,16 +220,16 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
               Icon(
                 icon,
                 size: 14,
-                color: selected ? Colors.white : theme.secondaryText,
+                color: selected ? theme.scaffoldBackground : theme.secondaryText,
               ),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : theme.secondaryText,
+                  color: selected ? theme.scaffoldBackground : theme.secondaryText,
                 ),
               ),
             ],
@@ -311,7 +286,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: theme.secondaryText,
@@ -334,7 +309,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
               _PageRangeFormatter(),
             ],
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: theme.primaryText,
@@ -364,7 +339,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
         Text(
           l.werdPagesPerDay,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: theme.secondaryText,
@@ -376,7 +351,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
         Text(
           '${_pagesPerDay.round()}',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 40,
             fontWeight: FontWeight.w800,
             color: theme.primaryText,
@@ -407,7 +382,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             Text(
               l.werd_1Page,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 10,
                 color: theme.mutedText,
               ),
@@ -415,7 +390,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             Text(
               l.werd_30Pages,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 10,
                 color: theme.mutedText,
               ),
@@ -453,7 +428,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: theme.accentColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(theme.radiusLg),
       ),
       child: Row(
         children: [
@@ -463,7 +438,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
             child: Text(
               summary,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: theme.accentColor,
@@ -486,9 +461,7 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
     // Validate range
     if (_mode == WerdMode.fixedRange && start > end) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.werdErrorRange),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context)!.werdErrorRange)),
       );
       return;
     }

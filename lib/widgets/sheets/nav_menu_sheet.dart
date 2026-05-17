@@ -3,10 +3,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/models/bookmark_model.dart';
 import 'package:quran_app/widgets/sheets/bookmark_edit_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 // ─── Nav Menu Sheet ───
 
@@ -99,10 +101,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                         [
                           {'label': l.navTabSurah, 'key': 'surah'},
                           {'label': l.navTabJuz, 'key': 'juz'},
-                          {
-                            'label': l.navTabBookmarks,
-                            'key': 'bookmarks',
-                          },
+                          {'label': l.navTabBookmarks, 'key': 'bookmarks'},
                         ].map((tab) {
                           final tabKey = tab['key']!;
                           final isSelected = activeTab == tabKey;
@@ -120,15 +119,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(30),
                                   boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: theme.shadowColor.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 2,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ]
+                                      ? theme.shadowCard
                                       : null,
                                 ),
                                 child: Text(
@@ -235,7 +226,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             final surah = chapters[index];
             final surahPage = _getFirstPage(surah.id);
             final isCurrent = surahPage == currentPage;
-            final isBookmarked = context.watch<BookmarkProvider>().isPageBookmarked(surahPage);
+            final isBookmarked = context
+                .watch<BookmarkProvider>()
+                .isPageBookmarked(surahPage);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -291,7 +284,11 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     GestureDetector(
-                      onTap: () => context.read<BookmarkProvider>().togglePageBookmark(pageNumber: surahPage, surahName: surah.nameSimple),
+                      onTap: () =>
+                          context.read<BookmarkProvider>().togglePageBookmark(
+                            pageNumber: surahPage,
+                            surahName: surah.nameSimple,
+                          ),
                       child: Icon(
                         isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                         size: 20,
@@ -327,9 +324,15 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
     final collectionBookmarks = _selectedCollectionId == null
         ? bookmarkProvider.getAll()
         : bookmarkProvider.getByCollection(_selectedCollectionId);
-    final pageBookmarks = collectionBookmarks.where((b) => b.type == BookmarkType.page).toList();
-    final verseBookmarks = collectionBookmarks.where((b) => b.type == BookmarkType.verse).toList();
-    final filteredBookmarks = _bookmarkFilter == 'pages' ? pageBookmarks : verseBookmarks;
+    final pageBookmarks = collectionBookmarks
+        .where((b) => b.type == BookmarkType.page)
+        .toList();
+    final verseBookmarks = collectionBookmarks
+        .where((b) => b.type == BookmarkType.verse)
+        .toList();
+    final filteredBookmarks = _bookmarkFilter == 'pages'
+        ? pageBookmarks
+        : verseBookmarks;
 
     return Column(
       children: [
@@ -343,10 +346,12 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
               children: [
                 _collectionChip(theme, l.bmAll, null),
                 const SizedBox(width: 8),
-                ...collections.map((col) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _collectionChip(theme, col.name, col.id),
-                )),
+                ...collections.map(
+                  (col) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _collectionChip(theme, col.name, col.id),
+                  ),
+                ),
                 _addCollectionChip(theme, l),
               ],
             ),
@@ -369,14 +374,16 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   child: Row(
                     children: [
                       _bookmarkSegment(
-                        theme, l,
+                        theme,
+                        l,
                         label: l.navPages,
                         key: 'pages',
                         count: pageBookmarks.length,
                       ),
                       const SizedBox(width: 4),
                       _bookmarkSegment(
-                        theme, l,
+                        theme,
+                        l,
                         label: l.navVerses,
                         key: 'verses',
                         count: verseBookmarks.length,
@@ -459,7 +466,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                         ? '${bookmark.verseKey} · ${l.navPage} ${bookmark.pageNumber}'
                         : '${l.navPage} ${bookmark.pageNumber}';
                     if (bookmark.collectionId != null) {
-                      final col = bookmarkProvider.getCollection(bookmark.collectionId!);
+                      final col = bookmarkProvider.getCollection(
+                        bookmark.collectionId!,
+                      );
                       if (col != null) subtitle += ' · ${col.name}';
                     }
 
@@ -468,7 +477,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                       decoration: BoxDecoration(
                         color: theme.cardColor,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: theme.dividerColor.withValues(alpha: 0.5),
+                        ),
                       ),
                       child: ListTile(
                         onTap: () {
@@ -485,11 +496,15 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                               height: 40,
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: theme.accentColor.withValues(alpha: 0.08),
+                                color: theme.accentColor.withValues(
+                                  alpha: 0.08,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                isVerse ? LucideIcons.type : LucideIcons.fileText,
+                                isVerse
+                                    ? LucideIcons.type
+                                    : LucideIcons.fileText,
                                 size: 18,
                                 color: theme.accentColor,
                               ),
@@ -503,9 +518,15 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                   width: 12,
                                   height: 12,
                                   decoration: BoxDecoration(
-                                    color: Color(BookmarkColors.palette[bookmark.colorIndex!]),
+                                    color: Color(
+                                      BookmarkColors.palette[bookmark
+                                          .colorIndex!],
+                                    ),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: theme.cardColor, width: 2),
+                                    border: Border.all(
+                                      color: theme.cardColor,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -524,9 +545,13 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                           children: [
                             Text(
                               subtitle,
-                              style: TextStyle(fontSize: 12, color: theme.mutedText),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.mutedText,
+                              ),
                             ),
-                            if (bookmark.note != null && bookmark.note!.isNotEmpty)
+                            if (bookmark.note != null &&
+                                bookmark.note!.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Text(
@@ -536,7 +561,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontStyle: FontStyle.italic,
-                                    color: theme.mutedText.withValues(alpha: 0.7),
+                                    color: theme.mutedText.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -584,7 +611,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         title: Text(
           l.bmNewCollection,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: theme.primaryText,
@@ -593,10 +620,16 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: TextStyle(fontFamily: 'Inter', color: theme.primaryText),
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            color: theme.primaryText,
+          ),
           decoration: InputDecoration(
             hintText: l.bmCollectionNameHint,
-            hintStyle: TextStyle(fontFamily: 'Inter', color: theme.mutedText),
+            hintStyle: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              color: theme.mutedText,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(color: theme.dividerColor),
@@ -608,12 +641,13 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           ),
         ),
         actions: [
-          TextButton(
+          GeistButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l.bmCancel,
-                style: TextStyle(color: theme.mutedText)),
+            label: l.bmCancel,
+            type: GeistButtonType.tertiary,
+            size: GeistButtonSize.small,
           ),
-          TextButton(
+          GeistButton(
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
                 context.read<BookmarkProvider>().createCollection(
@@ -622,15 +656,20 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 Navigator.pop(ctx);
               }
             },
-            child: Text(l.bmCreate,
-                style: TextStyle(color: theme.accentColor)),
+            label: l.bmCreate,
+            type: GeistButtonType.primary,
+            size: GeistButtonSize.small,
           ),
         ],
       ),
     );
   }
 
-  Widget _collectionChip(ThemeProvider theme, String label, String? collectionId) {
+  Widget _collectionChip(
+    ThemeProvider theme,
+    String label,
+    String? collectionId,
+  ) {
     final isActive = _selectedCollectionId == collectionId;
     return GestureDetector(
       onTap: () => setState(() => _selectedCollectionId = collectionId),
@@ -652,7 +691,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
             color: isActive ? theme.accentColor : theme.primaryText,
@@ -670,7 +709,10 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.dividerColor, style: BorderStyle.solid),
+          border: Border.all(
+            color: theme.dividerColor,
+            style: BorderStyle.solid,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -680,7 +722,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             Text(
               l.bmAdd,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 12,
                 color: theme.mutedText,
               ),
@@ -712,7 +754,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             Text(
               col.name,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: theme.primaryText,
@@ -721,8 +763,10 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             const SizedBox(height: 16),
             ListTile(
               leading: Icon(LucideIcons.pencil, color: theme.accentColor),
-              title: Text(l!.bmRename,
-                  style: TextStyle(color: theme.primaryText)),
+              title: Text(
+                l!.bmRename,
+                style: TextStyle(color: theme.primaryText),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _showRenameDialog(theme, l, collectionId, col.name);
@@ -730,8 +774,10 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
             ),
             ListTile(
               leading: Icon(LucideIcons.trash2, color: Colors.red.shade400),
-              title: Text(l.bmDeleteCollection,
-                  style: TextStyle(color: Colors.red.shade400)),
+              title: Text(
+                l.bmDeleteCollection,
+                style: TextStyle(color: Colors.red.shade400),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 bp.deleteCollection(collectionId);
@@ -761,7 +807,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         title: Text(
           l.bmRename,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: theme.primaryText,
@@ -770,7 +816,10 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: TextStyle(fontFamily: 'Inter', color: theme.primaryText),
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            color: theme.primaryText,
+          ),
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -783,12 +832,13 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           ),
         ),
         actions: [
-          TextButton(
+          GeistButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l.bmCancel,
-                style: TextStyle(color: theme.mutedText)),
+            label: l.bmCancel,
+            type: GeistButtonType.tertiary,
+            size: GeistButtonSize.small,
           ),
-          TextButton(
+          GeistButton(
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
                 context.read<BookmarkProvider>().renameCollection(
@@ -798,8 +848,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 Navigator.pop(ctx);
               }
             },
-            child: Text(l.bmSave,
-                style: TextStyle(color: theme.accentColor)),
+            label: l.bmSave,
+            type: GeistButtonType.primary,
+            size: GeistButtonSize.small,
           ),
         ],
       ),
@@ -822,15 +873,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           decoration: BoxDecoration(
             color: isActive ? theme.cardColor : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: theme.shadowColor.withValues(alpha: 0.05),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
+            boxShadow: isActive ? theme.shadowCard : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -840,13 +883,18 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isActive ? theme.accentColor : theme.chipUnselectedText,
+                  color: isActive
+                      ? theme.accentColor
+                      : theme.chipUnselectedText,
                 ),
               ),
               if (count > 0) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: isActive
                         ? theme.accentColor.withValues(alpha: 0.12)

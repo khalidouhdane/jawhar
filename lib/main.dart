@@ -13,7 +13,6 @@ import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
-import 'package:quran_app/screens/app_shell.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
@@ -42,19 +41,21 @@ import 'package:quran_app/services/break_recovery_service.dart';
 import 'package:quran_app/services/contextual_tips_service.dart';
 import 'package:quran_app/services/motivational_messages_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:quran_app/screens/onboarding_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quran_app/firebase_options.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
+import 'package:quran_app/services/qf_user_auth_service.dart';
+import 'package:quran_app/services/qf_user_api_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize SQLite FFI for desktop platforms (Windows, macOS, Linux)
-  if (!kIsWeb &&
-      (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+  if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
@@ -69,9 +70,7 @@ void main() async {
   await hifzDb.database;
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize auth service
   final authService = AuthService();
@@ -86,6 +85,13 @@ void main() async {
       cloudSyncService.performInitialSync(authService.uid!);
     }
   });
+
+  // Initialize QF User Auth (OAuth2 PKCE) — loads stored tokens
+  final qfUserAuth = QfUserAuthService();
+  await qfUserAuth.init();
+
+  // Initialize QF User API client
+  final qfUserApi = QfUserApiService(qfUserAuth);
 
   // Import mutashabihat dataset if needed (non-blocking)
   MutashabihatImportService(hifzDb).importIfNeeded();
@@ -149,85 +155,130 @@ void main() async {
   // Initialize AI services
   final aiPlanService = AIPlanService();
   final aiCalibrationService = AICalibrationService(aiPlanService);
-  final breakRecoveryService = BreakRecoveryService(hifzDb, aiService: aiPlanService);
+  final breakRecoveryService = BreakRecoveryService(
+    hifzDb,
+    aiService: aiPlanService,
+  );
   final contextualTipsService = ContextualTipsService();
   final motivationalService = MotivationalMessagesService();
 
+  // Initialize ThemeProvider with persistence
+  final themeProvider = ThemeProvider();
+  themeProvider.initWithPrefs(prefs);
+
   await SentryFlutter.init(
     (options) {
-      options.dsn = 'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704';
-      options.tracesSampleRate = 1.0;
-      options.profilesSampleRate = 1.0;
+      options.dsn =
+          'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704';
+      // Disable performance tracing in debug — was 1.0 (100%), caused
+      // significant CPU overhead by tracing every UI operation.
+      options.tracesSampleRate = kReleaseMode ? 0.2 : 0.0;
     },
     appRunner: () => runApp(
       MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) {
-            // Detect initial locale for reciter names
-            final savedLocale = prefs.getString('app_locale');
-            String lang;
-            if (savedLocale != null) {
-              lang = savedLocale;
-            } else {
-              final systemLang =
-                  PlatformDispatcher.instance.locale.languageCode;
-              lang = systemLang == 'ar' ? 'ar' : 'en';
-            }
-            return QuranReadingProvider(
-              storage: storageService,
-              language: lang,
-            );
-          },
-        ),
-        ChangeNotifierProvider.value(value: audioProvider),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
-        ChangeNotifierProvider(create: (_) => HifzProfileProvider(hifzDb, authService, cloudSyncService)),
-        ChangeNotifierProvider(create: (_) => PlanProvider(hifzDb, authService, cloudSyncService, aiPlanService: aiPlanService)),
-        ChangeNotifierProvider(create: (_) => SessionProvider(hifzDb, authService, cloudSyncService)),
-        ChangeNotifierProvider(create: (_) => FlashcardProvider(hifzDb, authService, cloudSyncService)),
-        ChangeNotifierProvider(create: (_) => WerdProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
-        ChangeNotifierProvider(create: (_) => UpdateProvider()),
-        ChangeNotifierProvider(create: (_) => BookmarkProvider(storageService, authService, cloudSyncService)),
-        ChangeNotifierProvider(create: (_) => NotificationProvider(pushNotifService, prefs)),
-        ChangeNotifierProvider(create: (_) => SocialProvider(SharingService(), hifzDb)),
-        ChangeNotifierProvider(create: (_) {
-          final analyticsService = AnalyticsService(hifzDb);
-          final notificationService = NotificationService(analyticsService);
-          return AnalyticsProvider(
-            analyticsService,
-            notificationService,
-            calibrationService: aiCalibrationService,
-          );
-        }),
-        ChangeNotifierProvider(
-          create: (_) => ContextProvider(
-            asbabService: asbabService,
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) {
+              // Detect initial locale for reciter names
+              final savedLocale = prefs.getString('app_locale');
+              String lang;
+              if (savedLocale != null) {
+                lang = savedLocale;
+              } else {
+                final systemLang =
+                    PlatformDispatcher.instance.locale.languageCode;
+                lang = systemLang == 'ar' ? 'ar' : 'en';
+              }
+              return QuranReadingProvider(
+                storage: storageService,
+                language: lang,
+              );
+            },
           ),
+          ChangeNotifierProvider.value(value: audioProvider),
+          ChangeNotifierProvider.value(value: themeProvider),
+          ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
+          ChangeNotifierProvider(
+            create: (_) => HifzProfileProvider(
+              hifzDb,
+              authService,
+              cloudSyncService,
+              qfApi: qfUserApi,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => PlanProvider(
+              hifzDb,
+              authService,
+              cloudSyncService,
+              aiPlanService: aiPlanService,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => SessionProvider(
+              hifzDb,
+              authService,
+              cloudSyncService,
+              qfApi: qfUserApi,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) =>
+                FlashcardProvider(hifzDb, authService, cloudSyncService),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => WerdProvider(storageService, qfApi: qfUserApi),
+          ),
+          ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
+          ChangeNotifierProvider(create: (_) => UpdateProvider()),
+          ChangeNotifierProvider(
+            create: (_) => BookmarkProvider(
+              storageService,
+              authService,
+              cloudSyncService,
+              qfApi: qfUserApi,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => NotificationProvider(pushNotifService, prefs),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => SocialProvider(SharingService(), hifzDb),
+          ),
+          ChangeNotifierProvider(
+            create: (_) {
+              final analyticsService = AnalyticsService(hifzDb);
+              final notificationService = NotificationService(analyticsService);
+              return AnalyticsProvider(
+                analyticsService,
+                notificationService,
+                calibrationService: aiCalibrationService,
+              );
+            },
+          ),
+          ChangeNotifierProvider(
+            create: (_) => ContextProvider(asbabService: asbabService),
+          ),
+          Provider.value(value: storageService),
+          Provider.value(value: hifzDb),
+          Provider.value(value: aiPlanService),
+          Provider.value(value: breakRecoveryService),
+          Provider.value(value: contextualTipsService),
+          Provider.value(value: motivationalService),
+          ChangeNotifierProvider.value(value: authService),
+          ChangeNotifierProvider.value(value: cloudSyncService),
+          ChangeNotifierProvider.value(value: qfUserAuth),
+          Provider.value(value: qfUserApi),
+        ],
+        child: DevicePreview(
+          // Disabled by default — enable only when testing responsive layouts.
+          // Was always-on in debug, adding overlay + MediaQuery overhead.
+          enabled: false,
+          builder: (context) => const QuranApp(),
         ),
-        Provider.value(value: storageService),
-        Provider.value(value: hifzDb),
-        Provider.value(value: aiPlanService),
-        Provider.value(value: breakRecoveryService),
-        Provider.value(value: contextualTipsService),
-        Provider.value(value: motivationalService),
-        ChangeNotifierProvider.value(value: authService),
-        ChangeNotifierProvider.value(value: cloudSyncService),
-      ],
-      child: DevicePreview(
-        enabled:
-            !kReleaseMode &&
-            !kIsWeb &&
-            (defaultTargetPlatform == TargetPlatform.windows ||
-             defaultTargetPlatform == TargetPlatform.macOS ||
-             defaultTargetPlatform == TargetPlatform.linux),
-        builder: (context) => const QuranApp(),
       ),
     ),
-  ),
-);
+  );
 }
 
 class QuranApp extends StatelessWidget {
@@ -241,7 +292,7 @@ class QuranApp extends StatelessWidget {
         final readingProvider = context.read<QuranReadingProvider>();
         readingProvider.setLanguage(localeProvider.locale.languageCode);
         return MaterialApp(
-          title: 'Le Quran',
+          title: 'Jawhar',
           debugShowCheckedModeBanner: false,
           locale: localeProvider.locale,
           supportedLocales: const [Locale('en'), Locale('ar')],
@@ -253,7 +304,7 @@ class QuranApp extends StatelessWidget {
           ],
           builder: DevicePreview.appBuilder,
           theme: ThemeData(
-            fontFamily: 'Inter',
+            textTheme: GoogleFonts.geistTextTheme(),
             useMaterial3: true,
             primaryColor: themeProvider.accentColor,
             scaffoldBackgroundColor: themeProvider.scaffoldBackground,
@@ -273,15 +324,7 @@ class QuranApp extends StatelessWidget {
               PointerDeviceKind.trackpad,
             },
           ),
-          home: Builder(
-            builder: (context) {
-              final storage = context.read<LocalStorageService>();
-              if (!storage.hasCompletedOnboarding) {
-                return const OnboardingScreen();
-              }
-              return const AppShell();
-            },
-          ),
+          home: const SplashScreen(),
         );
       },
     );

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quran_app/services/desktop_google_auth.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Authentication service — Google Sign-In via Firebase Auth.
 ///
@@ -46,8 +47,8 @@ class AuthService extends ChangeNotifier {
   bool get _isDesktop =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
-       defaultTargetPlatform == TargetPlatform.macOS ||
-       defaultTargetPlatform == TargetPlatform.linux);
+          defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.linux);
 
   /// Initialize — listen for auth state changes.
   void init() {
@@ -58,9 +59,9 @@ class AuthService extends ChangeNotifier {
     _user = user;
     notifyListeners();
     if (user != null) {
-      debugPrint('[AUTH] Signed in: ${user.email} (${user.uid})');
+      AppLogger.info('Auth', '[AUTH] Signed in: ${user.email} (${user.uid})');
     } else {
-      debugPrint('[AUTH] Signed out');
+      AppLogger.info('Auth', '[AUTH] Signed out');
     }
   }
 
@@ -82,13 +83,13 @@ class AuthService extends ChangeNotifier {
         return await _signInMobile();
       }
     } on FirebaseAuthException catch (e) {
-      debugPrint('[AUTH] Firebase error: ${e.code} - ${e.message}');
+      AppLogger.info('Auth', '[AUTH] Firebase error: ${e.code} - ${e.message}');
       _error = e.message ?? 'Sign-in failed';
       _isLoading = false;
       notifyListeners();
       return false;
     } catch (e) {
-      debugPrint('[AUTH] Sign-in error: $e');
+      AppLogger.info('Auth', '[AUTH] Sign-in error: $e');
       _error = 'Sign-in failed: $e';
       _isLoading = false;
       notifyListeners();
@@ -154,7 +155,7 @@ class AuthService extends ChangeNotifier {
       }
       await _auth.signOut();
     } catch (e) {
-      debugPrint('[AUTH] Sign-out error: $e');
+      AppLogger.info('Auth', '[AUTH] Sign-out error: $e');
     }
 
     _isLoading = false;

@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 // ─── Theme Picker Sheet ───
 
@@ -74,20 +75,10 @@ class ThemePickerSheet extends StatelessWidget {
                   _buildThemeOption(
                     context: context,
                     theme: theme,
-                    label: l.themeClassic,
-                    targetTheme: AppTheme.classic,
+                    label: l.themeLight,
+                    targetTheme: AppTheme.light,
                     bgColor: Colors.white,
-                    textColor: const Color(0xFF1A454E),
-                    icon: LucideIcons.sparkles,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildThemeOption(
-                    context: context,
-                    theme: theme,
-                    label: l.themeWarm,
-                    targetTheme: AppTheme.warm,
-                    bgColor: const Color(0xFFF5F0E8),
-                    textColor: const Color(0xFF1A454E),
+                    textColor: const Color(0xFF171717),
                     icon: LucideIcons.sun,
                   ),
                   const SizedBox(width: 12),
@@ -96,8 +87,8 @@ class ThemePickerSheet extends StatelessWidget {
                     theme: theme,
                     label: l.themeDark,
                     targetTheme: AppTheme.dark,
-                    bgColor: const Color(0xFF0A1E24),
-                    textColor: const Color(0xFFD4E8EC),
+                    bgColor: const Color(0xFF000000),
+                    textColor: const Color(0xFFEDEDED),
                     icon: LucideIcons.moon,
                   ),
                 ],
@@ -113,7 +104,7 @@ class ThemePickerSheet extends StatelessWidget {
                   title: Text(
                     l.themeFitScreen,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontWeight: FontWeight.w500,
                       color: theme.primaryText,
                     ),
@@ -121,7 +112,7 @@ class ThemePickerSheet extends StatelessWidget {
                   subtitle: Text(
                     l.themeFitScreenDesc,
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
@@ -367,8 +358,7 @@ class ThemePickerSheet extends StatelessWidget {
                           child: Switch.adaptive(
                             value: theme.showBookIconIndicator,
                             activeTrackColor: theme.accentColor,
-                            onChanged: (v) =>
-                                theme.setShowBookIconIndicator(v),
+                            onChanged: (v) => theme.setShowBookIconIndicator(v),
                           ),
                         ),
                       ],
@@ -439,55 +429,57 @@ class ThemePickerSheet extends StatelessWidget {
                               return SizedBox(
                                 width: double.infinity,
                                 child: ExcludeSemantics(
-                                  child: CupertinoSlidingSegmentedControl<
-                                      PageIndicatorEffect>(
-                                    groupValue: theme.pageIndicatorEffect,
-                                    backgroundColor: Colors.black.withValues(
-                                      alpha: 0.05,
-                                    ),
-                                    thumbColor: theme.canvasBackground,
-                                    children: {
-                                      PageIndicatorEffect.center: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8,
-                                        ),
-                                        child: Text(
-                                          l.themeCenterSpine,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight:
-                                                theme.pageIndicatorEffect ==
-                                                        PageIndicatorEffect.center
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
-                                            color: theme.primaryText,
+                                  child:
+                                      CupertinoSlidingSegmentedControl<
+                                        PageIndicatorEffect
+                                      >(
+                                        groupValue: theme.pageIndicatorEffect,
+                                        backgroundColor: Colors.black
+                                            .withValues(alpha: 0.05),
+                                        thumbColor: theme.canvasBackground,
+                                        children: {
+                                          PageIndicatorEffect.center: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 8,
+                                            ),
+                                            child: Text(
+                                              l.themeCenterSpine,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight:
+                                                    theme.pageIndicatorEffect ==
+                                                        PageIndicatorEffect
+                                                            .center
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                                color: theme.primaryText,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      PageIndicatorEffect.edge: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8,
-                                        ),
-                                        child: Text(
-                                          l.themeOuterEdge,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight:
-                                                theme.pageIndicatorEffect ==
+                                          PageIndicatorEffect.edge: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 8,
+                                            ),
+                                            child: Text(
+                                              l.themeOuterEdge,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight:
+                                                    theme.pageIndicatorEffect ==
                                                         PageIndicatorEffect.edge
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
-                                            color: theme.primaryText,
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                                color: theme.primaryText,
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                        },
+                                        onValueChanged: (v) {
+                                          if (v != null) {
+                                            theme.setPageIndicatorEffect(v);
+                                          }
+                                        },
                                       ),
-                                    },
-                                    onValueChanged: (v) {
-                                      if (v != null) {
-                                        theme.setPageIndicatorEffect(v);
-                                      }
-                                    },
-                                  ),
                                 ),
                               );
                             },
@@ -572,15 +564,7 @@ class ThemePickerSheet extends StatelessWidget {
               color: isSelected ? theme.accentColor : Colors.grey.shade300,
               width: isSelected ? 2.5 : 1,
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: theme.accentColor.withValues(alpha: 0.2),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
+            boxShadow: isSelected ? theme.shadowCard : null,
           ),
           child: Column(
             children: [
@@ -603,7 +587,7 @@ class ThemePickerSheet extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: theme.accentColor,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(theme.radiusMd),
                   ),
                   child: Text(
                     'Active',
@@ -701,7 +685,7 @@ class _DebouncedSliderControlState extends State<_DebouncedSliderControl> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: widget.theme.chipUnselected,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(widget.theme.radiusMd),
                 ),
                 child: Icon(
                   LucideIcons.minus,
@@ -755,7 +739,7 @@ class _DebouncedSliderControlState extends State<_DebouncedSliderControl> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: widget.theme.chipUnselected,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(widget.theme.radiusMd),
                 ),
                 child: Icon(
                   LucideIcons.plus,

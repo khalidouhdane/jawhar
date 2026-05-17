@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
@@ -54,9 +55,10 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
       parent: _controller,
       curve: Curves.easeInOut,
     );
-    _rotationAnimation = Tween<double>(begin: 0, end: 0.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 0.5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     if (_isExpanded) _controller.value = 1.0;
   }
@@ -107,17 +109,7 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.dividerColor,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: theme.shadowCard,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -136,9 +128,10 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
                       color: theme.accentLight,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      '📜',
-                      style: const TextStyle(fontSize: 16),
+                    child: Icon(
+                      LucideIcons.scroll,
+                      size: 16,
+                      color: theme.accentColor,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -148,7 +141,7 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
                       children: [
                         Text(
                           'Occasion of Revelation',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.ibmPlexSansArabic(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: theme.primaryText,
@@ -156,7 +149,7 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
                         ),
                         Text(
                           'Verse ${widget.verseKey}',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.ibmPlexSansArabic(
                             fontSize: 11,
                             color: theme.secondaryText,
                           ),
@@ -182,11 +175,7 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
             sizeFactor: _expandAnimation,
             child: Column(
               children: [
-                Divider(
-                  height: 1,
-                  thickness: 0.5,
-                  color: theme.dividerColor,
-                ),
+                Divider(height: 1, thickness: 0.5, color: theme.dividerColor),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                   child: Column(
@@ -207,7 +196,7 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
                             padding: const EdgeInsets.only(bottom: 6),
                             child: Text(
                               'Narration ${i + 1}',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.ibmPlexSansArabic(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: theme.accentColor,
@@ -231,7 +220,7 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
                       // Source attribution
                       Text(
                         'Source: صحيح أسباب النزول — إبراهيم محمد العلي',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.ibmPlexSansArabic(
                           fontSize: 10,
                           fontStyle: FontStyle.italic,
                           color: theme.mutedText,

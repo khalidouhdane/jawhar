@@ -6,6 +6,7 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Session History — chronological log of all completed sessions.
 /// CE-4: Grouped by date, with weekly summary.
@@ -22,8 +23,10 @@ class SessionHistoryScreen extends StatelessWidget {
         backgroundColor: theme.scaffoldBackground,
         appBar: _buildAppBar(theme),
         body: Center(
-          child: Text(AppLocalizations.of(context)!.hifzNoActiveProfile,
-              style: TextStyle(color: theme.mutedText)),
+          child: Text(
+            AppLocalizations.of(context)!.hifzNoActiveProfile,
+            style: TextStyle(color: theme.mutedText),
+          ),
         ),
       );
     }
@@ -32,9 +35,10 @@ class SessionHistoryScreen extends StatelessWidget {
       backgroundColor: theme.scaffoldBackground,
       appBar: _buildAppBar(theme),
       body: FutureBuilder<List<SessionRecord>>(
-        future: context
-            .read<HifzDatabaseService>()
-            .getSessionHistory(profile.activeProfile!.id, limit: 100),
+        future: context.read<HifzDatabaseService>().getSessionHistory(
+          profile.activeProfile!.id,
+          limit: 100,
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -88,7 +92,7 @@ class SessionHistoryScreen extends StatelessWidget {
       title: Text(
         'Session History',
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: GeistTypography.primaryFontFamily,
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: theme.primaryText,
@@ -103,12 +107,12 @@ class SessionHistoryScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('📋', style: TextStyle(fontSize: 48)),
+          Icon(LucideIcons.clipboardList, size: 48, color: theme.mutedText),
           const SizedBox(height: 12),
           Text(
             'No sessions yet',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: theme.primaryText,
@@ -118,7 +122,7 @@ class SessionHistoryScreen extends StatelessWidget {
           Text(
             'Complete a session to see your history',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
               color: theme.mutedText,
             ),
@@ -148,8 +152,19 @@ class SessionHistoryScreen extends StatelessWidget {
     if (date == today.subtract(const Duration(days: 1))) return 'Yesterday';
 
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[dt.month]} ${dt.day}, ${dt.year}';
   }
@@ -159,8 +174,7 @@ class SessionHistoryScreen extends StatelessWidget {
   _WeekStats _computeWeekStats(List<SessionRecord> sessions) {
     final now = DateTime.now();
     final weekAgo = now.subtract(const Duration(days: 7));
-    final thisWeek =
-        sessions.where((s) => s.date.isAfter(weekAgo)).toList();
+    final thisWeek = sessions.where((s) => s.date.isAfter(weekAgo)).toList();
 
     int totalMinutes = 0;
     int totalPages = 0;
@@ -201,7 +215,7 @@ class SessionHistoryScreen extends StatelessWidget {
           Text(
             'This Week',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: theme.primaryText,
@@ -210,17 +224,33 @@ class SessionHistoryScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _statChip(theme, LucideIcons.layers, '${stats.sessionCount}',
-                  'sessions'),
+              _statChip(
+                theme,
+                LucideIcons.layers,
+                '${stats.sessionCount}',
+                'sessions',
+              ),
               const SizedBox(width: 12),
-              _statChip(theme, LucideIcons.clock, _formatMinutes(stats.totalMinutes),
-                  'total'),
+              _statChip(
+                theme,
+                LucideIcons.clock,
+                _formatMinutes(stats.totalMinutes),
+                'total',
+              ),
               const SizedBox(width: 12),
-              _statChip(theme, LucideIcons.bookOpen, '${stats.pagesCount}',
-                  'pages'),
+              _statChip(
+                theme,
+                LucideIcons.bookOpen,
+                '${stats.pagesCount}',
+                'pages',
+              ),
               const SizedBox(width: 12),
-              _statChip(theme, LucideIcons.thumbsUp, '${stats.avgRating}%',
-                  'strong'),
+              _statChip(
+                theme,
+                LucideIcons.thumbsUp,
+                '${stats.avgRating}%',
+                'strong',
+              ),
             ],
           ),
         ],
@@ -228,7 +258,12 @@ class SessionHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _statChip(ThemeProvider theme, IconData icon, String value, String label) {
+  Widget _statChip(
+    ThemeProvider theme,
+    IconData icon,
+    String value,
+    String label,
+  ) {
     return Expanded(
       child: Column(
         children: [
@@ -237,7 +272,7 @@ class SessionHistoryScreen extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: theme.primaryText,
@@ -246,7 +281,7 @@ class SessionHistoryScreen extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 10,
               color: theme.mutedText,
             ),
@@ -262,7 +297,7 @@ class SessionHistoryScreen extends StatelessWidget {
     return Text(
       date,
       style: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: GeistTypography.primaryFontFamily,
         fontSize: 13,
         fontWeight: FontWeight.w700,
         color: theme.secondaryText,
@@ -271,7 +306,8 @@ class SessionHistoryScreen extends StatelessWidget {
   }
 
   Widget _buildSessionTile(ThemeProvider theme, SessionRecord session) {
-    final time = '${session.date.hour.toString().padLeft(2, '0')}:'
+    final time =
+        '${session.date.hour.toString().padLeft(2, '0')}:'
         '${session.date.minute.toString().padLeft(2, '0')}';
 
     return Container(
@@ -293,7 +329,7 @@ class SessionHistoryScreen extends StatelessWidget {
               Text(
                 '$time · ${session.durationMinutes} min',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: theme.secondaryText,
@@ -303,7 +339,7 @@ class SessionHistoryScreen extends StatelessWidget {
               Text(
                 '${session.repCount} reps',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 11,
                   color: theme.mutedText,
                 ),
@@ -313,45 +349,63 @@ class SessionHistoryScreen extends StatelessWidget {
           const SizedBox(height: 10),
           // Phase rows
           if (session.sabaqCompleted)
-            _phaseRow(theme, '📖', 'Sabaq',
-                'Page ${session.sabaqPage ?? "?"}',
-                session.sabaqAssessment),
+            _phaseRow(
+              theme,
+              LucideIcons.bookOpen,
+              'Sabaq',
+              'Page ${session.sabaqPage ?? "?"}',
+              session.sabaqAssessment,
+            ),
           if (session.sabqiCompleted)
-            _phaseRow(theme, '🔁', 'Sabqi',
-                '${session.sabqiPages.length} pages',
-                session.sabqiAssessment),
+            _phaseRow(
+              theme,
+              LucideIcons.repeat,
+              'Sabqi',
+              '${session.sabqiPages.length} pages',
+              session.sabqiAssessment,
+            ),
           if (session.manzilCompleted)
-            _phaseRow(theme, '📚', 'Manzil',
-                '${session.manzilPages.length} pages',
-                session.manzilAssessment),
+            _phaseRow(
+              theme,
+              LucideIcons.library,
+              'Manzil',
+              '${session.manzilPages.length} pages',
+              session.manzilAssessment,
+            ),
           if (!session.sabaqCompleted &&
               !session.sabqiCompleted &&
               !session.manzilCompleted)
             Text(
               'Skipped all phases',
               style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
-                  color: theme.mutedText,
-                  fontStyle: FontStyle.italic),
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 12,
+                color: theme.mutedText,
+                fontStyle: FontStyle.italic,
+              ),
             ),
         ],
       ),
     );
   }
 
-  Widget _phaseRow(ThemeProvider theme, String emoji, String phase,
-      String detail, SelfAssessment? assessment) {
+  Widget _phaseRow(
+    ThemeProvider theme,
+    IconData icon,
+    String phase,
+    String detail,
+    SelfAssessment? assessment,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
+          Icon(icon, size: 14, color: theme.accentColor),
           const SizedBox(width: 8),
           Text(
             '$phase: $detail',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 12,
               color: theme.primaryText,
             ),
@@ -366,10 +420,10 @@ class SessionHistoryScreen extends StatelessWidget {
   }
 
   Widget _assessmentBadge(ThemeProvider theme, SelfAssessment assessment) {
-    final (emoji, label) = switch (assessment) {
-      SelfAssessment.strong => ('💪', 'Strong'),
-      SelfAssessment.okay => ('🤔', 'Okay'),
-      SelfAssessment.needsWork => ('😬', 'Needs Work'),
+    final (icon, label) = switch (assessment) {
+      SelfAssessment.strong => (LucideIcons.dumbbell, 'Strong'),
+      SelfAssessment.okay => (LucideIcons.helpCircle, 'Okay'),
+      SelfAssessment.needsWork => (LucideIcons.alertCircle, 'Needs Work'),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -377,14 +431,21 @@ class SessionHistoryScreen extends StatelessWidget {
         color: theme.accentColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        '$emoji $label',
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: theme.accentColor,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: theme.accentColor),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: theme.accentColor,
+            ),
+          ),
+        ],
       ),
     );
   }

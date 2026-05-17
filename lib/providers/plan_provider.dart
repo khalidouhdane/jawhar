@@ -7,6 +7,7 @@ import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/plan_generation_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// AI plan generation progress states.
 enum AiProgress { idle, analyzing, generating, validating, done, fallback }
@@ -31,8 +32,8 @@ class PlanProvider extends ChangeNotifier {
   AiProgress _aiProgress = AiProgress.idle;
 
   PlanProvider(this._db, this._auth, this._sync, {AIPlanService? aiPlanService})
-      : _planService = PlanGenerationService(_db),
-        _aiService = aiPlanService;
+    : _planService = PlanGenerationService(_db),
+      _aiService = aiPlanService;
 
   // ── Getters ──
 
@@ -67,8 +68,10 @@ class PlanProvider extends ChangeNotifier {
 
   /// Load existing plan for today, or generate a new one.
   /// If today is a rest day, no plan is generated.
-  Future<void> loadOrGeneratePlan(MemoryProfile profile,
-      {bool forceRegenerate = false}) async {
+  Future<void> loadOrGeneratePlan(
+    MemoryProfile profile, {
+    bool forceRegenerate = false,
+  }) async {
     _isLoading = true;
     _hasError = false;
     notifyListeners();
@@ -93,7 +96,7 @@ class PlanProvider extends ChangeNotifier {
             notifyListeners();
           }
         } catch (e) {
-          debugPrint('AI plan generation failed, falling back: $e');
+          AppLogger.info('Plan', 'AI plan generation failed, falling back: $e');
           _aiProgress = AiProgress.fallback;
           notifyListeners();
         }
@@ -115,16 +118,18 @@ class PlanProvider extends ChangeNotifier {
         try {
           _todayRecipes = await _db.getRecipesForPlan(_todayPlan!.id);
         } catch (e) {
-          debugPrint('[AI] Recipe DB load failed: $e');
+          AppLogger.info('Plan', '[AI] Recipe DB load failed: $e');
         }
 
         // No stored recipes? Generate and save defaults.
         if (_todayRecipes.isEmpty) {
-          _todayRecipes = PlanGenerationService.generateDefaultRecipes(_todayPlan!);
+          _todayRecipes = PlanGenerationService.generateDefaultRecipes(
+            _todayPlan!,
+          );
           try {
             await _db.saveRecipes(_todayRecipes);
           } catch (e) {
-            debugPrint('[AI] Recipe DB save failed: $e');
+            AppLogger.info('Plan', '[AI] Recipe DB save failed: $e');
           }
         }
       }
@@ -135,7 +140,7 @@ class PlanProvider extends ChangeNotifier {
         DateTime.now(),
       );
     } catch (e) {
-      debugPrint('Plan generation error: $e');
+      AppLogger.info('Plan', 'Plan generation error: $e');
       _hasError = true;
     }
 
@@ -173,7 +178,7 @@ class PlanProvider extends ChangeNotifier {
         await _db.updateDailyPlan(_todayPlan!);
       }
     } catch (e) {
-      debugPrint('Extra session generation error: $e');
+      AppLogger.info('Plan', 'Extra session generation error: $e');
     }
 
     _isLoading = false;
@@ -251,14 +256,18 @@ class PlanProvider extends ChangeNotifier {
     // Build progress snapshot for AI context
     final allProgress = await _db.getAllPageProgress(profile.id);
     final sessions = await _db.getSessionHistory(profile.id, limit: 10);
-    final recentSessions = sessions.map((s) => {
-      'date': s.date.toIso8601String(),
-      'durationMinutes': s.durationMinutes,
-      'sabaqCompleted': s.sabaqCompleted,
-      'sabaqPage': s.sabaqPage,
-      'sabaqAssessment': s.sabaqAssessment?.name,
-      'repCount': s.repCount,
-    }).toList();
+    final recentSessions = sessions
+        .map(
+          (s) => {
+            'date': s.date.toIso8601String(),
+            'durationMinutes': s.durationMinutes,
+            'sabaqCompleted': s.sabaqCompleted,
+            'sabaqPage': s.sabaqPage,
+            'sabaqAssessment': s.sabaqAssessment?.name,
+            'repCount': s.repCount,
+          },
+        )
+        .toList();
 
     final strongCount = allProgress.values
         .where((p) => p.status == PageStatus.memorized)
@@ -295,7 +304,8 @@ class PlanProvider extends ChangeNotifier {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final planId = '${profile.id}_${today.toIso8601String()}_ai_${now.millisecondsSinceEpoch}';
+    final planId =
+        '${profile.id}_${today.toIso8601String()}_ai_${now.millisecondsSinceEpoch}';
 
     // Extract pages first to determine if phases should be active
     final sabqiPages = (sabqi['pages'] as List<dynamic>?)?.cast<int>() ?? [];
@@ -325,9 +335,10 @@ class PlanProvider extends ChangeNotifier {
       sabqiTargetMin = 0;
     } else {
       // All three phases → use AI suggestions if they add up right
-      final aiTotal = (sabaq['targetMinutes'] as int? ?? 15)
-          + (sabqi['targetMinutes'] as int? ?? 10)
-          + (manzil['targetMinutes'] as int? ?? 10);
+      final aiTotal =
+          (sabaq['targetMinutes'] as int? ?? 15) +
+          (sabqi['targetMinutes'] as int? ?? 10) +
+          (manzil['targetMinutes'] as int? ?? 10);
       if (aiTotal == profile.dailyTimeMinutes) {
         sabaqTargetMin = sabaq['targetMinutes'] as int? ?? 15;
         sabqiTargetMin = sabqi['targetMinutes'] as int? ?? 10;
@@ -336,7 +347,8 @@ class PlanProvider extends ChangeNotifier {
         // Fallback: standard 45/30/25 split
         sabaqTargetMin = (profile.dailyTimeMinutes * 0.45).round();
         sabqiTargetMin = (profile.dailyTimeMinutes * 0.30).round();
-        manzilTargetMin = profile.dailyTimeMinutes - sabaqTargetMin - sabqiTargetMin;
+        manzilTargetMin =
+            profile.dailyTimeMinutes - sabaqTargetMin - sabqiTargetMin;
       }
     }
 
@@ -371,16 +383,18 @@ class PlanProvider extends ChangeNotifier {
       for (final entry in recipesRaw.entries) {
         final phaseKey = entry.key;
         if (entry.value is! Map<String, dynamic>) continue;
-        _todayRecipes.add(SessionRecipe.fromAIResponse(
-          planId: planId,
-          phase: phaseKey,
-          recipeMap: entry.value as Map<String, dynamic>,
-        ));
+        _todayRecipes.add(
+          SessionRecipe.fromAIResponse(
+            planId: planId,
+            phase: phaseKey,
+            recipeMap: entry.value as Map<String, dynamic>,
+          ),
+        );
       }
       try {
         await _db.saveRecipes(_todayRecipes);
       } catch (e) {
-        debugPrint('[AI] AI recipe save failed: $e');
+        AppLogger.info('Plan', '[AI] AI recipe save failed: $e');
       }
     }
 

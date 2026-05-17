@@ -11,6 +11,7 @@ import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/context/tafsir_sheet.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 class ReadingCanvas extends StatefulWidget {
   final List<Verse> verses;
@@ -35,6 +36,7 @@ class ReadingCanvas extends StatefulWidget {
 class ReadingCanvasState extends State<ReadingCanvas> {
   final Map<int, GlobalKey> _verseKeys = {};
   OverlayEntry? _menuOverlay;
+
   /// Tracks gesture recognizers so they can be disposed to prevent memory leaks.
   final List<GestureRecognizer> _recognizers = [];
 
@@ -165,7 +167,8 @@ class ReadingCanvasState extends State<ReadingCanvas> {
 
       final isSelected = widget.selectedVerseId == verse.id;
       final isPlaying = audioProvider.activeVerseKey == verse.verseKey;
-      final isFlashHighlight = context.watch<BookmarkProvider>().highlightVerseKey == verse.verseKey;
+      final isFlashHighlight =
+          context.watch<BookmarkProvider>().highlightVerseKey == verse.verseKey;
       final isHighlighted = isSelected || isPlaying || isFlashHighlight;
 
       // Try to get Warsh text for this verse
@@ -557,10 +560,10 @@ class _VerseMarker extends StatelessWidget {
         child: Text(
           '$verseNumber',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: size * 0.42,
             fontWeight: FontWeight.w700,
-            color: theme.primaryText,
+            color: isHighlighted ? theme.scaffoldBackground : theme.primaryText,
             height: 1.0,
           ),
         ),
@@ -599,13 +602,7 @@ class _ContextualMenu extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.contextMenuBackground,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: theme.contextMenuBackground.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: theme.shadowCardFull,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -627,19 +624,20 @@ class _ContextualMenu extends StatelessWidget {
             _ActionIcon(
               icon: LucideIcons.copy,
               onTap: () {
-                Clipboard.setData(ClipboardData(
-                  text: '$_verseText\n[${verse.verseKey}]',
-                ));
+                Clipboard.setData(
+                  ClipboardData(text: '$_verseText\n[${verse.verseKey}]'),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       'Verse ${verse.verseKey} copied',
-                      style: const TextStyle(fontFamily: 'Inter'),
+                      style: TextStyle(fontFamily: 'Inter'),
                     ),
                     behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 2),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
                 onDismiss();
@@ -650,12 +648,17 @@ class _ContextualMenu extends StatelessWidget {
             Builder(
               builder: (ctx) {
                 final bookmarkProv = ctx.watch<BookmarkProvider>();
-                final isBookmarked = bookmarkProv.isVerseBookmarked(verse.verseKey);
+                final isBookmarked = bookmarkProv.isVerseBookmarked(
+                  verse.verseKey,
+                );
                 final readingProv = ctx.read<QuranReadingProvider>();
-                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
+                final chapterId =
+                    int.tryParse(verse.verseKey.split(':').first) ?? 1;
                 String surahName = 'Surah $chapterId';
                 try {
-                  surahName = readingProv.chapters.firstWhere((c) => c.id == chapterId).nameSimple;
+                  surahName = readingProv.chapters
+                      .firstWhere((c) => c.id == chapterId)
+                      .nameSimple;
                 } catch (_) {}
                 return _ActionIcon(
                   icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
@@ -675,9 +678,9 @@ class _ContextualMenu extends StatelessWidget {
             _ActionIcon(
               icon: LucideIcons.share,
               onTap: () {
-                Clipboard.setData(ClipboardData(
-                  text: '$_verseText\n\n— ${verse.verseKey}',
-                ));
+                Clipboard.setData(
+                  ClipboardData(text: '$_verseText\n\n— ${verse.verseKey}'),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text(
@@ -687,7 +690,8 @@ class _ContextualMenu extends StatelessWidget {
                     behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 2),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
                 onDismiss();
@@ -730,10 +734,13 @@ class _ContextualMenu extends StatelessWidget {
                 onDismiss();
                 // Look up surah name
                 final readingProv = context.read<QuranReadingProvider>();
-                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
+                final chapterId =
+                    int.tryParse(verse.verseKey.split(':').first) ?? 1;
                 String? surahName;
                 try {
-                  surahName = readingProv.chapters.firstWhere((c) => c.id == chapterId).nameSimple;
+                  surahName = readingProv.chapters
+                      .firstWhere((c) => c.id == chapterId)
+                      .nameSimple;
                 } catch (_) {}
                 showTafsirSheet(
                   context,

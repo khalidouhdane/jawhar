@@ -32,8 +32,9 @@ class PushNotificationService {
   Future<void> initialize() async {
     if (!isSupported || _initialized) return;
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
 
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -66,15 +67,19 @@ class PushNotificationService {
     if (!isSupported) return false;
 
     if (Platform.isAndroid) {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       final granted = await android?.requestNotificationsPermission();
       return granted ?? false;
     }
 
     if (Platform.isIOS) {
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       final granted = await ios?.requestPermissions(
         alert: true,
         badge: true,
@@ -133,7 +138,7 @@ class PushNotificationService {
     // Use periodicallyShow for daily repeat
     await _plugin.periodicallyShow(
       id: _dailyNotificationId,
-      title: 'Time for your Hifz session! 📖',
+      title: 'Time for your Hifz session!',
       body: 'Your daily memorization session is waiting. Tap to start.',
       repeatInterval: RepeatInterval.daily,
       notificationDetails: details,

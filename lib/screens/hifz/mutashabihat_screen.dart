@@ -8,6 +8,9 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 import 'package:quran/quran.dart' as quran;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Browsable collection of mutashabihat (similar verse) groups.
 /// Filter by status (All/Needs Practice/Mastered/Not Studied).
@@ -39,7 +42,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
         _groups = await db.getAllMutashabihat();
       }
     } catch (e) {
-      debugPrint('Failed to load mutashabihat: $e');
+      AppLogger.info('Mutashabihat', 'Failed to load mutashabihat: $e');
     }
     if (mounted) setState(() => _isLoading = false);
   }
@@ -85,7 +88,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
         title: Text(
           'Mutashabihat',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: theme.primaryText,
@@ -103,7 +106,11 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
             ),
           ),
           IconButton(
-            icon: Icon(LucideIcons.refreshCw, color: theme.secondaryText, size: 18),
+            icon: Icon(
+              LucideIcons.refreshCw,
+              color: theme.secondaryText,
+              size: 18,
+            ),
             tooltip: 'Re-import dataset',
             onPressed: () => _reimportDataset(theme),
           ),
@@ -118,11 +125,13 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               children: [
                 _filterChip(theme, 'All', null),
                 const SizedBox(width: 8),
-                _filterChip(theme, 'Needs Practice',
-                    MutashabihatStatus.needsPractice),
+                _filterChip(
+                  theme,
+                  'Needs Practice',
+                  MutashabihatStatus.needsPractice,
+                ),
                 const SizedBox(width: 8),
-                _filterChip(theme, 'Mastered',
-                    MutashabihatStatus.mastered),
+                _filterChip(theme, 'Mastered', MutashabihatStatus.mastered),
               ],
             ),
           ),
@@ -131,23 +140,26 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           Expanded(
             child: _isLoading
                 ? Center(
-                    child: CircularProgressIndicator(color: theme.accentColor))
+                    child: CircularProgressIndicator(color: theme.accentColor),
+                  )
                 : _groups.isEmpty
-                    ? _buildEmpty(theme)
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _groups.length,
-                        itemBuilder: (ctx, i) =>
-                            _buildGroupCard(theme, _groups[i]),
-                      ),
+                ? _buildEmpty(theme)
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _groups.length,
+                    itemBuilder: (ctx, i) => _buildGroupCard(theme, _groups[i]),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _filterChip(ThemeProvider theme, String label,
-      MutashabihatStatus? status) {
+  Widget _filterChip(
+    ThemeProvider theme,
+    String label,
+    MutashabihatStatus? status,
+  ) {
     final isActive = _filter == status;
     return GestureDetector(
       onTap: () {
@@ -166,7 +178,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: isActive ? Colors.white : theme.secondaryText,
@@ -186,14 +198,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.dividerColor),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor,
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        boxShadow: theme.shadowCard,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,13 +212,16 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(LucideIcons.info, size: 12,
-                        color: Colors.amber.shade600),
+                    Icon(
+                      LucideIcons.info,
+                      size: 12,
+                      color: Colors.amber.shade600,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'Context needed',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 10,
                         color: Colors.amber.shade600,
                       ),
@@ -260,13 +268,15 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               _actionButton(
                 theme,
                 group.userStatus == MutashabihatStatus.needsPractice
-                    ? '🔄 Practicing'
+                    ? 'Practicing'
                     : 'Mark for Practice',
                 group.userStatus == MutashabihatStatus.needsPractice,
                 () async {
                   final db = context.read<HifzDatabaseService>();
                   await db.updateMutashabihatStatus(
-                      group.groupId, MutashabihatStatus.needsPractice);
+                    group.groupId,
+                    MutashabihatStatus.needsPractice,
+                  );
                   _loadGroups();
                 },
               ),
@@ -274,13 +284,15 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               _actionButton(
                 theme,
                 group.userStatus == MutashabihatStatus.mastered
-                    ? '✅ Mastered'
+                    ? 'Mastered'
                     : 'Mastered',
                 group.userStatus == MutashabihatStatus.mastered,
                 () async {
                   final db = context.read<HifzDatabaseService>();
                   await db.updateMutashabihatStatus(
-                      group.groupId, MutashabihatStatus.mastered);
+                    group.groupId,
+                    MutashabihatStatus.mastered,
+                  );
                   _loadGroups();
                 },
               ),
@@ -322,7 +334,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
                     color: color,
@@ -333,7 +345,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               Text(
                 verseKey,
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: theme.primaryText,
@@ -374,8 +386,11 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
             Text(
               'Verse text not available',
               style: TextStyle(
-                fontFamily: 'Inter', fontSize: 12,
-                fontStyle: FontStyle.italic, color: theme.mutedText),
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: theme.mutedText,
+              ),
             ),
         ],
       ),
@@ -387,11 +402,11 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
     Color color;
     switch (group.userStatus) {
       case MutashabihatStatus.mastered:
-        label = '✅ Mastered';
+        label = 'Mastered';
         color = Colors.green;
         break;
       case MutashabihatStatus.needsPractice:
-        label = '🔄 Practice';
+        label = 'Practice';
         color = Colors.orange;
         break;
       case MutashabihatStatus.notStudied:
@@ -408,7 +423,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
       child: Text(
         label,
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: GeistTypography.primaryFontFamily,
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: color,
@@ -418,30 +433,16 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
   }
 
   Widget _actionButton(
-      ThemeProvider theme, String label, bool isActive, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive
-              ? theme.accentColor.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isActive ? theme.accentColor : theme.dividerColor,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: isActive ? theme.accentColor : theme.secondaryText,
-          ),
-        ),
-      ),
+    ThemeProvider theme,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
+    return GeistButton(
+      onPressed: onTap,
+      label: label,
+      type: isActive ? GeistButtonType.primary : GeistButtonType.secondary,
+      size: GeistButtonSize.small,
     );
   }
 
@@ -450,14 +451,14 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('📿', style: TextStyle(fontSize: 48)),
+          Icon(LucideIcons.layers, size: 48, color: theme.mutedText),
           const SizedBox(height: 12),
           Text(
             _filter != null
                 ? 'No groups with this status'
                 : 'Mutashabihat data not imported yet',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
             ),
@@ -468,7 +469,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                 ? 'Try changing the filter'
                 : 'Tap below to download the dataset',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 12,
               color: theme.mutedText,
             ),
@@ -477,19 +478,11 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
             const SizedBox(height: 16),
             _isLoading
                 ? CircularProgressIndicator(color: theme.accentColor)
-                : ElevatedButton.icon(
+                : GeistButton(
                     onPressed: () => _importDataset(theme),
-                    icon: const Icon(Icons.download, size: 16),
-                    label: const Text('Download Dataset'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.accentColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                    ),
+                    prefix: const Icon(Icons.download, size: 16),
+                    label: 'Download Dataset',
+                    type: GeistButtonType.primary,
                   ),
           ],
         ],
@@ -510,11 +503,12 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               count > 0
                   ? 'Imported $count mutashabihat groups!'
                   : 'Dataset already imported',
-              style: const TextStyle(fontFamily: 'Inter'),
+              style: TextStyle(fontFamily: 'Inter'),
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
         _loadGroups();
@@ -525,7 +519,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           SnackBar(
             content: Text(
               'Import failed: $e',
-              style: const TextStyle(fontFamily: 'Inter'),
+              style: TextStyle(fontFamily: 'Inter'),
             ),
             behavior: SnackBarBehavior.floating,
           ),
@@ -541,7 +535,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
     try {
       final db = context.read<HifzDatabaseService>();
       await db.clearMutashabihat();
-      debugPrint('Cleared old mutashabihat data');
+      AppLogger.info('Mutashabihat', 'Cleared old mutashabihat data');
       final service = MutashabihatImportService(db);
       final count = await service.importIfNeeded();
       if (mounted) {
@@ -549,11 +543,12 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           SnackBar(
             content: Text(
               'Re-imported $count mutashabihat groups!',
-              style: const TextStyle(fontFamily: 'Inter'),
+              style: TextStyle(fontFamily: 'Inter'),
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
         _loadGroups();
@@ -562,8 +557,10 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Re-import failed: $e',
-                style: const TextStyle(fontFamily: 'Inter')),
+            content: Text(
+              'Re-import failed: $e',
+              style: TextStyle(fontFamily: 'Inter'),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );

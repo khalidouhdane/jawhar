@@ -7,14 +7,16 @@ enum BookmarkType { verse, page }
 class Bookmark {
   final String id;
   final BookmarkType type;
-  final String? verseKey;      // e.g. "2:255" — null for page bookmarks
-  final int pageNumber;        // 1–604
-  final String surahName;      // display name
+  final String? verseKey; // e.g. "2:255" — null for page bookmarks
+  final int pageNumber; // 1–604
+  final String surahName; // display name
   final DateTime createdAt;
-  final String? collectionId;  // links to BookmarkCollection (null = uncategorized)
-  final String? note;          // personal note
-  final int? colorIndex;       // index into color palette (null = no color)
-  final int? customColor;      // ARGB int for custom-picked color (overrides colorIndex)
+  final String?
+  collectionId; // links to BookmarkCollection (null = uncategorized)
+  final String? note; // personal note
+  final int? colorIndex; // index into color palette (null = no color)
+  final int?
+  customColor; // ARGB int for custom-picked color (overrides colorIndex)
 
   const Bookmark({
     required this.id,
@@ -56,32 +58,30 @@ class Bookmark {
       DateTime.now().microsecondsSinceEpoch.toString();
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type == BookmarkType.verse ? 'verse' : 'page',
-        'verseKey': verseKey,
-        'pageNumber': pageNumber,
-        'surahName': surahName,
-        'createdAt': createdAt.millisecondsSinceEpoch,
-        if (collectionId != null) 'collectionId': collectionId,
-        if (note != null) 'note': note,
-        if (colorIndex != null) 'colorIndex': colorIndex,
-        if (customColor != null) 'customColor': customColor,
-      };
+    'id': id,
+    'type': type == BookmarkType.verse ? 'verse' : 'page',
+    'verseKey': verseKey,
+    'pageNumber': pageNumber,
+    'surahName': surahName,
+    'createdAt': createdAt.millisecondsSinceEpoch,
+    if (collectionId != null) 'collectionId': collectionId,
+    if (note != null) 'note': note,
+    if (colorIndex != null) 'colorIndex': colorIndex,
+    if (customColor != null) 'customColor': customColor,
+  };
 
   factory Bookmark.fromJson(Map<String, dynamic> json) => Bookmark(
-        id: json['id'] as String,
-        type: json['type'] == 'verse' ? BookmarkType.verse : BookmarkType.page,
-        verseKey: json['verseKey'] as String?,
-        pageNumber: json['pageNumber'] as int,
-        surahName: json['surahName'] as String,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          json['createdAt'] as int,
-        ),
-        collectionId: json['collectionId'] as String?,
-        note: json['note'] as String?,
-        colorIndex: json['colorIndex'] as int?,
-        customColor: json['customColor'] as int?,
-      );
+    id: json['id'] as String,
+    type: json['type'] == 'verse' ? BookmarkType.verse : BookmarkType.page,
+    verseKey: json['verseKey'] as String?,
+    pageNumber: json['pageNumber'] as int,
+    surahName: json['surahName'] as String,
+    createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
+    collectionId: json['collectionId'] as String?,
+    note: json['note'] as String?,
+    colorIndex: json['colorIndex'] as int?,
+    customColor: json['customColor'] as int?,
+  );
 
   /// Encode the full list to a JSON string for SharedPreferences.
   static String encodeList(List<Bookmark> bookmarks) =>

@@ -6,10 +6,11 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/screens/hifz/session_history_screen.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Juz page ranges — Madani Mushaf layout (pages 1-604, 30 juz).
 const List<List<int>> _juzPageRanges = [
-  [1, 21], [22, 41], [42, 61], [62, 81], [82, 101],       // 1-5
+  [1, 21], [22, 41], [42, 61], [62, 81], [82, 101], // 1-5
   [102, 121], [122, 141], [142, 161], [162, 181], [182, 201], // 6-10
   [202, 221], [222, 241], [242, 261], [262, 281], [282, 301], // 11-15
   [302, 321], [322, 341], [342, 361], [362, 381], [382, 401], // 16-20
@@ -56,8 +57,11 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
 
     // CE-5.1: Calculate pace — pages with progress from last 7 days
     final weekAgo = DateTime.now().subtract(const Duration(days: 7));
-    final recentPages = progress.values.where((p) =>
-        p.lastReviewedAt != null && p.lastReviewedAt!.isAfter(weekAgo)).length;
+    final recentPages = progress.values
+        .where(
+          (p) => p.lastReviewedAt != null && p.lastReviewedAt!.isAfter(weekAgo),
+        )
+        .length;
 
     if (mounted) {
       setState(() {
@@ -93,15 +97,18 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                         shape: BoxShape.circle,
                         border: Border.all(color: theme.dividerColor),
                       ),
-                      child: Icon(LucideIcons.arrowLeft,
-                          size: 18, color: theme.primaryText),
+                      child: Icon(
+                        LucideIcons.arrowLeft,
+                        size: 18,
+                        color: theme.primaryText,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'Progress',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: theme.primaryText,
@@ -128,8 +135,8 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: theme.secondaryText,
-                labelStyle: const TextStyle(
-                  fontFamily: 'Inter',
+                labelStyle: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -150,10 +157,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildPagesTab(theme),
-                  _buildSurahsTab(theme),
-                ],
+                children: [_buildPagesTab(theme), _buildSurahsTab(theme)],
               ),
             ),
           ],
@@ -180,7 +184,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
         estCompletion = '${(weeksLeft / 52).toStringAsFixed(1)} years';
       }
     } else if (remaining == 0) {
-      estCompletion = 'Complete! 🎉';
+      estCompletion = 'Complete!';
     }
 
     return Padding(
@@ -204,7 +208,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                     Text(
                       '$total/604 pages',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: theme.primaryText,
@@ -214,7 +218,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                     Text(
                       '$pct%',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: theme.accentColor,
@@ -236,13 +240,25 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                 // CE-5.1: Quick stats row
                 Row(
                   children: [
-                    _statChip(theme, '🔥', '${profile.streak.totalActiveDays} days'),
+                    _statChip(
+                      theme,
+                      LucideIcons.flame,
+                      '${profile.streak.totalActiveDays} days',
+                    ),
                     const SizedBox(width: 10),
-                    _statChip(theme, '📗', '$memorized memorized'),
+                    _statChip(
+                      theme,
+                      LucideIcons.bookOpen,
+                      '$memorized memorized',
+                    ),
                     const SizedBox(width: 10),
-                    _statChip(theme, '⚡', '${_pagesPerWeek.round()}/wk'),
+                    _statChip(
+                      theme,
+                      LucideIcons.zap,
+                      '${_pagesPerWeek.round()}/wk',
+                    ),
                     const SizedBox(width: 10),
-                    _statChip(theme, '🎯', estCompletion),
+                    _statChip(theme, LucideIcons.target, estCompletion),
                   ],
                 ),
               ],
@@ -269,7 +285,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                   Text(
                     'View Session History',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: theme.accentColor,
@@ -279,13 +295,17 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                   Text(
                     '${_recentSessions.length} sessions',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       color: theme.mutedText,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Icon(LucideIcons.chevronRight, size: 14, color: theme.mutedText),
+                  Icon(
+                    LucideIcons.chevronRight,
+                    size: 14,
+                    color: theme.mutedText,
+                  ),
                 ],
               ),
             ),
@@ -295,16 +315,16 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
     );
   }
 
-  Widget _statChip(ThemeProvider theme, String emoji, String label) {
+  Widget _statChip(ThemeProvider theme, IconData icon, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 12)),
+        Icon(icon, size: 12, color: theme.accentColor),
         const SizedBox(width: 4),
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 11,
             color: theme.mutedText,
           ),
@@ -317,9 +337,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
 
   Widget _buildPagesTab(ThemeProvider theme) {
     if (_allProgress == null) {
-      return Center(
-        child: CircularProgressIndicator(color: theme.accentColor),
-      );
+      return Center(child: CircularProgressIndicator(color: theme.accentColor));
     }
 
     return ListView.builder(
@@ -343,8 +361,8 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: GestureDetector(
-            onTap: () => setState(() =>
-                _expandedJuz = isExpanded ? null : juzNum),
+            onTap: () =>
+                setState(() => _expandedJuz = isExpanded ? null : juzNum),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(14),
@@ -365,7 +383,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                       Text(
                         'Juz $juzNum',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: theme.primaryText,
@@ -375,12 +393,10 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                       Text(
                         '$pct%',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: pct > 0
-                              ? theme.accentColor
-                              : theme.mutedText,
+                          color: pct > 0 ? theme.accentColor : theme.mutedText,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -426,8 +442,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                         const SizedBox(width: 8),
                         _legendItem(theme, Colors.blue, 'Reviewing'),
                         const SizedBox(width: 8),
-                        _legendItem(
-                            theme, theme.dividerColor, 'Not started'),
+                        _legendItem(theme, theme.dividerColor, 'Not started'),
                       ],
                     ),
                   ],
@@ -469,7 +484,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
           child: Text(
             '$page',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 7,
               fontWeight: FontWeight.w600,
               color: status != null && status != PageStatus.notStarted
@@ -498,7 +513,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 9,
             color: theme.mutedText,
           ),
@@ -511,52 +526,125 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
 
   /// Surah data: [name, startPage, endPage]
   static const _surahData = <List<dynamic>>[
-    ['Al-Fatihah', 1, 1], ['Al-Baqarah', 2, 49], ['Aal-Imran', 50, 76],
-    ['An-Nisa', 77, 106], ['Al-Maidah', 106, 127], ['Al-Anam', 128, 150],
-    ['Al-Araf', 151, 176], ['Al-Anfal', 177, 186], ['At-Tawbah', 187, 207],
-    ['Yunus', 208, 221], ['Hud', 221, 235], ['Yusuf', 235, 248],
-    ['Ar-Rad', 249, 255], ['Ibrahim', 255, 261], ['Al-Hijr', 262, 267],
-    ['An-Nahl', 267, 281], ['Al-Isra', 282, 293], ['Al-Kahf', 293, 304],
-    ['Maryam', 305, 312], ['Taha', 312, 321], ['Al-Anbiya', 322, 331],
-    ['Al-Hajj', 332, 341], ['Al-Muminun', 342, 349], ['An-Nur', 350, 359],
-    ['Al-Furqan', 359, 366], ['Ash-Shuara', 367, 376], ['An-Naml', 377, 385],
-    ['Al-Qasas', 385, 396], ['Al-Ankabut', 396, 404], ['Ar-Rum', 404, 410],
-    ['Luqman', 411, 414], ['As-Sajdah', 415, 417], ['Al-Ahzab', 418, 427],
-    ['Saba', 428, 434], ['Fatir', 434, 440], ['Ya-Sin', 440, 445],
-    ['As-Saffat', 446, 452], ['Sad', 453, 458], ['Az-Zumar', 458, 467],
-    ['Ghafir', 467, 476], ['Fussilat', 477, 482], ['Ash-Shura', 483, 489],
-    ['Az-Zukhruf', 489, 495], ['Ad-Dukhan', 496, 498], ['Al-Jathiyah', 499, 502],
-    ['Al-Ahqaf', 502, 506], ['Muhammad', 507, 510], ['Al-Fath', 511, 515],
-    ['Al-Hujurat', 515, 517], ['Qaf', 518, 520], ['Adh-Dhariyat', 520, 523],
-    ['At-Tur', 523, 525], ['An-Najm', 526, 528], ['Al-Qamar', 528, 531],
-    ['Ar-Rahman', 531, 534], ['Al-Waqiah', 534, 537], ['Al-Hadid', 537, 541],
-    ['Al-Mujadila', 542, 545], ['Al-Hashr', 545, 548], ['Al-Mumtahanah', 549, 551],
-    ['As-Saff', 551, 552], ['Al-Jumuah', 553, 554], ['Al-Munafiqun', 554, 555],
-    ['At-Taghabun', 556, 557], ['At-Talaq', 558, 559], ['At-Tahrim', 560, 561],
-    ['Al-Mulk', 562, 564], ['Al-Qalam', 564, 566], ['Al-Haqqah', 566, 568],
-    ['Al-Maarij', 568, 570], ['Nuh', 570, 571], ['Al-Jinn', 572, 573],
-    ['Al-Muzzammil', 574, 575], ['Al-Muddaththir', 575, 577],
-    ['Al-Qiyamah', 577, 578], ['Al-Insan', 578, 580], ['Al-Mursalat', 580, 581],
-    ['An-Naba', 582, 583], ['An-Naziat', 583, 584], ['Abasa', 585, 585],
-    ['At-Takwir', 586, 586], ['Al-Infitar', 587, 587], ['Al-Mutaffifin', 587, 589],
-    ['Al-Inshiqaq', 589, 589], ['Al-Buruj', 590, 590], ['At-Tariq', 591, 591],
-    ['Al-Ala', 591, 592], ['Al-Ghashiyah', 592, 592], ['Al-Fajr', 593, 594],
-    ['Al-Balad', 594, 594], ['Ash-Shams', 595, 595], ['Al-Layl', 595, 596],
-    ['Ad-Duha', 596, 596], ['Ash-Sharh', 596, 596], ['At-Tin', 597, 597],
-    ['Al-Alaq', 597, 597], ['Al-Qadr', 598, 598], ['Al-Bayyinah', 598, 599],
-    ['Az-Zalzalah', 599, 599], ['Al-Adiyat', 599, 600], ['Al-Qariah', 600, 600],
-    ['At-Takathur', 600, 600], ['Al-Asr', 601, 601], ['Al-Humazah', 601, 601],
-    ['Al-Fil', 601, 601], ['Quraysh', 602, 602], ['Al-Maun', 602, 602],
-    ['Al-Kawthar', 602, 602], ['Al-Kafirun', 603, 603], ['An-Nasr', 603, 603],
-    ['Al-Masad', 603, 603], ['Al-Ikhlas', 604, 604], ['Al-Falaq', 604, 604],
+    ['Al-Fatihah', 1, 1],
+    ['Al-Baqarah', 2, 49],
+    ['Aal-Imran', 50, 76],
+    ['An-Nisa', 77, 106],
+    ['Al-Maidah', 106, 127],
+    ['Al-Anam', 128, 150],
+    ['Al-Araf', 151, 176],
+    ['Al-Anfal', 177, 186],
+    ['At-Tawbah', 187, 207],
+    ['Yunus', 208, 221],
+    ['Hud', 221, 235],
+    ['Yusuf', 235, 248],
+    ['Ar-Rad', 249, 255],
+    ['Ibrahim', 255, 261],
+    ['Al-Hijr', 262, 267],
+    ['An-Nahl', 267, 281],
+    ['Al-Isra', 282, 293],
+    ['Al-Kahf', 293, 304],
+    ['Maryam', 305, 312],
+    ['Taha', 312, 321],
+    ['Al-Anbiya', 322, 331],
+    ['Al-Hajj', 332, 341],
+    ['Al-Muminun', 342, 349],
+    ['An-Nur', 350, 359],
+    ['Al-Furqan', 359, 366],
+    ['Ash-Shuara', 367, 376],
+    ['An-Naml', 377, 385],
+    ['Al-Qasas', 385, 396],
+    ['Al-Ankabut', 396, 404],
+    ['Ar-Rum', 404, 410],
+    ['Luqman', 411, 414],
+    ['As-Sajdah', 415, 417],
+    ['Al-Ahzab', 418, 427],
+    ['Saba', 428, 434],
+    ['Fatir', 434, 440],
+    ['Ya-Sin', 440, 445],
+    ['As-Saffat', 446, 452],
+    ['Sad', 453, 458],
+    ['Az-Zumar', 458, 467],
+    ['Ghafir', 467, 476],
+    ['Fussilat', 477, 482],
+    ['Ash-Shura', 483, 489],
+    ['Az-Zukhruf', 489, 495],
+    ['Ad-Dukhan', 496, 498],
+    ['Al-Jathiyah', 499, 502],
+    ['Al-Ahqaf', 502, 506],
+    ['Muhammad', 507, 510],
+    ['Al-Fath', 511, 515],
+    ['Al-Hujurat', 515, 517],
+    ['Qaf', 518, 520],
+    ['Adh-Dhariyat', 520, 523],
+    ['At-Tur', 523, 525],
+    ['An-Najm', 526, 528],
+    ['Al-Qamar', 528, 531],
+    ['Ar-Rahman', 531, 534],
+    ['Al-Waqiah', 534, 537],
+    ['Al-Hadid', 537, 541],
+    ['Al-Mujadila', 542, 545],
+    ['Al-Hashr', 545, 548],
+    ['Al-Mumtahanah', 549, 551],
+    ['As-Saff', 551, 552],
+    ['Al-Jumuah', 553, 554],
+    ['Al-Munafiqun', 554, 555],
+    ['At-Taghabun', 556, 557],
+    ['At-Talaq', 558, 559],
+    ['At-Tahrim', 560, 561],
+    ['Al-Mulk', 562, 564],
+    ['Al-Qalam', 564, 566],
+    ['Al-Haqqah', 566, 568],
+    ['Al-Maarij', 568, 570],
+    ['Nuh', 570, 571],
+    ['Al-Jinn', 572, 573],
+    ['Al-Muzzammil', 574, 575],
+    ['Al-Muddaththir', 575, 577],
+    ['Al-Qiyamah', 577, 578],
+    ['Al-Insan', 578, 580],
+    ['Al-Mursalat', 580, 581],
+    ['An-Naba', 582, 583],
+    ['An-Naziat', 583, 584],
+    ['Abasa', 585, 585],
+    ['At-Takwir', 586, 586],
+    ['Al-Infitar', 587, 587],
+    ['Al-Mutaffifin', 587, 589],
+    ['Al-Inshiqaq', 589, 589],
+    ['Al-Buruj', 590, 590],
+    ['At-Tariq', 591, 591],
+    ['Al-Ala', 591, 592],
+    ['Al-Ghashiyah', 592, 592],
+    ['Al-Fajr', 593, 594],
+    ['Al-Balad', 594, 594],
+    ['Ash-Shams', 595, 595],
+    ['Al-Layl', 595, 596],
+    ['Ad-Duha', 596, 596],
+    ['Ash-Sharh', 596, 596],
+    ['At-Tin', 597, 597],
+    ['Al-Alaq', 597, 597],
+    ['Al-Qadr', 598, 598],
+    ['Al-Bayyinah', 598, 599],
+    ['Az-Zalzalah', 599, 599],
+    ['Al-Adiyat', 599, 600],
+    ['Al-Qariah', 600, 600],
+    ['At-Takathur', 600, 600],
+    ['Al-Asr', 601, 601],
+    ['Al-Humazah', 601, 601],
+    ['Al-Fil', 601, 601],
+    ['Quraysh', 602, 602],
+    ['Al-Maun', 602, 602],
+    ['Al-Kawthar', 602, 602],
+    ['Al-Kafirun', 603, 603],
+    ['An-Nasr', 603, 603],
+    ['Al-Masad', 603, 603],
+    ['Al-Ikhlas', 604, 604],
+    ['Al-Falaq', 604, 604],
     ['An-Nas', 604, 604],
   ];
 
   Widget _buildSurahsTab(ThemeProvider theme) {
     if (_allProgress == null) {
-      return Center(
-        child: CircularProgressIndicator(color: theme.accentColor),
-      );
+      return Center(child: CircularProgressIndicator(color: theme.accentColor));
     }
 
     return ListView.builder(
@@ -602,7 +690,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                     child: Text(
                       '$surahNum',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: pct > 0 ? theme.accentColor : theme.mutedText,
@@ -619,7 +707,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                       Text(
                         name,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: theme.primaryText,
@@ -630,7 +718,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                             ? 'Page $startPage'
                             : 'Pages $startPage–$endPage',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 10,
                           color: theme.mutedText,
                         ),
@@ -647,7 +735,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                       Text(
                         '$pct%',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: pct > 0 ? theme.accentColor : theme.mutedText,

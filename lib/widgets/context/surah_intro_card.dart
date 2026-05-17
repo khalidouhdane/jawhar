@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
 
 /// Data model for a surah introduction.
 class SurahIntroData {
@@ -68,17 +70,7 @@ class SurahIntroCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.dividerColor,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor,
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        boxShadow: theme.shadowCard,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -117,7 +109,7 @@ class SurahIntroCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${intro.nameEnglish} — ${intro.meaningOfName}',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.ibmPlexSansArabic(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: theme.primaryText,
@@ -135,8 +127,8 @@ class SurahIntroCard extends StatelessWidget {
                           ? Icons.mosque_outlined
                           : Icons.location_city_outlined,
                       color: isMeccan
-                          ? const Color(0xFFD4A373)
-                          : const Color(0xFF4DB6AC),
+                          ? SemanticColors.practiceAmber.fg(theme.isDark)
+                          : SemanticColors.practiceEmerald.fg(theme.isDark),
                       theme: theme,
                     ),
                     const SizedBox(width: 8),
@@ -157,7 +149,7 @@ class SurahIntroCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Text(
               intro.summary,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 13,
                 height: 1.6,
                 color: theme.secondaryText,
@@ -171,7 +163,7 @@ class SurahIntroCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
               child: Text(
                 'Key Themes',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.ibmPlexSansArabic(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: theme.accentColor,
@@ -195,7 +187,7 @@ class SurahIntroCard extends StatelessWidget {
                     ),
                     child: Text(
                       t,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.ibmPlexSansArabic(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: theme.secondaryText,
@@ -213,23 +205,11 @@ class SurahIntroCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
               child: SizedBox(
                 width: double.infinity,
-                child: TextButton(
+                child: GeistButton(
                   onPressed: onDismiss,
-                  style: TextButton.styleFrom(
-                    backgroundColor: theme.accentColor,
-                    foregroundColor: theme.chipSelectedText,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text(
-                    'Begin',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  label: 'Begin',
+                  type: GeistButtonType.primary,
+                  size: GeistButtonSize.large,
                 ),
               ),
             ),
@@ -259,10 +239,7 @@ class _Badge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: color.withValues(alpha: 0.25),
-          width: 0.5,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -271,7 +248,7 @@ class _Badge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.ibmPlexSansArabic(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: color,
@@ -485,11 +462,7 @@ const Map<int, SurahIntroData> surahIntroductions = {
     versesCount: 43,
     summary:
         'Named after the thunder that glorifies Allah. Presents powerful signs in nature as evidence of God\'s existence and the truth of revelation.',
-    keyThemes: [
-      'Signs in nature',
-      'Monotheism',
-      'Guidance vs. misguidance',
-    ],
+    keyThemes: ['Signs in nature', 'Monotheism', 'Guidance vs. misguidance'],
   ),
   14: SurahIntroData(
     id: 14,

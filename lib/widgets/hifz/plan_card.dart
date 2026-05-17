@@ -3,16 +3,22 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/theme/icon_resolver.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 
-/// Dashboard card showing today's Hifz plan with full daily goal info.
-/// CE-8: Rich plan card showing what the user needs to do today.
+/// Dashboard card showing today's Hifz plan.
+///
+/// Layout (matching reference design):
+///   [Header: "Today's Plan"]
+///   [Phase Cards Row: Sabaq | Sabqi | Manzil]
+///   [Method Pills Row: Listen | Read | Recite]
+///   [CTA Button: Start Session]
 class PlanCard extends StatefulWidget {
   final DailyPlan plan;
   final ThemeProvider theme;
   final VoidCallback onStartSession;
   final MemoryProfile? profile;
-  final int flashcardsDue;
   final List<SessionRecipe> recipes;
   final int sessionCount;
 
@@ -22,7 +28,6 @@ class PlanCard extends StatefulWidget {
     required this.theme,
     required this.onStartSession,
     this.profile,
-    this.flashcardsDue = 0,
     this.recipes = const [],
     this.sessionCount = 0,
   });
@@ -38,478 +43,491 @@ class _PlanCardState extends State<PlanCard> {
   Widget build(BuildContext context) {
     final plan = widget.plan;
     final theme = widget.theme;
-    final profile = widget.profile;
-    final flashcardsDue = widget.flashcardsDue;
+    final l = AppLocalizations.of(context)!;
+
+    // Determine which phases are active (not skipped / not empty)
+    final hasSabqi = plan.sabqiPages.isNotEmpty;
+    final hasManzil = plan.manzilPages.isNotEmpty;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.accentColor,
-            theme.accentColor.withValues(alpha: 0.85),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.accentColor.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(theme.radiusXl),
+        border: Border.all(color: theme.dividerColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with daily goal
-          Row(
-            children: [
-              const Icon(LucideIcons.calendarCheck, size: 18, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                widget.sessionCount > 0
-                    ? AppLocalizations.of(context)!.planExtraSession(widget.sessionCount + 1)
-                    : AppLocalizations.of(context)!.planTodaysPlan,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              // AI badge
-              if (plan.isAiGenerated) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('✨', style: TextStyle(fontSize: 10)),
-                      SizedBox(width: 3),
-                      Text(
-                        'AI',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const Spacer(),
-              // Daily goal badge (CE-8.4)
-              if (profile != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _goalBadgeText(),
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Sabaq phase — with page + line/verse details
-          _phaseRow(
-            '📖',
-            AppLocalizations.of(context)!.planSabaqNew,
-            plan.sabaqStartVerse != null
-                ? AppLocalizations.of(context)!.planPageFromVerse(plan.sabaqPage, plan.sabaqStartVerse!)
-                : AppLocalizations.of(context)!.planPageLines(plan.sabaqPage, plan.sabaqLineStart, plan.sabaqLineEnd),
-            plan.sabaqDoneOffline,
-            timeMinutes: plan.sabaqTargetMinutes,
-            extraDetail: '${plan.sabaqRepetitionTarget} reps target',
-          ),
-          const SizedBox(height: 10),
-
-          // Sabqi phase — with page numbers (CE-8.2)
-          _phaseRow(
-            '🔁',
-            AppLocalizations.of(context)!.planSabqiReview,
-            plan.sabqiPages.isEmpty
-                ? AppLocalizations.of(context)!.planNoReviewYet
-                : _formatPageList(plan.sabqiPages, context),
-            plan.sabqiDoneOffline,
-            timeMinutes: plan.sabqiTargetMinutes,
-          ),
-          const SizedBox(height: 10),
-
-          // Manzil phase — with juz info
-          _phaseRow(
-            '📚',
-            AppLocalizations.of(context)!.planManzilRevision,
-            plan.manzilPages.isNotEmpty
-                ? AppLocalizations.of(context)!.planJuzPages(plan.manzilJuz, plan.manzilPages.length)
-                : AppLocalizations.of(context)!.planNotStartedYet,
-            plan.manzilDoneOffline,
-            timeMinutes: plan.manzilTargetMinutes,
-          ),
+          // ── Header ──
+          _buildHeader(theme, plan, l),
           const SizedBox(height: 14),
 
-          // Time allocation summary (CE-8.3)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(LucideIcons.clock, size: 12, color: Colors.white70),
-                const SizedBox(width: 6),
-                Text(
-                  AppLocalizations.of(context)!.planEstimatedTotal(plan.estimatedMinutes),
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white70,
-                  ),
-                ),
-                if (_hasMultiplePhases()) ...[
-                  const Text(' · ', style: TextStyle(color: Colors.white38)),
-                  Text(
-                    _timeBreakdown(context),
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 11,
-                      color: Colors.white54,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (flashcardsDue > 0) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('🃏', style: TextStyle(fontSize: 12)),
-                  const SizedBox(width: 6),
-                  Text(
-                    AppLocalizations.of(context)!.planFlashcardsDue(flashcardsDue),
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          // AI reasoning section
-          if (plan.isAiGenerated && plan.aiReasoning != null && plan.aiReasoning!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => setState(() => _showReasoning = !_showReasoning),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.lightbulb, size: 12, color: Colors.white70),
-                        const SizedBox(width: 6),
-                        Text(
-                          AppLocalizations.of(context)!.planWhyThisPlan,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white70,
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          _showReasoning ? LucideIcons.chevronUp : LucideIcons.chevronDown,
-                          size: 14,
-                          color: Colors.white54,
-                        ),
-                      ],
-                    ),
-                    if (_showReasoning) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        plan.aiReasoning!,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          color: Colors.white70,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-          // Recipe step preview
+          // ── Phase Cards Row ──
+          _buildPhaseCardsRow(theme, plan, l, hasSabqi, hasManzil),
+          const SizedBox(height: 10),
+
+          // ── Method Pills Row (from recipes) ──
           if (widget.recipes.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _buildRecipePreview(theme, context),
+            _buildMethodPills(theme),
+            const SizedBox(height: 14),
+          ] else
+            const SizedBox(height: 4),
+
+          // ── AI Reasoning (collapsible) ──
+          if (plan.isAiGenerated &&
+              plan.aiReasoning != null &&
+              plan.aiReasoning!.isNotEmpty) ...[
+            _buildReasoningSection(theme, plan, l),
+            const SizedBox(height: 12),
           ],
-          const SizedBox(height: 14),
 
-          // Start Session button
-          GestureDetector(
-            onTap: plan.isCompleted ? null : widget.onStartSession,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: plan.isCompleted
-                    ? Colors.white.withValues(alpha: 0.2)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    plan.isCompleted ? LucideIcons.check : LucideIcons.play,
-                    size: 16,
-                    color: plan.isCompleted
-                        ? Colors.white
-                        : theme.accentColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    plan.isCompleted ? AppLocalizations.of(context)!.planCompleted : AppLocalizations.of(context)!.planStartSession,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: plan.isCompleted
-                          ? Colors.white
-                          : theme.accentColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // ── CTA Button ──
+          _buildCTA(theme, plan, l),
         ],
       ),
     );
   }
 
-  Widget _buildRecipePreview(ThemeProvider theme, BuildContext context) {
-    // Show sabaq recipe steps as a compact icon row
-    final sabaqRecipe = widget.recipes.where((r) => r.phase == 'sabaq').toList();
-    if (sabaqRecipe.isEmpty || sabaqRecipe.first.isEmpty) return const SizedBox.shrink();
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEADER
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    final steps = sabaqRecipe.first.steps;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(LucideIcons.listChecks, size: 12, color: Colors.white70),
-              const SizedBox(width: 6),
-              Text(
-                AppLocalizations.of(context)!.planSessionSteps,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          // Step icons row
-          Row(
-            children: List.generate(steps.length, (i) {
-              final step = steps[i];
-              final isLast = i == steps.length - 1;
-              return Expanded(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(step.icon, style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${step.target}${step.unit == StepUnit.minutes ? 'm' : '×'}',
-                            style: const TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white60,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (!isLast)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Icon(
-                          LucideIcons.chevronRight,
-                          size: 10,
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _phaseRow(String emoji, String title, String detail, bool doneOffline, {
-    int timeMinutes = 0,
-    String? extraDetail,
-  }) {
+  Widget _buildHeader(ThemeProvider theme, DailyPlan plan, AppLocalizations l) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        Text(
+          widget.sessionCount > 0
+              ? l.planExtraSession(widget.sessionCount + 1)
+              : l.planTodaysPlan,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: theme.primaryText,
+          ),
+        ),
+        if (plan.isAiGenerated) ...[
+          const SizedBox(width: 8),
+          Icon(LucideIcons.sparkles, size: 14, color: theme.mutedText),
+        ],
+        const Spacer(),
+        // Total time pill
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(theme.radiusPill),
+            border: Border.all(color: theme.dividerColor, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
+              Icon(LucideIcons.clock, size: 11, color: theme.secondaryText),
+              const SizedBox(width: 4),
               Text(
-                title,
+                '~${plan.estimatedMinutes} min',
                 style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: doneOffline ? 0.5 : 1.0),
-                  decoration: doneOffline ? TextDecoration.lineThrough : null,
-                ),
-              ),
-              Text(
-                detail,
-                style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 11,
-                  color: Colors.white.withValues(alpha: doneOffline ? 0.3 : 0.7),
+                  fontWeight: FontWeight.w600,
+                  color: theme.secondaryText,
                 ),
               ),
             ],
           ),
         ),
-        if (timeMinutes > 0 && !doneOffline)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '~${timeMinutes}m',
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Colors.white70,
-              ),
-            ),
-          ),
-        if (doneOffline)
-          Icon(LucideIcons.check, size: 16,
-              color: Colors.white.withValues(alpha: 0.5)),
       ],
     );
   }
 
-  // ── Helpers ──
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHASE CARDS ROW
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  String _goalBadgeText() {
-    if (widget.profile == null) return '~${widget.plan.estimatedMinutes} min';
-    final goal = widget.profile!.goal;
-    switch (goal) {
-      case HifzGoal.fullQuran:
-        return AppLocalizations.of(context)!.planFullQuran;
-      case HifzGoal.specificJuz:
-        return '${widget.profile!.goalDetails}';
-      case HifzGoal.specificSurahs:
-        return '${widget.profile!.goalDetails}';
+  Widget _buildPhaseCardsRow(
+    ThemeProvider theme,
+    DailyPlan plan,
+    AppLocalizations l,
+    bool hasSabqi,
+    bool hasManzil,
+  ) {
+    final cards = <Widget>[];
+
+    // Sabaq (always present)
+    cards.add(
+      Expanded(
+        child: _PhaseCard(
+          theme: theme,
+          title: l.planSabaqNew,
+          timeMinutes: plan.sabaqTargetMinutes,
+          pageInfo: _sabaqPageInfo(plan, l),
+          isDone: plan.sabaqDoneOffline,
+        ),
+      ),
+    );
+
+    // Sabqi
+    if (hasSabqi) {
+      cards.add(const SizedBox(width: 8));
+      cards.add(
+        Expanded(
+          child: _PhaseCard(
+            theme: theme,
+            title: l.planSabqiReview,
+            timeMinutes: plan.sabqiTargetMinutes,
+            pageInfo: _formatPageList(plan.sabqiPages, l),
+            isDone: plan.sabqiDoneOffline,
+          ),
+        ),
+      );
     }
+
+    // Manzil
+    if (hasManzil) {
+      cards.add(const SizedBox(width: 8));
+      cards.add(
+        Expanded(
+          child: _PhaseCard(
+            theme: theme,
+            title: l.planManzilRevision,
+            timeMinutes: plan.manzilTargetMinutes,
+            pageInfo: l.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
+            isDone: plan.manzilDoneOffline,
+          ),
+        ),
+      );
+    }
+
+    return Row(children: cards);
   }
 
-  String _formatPageList(List<int> pages, BuildContext context) {
-    if (pages.length <= 3) {
-      return AppLocalizations.of(context)!.planPagesList(pages.join(', '));
+  // ═══════════════════════════════════════════════════════════════════════════
+  // METHOD PILLS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildMethodPills(ThemeProvider theme) {
+    // Extract sabaq recipe steps (the primary session recipe)
+    final sabaqRecipe =
+        widget.recipes.where((r) => r.phase == 'sabaq').toList();
+    if (sabaqRecipe.isEmpty || sabaqRecipe.first.isEmpty) {
+      return const SizedBox.shrink();
     }
-    return AppLocalizations.of(context)!.planPagesListMore(pages.take(3).join(', '), pages.length - 3);
+
+    final steps = sabaqRecipe.first.steps;
+
+    return Row(
+      children: List.generate(steps.length, (i) {
+        final step = steps[i];
+        final isLast = i == steps.length - 1;
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: isLast ? 0 : 6),
+            child: _MethodPill(
+              theme: theme,
+              icon: IconResolver.resolve(step.icon),
+              label: step.action.label,
+              count: step.unit == StepUnit.times
+                  ? 'x${step.target}'
+                  : '${step.target}m',
+            ),
+          ),
+        );
+      }),
+    );
   }
 
-  bool _hasMultiplePhases() {
-    int active = 0;
-    if (!widget.plan.sabaqDoneOffline) active++;
-    if (!widget.plan.sabqiDoneOffline && widget.plan.sabqiPages.isNotEmpty) active++;
-    if (!widget.plan.manzilDoneOffline && widget.plan.manzilPages.isNotEmpty) active++;
-    return active > 1;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AI REASONING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildReasoningSection(
+    ThemeProvider theme,
+    DailyPlan plan,
+    AppLocalizations l,
+  ) {
+    return GestureDetector(
+      onTap: () => setState(() => _showReasoning = !_showReasoning),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          border: Border.all(color: theme.dividerColor, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(LucideIcons.lightbulb, size: 12, color: theme.secondaryText),
+                const SizedBox(width: 6),
+                Text(
+                  l.planWhyThisPlan,
+                  style: TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: theme.secondaryText,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  _showReasoning
+                      ? LucideIcons.chevronUp
+                      : LucideIcons.chevronDown,
+                  size: 14,
+                  color: theme.mutedText,
+                ),
+              ],
+            ),
+            if (_showReasoning) ...[
+              const SizedBox(height: 6),
+              Text(
+                plan.aiReasoning!,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  color: theme.secondaryText,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
-  String _timeBreakdown(BuildContext context) {
-    final parts = <String>[];
-    if (!widget.plan.sabaqDoneOffline && widget.plan.sabaqTargetMinutes > 0) {
-      parts.add(AppLocalizations.of(context)!.planTimeNew(widget.plan.sabaqTargetMinutes));
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CTA BUTTON
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildCTA(ThemeProvider theme, DailyPlan plan, AppLocalizations l) {
+    final isCompleted = plan.isCompleted;
+
+    return Material(
+      color: isCompleted
+          ? theme.cardColor
+          : theme.foregroundColor,
+      borderRadius: BorderRadius.circular(theme.radiusLg),
+      child: InkWell(
+        onTap: isCompleted ? null : widget.onStartSession,
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                isCompleted ? l.planCompleted : l.planStartSession,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isCompleted
+                      ? theme.mutedText
+                      : theme.scaffoldBackground,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                isCompleted ? LucideIcons.check : LucideIcons.sparkles,
+                size: 16,
+                color: isCompleted
+                    ? theme.mutedText
+                    : theme.scaffoldBackground,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  String _sabaqPageInfo(DailyPlan plan, AppLocalizations l) {
+    if (plan.sabaqStartVerse != null) {
+      return l.planPageFromVerse(plan.sabaqPage, plan.sabaqStartVerse!);
     }
-    if (!widget.plan.sabqiDoneOffline && widget.plan.sabqiTargetMinutes > 0) {
-      parts.add(AppLocalizations.of(context)!.planTimeReview(widget.plan.sabqiTargetMinutes));
+    return l.planPageLines(
+      plan.sabaqPage,
+      plan.sabaqLineStart,
+      plan.sabaqLineEnd,
+    );
+  }
+
+  String _formatPageList(List<int> pages, AppLocalizations l) {
+    if (pages.isEmpty) return l.planNoReviewYet;
+    if (pages.length <= 2) {
+      return l.planPagesList(pages.join(', '));
     }
-    if (!widget.plan.manzilDoneOffline && widget.plan.manzilTargetMinutes > 0) {
-      parts.add(AppLocalizations.of(context)!.planTimeRevision(widget.plan.manzilTargetMinutes));
+    // Show compact range if sequential
+    final sorted = [...pages]..sort();
+    if (sorted.last - sorted.first == sorted.length - 1) {
+      return 'p. ${sorted.first}–${sorted.last}';
     }
-    return parts.join(' / ');
+    return l.planPagesListMore(pages.take(2).join(', '), pages.length - 2);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHASE CARD — individual phase cell in the row
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class _PhaseCard extends StatelessWidget {
+  final ThemeProvider theme;
+  final String title;
+  final int timeMinutes;
+  final String pageInfo;
+  final bool isDone;
+
+  const _PhaseCard({
+    required this.theme,
+    required this.title,
+    required this.timeMinutes,
+    required this.pageInfo,
+    required this.isDone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: Border.all(color: theme.dividerColor, width: 1),
+      ),
+      child: Column(
+        children: [
+          // Time pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(theme.radiusPill),
+              border: Border.all(color: theme.dividerColor, width: 1),
+            ),
+            child: Text(
+              '$timeMinutes min',
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: isDone ? theme.mutedText : theme.secondaryText,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Phase title
+          Text(
+            _shortTitle(title),
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: isDone ? theme.mutedText : theme.primaryText,
+              decoration: isDone ? TextDecoration.lineThrough : null,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 3),
+
+          // Page info
+          Text(
+            pageInfo,
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 11,
+              color: isDone ? theme.dividerColor : theme.secondaryText,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          // Done checkmark
+          if (isDone) ...[
+            const SizedBox(height: 6),
+            Icon(LucideIcons.check, size: 14, color: theme.mutedText),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Extract just the phase name (e.g., "Sabaq · New" → "Sabaq")
+  String _shortTitle(String fullTitle) {
+    // Split on " · " separator if present
+    final parts = fullTitle.split(' · ');
+    return parts.first.trim();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// METHOD PILL — recipe step action pill
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class _MethodPill extends StatelessWidget {
+  final ThemeProvider theme;
+  final IconData icon;
+  final String label;
+  final String count;
+
+  const _MethodPill({
+    required this.theme,
+    required this.icon,
+    required this.label,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: Border.all(color: theme.dividerColor, width: 1),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: theme.secondaryText),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: theme.primaryText,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            count,
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: theme.mutedText,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

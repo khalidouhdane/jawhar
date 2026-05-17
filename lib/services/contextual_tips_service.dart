@@ -16,7 +16,11 @@ class ContextualTipsService {
     _PageRange(235, 240, 'Al-Anfal — battle narratives'),
     _PageRange(282, 293, 'Hud — repetitive story patterns (watch for mix-ups)'),
     _PageRange(350, 360, 'Al-Kahf — long connected narrative'),
-    _PageRange(489, 504, 'Ya-Sin through As-Saffat — shorter but similar surahs'),
+    _PageRange(
+      489,
+      504,
+      'Ya-Sin through As-Saffat — shorter but similar surahs',
+    ),
   ];
 
   /// Get the predicted difficulty for a page (0.0=easy, 1.0=very hard).
@@ -57,12 +61,15 @@ class ContextualTipsService {
 
       if (nearbyWeak >= 2) {
         score += 0.2;
-        reasons.add('You found nearby pages challenging — this one may be similar');
+        reasons.add(
+          'You found nearby pages challenging — this one may be similar',
+        );
       }
     }
 
     // 4. Age group adjustment
-    if (profile.ageGroup == AgeGroup.senior || profile.ageGroup == AgeGroup.elderly) {
+    if (profile.ageGroup == AgeGroup.senior ||
+        profile.ageGroup == AgeGroup.elderly) {
       score += 0.1;
       reasons.add('Adjusted for your learning pace');
     }
@@ -94,38 +101,60 @@ class ContextualTipsService {
     // Phase-specific tips
     switch (phase) {
       case SessionPhase.sabaq:
-        tips.add('Focus on understanding the meaning first — memorization follows naturally.');
+        tips.add(
+          'Focus on understanding the meaning first — memorization follows naturally.',
+        );
         if (profile.learningPreference == LearningPreference.auditory) {
-          tips.add('Try listening with eyes closed, then open the Mushaf and follow along.');
+          tips.add(
+            'Try listening with eyes closed, then open the Mushaf and follow along.',
+          );
         } else if (profile.learningPreference == LearningPreference.visual) {
-          tips.add('Pay attention to where each verse starts on the page — visual anchoring helps retention.');
+          tips.add(
+            'Pay attention to where each verse starts on the page — visual anchoring helps retention.',
+          );
         }
         if (pageNumber <= 100) {
-          tips.add('These early pages have longer verses. Try breaking them into smaller segments.');
+          tips.add(
+            'These early pages have longer verses. Try breaking them into smaller segments.',
+          );
         }
         break;
 
       case SessionPhase.sabqi:
-        tips.add('Recite from memory first, then check. Retrieval practice strengthens retention.');
-        tips.add('If you stumble, note the exact word — that\'s your anchor point for review.');
+        tips.add(
+          'Recite from memory first, then check. Retrieval practice strengthens retention.',
+        );
+        tips.add(
+          'If you stumble, note the exact word — that\'s your anchor point for review.',
+        );
         break;
 
       case SessionPhase.manzil:
-        tips.add('Speed matters less than accuracy. Read carefully and catch any drift.');
-        tips.add('Try reciting to someone else — social recall is more effective than solo review.');
+        tips.add(
+          'Speed matters less than accuracy. Read carefully and catch any drift.',
+        );
+        tips.add(
+          'Try reciting to someone else — social recall is more effective than solo review.',
+        );
         break;
 
       case SessionPhase.flashcards:
-        tips.add('Flashcards test your recall — try to answer before revealing the answer.');
+        tips.add(
+          'Flashcards test your recall — try to answer before revealing the answer.',
+        );
         break;
     }
 
     // Age-specific tips
-    if (profile.ageGroup == AgeGroup.senior || profile.ageGroup == AgeGroup.elderly) {
-      tips.add('Take breaks between repetitions. Short, frequent sessions beat long ones.');
+    if (profile.ageGroup == AgeGroup.senior ||
+        profile.ageGroup == AgeGroup.elderly) {
+      tips.add(
+        'Take breaks between repetitions. Short, frequent sessions beat long ones.',
+      );
     }
 
-    if (profile.ageGroup == AgeGroup.child || profile.ageGroup == AgeGroup.teen) {
+    if (profile.ageGroup == AgeGroup.child ||
+        profile.ageGroup == AgeGroup.teen) {
       tips.add('Try connecting the verses to a story or image in your mind.');
     }
 
@@ -145,20 +174,30 @@ class ContextualTipsService {
     final tips = <String>[];
 
     if (score > 0.5) {
-      tips.add('This page may take extra repetitions. Be patient with yourself.');
-      tips.add('Consider splitting this page into two sessions if it feels overwhelming.');
+      tips.add(
+        'This page may take extra repetitions. Be patient with yourself.',
+      );
+      tips.add(
+        'Consider splitting this page into two sessions if it feels overwhelming.',
+      );
     }
 
     if (profile.learningPreference == LearningPreference.auditory) {
-      tips.add('Listen to this page on repeat while doing other tasks to build familiarity.');
+      tips.add(
+        'Listen to this page on repeat while doing other tasks to build familiarity.',
+      );
     }
 
     if (profile.learningPreference == LearningPreference.kinesthetic) {
-      tips.add('Try writing out the verses by hand — motor memory reinforces recall.');
+      tips.add(
+        'Try writing out the verses by hand — motor memory reinforces recall.',
+      );
     }
 
     if (profile.encodingSpeed == EncodingSpeed.slow) {
-      tips.add('Give yourself 2-3 extra repetitions. Slow encoding leads to stronger long-term retention.');
+      tips.add(
+        'Give yourself 2-3 extra repetitions. Slow encoding leads to stronger long-term retention.',
+      );
     }
 
     return tips;
@@ -188,18 +227,18 @@ enum DifficultyLevel {
   hard;
 
   String get label => switch (this) {
-        easy => 'Easy',
-        moderate => 'Moderate',
-        challenging => 'Challenging',
-        hard => 'Hard',
-      };
+    easy => 'Easy',
+    moderate => 'Moderate',
+    challenging => 'Challenging',
+    hard => 'Hard',
+  };
 
-  String get emoji => switch (this) {
-        easy => '🟢',
-        moderate => '🟡',
-        challenging => '🟠',
-        hard => '🔴',
-      };
+  String get iconKey => switch (this) {
+    easy => 'check_circle',
+    moderate => 'alert_circle',
+    challenging => 'alert_triangle',
+    hard => 'flame',
+  };
 }
 
 /// Internal helper for marking difficult page ranges.

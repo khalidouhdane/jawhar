@@ -3,6 +3,8 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/services/qf_user_api_service.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 /// Manages the active Hifz profile and profile CRUD operations.
 /// Replaces the old HifzProvider (which tracked surah-level progress).
@@ -10,13 +12,19 @@ class HifzProfileProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
   final AuthService _auth;
   final CloudSyncService _sync;
+  final QfUserApiService? _qfApi;
 
   MemoryProfile? _activeProfile;
   List<MemoryProfile> _allProfiles = [];
   StreakData _streakData = const StreakData();
   bool _isLoading = true;
 
-  HifzProfileProvider(this._db, this._auth, this._sync) {
+  HifzProfileProvider(
+    this._db,
+    this._auth,
+    this._sync, {
+    QfUserApiService? qfApi,
+  }) : _qfApi = qfApi {
     _init();
   }
 
@@ -126,6 +134,15 @@ class HifzProfileProvider extends ChangeNotifier {
     // Cloud sync (fire-and-forget)
     if (_auth.isSignedIn) {
       _sync.syncStreak(_auth.uid!, _streakData);
+    }
+
+    // QF User API sync (fire-and-forget)
+    final qfApi = _qfApi;
+    if (qfApi != null && qfApi.isAvailable) {
+      qfApi.recordStreakActivity().then((_) {
+        AppLogger.info('HifzProfile', '[QF_SYNC] Streak activity recorded via HifzProfileProvider',
+        );
+      });
     }
   }
 

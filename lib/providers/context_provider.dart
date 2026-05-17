@@ -39,8 +39,8 @@ class ContextProvider extends ChangeNotifier {
   ContextProvider({
     TafsirService? tafsirService,
     AsbabNuzulService? asbabService,
-  })  : _tafsirService = tafsirService ?? TafsirService(),
-        _asbabService = asbabService ?? AsbabNuzulService();
+  }) : _tafsirService = tafsirService ?? TafsirService(),
+       _asbabService = asbabService ?? AsbabNuzulService();
 
   // ── Getters ──
   bool get translationEnabled => _translationEnabled;
@@ -83,11 +83,11 @@ class ContextProvider extends ChangeNotifier {
 
     if (lang == 'ar') {
       _selectedTranslationId = 1014; // Tafsir Al-Muyasser (Arabic)
-      _selectedBriefTafsirId = 16;   // Muyassar
+      _selectedBriefTafsirId = 16; // Muyassar
       _selectedDetailedTafsirId = 14; // Ibn Kathir Arabic
     } else {
-      _selectedTranslationId = 85;   // Abdel Haleem (English)
-      _selectedBriefTafsirId = 169;  // Ibn Kathir Abridged (English)
+      _selectedTranslationId = 85; // Abdel Haleem (English)
+      _selectedBriefTafsirId = 169; // Ibn Kathir Abridged (English)
       _selectedDetailedTafsirId = 168; // Ma'arif al-Qur'an (English)
     }
 

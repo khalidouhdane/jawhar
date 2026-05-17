@@ -7,6 +7,10 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/session_screen.dart';
+import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/providers/session_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 
 /// Pre-session screen — plan review, offline checkboxes, estimated time.
 /// Entry point between dashboard and active session.
@@ -32,6 +36,13 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
       _sabqiOffline = plan.sabqiDoneOffline;
       _manzilOffline = plan.manzilDoneOffline;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final storage = context.read<LocalStorageService>();
+      final session = context.read<SessionProvider>();
+      session.setGuidedMode(storage.savedSessionGuidedMode);
+    });
   }
 
   int get _activePhasesCount =>
@@ -45,15 +56,15 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
   String _getMotivationalMessage(int streak) {
     final hour = DateTime.now().hour;
     if (streak >= 7) {
-      return '🔥 $streak-day streak! You\'re building an incredible habit.';
+      return '$streak-day streak! You\'re building an incredible habit.';
     } else if (streak >= 3) {
-      return '💪 $streak days in a row — keep the momentum going!';
+      return '$streak days in a row — keep the momentum going!';
     } else if (hour < 12) {
-      return '🌅 Starting your morning with Quran — what a blessing!';
+      return 'Starting your morning with Quran — what a blessing!';
     } else if (hour < 17) {
-      return '📖 Taking time to memorize — every ayah counts!';
+      return 'Taking time to memorize — every ayah counts!';
     } else {
-      return '🌙 Evening session — a beautiful way to end the day.';
+      return 'Evening session — a beautiful way to end the day.';
     }
   }
 
@@ -68,8 +79,10 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
       return Scaffold(
         backgroundColor: theme.scaffoldBackground,
         body: Center(
-          child: Text(AppLocalizations.of(context)!.hifzNoPlanAvailable,
-              style: TextStyle(color: theme.secondaryText)),
+          child: Text(
+            AppLocalizations.of(context)!.hifzNoPlanAvailable,
+            style: TextStyle(color: theme.secondaryText),
+          ),
         ),
       );
     }
@@ -81,12 +94,20 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
     if (!_manzilOffline) estMinutes += plan.manzilTargetMinutes;
 
     final today = DateTime.now();
-    final dayNames = [
-      'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
-    ];
+    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final dateStr =
         '${dayNames[today.weekday - 1]}, ${monthNames[today.month - 1]} ${today.day}';
@@ -115,8 +136,11 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: theme.dividerColor),
                       ),
-                      child: Icon(LucideIcons.arrowLeft,
-                          size: 18, color: theme.primaryText),
+                      child: Icon(
+                        LucideIcons.arrowLeft,
+                        size: 18,
+                        color: theme.primaryText,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -129,7 +153,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                               ? 'Extra Session #${planProvider.todaySessionCount + 1}'
                               : 'Today\'s Plan',
                           style: TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: theme.primaryText,
@@ -138,7 +162,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                         Text(
                           dateStr,
                           style: TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,
                             color: theme.mutedText,
                           ),
@@ -151,7 +175,9 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
               const SizedBox(height: 16),
 
               // ── AI Reasoning / Motivational Banner ──
-              if (plan.isAiGenerated && plan.aiReasoning != null && plan.aiReasoning!.isNotEmpty)
+              if (plan.isAiGenerated &&
+                  plan.aiReasoning != null &&
+                  plan.aiReasoning!.isNotEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
@@ -166,7 +192,11 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('✨', style: TextStyle(fontSize: 16)),
+                      Icon(
+                        LucideIcons.sparkles,
+                        size: 16,
+                        color: theme.accentColor,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -175,7 +205,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                             Text(
                               'AI-optimized plan',
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: theme.accentColor,
@@ -186,7 +216,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                             Text(
                               plan.aiReasoning!,
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 12,
                                 color: theme.secondaryText,
                                 height: 1.4,
@@ -203,7 +233,10 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
               else
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
@@ -213,7 +246,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                   child: Text(
                     _getMotivationalMessage(streak),
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       color: theme.secondaryText,
                     ),
@@ -229,16 +262,16 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                       // Sabaq
                       _phaseCard(
                         theme,
-                        emoji: '📖',
+                        icon: LucideIcons.bookOpen,
                         title: 'Sabaq · New Memorization',
                         detail: plan.sabaqStartVerse != null
                             ? 'Page ${plan.sabaqPage} · from verse ${plan.sabaqStartVerse}'
                             : 'Page ${plan.sabaqPage} · Lines ${plan.sabaqLineStart}–${plan.sabaqLineEnd}',
-                        timeDetail: '~${plan.sabaqTargetMinutes} min · ${plan.sabaqRepetitionTarget} reps target',
+                        timeDetail:
+                            '~${plan.sabaqTargetMinutes} min · ${plan.sabaqRepetitionTarget} reps target',
                         isDone: _sabaqOffline,
                         isEmpty: false,
-                        onToggle: (val) =>
-                            setState(() => _sabaqOffline = val),
+                        onToggle: (val) => setState(() => _sabaqOffline = val),
                       ),
                       const SizedBox(height: 12),
 
@@ -246,9 +279,10 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                       if (plan.sabqiPages.isNotEmpty)
                         _phaseCard(
                           theme,
-                          emoji: '🔁',
+                          icon: LucideIcons.repeat,
                           title: 'Sabqi · Recent Review',
-                          detail: '${plan.sabqiPages.length} pages (${plan.sabqiPages.join(", ")})',
+                          detail:
+                              '${plan.sabqiPages.length} pages (${plan.sabqiPages.join(", ")})',
                           timeDetail: '~${plan.sabqiTargetMinutes} min',
                           isDone: _sabqiOffline,
                           isEmpty: false,
@@ -256,17 +290,22 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                               setState(() => _sabqiOffline = val),
                         )
                       else
-                        _emptyPhaseCard(theme, '🔁', 'Sabqi · Recent Review',
-                            'No pages to review yet'),
+                        _emptyPhaseCard(
+                          theme,
+                          LucideIcons.repeat,
+                          'Sabqi · Recent Review',
+                          'No pages to review yet',
+                        ),
                       const SizedBox(height: 12),
 
                       // Manzil
                       if (plan.manzilPages.isNotEmpty)
                         _phaseCard(
                           theme,
-                          emoji: '📚',
+                          icon: LucideIcons.library,
                           title: 'Manzil · Long-term Review',
-                          detail: 'Juz ${plan.manzilJuz} · ${plan.manzilPages.length} pages',
+                          detail:
+                              'Juz ${plan.manzilJuz} · ${plan.manzilPages.length} pages',
                           timeDetail: '~${plan.manzilTargetMinutes} min',
                           isDone: _manzilOffline,
                           isEmpty: false,
@@ -274,8 +313,12 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                               setState(() => _manzilOffline = val),
                         )
                       else
-                        _emptyPhaseCard(theme, '📚', 'Manzil · Long-term Review',
-                            'Not yet started'),
+                        _emptyPhaseCard(
+                          theme,
+                          LucideIcons.library,
+                          'Manzil · Long-term Review',
+                          'Not yet started',
+                        ),
                       const SizedBox(height: 20),
 
                       // ── Offline Section ──
@@ -293,7 +336,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                             Text(
                               'Already done offline?',
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: theme.secondaryText,
@@ -303,7 +346,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                             Text(
                               'Mark any phases you\'ve already completed with your physical Quran today.',
                               style: TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 12,
                                 color: theme.mutedText,
                               ),
@@ -311,6 +354,11 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                           ],
                         ),
                       ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // ── Session Style ──
+                      _buildSessionStyleSelector(theme),
                     ],
                   ),
                 ),
@@ -322,8 +370,10 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
               // Estimated time
               Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
                     borderRadius: BorderRadius.circular(20),
@@ -331,10 +381,10 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                   ),
                   child: Text(
                     _allDone
-                        ? '✨ All phases done for today!'
-                        : '⏱ Estimated: ~$estMinutes min · $_activePhasesCount phase${_activePhasesCount == 1 ? '' : 's'}',
+                        ? 'All phases done for today!'
+                        : 'Estimated: ~$estMinutes min · $_activePhasesCount phase${_activePhasesCount == 1 ? '' : 's'}',
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: theme.secondaryText,
@@ -345,75 +395,46 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
               const SizedBox(height: 12),
 
               // Start Session
-              GestureDetector(
-                onTap: _allDone
-                    ? null
-                    : () async {
-                        // Apply offline markings to the plan
-                        final pp = context.read<PlanProvider>();
-                        final nav = Navigator.of(context);
-                        if (_sabaqOffline) {
-                          await pp.markPhaseOffline(SessionPhase.sabaq);
-                        }
-                        if (_sabqiOffline) {
-                          await pp.markPhaseOffline(SessionPhase.sabqi);
-                        }
-                        if (_manzilOffline) {
-                          await pp.markPhaseOffline(SessionPhase.manzil);
-                        }
-
-                        if (mounted) {
-                          final updatedPlan = pp.todayPlan;
-                          if (updatedPlan != null) {
-                            nav.pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    SessionScreen(plan: updatedPlan),
-                              ),
-                            );
+              SizedBox(
+                width: double.infinity,
+                child: GeistButton(
+                  onPressed: _allDone
+                      ? null
+                      : () async {
+                          // Apply offline markings to the plan
+                          final pp = context.read<PlanProvider>();
+                          final nav = Navigator.of(context);
+                          if (_sabaqOffline) {
+                            await pp.markPhaseOffline(SessionPhase.sabaq);
                           }
-                        }
-                      },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: _allDone
-                        ? theme.mutedText.withValues(alpha: 0.3)
-                        : theme.accentColor,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: _allDone
-                        ? null
-                        : [
-                            BoxShadow(
-                              color: theme.accentColor.withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          if (_sabqiOffline) {
+                            await pp.markPhaseOffline(SessionPhase.sabqi);
+                          }
+                          if (_manzilOffline) {
+                            await pp.markPhaseOffline(SessionPhase.manzil);
+                          }
+
+                          if (mounted) {
+                            final updatedPlan = pp.todayPlan;
+                            if (updatedPlan != null) {
+                              nav.pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      SessionScreen(plan: updatedPlan),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  label: _allDone ? 'All Done for Today' : 'Start Session',
+                  prefix: Icon(
+                    _allDone ? LucideIcons.check : LucideIcons.play,
+                    size: 18,
+                    color: Colors.white,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _allDone ? LucideIcons.check : LucideIcons.play,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _allDone
-                            ? 'All Done for Today'
-                            : 'Start Session',
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                  type: GeistButtonType.primary,
+                  size: GeistButtonSize.large,
+                  isDisabled: _allDone,
                 ),
               ),
               const SizedBox(height: 8),
@@ -426,7 +447,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
 
   Widget _phaseCard(
     ThemeProvider theme, {
-    required String emoji,
+    required IconData icon,
     required String title,
     required String detail,
     required String timeDetail,
@@ -450,10 +471,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
       ),
       child: Row(
         children: [
-          Text(emoji,
-              style: TextStyle(
-                  fontSize: 24,
-                  color: isDone ? Colors.grey : null)),
+          Icon(icon, size: 24, color: isDone ? Colors.grey : theme.accentColor),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -462,21 +480,18 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: isDone
-                        ? theme.mutedText
-                        : theme.primaryText,
-                    decoration:
-                        isDone ? TextDecoration.lineThrough : null,
+                    color: isDone ? theme.mutedText : theme.primaryText,
+                    decoration: isDone ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   detail,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     color: isDone
                         ? theme.mutedText.withValues(alpha: 0.6)
@@ -486,7 +501,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                 Text(
                   timeDetail,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 11,
                     color: theme.mutedText,
                   ),
@@ -506,15 +521,12 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(7),
                 border: Border.all(
-                  color: isDone
-                      ? theme.accentColor
-                      : theme.dividerColor,
+                  color: isDone ? theme.accentColor : theme.dividerColor,
                   width: isDone ? 2 : 1.5,
                 ),
               ),
               child: isDone
-                  ? Icon(LucideIcons.check,
-                      size: 16, color: theme.accentColor)
+                  ? Icon(LucideIcons.check, size: 16, color: theme.accentColor)
                   : null,
             ),
           ),
@@ -524,19 +536,22 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
   }
 
   Widget _emptyPhaseCard(
-      ThemeProvider theme, String emoji, String title, String detail) {
+    ThemeProvider theme,
+    IconData icon,
+    String title,
+    String detail,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.cardColor.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.4)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 24)),
+          Icon(icon, size: 24, color: theme.mutedText),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -545,7 +560,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: theme.mutedText,
@@ -554,7 +569,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                 Text(
                   detail,
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
                     color: theme.mutedText.withValues(alpha: 0.7),
@@ -565,7 +580,5 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
           ),
           Icon(LucideIcons.minus, size: 16, color: theme.mutedText),
         ],
-      ),
-    );
   }
 }

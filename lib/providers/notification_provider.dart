@@ -29,7 +29,9 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Formatted time string (e.g., "6:00 AM").
   String get reminderTimeFormatted {
-    final hour = _reminderTime.hourOfPeriod == 0 ? 12 : _reminderTime.hourOfPeriod;
+    final hour = _reminderTime.hourOfPeriod == 0
+        ? 12
+        : _reminderTime.hourOfPeriod;
     final minute = _reminderTime.minute.toString().padLeft(2, '0');
     final period = _reminderTime.period == DayPeriod.am ? 'AM' : 'PM';
     return '$hour:$minute $period';

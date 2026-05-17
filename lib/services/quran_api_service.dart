@@ -1,16 +1,9 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:quran_app/models/quran_models.dart';
-import 'package:quran_app/services/quran_auth_service.dart';
+import 'package:quran_app/services/api_client.dart';
 
 class QuranApiService {
   static const String baseUrl = 'https://apis.quran.foundation/content/api/v4';
-
-  /// Helper to get the authenticated HTTP headers
-  Future<Map<String, String>> _getAuthHeaders() async {
-    final token = await QuranAuthService.getValidToken();
-    return {'x-auth-token': token, 'x-client-id': QuranAuthService.clientId};
-  }
 
   // Fetch Verses by Page with word-by-word data
   Future<List<Verse>> getVersesByPage(
@@ -18,11 +11,10 @@ class QuranApiService {
     String language = 'en',
   }) async {
     final uri = Uri.parse(
-      '$baseUrl/verses/by_page/$pageNumber?words=true&word_fields=text_uthmani,location,audio_url&translations=131&audio=7',
-    ); // 131 is Clear Quran English, 7 is Mishary Alafasy
+      '$baseUrl/verses/by_page/$pageNumber?words=true&word_fields=text_uthmani,location,audio_url',
+    );
 
-    final headers = await _getAuthHeaders();
-    final response = await http.get(uri, headers: headers);
+    final response = await ApiClient.get(uri);
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
@@ -38,8 +30,10 @@ class QuranApiService {
   // Fetch all Chapters
   Future<List<Chapter>> getChapters() async {
     final uri = Uri.parse('$baseUrl/chapters');
-    final headers = await _getAuthHeaders();
-    final response = await http.get(uri, headers: headers);
+    final response = await ApiClient.get(
+      uri,
+      timeout: const Duration(seconds: 8),
+    );
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
@@ -56,8 +50,10 @@ class QuranApiService {
   /// so we don't need to change the language parameter to get Arabic names.
   Future<List<Reciter>> getReciters({String language = 'en'}) async {
     final uri = Uri.parse('$baseUrl/resources/chapter_reciters');
-    final headers = await _getAuthHeaders();
-    final response = await http.get(uri, headers: headers);
+    final response = await ApiClient.get(
+      uri,
+      timeout: const Duration(seconds: 8),
+    );
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);

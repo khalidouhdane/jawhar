@@ -72,13 +72,7 @@ class AudioPlayerBridge extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.playerBackground,
           borderRadius: BorderRadius.circular(isExpanded ? 24 : 34),
-          boxShadow: [
-            BoxShadow(
-              color: theme.shadowColor,
-              blurRadius: 40,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          boxShadow: theme.shadowCardFull,
         ),
         clipBehavior: Clip.hardEdge,
         child: Stack(
@@ -120,9 +114,7 @@ class AudioPlayerBridge extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: theme.pillBackground,
-                                    border: Border.all(
-                                      color: theme.dividerColor,
-                                    ),
+                                    boxShadow: theme.shadowRing,
                                   ),
                                   child: ClipOval(
                                     child: Image.asset(
@@ -134,7 +126,8 @@ class AudioPlayerBridge extends StatelessWidget {
                                           (context, error, stackTrace) {
                                             return Center(
                                               child: Directionality(
-                                                textDirection: TextDirection.ltr,
+                                                textDirection:
+                                                    TextDirection.ltr,
                                                 child: Text(
                                                   reciterName.isNotEmpty
                                                       ? reciterName
@@ -410,9 +403,7 @@ class AudioPlayerBridge extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: theme.pillBackground,
-                                      border: Border.all(
-                                        color: theme.dividerColor,
-                                      ),
+                                      boxShadow: theme.shadowRing,
                                     ),
                                     child: ClipOval(
                                       child: Image.asset(

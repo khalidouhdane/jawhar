@@ -5,6 +5,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 
 import 'animated_svg_icon.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 class TopNavBar extends StatelessWidget {
   final String readMode;
@@ -41,13 +42,7 @@ class TopNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.navBarBackground,
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: theme.shadowRing,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,7 +179,7 @@ class TopNavBar extends StatelessWidget {
                         Text(
                           label,
                           style: TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                             color: theme.iconColor,

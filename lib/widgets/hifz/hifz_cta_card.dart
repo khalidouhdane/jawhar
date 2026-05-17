@@ -2,105 +2,73 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// CTA card shown to users without a Hifz profile.
 /// Invites them to start their memorization journey.
-class HifzCtaCard extends StatelessWidget {
+class HifzCtaCard extends StatefulWidget {
   final ThemeProvider theme;
   final VoidCallback onTap;
 
-  const HifzCtaCard({
-    super.key,
-    required this.theme,
-    required this.onTap,
-  });
+  const HifzCtaCard({super.key, required this.theme, required this.onTap});
+
+  @override
+  State<HifzCtaCard> createState() => _HifzCtaCardState();
+}
+
+class _HifzCtaCardState extends State<HifzCtaCard> {
+  bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.accentColor.withValues(alpha: 0.08),
-              theme.accentColor.withValues(alpha: 0.02),
+    Color bgColor = widget.theme.buttonDefaultBg;
+    if (_isPressed) {
+      bgColor = bgColor.withValues(alpha: 0.8);
+    } else if (_isHovered) {
+      bgColor = bgColor.withValues(alpha: 0.9);
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(11), // Matching Figma design exactly
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                l.hifzCtaTitle,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: widget.theme.buttonDefaultText,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                LucideIcons.sparkles,
+                size: 20,
+                color: widget.theme.buttonDefaultText,
+              ),
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: theme.accentColor.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: theme.accentColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(LucideIcons.sparkles, size: 24, color: theme.accentColor),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l.hifzCtaTitle,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: theme.primaryText,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              l.hifzCtaSubtitle,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 13,
-                color: theme.secondaryText,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: theme.accentColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l.hifzCtaButton,
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    isRtl ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
-                    size: 14,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

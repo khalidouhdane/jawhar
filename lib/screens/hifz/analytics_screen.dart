@@ -7,6 +7,8 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/hifz/suggestion_card.dart';
 import 'package:quran_app/widgets/hifz/weekly_report.dart';
+import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/geist_button.dart';
 
 /// Analytics screen — weekly/monthly performance reports and suggestions.
 class AnalyticsScreen extends StatefulWidget {
@@ -43,8 +45,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final profile = context.read<HifzProfileProvider>().activeProfile;
     if (profile != null) {
       final analytics = context.read<AnalyticsProvider>();
-      _monthlySnapshot =
-          await analytics.generateMonthlySnapshot(profile.id);
+      _monthlySnapshot = await analytics.generateMonthlySnapshot(profile.id);
     }
     if (mounted) setState(() => _monthlyLoading = false);
   }
@@ -66,7 +67,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         title: Text(
           'Analytics',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w800,
             color: theme.primaryText,
@@ -104,26 +105,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     Text(
                       'Suggestions',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: theme.primaryText,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...analytics.activeSuggestions.map((s) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: SuggestionCard(
-                            suggestion: s,
-                            theme: theme,
-                            onAccept: () =>
-                                analytics.acceptSuggestion(s.id),
-                            onDismiss: () =>
-                                analytics.dismissSuggestion(s.id),
-                            onRemindLater: () =>
-                                analytics.remindLater(s.id),
-                          ),
-                        )),
+                    ...analytics.activeSuggestions.map(
+                      (s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SuggestionCard(
+                          suggestion: s,
+                          theme: theme,
+                          onAccept: () => analytics.acceptSuggestion(s.id),
+                          onDismiss: () => analytics.dismissSuggestion(s.id),
+                          onRemindLater: () => analytics.remindLater(s.id),
+                        ),
+                      ),
+                    ),
                   ],
 
                   const SizedBox(height: 32),
@@ -143,16 +143,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
       child: Row(
         children: [
-          _buildToggleButton(
-            'Weekly',
-            AnalyticsPeriod.week,
-            theme,
-          ),
-          _buildToggleButton(
-            'Monthly',
-            AnalyticsPeriod.month,
-            theme,
-          ),
+          _buildToggleButton('Weekly', AnalyticsPeriod.week, theme),
+          _buildToggleButton('Monthly', AnalyticsPeriod.month, theme),
         ],
       ),
     );
@@ -165,39 +157,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   ) {
     final isSelected = _selectedPeriod == period;
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
+      child: GeistButton(
+        onPressed: () {
           setState(() => _selectedPeriod = period);
           if (period == AnalyticsPeriod.month) {
             _loadMonthly();
           }
         },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? theme.accentColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : theme.secondaryText,
-              ),
-            ),
-          ),
-        ),
+        label: label,
+        type: isSelected ? GeistButtonType.primary : GeistButtonType.tertiary,
+        size: GeistButtonSize.small,
       ),
     );
   }
 
-  Widget _buildWeeklyContent(
-    ThemeProvider theme,
-    AnalyticsProvider analytics,
-  ) {
+  Widget _buildWeeklyContent(ThemeProvider theme, AnalyticsProvider analytics) {
     final snapshot = analytics.currentWeek;
     if (snapshot == null) {
       return _buildEmptyState(theme, 'No data this week yet');
@@ -263,17 +237,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
       child: Column(
         children: [
-          Icon(
-            LucideIcons.barChart2,
-            size: 40,
-            color: theme.mutedText,
-          ),
+          Icon(LucideIcons.barChart2, size: 40, color: theme.mutedText),
           const SizedBox(height: 16),
           Text(
             message,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
               color: theme.secondaryText,
               height: 1.5,

@@ -9,9 +9,9 @@ import 'package:quran_app/screens/home_screen.dart';
 import 'package:quran_app/screens/practice_screen.dart';
 import 'package:quran_app/screens/read_index_screen.dart';
 import 'package:quran_app/screens/profile_screen.dart';
+import 'package:quran_app/screens/understand_screen.dart';
 import 'package:quran_app/widgets/bottom_nav_bar.dart';
 import 'package:quran_app/widgets/update_dialog.dart';
-import 'package:quran_app/theme/geist_typography.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -62,19 +62,7 @@ class _AppShellState extends State<AppShell> {
         children: [
           const HomeScreen(), // 0: Home (Dashboard)
           const ReadIndexScreen(), // 1: Read
-          Scaffold(
-            backgroundColor: theme.scaffoldBackground,
-            body: Center(
-              child: Text(
-                'Understand Tab\n(Coming Soon)',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  color: theme.mutedText,
-                ),
-              ),
-            ),
-          ), // 2: Understand
+          const UnderstandScreen(), // 2: Understand
           const PracticeScreen(), // 3: Practice
           const ProfileScreen(), // 4: Profile
         ],

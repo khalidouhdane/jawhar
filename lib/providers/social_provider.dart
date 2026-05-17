@@ -95,9 +95,7 @@ class SocialProvider extends ChangeNotifier {
   }
 
   /// Share a khatm (full Quran) completion milestone.
-  Future<void> shareKhatmMilestone({
-    required String profileName,
-  }) async {
+  Future<void> shareKhatmMilestone({required String profileName}) async {
     final text = _sharingService.generateMilestoneText(
       type: MilestoneType.khatmComplete,
       profileName: profileName,

@@ -3,6 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Weekly/monthly report visualization widget.
 /// Renders session activity chart, assessment breakdown, key stats,
@@ -53,9 +56,7 @@ class WeeklyReportWidget extends StatelessWidget {
         ],
 
         // ── Pace Projection ──
-        if (paceData != null) ...[
-          _buildPaceCard(),
-        ],
+        if (paceData != null) ...[_buildPaceCard()],
       ],
     );
   }
@@ -67,25 +68,25 @@ class WeeklyReportWidget extends StatelessWidget {
         _buildStatChip(
           '${snapshot.totalSessions}',
           'Sessions',
-          const Color(0xFF4DB6AC),
+          SemanticColors.analyticsSessions,
         ),
         const SizedBox(width: 10),
         _buildStatChip(
           '${snapshot.pagesMemorized}',
           'Pages New',
-          const Color(0xFF7986CB),
+          SemanticColors.analyticsPages,
         ),
         const SizedBox(width: 10),
         _buildStatChip(
           '${snapshot.completionRate > 0 ? (snapshot.completionRate * 100).round() : 0}%',
           'Completion',
-          const Color(0xFFFFB74D),
+          SemanticColors.analyticsCompletion,
         ),
         const SizedBox(width: 10),
         _buildStatChip(
           '${snapshot.avgDurationMinutes.round()}m',
           'Avg Time',
-          const Color(0xFF90CAF9),
+          SemanticColors.analyticsTime,
         ),
       ],
     );
@@ -105,7 +106,7 @@ class WeeklyReportWidget extends StatelessWidget {
             Text(
               value,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: color,
@@ -115,7 +116,7 @@ class WeeklyReportWidget extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
                 color: theme.secondaryText,
@@ -132,7 +133,9 @@ class WeeklyReportWidget extends StatelessWidget {
   Widget _buildActivityChart() {
     const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final maxSessions = snapshot.sessionsPerDay.values.fold<int>(
-        0, (max, v) => v > max ? v : max);
+      0,
+      (max, v) => v > max ? v : max,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -160,7 +163,7 @@ class WeeklyReportWidget extends StatelessWidget {
                     Text(
                       '$count',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: theme.accentColor,
@@ -171,9 +174,7 @@ class WeeklyReportWidget extends StatelessWidget {
                     height: math.max(barHeight, 4),
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: count > 0
-                          ? theme.accentColor
-                          : theme.dividerColor,
+                      color: count > 0 ? theme.accentColor : theme.dividerColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -181,7 +182,7 @@ class WeeklyReportWidget extends StatelessWidget {
                   Text(
                     dayLabels[i],
                     style: TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
                       color: theme.mutedText,
@@ -224,17 +225,17 @@ class WeeklyReportWidget extends StatelessWidget {
                   if (snapshot.strongCount > 0)
                     Flexible(
                       flex: snapshot.strongCount,
-                      child: Container(color: const Color(0xFF66BB6A)),
+                      child: Container(color: SemanticColors.assessStrong),
                     ),
                   if (snapshot.okayCount > 0)
                     Flexible(
                       flex: snapshot.okayCount,
-                      child: Container(color: const Color(0xFFFFCA28)),
+                      child: Container(color: SemanticColors.assessOkay),
                     ),
                   if (snapshot.needsWorkCount > 0)
                     Flexible(
                       flex: snapshot.needsWorkCount,
-                      child: Container(color: const Color(0xFFEF5350)),
+                      child: Container(color: SemanticColors.assessNeedsWork),
                     ),
                 ],
               ),
@@ -245,9 +246,24 @@ class WeeklyReportWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildLegendItem('😊 Strong', '$strongPct%', const Color(0xFF66BB6A)),
-              _buildLegendItem('😐 Okay', '$okayPct%', const Color(0xFFFFCA28)),
-              _buildLegendItem('😟 Needs Work', '$needsWorkPct%', const Color(0xFFEF5350)),
+              _buildLegendItem(
+                LucideIcons.smile,
+                'Strong',
+                '$strongPct%',
+                SemanticColors.assessStrong,
+              ),
+              _buildLegendItem(
+                LucideIcons.minus,
+                'Okay',
+                '$okayPct%',
+                SemanticColors.assessOkay,
+              ),
+              _buildLegendItem(
+                LucideIcons.frown,
+                'Needs Work',
+                '$needsWorkPct%',
+                SemanticColors.assessNeedsWork,
+              ),
             ],
           ),
         ],
@@ -255,25 +271,23 @@ class WeeklyReportWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendItem(String label, String value, Color color) {
+  Widget _buildLegendItem(
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Column(
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-            ),
+            Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
             Text(
               value,
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: theme.primaryText,
@@ -285,7 +299,7 @@ class WeeklyReportWidget extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 10,
             color: theme.mutedText,
           ),
@@ -348,7 +362,7 @@ class WeeklyReportWidget extends StatelessWidget {
           Text(
             '$current$suffix',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: theme.primaryText,
@@ -359,21 +373,21 @@ class WeeklyReportWidget extends StatelessWidget {
             Text(
               '${isUp ? '↑' : '↓'} ${diff.abs()}$suffix',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: isUp
-                    ? const Color(0xFF66BB6A)
+                    ? SemanticColors.practiceEmerald.fg(theme.isDark)
                     : isDown
-                        ? const Color(0xFFEF5350)
-                        : theme.mutedText,
+                    ? SemanticColors.practiceRed.fg(theme.isDark)
+                    : theme.mutedText,
               ),
             )
           else
             Text(
               '— ${AppLocalizations.of(context)!.reportSame}',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 11,
                 color: theme.mutedText,
               ),
@@ -382,7 +396,7 @@ class WeeklyReportWidget extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 10,
               color: theme.mutedText,
             ),
@@ -411,15 +425,12 @@ class WeeklyReportWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                '🎯',
-                style: const TextStyle(fontSize: 18),
-              ),
+              Icon(LucideIcons.target, size: 18, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
                 'Pace Projection',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: theme.primaryText,
@@ -436,8 +447,7 @@ class WeeklyReportWidget extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: theme.dividerColor,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(theme.accentColor),
+                valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
               ),
             ),
           ),
@@ -448,7 +458,7 @@ class WeeklyReportWidget extends StatelessWidget {
               Text(
                 '$memorized / $total pages',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: theme.primaryText,
@@ -457,9 +467,9 @@ class WeeklyReportWidget extends StatelessWidget {
               Text(
                 months > 0
                     ? 'Est. $months month${months > 1 ? 's' : ''} remaining'
-                    : 'Goal reached! 🎉',
+                    : 'Goal reached!',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 11,
                   color: theme.secondaryText,
                 ),
@@ -477,7 +487,7 @@ class WeeklyReportWidget extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: GeistTypography.primaryFontFamily,
         fontSize: 14,
         fontWeight: FontWeight.w700,
         color: theme.primaryText,

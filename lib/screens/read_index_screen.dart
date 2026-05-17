@@ -216,14 +216,14 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                               ),
                               indicatorSize: TabBarIndicatorSize.tab,
                               dividerHeight: 0,
-                              labelColor: Colors.white,
+                              labelColor: theme.scaffoldBackground,
                               unselectedLabelColor: theme.mutedText,
-                              labelStyle: const TextStyle(
+                              labelStyle: TextStyle(
                                 fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
-                              unselectedLabelStyle: const TextStyle(
+                              unselectedLabelStyle: TextStyle(
                                 fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400,
