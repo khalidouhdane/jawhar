@@ -14,16 +14,16 @@ class ContinueReadingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final localStorage = context.read<LocalStorageService>();
-    
-    final lastReadPage = localStorage.getLastReadPage();
-    final lastReadSurah = localStorage.getLastReadSurahName() ?? 'Al-Fatihah';
+    final lastRead = localStorage.getLastRead();
+    final lastReadPage = lastRead?.page ?? 1;
+    final lastReadSurah = lastRead?.surahName ?? 'Al-Fatihah';
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(theme.radiusXl),
         border: Border.all(color: theme.dividerColor, width: 1),
       ),
       child: Column(
@@ -85,7 +85,7 @@ class ContinueReadingCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: theme.foregroundColor,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(theme.radiusLg),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
