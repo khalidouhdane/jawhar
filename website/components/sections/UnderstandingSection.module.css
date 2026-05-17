@@ -1,0 +1,119 @@
+/* Split layout */
+.split {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-top: 64px;
+  margin-bottom: 48px;
+}
+
+/* Phone mockup content */
+.mockupContent {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.statusBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #808080;
+}
+
+.pageLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.verseArea {
+  padding: 24px 20px;
+  text-align: right;
+  direction: rtl;
+}
+
+.verseArabic {
+  font-family: var(--font-arabic);
+  font-size: 22px;
+  line-height: 2.0;
+  color: #171717;
+}
+
+.verseRef {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #808080;
+  text-align: left;
+  direction: ltr;
+}
+
+/* Overlay card inside phone */
+.overlayCard {
+  margin: 0 12px 16px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border-radius: var(--radius-lg);
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+}
+
+.overlayLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #808080;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.overlayText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4d4d4d;
+}
+
+/* Context side */
+.contextSide {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contextCard {
+  padding: 24px;
+}
+
+.contextCard .mono-label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.contextText {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* Feature chips */
+.chips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    justify-items: center;
+  }
+}

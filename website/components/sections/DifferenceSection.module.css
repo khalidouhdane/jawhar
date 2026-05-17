@@ -1,0 +1,100 @@
+.tableWrap {
+  max-width: 680px;
+  margin: 48px auto 0;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead tr {
+  box-shadow: var(--shadow-ring);
+}
+
+.table th {
+  padding: 16px 24px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-quaternary);
+}
+
+.thFeature {
+  text-align: left;
+}
+
+.thStatus {
+  text-align: center;
+  width: 100px;
+}
+
+.row {
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.row:hover {
+  background: var(--bg-subtle);
+}
+
+/* Use shadow instead of border for row separators */
+.row + .row {
+  box-shadow: var(--shadow-ring);
+}
+
+.tdFeature {
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.tdStatus {
+  padding: 14px 24px;
+  text-align: center;
+}
+
+/* Achromatic status icons */
+.iconYes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.iconNo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  color: var(--text-quaternary);
+}
+
+@media (max-width: 600px) {
+  .table th,
+  .tdFeature,
+  .tdStatus {
+    padding: 12px 16px;
+  }
+
+  .tdFeature {
+    font-size: 14px;
+  }
+
+  .thStatus {
+    width: 72px;
+  }
+}

@@ -1,0 +1,466 @@
+/*
+ * Jawhar Website — Design System
+ * Based on the Vercel / Geist Design System (docs/vercel_design.md)
+ *
+ * DARK MODE DEFAULT — light mode via [data-theme="light"]
+ *
+ * Principles:
+ *   1. Shadow-as-border — no CSS `border` anywhere
+ *   2. Compression as identity — aggressive negative letter-spacing at display sizes
+ *   3. Three weights only — 400 (body), 500 (UI), 600 (headings)
+ *   4. Achromatic palette — grays from #000000 to #fafafa
+ *   5. Ligatures everywhere — font-feature-settings: "liga" on all text
+ *   6. Gallery emptiness — massive whitespace between sections
+ */
+
+/* ─── Reset ─── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ─── Color Tokens — DARK MODE (default) ─── */
+:root {
+  /* Primary palette */
+  --color-black: #fafafa;
+  --color-white: #000000;
+  --color-true-black: #ffffff;
+
+  /* Neutral scale — inverted for dark */
+  --gray-900: #ededed;
+  --gray-600: #a1a1a1;
+  --gray-500: #888888;
+  --gray-400: #666666;
+  --gray-100: #1a1a1a;
+  --gray-50: #0a0a0a;
+
+  /* Semantic text */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-quaternary: var(--gray-400);
+
+  /* Surfaces */
+  --bg: var(--color-white);
+  --bg-subtle: var(--gray-50);
+  --bg-elevated: #111111;
+  --nav-bg: rgba(0, 0, 0, 0.85);
+
+  /* Interactive */
+  --link-blue: #3291ff;
+  --focus-blue: hsla(212, 100%, 48%, 1);
+  --focus-ring: rgba(59, 130, 246, 0.4);
+
+  /* Badge */
+  --badge-bg: rgba(59, 130, 246, 0.1);
+  --badge-text: #3291ff;
+
+  /* Selection */
+  --selection-bg: hsla(0, 0%, 20%, 1);
+
+  /* Card surfaces (hero, conveyor cards) */
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --badge-bg-subtle: rgba(255, 255, 255, 0.06);
+  --glow-color: rgba(255, 255, 255, 0.05);
+
+  /* Shadows — inverted for dark (lighter borders, subtle glows) */
+  --shadow-ring: rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+  --shadow-ring-light: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
+  --shadow-subtle: rgba(255, 255, 255, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 2px 4px;
+  --shadow-card: rgba(255, 255, 255, 0.06) 0px 0px 0px 1px, rgba(0, 0, 0, 0.15) 0px 2px 4px, rgba(0, 0, 0, 0.1) 0px 8px 16px -8px, rgba(255, 255, 255, 0.02) 0px 0px 0px 1px inset;
+  --shadow-card-hover: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 4px 8px, rgba(0, 0, 0, 0.15) 0px 12px 20px -8px, rgba(255, 255, 255, 0.03) 0px 0px 0px 1px inset;
+
+  /* Typography — static fallbacks; Next.js injects --font-geist-* on body */
+  --font-sans: 'Geist', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, Monaco, 'Liberation Mono', monospace;
+  --font-arabic: 'Amiri', serif;
+
+  /* Spacing — 8px base, Vercel scale */
+  --sp-1: 1px;
+  --sp-2: 2px;
+  --sp-3: 4px;
+  --sp-4: 6px;
+  --sp-5: 8px;
+  --sp-6: 10px;
+  --sp-8: 12px;
+  --sp-10: 16px;
+  --sp-12: 24px;
+  --sp-14: 32px;
+  --sp-16: 40px;
+  --sp-20: 48px;
+  --sp-24: 64px;
+  --sp-32: 80px;
+  --sp-40: 100px;
+  --sp-48: 120px;
+
+  /* Radius — Vercel scale */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 9999px;
+  --radius-tab: 64px;
+
+  /* Layout */
+  --max-width: 1200px;
+  --nav-height: 64px;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 350ms;
+
+  color-scheme: dark;
+}
+
+
+/* ─── LIGHT MODE override ─── */
+[data-theme="light"] {
+  /* Primary palette */
+  --color-black: #171717;
+  --color-white: #ffffff;
+  --color-true-black: #000000;
+
+  /* Neutral scale */
+  --gray-900: #171717;
+  --gray-600: #4d4d4d;
+  --gray-500: #666666;
+  --gray-400: #808080;
+  --gray-100: #ebebeb;
+  --gray-50: #fafafa;
+
+  /* Surfaces */
+  --bg: var(--color-white);
+  --bg-subtle: var(--gray-50);
+  --bg-elevated: var(--color-white);
+  --nav-bg: rgba(255, 255, 255, 0.85);
+
+  /* Interactive */
+  --link-blue: #0072f5;
+
+  /* Badge */
+  --badge-bg: #ebf5ff;
+  --badge-text: #0068d6;
+
+  /* Selection */
+  --selection-bg: hsla(0, 0%, 95%, 1);
+
+  /* Card surfaces (hero, conveyor cards) */
+  --card-bg: rgba(0, 0, 0, 0.03);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --badge-bg-subtle: rgba(0, 0, 0, 0.04);
+  --glow-color: rgba(0, 0, 0, 0.03);
+
+  /* Shadows — original light mode values */
+  --shadow-ring: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  --shadow-ring-light: rgb(235, 235, 235) 0px 0px 0px 1px;
+  --shadow-subtle: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px;
+  --shadow-card: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px, rgba(0, 0, 0, 0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px inset;
+  --shadow-card-hover: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.06) 0px 4px 6px, rgba(0, 0, 0, 0.04) 0px 12px 16px -8px, #fafafa 0px 0px 0px 1px inset;
+
+  color-scheme: light;
+}
+
+
+/* ─── Base ─── */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  /* var(--font-geist-sans) injected by Next.js on <body> via className */
+  font-family: var(--font-geist-sans), var(--font-sans);
+  font-feature-settings: "liga";
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg);
+  transition: background var(--duration-base) var(--ease),
+              color var(--duration-base) var(--ease);
+
+  /* Re-export with Next.js font variables resolved */
+  --font-sans: var(--font-geist-sans), 'Geist', Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+::selection {
+  background: var(--selection-bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, video, svg {
+  display: block;
+  max-width: 100%;
+}
+
+
+/* ─── Typography ─── */
+
+/* Display Hero — 48px, weight 600, tight, heavy negative tracking */
+.display-hero {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.0;
+  letter-spacing: -2.4px;
+  font-feature-settings: "liga";
+}
+
+/* Display Large — 40px (section headings) */
+.display-large {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -2.4px;
+  font-feature-settings: "liga";
+}
+
+/* Sub-heading — 32px */
+.heading-sub {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -1.28px;
+  font-feature-settings: "liga";
+}
+
+/* Card Title — 24px */
+.heading-card {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.33;
+  letter-spacing: -0.96px;
+  font-feature-settings: "liga";
+}
+
+/* Body Large — 20px */
+.body-large {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.8;
+  font-feature-settings: "liga";
+}
+
+/* Body — 18px */
+.body {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.56;
+  font-feature-settings: "liga";
+}
+
+/* Body Small — 16px */
+.body-small {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-feature-settings: "liga";
+}
+
+/* Mono label — uppercase technical label */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-feature-settings: "liga";
+  color: var(--text-quaternary);
+}
+
+
+/* ─── Layout ─── */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Sections — gallery emptiness */
+.section {
+  padding: var(--sp-48) 0;
+}
+
+.section-alt {
+  background: var(--bg-subtle);
+}
+
+/* Section divider — shadow-border, NOT css border */
+.section-divider {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  height: 0;
+  box-shadow: var(--shadow-ring);
+}
+
+
+/* ─── Buttons ─── */
+
+/* Primary Dark CTA — inverts per theme */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.43;
+  font-feature-settings: "liga";
+  border: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease),
+              color var(--duration-fast) var(--ease);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--color-black);
+  color: var(--bg);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
+/* Ghost / Secondary */
+.btn-ghost {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-ring);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-subtle);
+  box-shadow: var(--shadow-subtle);
+}
+
+.btn-ghost:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
+/* Large button variant */
+.btn-large {
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 24px;
+}
+
+
+/* ─── Badge / Pill ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.33;
+  font-feature-settings: "liga";
+  white-space: nowrap;
+}
+
+
+/* ─── Card ─── */
+.card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  transition: box-shadow var(--duration-base) var(--ease),
+              background var(--duration-base) var(--ease);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+
+/* ─── Focus ─── */
+:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .display-hero {
+    font-size: 36px;
+    letter-spacing: -1.8px;
+  }
+
+  .display-large {
+    font-size: 32px;
+    letter-spacing: -1.6px;
+  }
+
+  .heading-sub {
+    font-size: 26px;
+    letter-spacing: -1.04px;
+  }
+
+  .heading-card {
+    font-size: 20px;
+    letter-spacing: -0.8px;
+  }
+
+  .body-large {
+    font-size: 18px;
+  }
+
+  .section {
+    padding: var(--sp-20) 0;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .display-hero {
+    font-size: 28px;
+    letter-spacing: -1.4px;
+  }
+
+  .display-large {
+    font-size: 26px;
+    letter-spacing: -1.3px;
+  }
+}
+
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

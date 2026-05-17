@@ -1,0 +1,107 @@
+/* TOC */
+.tocWrapper {
+  position: sticky;
+  top: var(--nav-height);
+  z-index: 50;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-ring);
+  padding: 12px 0;
+  overflow-x: auto;
+}
+
+.toc {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+  padding-bottom: 4px;
+}
+
+.tocPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-ring);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: box-shadow var(--duration-fast) var(--ease),
+              color var(--duration-fast) var(--ease);
+  flex-shrink: 0;
+}
+
+.tocPill:hover {
+  box-shadow: var(--shadow-subtle);
+  color: var(--text-primary);
+}
+
+.tocNum {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-quaternary);
+}
+
+/* Struggle layout */
+.struggle {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.number {
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--gray-100);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+/* 3-column grid for problem/why/solution */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.block {
+  padding: 24px;
+}
+
+.block .mono-label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* Solution block — subtle differentiation via inner glow, not color */
+.solutionBlock {
+  background: var(--bg-subtle);
+}
+
+.blockText {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .number {
+    font-size: 28px;
+  }
+}

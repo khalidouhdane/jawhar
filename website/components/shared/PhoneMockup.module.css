@@ -1,0 +1,59 @@
+.phone {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.frame {
+  position: relative;
+  width: 290px;
+  /* Phone frame is ALWAYS dark — not theme-dependent */
+  background: #171717;
+  border-radius: 40px;
+  padding: 12px;
+  box-shadow:
+    rgba(255, 255, 255, 0.06) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.3) 0px 8px 24px,
+    rgba(0, 0, 0, 0.15) 0px 2px 4px;
+}
+
+/* Dynamic Island */
+.notch {
+  width: 100px;
+  height: 28px;
+  background: #171717;
+  border-radius: 20px;
+  margin: 0 auto 8px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Screen area — always light (app content) */
+.screen {
+  background: #ffffff;
+  border-radius: 28px;
+  overflow: hidden;
+  min-height: 480px;
+  position: relative;
+  color: #171717;
+}
+
+/* Home bar */
+.homeBar {
+  width: 120px;
+  height: 4px;
+  background: #666;
+  border-radius: 4px;
+  margin: 8px auto 0;
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  .frame {
+    width: 240px;
+  }
+
+  .screen {
+    min-height: 380px;
+  }
+}

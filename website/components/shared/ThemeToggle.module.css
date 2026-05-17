@@ -1,0 +1,24 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color var(--duration-fast) var(--ease),
+              background var(--duration-fast) var(--ease);
+}
+
+.toggle:hover {
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}

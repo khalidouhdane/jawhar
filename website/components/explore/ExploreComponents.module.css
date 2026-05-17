@@ -1,0 +1,155 @@
+.placeholderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--color-gray-500);
+}
+
+.placeholderContainer h2 {
+  color: var(--color-white);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  letter-spacing: -0.04em;
+}
+
+/* Wispr Processor Specific Styles */
+.processorContainer {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px - 80px); /* Account for navbar and sub-navbar */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* Background ambient glow */
+.processorGlow {
+  position: absolute;
+  top: 40%; /* Shifted up */
+  left: 50%;
+  width: 600px;
+  height: 600px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.processorAnimationArea {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Zone 1: Input (Left) */
+.inputZone {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Zone 2: Center Processor */
+.centerZone {
+  width: 400px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Zone 3: Output (Right) */
+.outputZone {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Particles */
+.inputParticle {
+  position: absolute;
+  font-family: var(--font-serif);
+  color: #fafafa;
+  text-shadow: 0 0 20px rgba(255,255,255,0.5);
+  white-space: nowrap;
+  font-size: 2.5rem;
+  left: -200px; /* Start offscreen */
+}
+
+/* Premium Output Card */
+.outputParticle {
+  position: absolute;
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 320px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  left: 0; /* Start at center */
+}
+
+.outputParticleHeader {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #888888;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+
+.outputParticleContent {
+  font-size: 1.125rem;
+  color: #fafafa;
+  line-height: 1.5;
+  font-family: var(--font-sans);
+}
+
+/* Hero Text at the bottom */
+.processorHeroText {
+  position: relative;
+  text-align: center;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 4rem; /* Buffer from the bottom */
+}
+
+.processorHeroText h1 {
+  font-family: var(--font-sans);
+  font-size: 3rem; /* Scaled down from 4.5rem to match main hero */
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  margin: 0;
+}
+
+.processorHeroText p {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  color: #888888;
+  max-width: 600px;
+  margin: 0;
+  line-height: 1.4;
+}

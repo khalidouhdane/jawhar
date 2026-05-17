@@ -34,6 +34,10 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
+
+# Suppress LNK4099 warnings from Firebase Firestore C++ SDK prebuilt libs
+# (missing PDB files for re2, grpc, absl, leveldb, etc.)
+target_link_options(${BINARY_NAME} PRIVATE "/ignore:4099")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.

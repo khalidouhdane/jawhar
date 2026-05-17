@@ -1,0 +1,117 @@
+.section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  padding: 4rem 2rem;
+  overflow: hidden;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -2.4px;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.description {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: 3rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.featureCard {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-ring);
+  border: none;
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+  box-shadow: var(--shadow-card-hover);
+  background: var(--bg-hover);
+}
+
+.featureIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent-1);
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.featureTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.featureText {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Specific Layout Adjustments */
+.readSection .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.understandSection .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.understandSection .description {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.memorizeSection .content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.memorizeSection .grid {
+  text-align: left;
+}
+
+/* Spacer for GSAP pinning */
+.spacer {
+  height: 50vh;
+}

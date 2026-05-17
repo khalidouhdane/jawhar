@@ -1,0 +1,55 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+}
+
+/* Ambient radial glow behind the diamond */
+.glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.diamond {
+  width: 180px;
+  height: 180px;
+  position: relative;
+  z-index: 1;
+  animation: idleFloat 8s ease-in-out infinite;
+}
+
+@keyframes idleFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(0.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diamond {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    width: 160px;
+    height: 160px;
+  }
+  .diamond {
+    width: 140px;
+    height: 140px;
+  }
+}

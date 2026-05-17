@@ -1,0 +1,54 @@
+.exploreContainer {
+  min-height: calc(100vh - 64px); /* Account for navbar */
+  display: flex;
+  flex-direction: column;
+}
+
+.exploreNav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--shadow-ring);
+  position: sticky;
+  top: 64px; /* Underneath main navbar */
+  z-index: 40;
+  flex-wrap: wrap;
+}
+
+.exploreTab {
+  background: transparent;
+  border: 1px solid var(--shadow-ring);
+  color: var(--color-gray-500);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exploreTab:hover {
+  color: var(--color-black);
+  border-color: var(--color-gray-500);
+}
+
+.activeTab {
+  background: var(--color-black);
+  color: var(--color-white);
+  border-color: var(--color-black);
+}
+
+.activeTab:hover {
+  color: var(--color-white);
+  border-color: var(--color-black);
+}
+
+.exploreContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
