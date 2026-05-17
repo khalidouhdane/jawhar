@@ -12,15 +12,12 @@ import 'package:quran_app/providers/notification_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
-import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
-import 'package:quran_app/screens/hifz/share_progress_screen.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/plan_generation_service.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/hifz/session_reading_view.dart';
 import 'package:quran_app/widgets/hifz/recipe_guide_widget.dart';
 import 'package:quran_app/widgets/sheets/session_settings_sheet.dart';
-import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/utils/app_logger.dart';
@@ -41,8 +38,6 @@ class _SessionScreenState extends State<SessionScreen> {
   int _coverageEndPage = 0; // for "more than planned" picker
   int _lastVerseLearned = 5; // CE-9: verse picker default
   int _totalVersesOnPage = 15; // CE-9: default (typical Quran page)
-  bool _hasMutashabihat = false; // Integration trigger: alert banner
-  bool _mutBannerDismissed = false;
   // Timer management
   Timer? _timer;
 
@@ -71,7 +66,6 @@ class _SessionScreenState extends State<SessionScreen> {
       }
       _coverageEndPage = widget.plan.sabaqPage;
       _startTimer();
-      _checkMutashabihat();
       _loadRecipes();
     });
   }
@@ -108,37 +102,6 @@ class _SessionScreenState extends State<SessionScreen> {
     }
   }
 
-  Future<void> _checkMutashabihat() async {
-    try {
-      final db = context.read<HifzDatabaseService>();
-      // Check if any verse on the sabaq page has mutashabihat
-      final page = widget.plan.sabaqPage;
-      // Quick check: query groups whose source verse key starts with common surahs on this page
-      final all = await db.getAllMutashabihat();
-      // Check if any group's source or mut verse is on the current page
-      final hasMatch = all.any((g) {
-        final srcPage = _verseKeyToPage(g.sourceVerseKey);
-        if (srcPage == page) return true;
-        return g.similarVerses.any((v) => _verseKeyToPage(v.verseKey) == page);
-      });
-      if (hasMatch && mounted) {
-        setState(() => _hasMutashabihat = true);
-      }
-    } catch (_) {}
-  }
-
-  int _verseKeyToPage(String key) {
-    final parts = key.split(':');
-    if (parts.length != 2) return 0;
-    final surah = int.tryParse(parts[0]);
-    final verse = int.tryParse(parts[1]);
-    if (surah == null || verse == null) return 0;
-    try {
-      return quran.getPageNumber(surah, verse);
-    } catch (_) {
-      return 0;
-    }
-  }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {

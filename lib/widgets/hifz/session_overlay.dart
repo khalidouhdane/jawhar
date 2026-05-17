@@ -678,14 +678,12 @@ class _TopPhaseBar extends StatelessWidget {
 /// Small action button (Skip, Done) with icon and label.
 class _ActionButton extends StatelessWidget {
   final IconData icon;
-  final String? label;
   final ThemeProvider theme;
   final VoidCallback onTap;
   final bool isPrimary;
 
   const _ActionButton({
     required this.icon,
-    this.label,
     required this.theme,
     required this.onTap,
     this.isPrimary = false,
@@ -718,18 +716,6 @@ class _ActionButton extends StatelessWidget {
               color: isPrimary ? theme.accentColor : theme.secondaryText,
             ),
           ),
-          if (label != null && label!.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              label!,
-              style: TextStyle(
-                fontFamily: GeistTypography.primaryFontFamily,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: isPrimary ? theme.accentColor : theme.mutedText,
-              ),
-            ),
-          ],
         ],
       ),
     );

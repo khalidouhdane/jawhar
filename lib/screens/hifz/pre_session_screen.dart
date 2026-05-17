@@ -354,11 +354,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                           ],
                         ),
                       ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // ── Session Style ──
-                      _buildSessionStyleSelector(theme),
+
                     ],
                   ),
                 ),
@@ -580,5 +576,7 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
           ),
           Icon(LucideIcons.minus, size: 16, color: theme.mutedText),
         ],
+      ),
+    );
   }
 }

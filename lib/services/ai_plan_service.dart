@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
@@ -30,13 +29,6 @@ class AIPlanException implements Exception {
 class AIPlanService {
   // ── Constants ──
 
-  /// Bundled API key (dev phase only — will be proxied through backend later).
-  static const _apiKey = 'AIzaSyD96foZ4BModJtXB8W2Kj-6Yewnx3uiBzA';
-
-  /// Available model IDs.
-  static const modelFlash = 'gemini-3.1-flash-lite-preview';
-  static const modelPro = 'gemini-3.1-pro-preview';
-
   /// Fallback system prompt if the asset can't be loaded.
   static const _fallbackSystemPrompt = '''
 You are a Quran memorization (Hifz) planning assistant.
@@ -46,41 +38,10 @@ Return valid JSON only.
 
   // ── State ──
 
-  String _activeModelName;
-  GenerativeModel? _model;
+  AIPlanService();
 
-  AIPlanService({String? model}) : _activeModelName = model ?? modelFlash;
-
-  /// The active model name.
-  String get activeModelName => _activeModelName;
-
-  /// Whether using the Pro model.
-  bool get isProModel => _activeModelName == modelPro;
-
-  // ── Model Management ──
-
-  /// Switch the active model (for dev testing).
-  void setModel(String modelName) {
-    if (modelName != _activeModelName) {
-      _activeModelName = modelName;
-      _model = null; // Force re-creation
-    }
-  }
-
-  /// Get or create the GenerativeModel instance.
-  GenerativeModel _getModel(String systemPrompt) {
-    _model ??= GenerativeModel(
-      model: _activeModelName,
-      apiKey: _apiKey,
-      systemInstruction: Content.system(systemPrompt),
-      generationConfig: GenerationConfig(
-        responseMimeType: 'application/json',
-        temperature: 0.3,
-        maxOutputTokens: 4096,
-      ),
-    );
-    return _model!;
-  }
+  /// Whether using the Pro model (now handled on backend).
+  bool get isProModel => true;
 
   // ── Context Building ──
 
@@ -157,60 +118,40 @@ Return valid JSON only.
       recentSessions: recentSessions,
     );
 
-    // 3. Build the user message
-    final userMessage = _buildUserMessage(
-      context,
-      isRecoveryMode: isRecoveryMode,
-    );
-
-    // 4. Call Gemini with timeout
+    // 3. Call Firebase Cloud Function
     try {
-      final model = _getModel(systemPrompt);
-      final response = await model
-          .generateContent([Content.text(userMessage)])
-          .timeout(
-            const Duration(seconds: 15),
-            onTimeout: () {
-              throw const AIPlanException(
-                'AI plan generation timed out after 15 seconds. Check your connection.',
-                isRetryable: true,
-              );
-            },
+      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
+          .httpsCallable('generateDailyPlan');
+          
+      final result = await callable.call<Map<Object?, Object?>>({
+        'context': context,
+        'isRecoveryMode': isRecoveryMode,
+        'systemPrompt': systemPrompt,
+      }).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw const AIPlanException(
+            'AI plan generation timed out after 20 seconds. Check your connection.',
+            isRetryable: true,
           );
+        },
+      );
 
-      // 5. Parse response
-      final text = response.text;
-      if (text == null || text.trim().isEmpty) {
+      final data = result.data;
+      if (data.isEmpty) {
         throw const AIPlanException(
           'AI returned empty response.',
           isRetryable: true,
         );
       }
 
-      try {
-        final parsed = jsonDecode(text) as Map<String, dynamic>;
-        return parsed;
-      } catch (e) {
-        throw AIPlanException(
-          'AI returned invalid JSON: ${e.toString()}',
-          rawResponse: text,
-        );
-      }
-    } on AIPlanException {
-      rethrow;
-    } on GenerativeAIException catch (e) {
-      // Handle rate limiting
-      if (e.message.contains('429') ||
-          e.message.toLowerCase().contains('rate')) {
-        throw AIPlanException(
-          'AI rate limit reached. Please try again in a minute.',
-          rawResponse: e.message,
-          isRetryable: true,
-        );
-      }
+      // Convert Map<Object?, Object?> to Map<String, dynamic>
+      return Map<String, dynamic>.from(data);
+    } on FirebaseFunctionsException catch (e) {
       throw AIPlanException(
-        'AI service error: ${e.message}',
-        rawResponse: e.message,
+        'Backend service error: ${e.message}',
+        rawResponse: e.details?.toString(),
+        isRetryable: true,
       );
     } catch (e) {
       if (e is AIPlanException) rethrow;
@@ -233,31 +174,5 @@ Return valid JSON only.
       AppLogger.info('AIPlan', 'Failed to load system prompt asset, using fallback: $e');
       return _fallbackSystemPrompt;
     }
-  }
-
-  /// Build the user message sent to Gemini.
-  String _buildUserMessage(
-    Map<String, dynamic> context, {
-    bool isRecoveryMode = false,
-  }) {
-    final contextJson = const JsonEncoder.withIndent('  ').convert(context);
-
-    if (isRecoveryMode) {
-      return '''
-RECOVERY MODE: The user has returned after missed days.
-Generate a lighter, review-focused plan to ease them back in.
-
-User Context:
-$contextJson
-
-Generate the daily plan as JSON.''';
-    }
-
-    return '''
-Generate today's memorization plan based on this user context:
-
-$contextJson
-
-Generate the daily plan as JSON.''';
   }
 }

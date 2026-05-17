@@ -16,7 +16,6 @@ class PreSessionSheet extends StatefulWidget {
 
   /// Show as a modal bottom sheet and return true if session was started.
   static Future<bool?> show(BuildContext context) {
-    final theme = context.read<ThemeProvider>();
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
