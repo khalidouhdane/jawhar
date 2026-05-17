@@ -39,10 +39,20 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Environment variables (API keys, secrets)
+.env
+.env.*
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Agent scratch space
+.agents/scratch/
+
+# Test scaffolding (not ready)
+test/
 
 # Sentry
 .sentry-native/
