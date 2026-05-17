@@ -2688,13 +2688,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Page {page} · Lines {start}–{end}'**
-  String planPageLines(Object end, Object page, Object start);
+  String planPageLines(int page, int start, int end);
 
   /// No description provided for @planPageFromVerse.
   ///
   /// In en, this message translates to:
   /// **'Page {page} · from verse {verse}'**
-  String planPageFromVerse(Object page, Object verse);
+  String planPageFromVerse(int page, int verse);
 
   /// No description provided for @planPagesCount.
   ///

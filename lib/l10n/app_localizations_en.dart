@@ -1342,12 +1342,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planNotStartedYet => 'Not started yet';
 
   @override
-  String planPageLines(Object end, Object page, Object start) {
+  String planPageLines(int page, int start, int end) {
     return 'Page $page · Lines $start–$end';
   }
 
   @override
-  String planPageFromVerse(Object page, Object verse) {
+  String planPageFromVerse(int page, int verse) {
     return 'Page $page · from verse $verse';
   }
 

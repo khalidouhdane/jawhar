@@ -1328,12 +1328,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planNotStartedYet => 'لم تبدأ بعد';
 
   @override
-  String planPageLines(Object end, Object page, Object start) {
+  String planPageLines(int page, int start, int end) {
     return 'صفحة $page · الأسطر $start–$end';
   }
 
   @override
-  String planPageFromVerse(Object page, Object verse) {
+  String planPageFromVerse(int page, int verse) {
     return 'صفحة $page · من الآية $verse';
   }
 

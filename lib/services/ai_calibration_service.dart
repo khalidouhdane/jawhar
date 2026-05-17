@@ -1,5 +1,5 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:quran_app/models/hifz_models.dart';
-import 'package:quran_app/services/ai_plan_service.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
 /// Generates AI-powered weekly calibration suggestions based on performance data.
@@ -10,12 +10,10 @@ import 'package:quran_app/utils/app_logger.dart';
 ///
 /// **Trigger**: Called after every 7th completed session (configurable).
 class AICalibrationService {
-  final AIPlanService _aiService;
-
   /// Number of sessions between AI calibrations.
   static const int calibrationInterval = 7;
 
-  AICalibrationService(this._aiService);
+  AICalibrationService();
 
   /// Check whether a calibration is due based on total session count.
   bool isCalibrationDue(int totalSessionCount) {
@@ -41,13 +39,20 @@ class AICalibrationService {
         totalSessions: totalSessionCount,
       );
 
-      final raw = await _aiService.generatePlan(
-        profile: profile,
-        progressSnapshot: contextMap,
-        recentSessions: [],
-        systemPromptOverride: _calibrationPrompt,
-      );
+      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
+          .httpsCallable('generateCalibration');
 
+      final result = await callable.call<Map<Object?, Object?>>({
+        'context': contextMap,
+        'systemPrompt': _calibrationPrompt,
+      }).timeout(const Duration(seconds: 20));
+
+      final data = result.data;
+      if (data.isEmpty) {
+        throw Exception('AI returned empty response.');
+      }
+
+      final raw = Map<String, dynamic>.from(data);
       return _parseCalibrationResponse(raw);
     } catch (e) {
       AppLogger.info('AICalib', 'AI calibration failed, falling back: $e');

@@ -432,7 +432,30 @@
   "planNoReviewYet": "لا توجد مراجعة بعد",
   "planNotStartedYet": "لم تبدأ بعد",
   "planPageLines": "صفحة {page} · الأسطر {start}–{end}",
+  "@planPageLines": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
   "planPageFromVerse": "صفحة {page} · من الآية {verse}",
+  "@planPageFromVerse": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
   "planPagesCount": "{count} صفحات",
   "planPagesList": "الصفحات {pages}",
   "planPagesListMore": "الصفحات {pages}… (+{more})",

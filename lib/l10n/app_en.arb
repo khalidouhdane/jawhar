@@ -432,7 +432,30 @@
   "planNoReviewYet": "No review yet",
   "planNotStartedYet": "Not started yet",
   "planPageLines": "Page {page} · Lines {start}–{end}",
+  "@planPageLines": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
   "planPageFromVerse": "Page {page} · from verse {verse}",
+  "@planPageFromVerse": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
   "planPagesCount": "{count} pages",
   "planPagesList": "Pages {pages}",
   "planPagesListMore": "Pages {pages}… (+{more})",

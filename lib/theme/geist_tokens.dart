@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Geist Design System neutral gray scale.
-/// Reference: docs/vercel_design.md
+/// Reference: DESIGN.md
 class GeistTokens {
   GeistTokens._();
 
