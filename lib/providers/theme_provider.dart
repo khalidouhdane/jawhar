@@ -1,23 +1,51 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quran_app/theme/geist_tokens.dart';
+import 'package:quran_app/theme/geist_shadows.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 /// Page indicator effect
 enum PageIndicatorEffect { center, edge }
 
 /// App theme modes
-enum AppTheme { classic, warm, dark }
+enum AppTheme { light, dark }
 
 enum QuranContentAlignment { top, center, bottom }
 
 enum QuranTextAlign { right, center, justify }
 
-
-
 /// Provides theme colors for the entire app.
-/// Classic = Original brand colors (white surfaces, teal accents) — DEFAULT
-/// Warm = Parchment/beige background with teal accents
-/// Dark = Deep teal/navy with cyan highlights
+/// Defaults to system brightness; falls back to light mode.
 class ThemeProvider extends ChangeNotifier {
-  AppTheme _theme = AppTheme.classic;
+  static const _themeKey = 'app_theme';
+  SharedPreferences? _prefs;
+  AppTheme _theme = AppTheme.light; // default fallback
+
+  /// Initialize with SharedPreferences for persistence.
+  /// If no saved preference, detects system brightness.
+  /// Falls back to light mode if detection fails.
+  void initWithPrefs(SharedPreferences prefs) {
+    _prefs = prefs;
+    final saved = prefs.getString(_themeKey);
+    if (saved == 'light') {
+      _theme = AppTheme.light;
+    } else if (saved == 'dark') {
+      _theme = AppTheme.dark;
+    } else {
+      // No saved preference — detect system brightness
+      try {
+        final brightness =
+            ui.PlatformDispatcher.instance.platformBrightness;
+        _theme =
+            brightness == Brightness.dark ? AppTheme.dark : AppTheme.light;
+      } catch (_) {
+        // Detection failed — fallback to light (encouraged default)
+        _theme = AppTheme.light;
+      }
+    }
+    notifyListeners();
+  }
 
   // Reading typography settings
   double _quranFontSize = 22;
@@ -46,7 +74,6 @@ class ThemeProvider extends ChangeNotifier {
 
   AppTheme get theme => _theme;
   bool get isDark => _theme == AppTheme.dark;
-  bool get isWarm => _theme == AppTheme.warm;
 
   double get quranFontSize => _quranFontSize;
   double get quranLineHeight => _quranLineHeight;
@@ -71,6 +98,7 @@ class ThemeProvider extends ChangeNotifier {
   void setTheme(AppTheme theme) {
     if (_theme == theme) return;
     _theme = theme;
+    _prefs?.setString(_themeKey, theme == AppTheme.dark ? 'dark' : 'light');
     notifyListeners();
   }
 
@@ -160,231 +188,190 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Helper to pick color by theme
-  Color _pick({
-    required Color classic,
-    required Color warm,
-    required Color dark,
-  }) {
-    switch (_theme) {
-      case AppTheme.classic:
-        return classic;
-      case AppTheme.warm:
-        return warm;
-      case AppTheme.dark:
-        return dark;
-    }
-  }
-
   // ── Background colors ──
-  Color get scaffoldBackground => _pick(
-    classic: Colors.white,
-    warm: const Color(0xFFF5F0E8),
-    dark: const Color(0xFF0A1E24),
-  );
+  Color get scaffoldBackground =>
+      isDark ? GeistTokens.darkScaffold : GeistTokens.lightScaffold;
 
-  Color get canvasBackground => _pick(
-    classic: Colors.white,
-    warm: const Color(0xFFF5F0E8),
-    dark: const Color(0xFF0A1E24),
-  );
+  Color get canvasBackground => scaffoldBackground; // Alias, same value
 
-  Color get surfaceColor => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF0F2B33),
-  );
+  Color get surfaceColor =>
+      isDark ? GeistTokens.darkSurface : GeistTokens.lightSurface;
 
-  Color get cardColor => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF122F38),
-  );
+  Color get cardColor =>
+      isDark ? GeistTokens.darkSurface : GeistTokens.lightSurface;
 
   // ── Text colors ──
-  Color get primaryText => _pick(
-    classic: const Color(0xFF1A454E),
-    warm: const Color(0xFF1A454E),
-    dark: const Color(0xFFD4E8EC),
-  );
+  Color get primaryText =>
+      isDark ? GeistTokens.darkPrimary : GeistTokens.lightPrimary;
 
-  Color get secondaryText => _pick(
-    classic: const Color(0xFF6B7D82),
-    warm: const Color(0xFF6B7D82),
-    dark: const Color(0xFF7FABB5),
-  );
+  Color get secondaryText =>
+      isDark ? GeistTokens.darkSecondary : GeistTokens.lightSecondary;
 
-  Color get mutedText => _pick(
-    classic: Colors.grey,
-    warm: Colors.grey,
-    dark: const Color(0xFF4A7A86),
-  );
+  Color get mutedText =>
+      isDark ? GeistTokens.darkMuted : GeistTokens.lightMuted;
 
-  Color get overlayTextColor => _pick(
-    classic: const Color(0xFF63777E),
-    warm: const Color(0xFF63777E),
-    dark: const Color(0xFF7FABB5),
-  );
+  Color get overlayTextColor => secondaryText;
 
-  Color get quranText => _pick(
-    classic: const Color(0xFF1A454E),
-    warm: const Color(0xFF1A454E),
-    dark: const Color(0xFFD4E8EC),
-  );
+  Color get quranText => primaryText;
 
   // ── Accent / Brand colors ──
-  Color get accentColor => _pick(
-    classic: const Color(0xFF1A454E),
-    warm: const Color(0xFF1A454E),
-    dark: const Color(0xFF4DB6AC),
-  );
+  // In Geist, the primary CTA is black in light mode, white in dark mode
+  Color get accentColor => primaryText;
 
-  Color get accentLight => _pick(
-    classic: const Color(0xFFEFF3F5),
-    warm: const Color(0xFFEFF3F5),
-    dark: const Color(0xFF1A454E),
-  );
+  /// Pure foreground — `geist foreground` token.
+  /// White in dark mode, Black in light mode. Used for active nav states.
+  Color get foregroundColor =>
+      isDark ? GeistTokens.darkForeground : GeistTokens.lightForeground;
 
-  // ── Highlight colors ──
-  Color get verseHighlight => _pick(
-    classic: const Color(0xFFE0F2F1),
-    warm: const Color(0xFFF0E1C5),
-    dark: const Color(0xFF1A3A42),
-  );
+  /// Inverted foreground — text color for dark hero/context cards.
+  /// Always white because hero cards use a dark background in both modes.
+  Color get invertedForeground => const Color(0xFFFFFFFF);
 
-  Color get verseMarkerColor => _pick(
-    classic: const Color(0xFFB2DFDB),
-    warm: const Color(0xFFE6D5B8),
-    dark: const Color(0xFF2A6A6E),
-  );
+  /// Muted inactive — `accents 3` token.
+  /// Used for inactive nav icons and labels.
+  Color get accent3 =>
+      isDark ? GeistTokens.darkAccent3 : GeistTokens.lightAccent3;
 
-  Color get verseMarkerHighlight => _pick(
-    classic: const Color(0xFF4DB6AC),
-    warm: const Color(0xFFD4A373),
-    dark: const Color(0xFF4DB6AC),
-  );
+  Color get accentLight =>
+      isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5);
 
-  Color get verseMarkerBorder => _pick(
-    classic: const Color(0xFF80CBC4),
-    warm: const Color(0xFFD4A373),
-    dark: const Color(0xFF3A8A8E),
-  );
+  // ── Highlight colors (verse reading) ──
+  Color get verseHighlight =>
+      isDark ? const Color(0xFF262626) : const Color(0xFFEBEBEB);
 
-  Color get verseMarkerHighlightBorder => _pick(
-    classic: Colors.teal.shade600,
-    warm: const Color(0xFFB5835A),
-    dark: Colors.teal.shade400,
-  );
+  Color get verseMarkerColor =>
+      isDark ? const Color(0xFF333333) : GeistTokens.lightDivider;
+
+  Color get verseMarkerHighlight =>
+      isDark ? GeistTokens.darkPrimary : GeistTokens.lightPrimary;
+
+  Color get verseMarkerBorder =>
+      isDark ? const Color(0xFF444444) : const Color(0xFFCCCCCC);
+
+  Color get verseMarkerHighlightBorder =>
+      isDark ? const Color(0xFFCCCCCC) : const Color(0xFF444444);
 
   // ── UI element colors ──
-  Color get navBarBackground => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF0F2B33),
-  );
+  Color get navBarBackground =>
+      isDark ? const Color(0xFF161616) : const Color(0xFFF5F5F5);
 
-  Color get dockBackground => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF0F2B33),
-  );
+  Color get dockBackground => navBarBackground;
 
-  Color get playerBackground => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF122F38),
-  );
+  Color get playerBackground =>
+      isDark ? const Color(0xFF161616) : const Color(0xFFF5F5F5);
 
-  Color get pillBackground => _pick(
-    classic: const Color(0xFFEFF3F5),
-    warm: const Color(0xFFEFF3F5),
-    dark: const Color(0xFF1A3A42),
-  );
+  /// ⚠️ RESTRICTED TOKEN — Only for tiny inline text badges (e.g., "AI", "30 due").
+  /// NEVER use for card backgrounds, container fills, or any surface larger than
+  /// a badge pill. For card/container backgrounds, use [cardColor] + Border.all(dividerColor).
+  Color get pillBackground =>
+      isDark ? const Color(0xFF262626) : const Color(0xFFEBEBEB);
 
-  Color get iconColor => _pick(
-    classic: const Color(0xFF172A30),
-    warm: const Color(0xFF172A30),
-    dark: const Color(0xFFB0D4DA),
-  );
+  Color get iconColor => isDark ? GeistTokens.darkIcon : GeistTokens.lightIcon;
 
-  Color get dividerColor => _pick(
-    classic: Colors.grey.shade200,
-    warm: Colors.grey.shade200,
-    dark: const Color(0xFF1A3A42),
-  );
+  Color get dividerColor =>
+      isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
 
-  Color get sliderActive => _pick(
-    classic: const Color(0xFF1A454E),
-    warm: const Color(0xFF1A454E),
-    dark: const Color(0xFF4DB6AC),
-  );
+  Color get sliderActive => primaryText;
 
-  Color get sliderInactive => _pick(
-    classic: Colors.grey.shade200,
-    warm: Colors.grey.shade200,
-    dark: const Color(0xFF1A3A42),
-  );
+  Color get sliderInactive =>
+      isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
 
-  Color get indicatorInactive => _pick(
-    classic: const Color(0xFFA9CBD6),
-    warm: const Color(0xFFA9CBD6),
-    dark: const Color(0xFF2A6A6E),
-  );
+  Color get indicatorInactive =>
+      isDark ? const Color(0xFF444444) : const Color(0xFFCCCCCC);
 
   // ── Overlay / Sheet colors ──
-  Color get sheetBackground => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF0F2B33),
-  );
+  Color get sheetBackground =>
+      isDark ? const Color(0xFF181715) : GeistTokens.lightSurface;
 
-  Color get sheetDragHandle => _pick(
-    classic: Colors.grey.shade200,
-    warm: Colors.grey.shade200,
-    dark: const Color(0xFF1A3A42),
-  );
+  Color get sheetDragHandle =>
+      isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
 
-  Color get inputFill => _pick(
-    classic: Colors.grey.shade50,
-    warm: Colors.grey.shade50,
-    dark: const Color(0xFF1A3A42),
-  );
+  Color get inputFill =>
+      isDark ? GeistTokens.darkSubtle : GeistTokens.lightSubtle;
 
-  Color get chipSelected => _pick(
-    classic: const Color(0xFF1A454E),
-    warm: const Color(0xFF1A454E),
-    dark: const Color(0xFF4DB6AC),
-  );
+  Color get chipSelected => primaryText;
 
-  Color get chipUnselected => _pick(
-    classic: Colors.grey.shade50,
-    warm: Colors.grey.shade50,
-    dark: const Color(0xFF1A3A42),
-  );
+  Color get chipUnselected =>
+      isDark ? GeistTokens.darkSubtle : GeistTokens.lightSubtle;
 
-  Color get chipSelectedText => _pick(
-    classic: Colors.white,
-    warm: Colors.white,
-    dark: const Color(0xFF0A1E24),
-  );
+  Color get chipSelectedText => scaffoldBackground;
 
-  Color get chipUnselectedText => _pick(
-    classic: Colors.grey.shade500,
-    warm: Colors.grey.shade500,
-    dark: const Color(0xFF7FABB5),
-  );
+  Color get chipUnselectedText => secondaryText;
+
+  // ── Button specific tokens ──
+  Color get buttonDefaultBg => isDark ? GeistTokens.darkGray1000 : GeistTokens.lightGray1000;
+  Color get buttonDefaultText => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
+  
+  Color get buttonSecondaryBg => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
+  Color get buttonSecondaryText => isDark ? GeistTokens.darkGray1000 : GeistTokens.lightGray1000;
+  Color get buttonSecondaryBorder => isDark ? GeistTokens.darkGray400 : GeistTokens.lightGray400;
+
+  Color get buttonTertiaryText => isDark 
+      ? GeistTokens.darkGrayAlpha1000.withValues(alpha: 0.8) 
+      : GeistTokens.lightGrayAlpha1000.withValues(alpha: 0.8);
+
+  Color get buttonWarningBg => GeistTokens.amber800;
+  Color get buttonWarningText => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
+
+  Color get buttonErrorBg => GeistTokens.red800;
+  Color get buttonErrorText => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
 
   // ── Shadows ──
   Color get shadowColor => isDark
       ? Colors.black.withValues(alpha: 0.3)
       : Colors.black.withValues(alpha: 0.1);
 
+  /// Geist shadow-as-border: ring only
+  List<BoxShadow> get shadowRing => GeistShadows.ring(isDark: isDark);
+
+  /// Geist shadow-as-border: subtle card
+  List<BoxShadow> get shadowCard => GeistShadows.subtleCard(isDark: isDark);
+
+  /// Geist shadow-as-border: full card with depth
+  List<BoxShadow> get shadowCardFull => GeistShadows.fullCard(isDark: isDark);
+
   // ── Mode toggle gradient ──
-  List<Color> get modeToggleGradient => [
-    const Color(0xFF1C4F5F),
-    const Color(0xFF102E37),
-  ];
+  List<Color> get modeToggleGradient => isDark
+      ? [const Color(0xFF1A1A1A), const Color(0xFF111111)]
+      : [const Color(0xFF171717), const Color(0xFF0A0A0A)];
 
   // ── Contextual menu ──
-  Color get contextMenuBackground => const Color(0xFF1A454E);
+  Color get contextMenuBackground =>
+      isDark ? GeistTokens.darkSurface : GeistTokens.lightPrimary;
+
+  // ── Radii ──
+  double get radiusSm => GeistTokens.radiusSm;
+  double get radiusMd => GeistTokens.radiusMd;
+  double get radiusLg => GeistTokens.radiusLg;
+  double get radiusXl => GeistTokens.radiusXl;
+  double get radiusPill => GeistTokens.radiusPill;
+
+  // ── Typography ──
+  TextStyle get textDisplay =>
+      GeistTypography.display.copyWith(color: primaryText);
+  TextStyle get textHeadingXLarge =>
+      GeistTypography.headingXLarge.copyWith(color: primaryText);
+  TextStyle get textHeadingLarge =>
+      GeistTypography.headingLarge.copyWith(color: primaryText);
+  TextStyle get textHeading =>
+      GeistTypography.heading.copyWith(color: primaryText);
+  TextStyle get textHeadingLight =>
+      GeistTypography.headingLight.copyWith(color: primaryText);
+  TextStyle get textBodyLarge =>
+      GeistTypography.bodyLarge.copyWith(color: primaryText);
+  TextStyle get textBody => GeistTypography.body.copyWith(color: primaryText);
+  TextStyle get textBodyMedium =>
+      GeistTypography.bodyMedium.copyWith(color: primaryText);
+  TextStyle get textBodyStrong =>
+      GeistTypography.bodyStrong.copyWith(color: primaryText);
+  TextStyle get textBodySmall =>
+      GeistTypography.bodySmall.copyWith(color: secondaryText);
+  TextStyle get textButton =>
+      GeistTypography.button.copyWith(color: primaryText);
+  TextStyle get textCaption =>
+      GeistTypography.caption.copyWith(color: mutedText);
+  TextStyle get textMonoBody =>
+      GeistTypography.monoBody.copyWith(color: primaryText);
+  TextStyle get textMicroBadge =>
+      GeistTypography.microBadge.copyWith(color: primaryText);
 }
