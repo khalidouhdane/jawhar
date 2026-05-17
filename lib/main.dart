@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -154,7 +153,7 @@ void main() async {
 
   // Initialize AI services
   final aiPlanService = AIPlanService();
-  final aiCalibrationService = AICalibrationService(aiPlanService);
+  final aiCalibrationService = AICalibrationService();
   final breakRecoveryService = BreakRecoveryService(
     hifzDb,
     aiService: aiPlanService,
@@ -168,8 +167,8 @@ void main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn =
-          'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704';
+      options.dsn = const String.fromEnvironment('SENTRY_DSN',
+          defaultValue: 'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704');
       // Disable performance tracing in debug — was 1.0 (100%), caused
       // significant CPU overhead by tracing every UI operation.
       options.tracesSampleRate = kReleaseMode ? 0.2 : 0.0;
@@ -270,12 +269,7 @@ void main() async {
           ChangeNotifierProvider.value(value: qfUserAuth),
           Provider.value(value: qfUserApi),
         ],
-        child: DevicePreview(
-          // Disabled by default — enable only when testing responsive layouts.
-          // Was always-on in debug, adding overlay + MediaQuery overhead.
-          enabled: false,
-          builder: (context) => const QuranApp(),
-        ),
+        child: const QuranApp(),
       ),
     ),
   );
@@ -302,7 +296,7 @@ class QuranApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          builder: DevicePreview.appBuilder,
+
           theme: ThemeData(
             textTheme: GoogleFonts.geistTextTheme(),
             useMaterial3: true,

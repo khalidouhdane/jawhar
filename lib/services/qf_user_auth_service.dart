@@ -21,10 +21,11 @@ import 'package:quran_app/utils/app_logger.dart';
 /// 5. Stores tokens in SharedPreferences
 /// 6. Returns access_token for User API calls
 class QfUserAuthService extends ChangeNotifier {
-  // ── Pre-production credentials ──
-  // TODO: Move to env-based injection when switching to production
-  static const _clientId = '853c6541-f8f4-4480-b756-7be1946720cb';
-  static const _clientSecret = 'rQFmndx~HQFmDjpomB5L.THx0h';
+  // ── Credentials injected via --dart-define-from-file=.env ──
+  static const _clientId =
+      String.fromEnvironment('QURAN_PREPROD_CLIENT_ID');
+  static const _clientSecret =
+      String.fromEnvironment('QURAN_PREPROD_CLIENT_SECRET');
 
   // ── Pre-live OAuth2 endpoints (from OIDC discovery) ──
   static const _authEndpoint =

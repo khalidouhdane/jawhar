@@ -3,9 +3,13 @@ import 'package:quran_app/services/api_client.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
 class QuranAuthService {
-  static const String _clientId = '879421dc-68cb-4a1d-a500-c060d10478e6';
-  static const String _clientSecret = 'cKEt~daJ4tgXiJ1td0t4JwBB_z';
-  static const String _authUrl = 'https://oauth2.quran.foundation/oauth2/token';
+  static const String _clientId =
+      String.fromEnvironment('QURAN_API_CLIENT_ID');
+  static const String _clientSecret =
+      String.fromEnvironment('QURAN_API_CLIENT_SECRET');
+  static const String _authUrl =
+      String.fromEnvironment('QURAN_API_AUTH_URL',
+          defaultValue: 'https://oauth2.quran.foundation/oauth2/token');
 
   static String? _cachedToken;
   static DateTime? _tokenExpiry;

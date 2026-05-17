@@ -16,13 +16,14 @@ import 'package:quran_app/utils/app_logger.dart';
 /// 4. Exchanges the auth code for tokens via Google's token endpoint
 /// 5. Returns the idToken + accessToken for Firebase signInWithCredential
 class DesktopGoogleAuth {
-  /// Web OAuth Client ID from Firebase/Google Cloud Console.
+  /// Web OAuth Client ID — injected via --dart-define-from-file=.env
   static const _clientId =
-      '556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com';
+      String.fromEnvironment('DESKTOP_OAUTH_CLIENT_ID');
 
-  /// Client secret — required for Web-type OAuth clients.
-  /// For installed (desktop) apps, Google considers this non-confidential.
-  static const _clientSecret = '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';
+  /// Client secret — injected via --dart-define-from-file=.env
+  /// Required for Web-type OAuth clients (Google considers non-confidential).
+  static const _clientSecret =
+      String.fromEnvironment('DESKTOP_OAUTH_CLIENT_SECRET');
 
   static const _authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
   static const _tokenEndpoint = 'https://oauth2.googleapis.com/token';
