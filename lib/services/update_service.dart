@@ -22,7 +22,7 @@ class UpdateInfo {
 /// download + install on Android.
 class UpdateService {
   static const _owner = 'khalidouhdane';
-  static const _repo = 'le-quran';
+  static const _repo = 'jawhar';
   static const _apiUrl =
       'https://api.github.com/repos/$_owner/$_repo/releases/latest';
 
@@ -85,7 +85,7 @@ class UpdateService {
     void Function(double progress)? onProgress,
   }) async {
     final dir = await getTemporaryDirectory();
-    final filePath = '${dir.path}/le_quran_update.apk';
+    final filePath = '${dir.path}/jawhar_update.apk';
 
     // Download with progress
     await _dio.download(
