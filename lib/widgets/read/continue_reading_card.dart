@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
@@ -7,10 +8,21 @@ import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
-import 'package:quran_app/data/surah_metadata.dart';
 
 class ContinueReadingCard extends StatelessWidget {
   const ContinueReadingCard({super.key});
+
+  static int _surahForPage(int page) {
+    for (int i = 1; i <= 114; i++) {
+      if (surahStartPages[i] > page) return i - 1;
+    }
+    return 114;
+  }
+
+  static SurahInfo _surahInfoForPage(int page) {
+    final id = _surahForPage(page);
+    return allSurahs.firstWhere((s) => s.id == id);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,15 +30,25 @@ class ContinueReadingCard extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final localStorage = context.read<LocalStorageService>();
     final lastRead = localStorage.getLastRead();
-    final lastReadPage = lastRead?.page ?? 1;
-    final lastReadSurahSimple = lastRead?.surahName ?? 'Al-Fatihah';
-    
+
+    if (lastRead == null) {
+      return const SizedBox.shrink();
+    }
+
+    final lastReadPage = lastRead.page;
+    final surah = _surahInfoForPage(lastReadPage);
+
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final surahInfo = allSurahs.firstWhere(
-      (s) => s.nameSimple == lastReadSurahSimple,
-      orElse: () => allSurahs.first,
-    );
-    final lastReadSurah = isArabic ? surahInfo.nameArabic : surahInfo.nameSimple;
+    final displaySurahName = isArabic ? surah.nameArabic : surah.nameSimple;
+
+    final surahStart = surah.startPage;
+    final surahEnd = surah.id < 114 ? surahStartPages[surah.id + 1] - 1 : 604;
+    final pagesInSurah = surahEnd - surahStart + 1;
+
+    final progressInSurah = lastReadPage >= surahStart
+        ? ((lastReadPage - surahStart + 1) / pagesInSurah).clamp(0.0, 1.0)
+        : 0.0;
+    final percentageText = '${(progressInSurah * 100).round()}%';
 
     return Container(
       width: double.infinity,
@@ -49,38 +71,70 @@ class ContinueReadingCard extends StatelessWidget {
               color: theme.mutedText,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      lastReadSurah,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: theme.primaryText,
+                    SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: progressInSurah,
+                            strokeWidth: 3.5,
+                            backgroundColor: theme.dividerColor,
+                            valueColor: AlwaysStoppedAnimation<Color>(theme.primaryText),
+                          ),
+                          Text(
+                            percentageText,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${l10n.homePage} $lastReadPage',
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 14,
-                        color: theme.secondaryText,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displaySurahName,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${l10n.homePage} $lastReadPage · $pagesInSurah pages',
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 13,
+                              color: theme.secondaryText,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
               GestureDetector(
                 onTap: () {
                   final nav = context.read<NavigationProvider>();
