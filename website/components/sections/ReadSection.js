@@ -7,24 +7,24 @@ export default function ReadSection() {
       <div className={styles.content}>
         <h2 className={styles.title}>Read, beautifully.</h2>
         <p className={styles.description}>
-          Experience the Quran like never before. With the full Madani layout for both Hafs and Warsh, dark mode, and over 40 reciters with verse-level sync, every reading session is a moment of peace.
+          Begin with the Mushaf itself: Hafs or Warsh, the full Madani page, and recitation that follows the verse you are reading.
         </p>
 
         <div className={styles.grid}>
           <div className={styles.featureCard}>
             <div className={styles.featureIcon}><BookOpen size={24} /></div>
             <h3 className={styles.featureTitle}>Full Mushaf</h3>
-            <p className={styles.featureText}>604 pages of the pristine Madani layout, dynamically switching between Hafs and Warsh rewayas.</p>
+            <p className={styles.featureText}>604 pages in the Madani layout, with Hafs and Warsh available from the same reading flow.</p>
           </div>
           <div className={styles.featureCard}>
             <div className={styles.featureIcon}><Mic size={24} /></div>
             <h3 className={styles.featureTitle}>40+ Reciters</h3>
-            <p className={styles.featureText}>Seamless audio with verse-level highlighting to keep your eyes and ears perfectly synchronized.</p>
+            <p className={styles.featureText}>Full-chapter audio with verse-level highlighting, so listening stays attached to the page.</p>
           </div>
           <div className={styles.featureCard}>
             <div className={styles.featureIcon}><Moon size={24} /></div>
             <h3 className={styles.featureTitle}>Focus Mode</h3>
-            <p className={styles.featureText}>Distraction-free dark mode, bookmarks, and daily Werd tracking to build an unbreakable habit.</p>
+            <p className={styles.featureText}>Dark mode, bookmarks, and daily werd tracking remain present without crowding the text.</p>
           </div>
         </div>
       </div>

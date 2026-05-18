@@ -37,18 +37,18 @@ const VERSE_ROWS = [
 const FEATURE_ROWS = [
   [
     { type: "translation", label: "Translation", text: "In the name of Allah, the Entirely Merciful" },
-    { type: "reciter", label: "Reciter", text: "Mishary al-Afasy", sub: "Warsh · Al-Fatiha" },
-    { type: "tafsir", label: "Tafsir", text: "The Basmalah opens every surah except At-Tawbah" },
+    { type: "tafsir", label: "Brief Tafsir", text: "Mercy opens the recitation before command" },
+    { type: "asbab", label: "Context", text: "Theme, setting, and reason when available" },
+  ],
+  [
+    { type: "plan", label: "Daily Plan", text: "Sabaq today. Sabqi tomorrow. Manzil always." },
+    { type: "session", label: "Session", text: "15 min · 5 reps · Self-assessed: Strong" },
+    { type: "reciter", label: "Reciter", text: "Mishary al-Afasy", sub: "Verse-synced audio" },
   ],
   [
     { type: "mutashabihat", label: "Mutashabihat", v1: "2:255 اللَّهُ", v2: "3:2 اللَّهُ" },
-    { type: "flashcard", label: "Flashcard", text: "What does الرَّحْمَٰنِ mean?" },
-    { type: "plan", label: "Daily Plan", text: "Sabaq: p.305–306 · Manzil: p.1–10" },
-  ],
-  [
-    { type: "asbab", label: "Asbab al-Nuzul", text: "Revealed in Mecca, 5th year of prophecy" },
-    { type: "progress", label: "Progress", text: "Juz 1 — 72% memorized" },
-    { type: "session", label: "Session", text: "15 min · 5 reps · Self-assessed: Good" },
+    { type: "flashcard", label: "Flashcard", text: "Recall the next verse from memory" },
+    { type: "progress", label: "Progress", text: "Retention strengthens through review" },
   ],
 ];
 
@@ -294,6 +294,7 @@ export default function WisprFlowHero() {
       {/* ── Hero copy ── */}
       <div className={styles.copy}>
         <p className={styles.wordmark}>jawhar</p>
+        <p className={styles.lensLine}>Verse in. Meaning out.</p>
         <h1 className={styles.headline}>
           {"Memorize with Meaning.".split('').map((char, i) => (
             <span
@@ -310,8 +311,8 @@ export default function WisprFlowHero() {
           ))}
         </h1>
         <p className={styles.subtitle}>
-          The first Quran companion built on understanding.<br/>
-          Closed source for now. Free forever.
+          Meaning becomes the anchor. The plan follows.<br/>
+          Read, understand, and review with one quiet system.
         </p>
         <div className={styles.ctas}>
           <a href="#waitlist" className="btn btn-primary btn-large">

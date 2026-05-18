@@ -4,19 +4,19 @@ import styles from "./ProblemSection.module.css";
 
 const painPoints = [
   {
-    quote: "Hifz is 80% revision. No app plans it.",
+    quote: "Hifz is mostly revision. Most tools only count progress.",
     detail:
-      "Every app lets you track pages. None of them tell you what to revise today, or manage the exponential growth of review material.",
+      "A memorization journey does not fail because the user forgot to mark a page. It fails when today's review is unclear.",
   },
   {
-    quote: "I memorized Juz 30 but can't explain a single verse.",
+    quote: "A verse can be repeated many times and still feel distant.",
     detail:
-      "Memorization without understanding leads to fragile memory. The meaning is the anchor that makes verses stick.",
+      "Meaning is not extra. It is the anchor that helps a verse become familiar, connected, and remembered.",
   },
   {
-    quote: "The same app design, over and over.",
+    quote: "The interface should not compete with the Quran.",
     detail:
-      "Green backgrounds, gold accents, basic counters. 500+ Quran apps — but the same experience recycled endlessly.",
+      "Jawhar keeps the system quiet: clear plans, precise context, and enough structure to support the work without taking over.",
   },
 ];
 
@@ -32,7 +32,7 @@ export default function ProblemSection() {
             className="heading-sub"
             style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}
           >
-            500+ Quran apps. None help you understand what you memorize.
+            Memorization needs more than a counter.
           </h2>
         </ScrollReveal>
 
@@ -51,7 +51,7 @@ export default function ProblemSection() {
 
         <ScrollReveal delay={0.5}>
           <p className={styles.source}>
-            — from Reddit r/islam, r/Quran, app store reviews
+            The app disappears. The Quran appears.
           </p>
         </ScrollReveal>
       </div>

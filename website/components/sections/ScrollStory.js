@@ -1,6 +1,7 @@
 "use client";
 
 import WisprFlowHero from '../explore/WisprFlowHero';
+import ProblemSection from './ProblemSection';
 import ReadSection from './ReadSection';
 import UnderstandSection from './UnderstandSection';
 import MemorizeSection from './MemorizeSection';
@@ -13,6 +14,8 @@ export default function ScrollStory() {
       {/* Sections */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <WisprFlowHero />
+        <div className="section-divider" />
+        <ProblemSection />
         <div className="section-divider" />
         <ReadSection />
         <div className="section-divider" />
