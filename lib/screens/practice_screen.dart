@@ -128,9 +128,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     return Material(
       color: hasDue
-          ? (theme.isDark
-                ? const Color(0xFF1A1A1A)
-                : const Color(0xFF171717))
+          ? (theme.isDark ? const Color(0xFF1A1A1A) : const Color(0xFF171717))
           : theme.cardColor,
       borderRadius: BorderRadius.circular(theme.radiusXl),
       child: InkWell(
@@ -152,8 +150,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   color: hasDue
                       ? heroText.withValues(alpha: 0.1)
                       : (theme.isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.05)),
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.black.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(theme.radiusLg + 6),
                 ),
                 child: Center(
@@ -255,7 +253,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   icon: LucideIcons.pencil,
                   title: AppLocalizations.of(context)!.pracCompleteIt,
                   subtitle: AppLocalizations.of(context)!.pracCompleteItSub,
-                  dueCount: fc.getDueCountForType(FlashcardType.verseCompletion),
+                  dueCount: fc.getDueCountForType(
+                    FlashcardType.verseCompletion,
+                  ),
                   onTap: () => _openReview(type: FlashcardType.verseCompletion),
                 ),
               ),
@@ -284,7 +284,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   icon: LucideIcons.link,
                   title: AppLocalizations.of(context)!.pracSequence,
                   subtitle: AppLocalizations.of(context)!.pracSequenceSub,
-                  dueCount: fc.getDueCountForType(FlashcardType.connectSequence),
+                  dueCount: fc.getDueCountForType(
+                    FlashcardType.connectSequence,
+                  ),
                   onTap: () => _openReview(type: FlashcardType.connectSequence),
                 ),
               ),
@@ -295,8 +297,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   icon: LucideIcons.swords,
                   title: AppLocalizations.of(context)!.pracMutashabihat,
                   subtitle: AppLocalizations.of(context)!.pracMutArabic,
-                  dueCount: fc.getDueCountForType(FlashcardType.mutashabihatDuel),
-                  onTap: () => _openReview(type: FlashcardType.mutashabihatDuel),
+                  dueCount: fc.getDueCountForType(
+                    FlashcardType.mutashabihatDuel,
+                  ),
+                  onTap: () =>
+                      _openReview(type: FlashcardType.mutashabihatDuel),
                 ),
               ),
             ],
@@ -346,7 +351,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       color: iconBg,
                       borderRadius: BorderRadius.circular(theme.radiusLg + 2),
                     ),
-                    child: Center(child: Icon(icon, size: 16, color: theme.secondaryText)),
+                    child: Center(
+                      child: Icon(icon, size: 16, color: theme.secondaryText),
+                    ),
                   ),
                   const Spacer(),
                   if (hasDue)
@@ -390,10 +397,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               Text(
                 subtitle,
                 textDirection: Directionality.of(context),
-                style: GoogleFonts.amiri(
-                  fontSize: 12,
-                  color: theme.mutedText,
-                ),
+                style: GoogleFonts.amiri(fontSize: 12, color: theme.mutedText),
               ),
             ],
           ),

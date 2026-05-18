@@ -89,7 +89,9 @@ class ContinueReadingCard extends StatelessWidget {
                             value: progressInSurah,
                             strokeWidth: 3.5,
                             backgroundColor: theme.dividerColor,
-                            valueColor: AlwaysStoppedAnimation<Color>(theme.primaryText),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.primaryText,
+                            ),
                           ),
                           Text(
                             percentageText,
@@ -139,14 +141,20 @@ class ContinueReadingCard extends StatelessWidget {
                 onTap: () {
                   final nav = context.read<NavigationProvider>();
                   nav.enterReadingView();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ReadingScreen(initialPage: lastReadPage),
-                    ),
-                  ).then((_) => nav.exitReadingView());
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ReadingScreen(initialPage: lastReadPage),
+                        ),
+                      )
+                      .then((_) => nav.exitReadingView());
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.foregroundColor,
                     borderRadius: BorderRadius.circular(theme.radiusLg),
@@ -154,7 +162,11 @@ class ContinueReadingCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(LucideIcons.bookOpen, size: 16, color: theme.scaffoldBackground),
+                      Icon(
+                        LucideIcons.bookOpen,
+                        size: 16,
+                        color: theme.scaffoldBackground,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         l10n.actionResume,

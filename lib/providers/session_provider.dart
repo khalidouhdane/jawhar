@@ -521,10 +521,16 @@ class SessionProvider extends ChangeNotifier {
         final gen = CardGenerationService(_db);
         final count = await gen.generateCards(_plan!.profileId);
         if (count > 0) {
-          AppLogger.info('Session', 'Generated $count flashcards after session completion');
+          AppLogger.info(
+            'Session',
+            'Generated $count flashcards after session completion',
+          );
         }
       } catch (e) {
-        AppLogger.info('Session', 'Flashcard generation after session failed: $e');
+        AppLogger.info(
+          'Session',
+          'Flashcard generation after session failed: $e',
+        );
       }
     }
 
@@ -560,7 +566,9 @@ class SessionProvider extends ChangeNotifier {
             durationSeconds: _elapsedSeconds,
           )
           .then((_) {
-            AppLogger.info('Session', '[QF_SYNC] Reading session recorded: pages $startPage-$endPage',
+            AppLogger.info(
+              'Session',
+              '[QF_SYNC] Reading session recorded: pages $startPage-$endPage',
             );
           });
 

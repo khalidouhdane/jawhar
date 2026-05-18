@@ -22,13 +22,17 @@ class CardGenerationService {
     final stats = await _db.getFlashcardStats(profileId);
     final dueCount = (stats['due'] as num?)?.toInt() ?? 0;
     if (dueCount >= _maxDueCards) {
-      AppLogger.info('CardGen', '[Flashcard Gen] Already $dueCount due cards — skipping generation',
+      AppLogger.info(
+        'CardGen',
+        '[Flashcard Gen] Already $dueCount due cards — skipping generation',
       );
       return 0;
     }
 
     final progress = await _db.getAllPageProgress(profileId);
-    AppLogger.info('CardGen', '[Flashcard Gen] Profile: $profileId, progress: ${progress.length} pages',
+    AppLogger.info(
+      'CardGen',
+      '[Flashcard Gen] Profile: $profileId, progress: ${progress.length} pages',
     );
     if (progress.isEmpty) return 0;
 
@@ -51,7 +55,10 @@ class CardGenerationService {
       }
     }
 
-    AppLogger.info('CardGen', '[Flashcard Gen] Total eligible verses: ${verses.length}');
+    AppLogger.info(
+      'CardGen',
+      '[Flashcard Gen] Total eligible verses: ${verses.length}',
+    );
     if (verses.isEmpty) return 0;
 
     final random = Random();
@@ -72,44 +79,54 @@ class CardGenerationService {
         );
 
     final createdCards = <Flashcard>[];
-    
-    createdCards.addAll(await _generateNextVerseCards(
-      profileId,
-      verses,
-      random,
-      max: nvBudget,
-    ));
-    createdCards.addAll(await _generateSurahDetectiveCards(
-      profileId,
-      verses,
-      random,
-      max: sdBudget,
-    ));
-    createdCards.addAll(await _generateVerseCompletionCards(
-      profileId,
-      verses,
-      random,
-      max: vcBudget,
-    ));
-    createdCards.addAll(await _generatePreviousVerseCards(
-      profileId,
-      verses,
-      random,
-      max: pvBudget,
-    ));
-    createdCards.addAll(await _generateConnectSequenceCards(
-      profileId,
-      verses,
-      random,
-      max: csBudget,
-    ));
-    createdCards.addAll(await _generateMutashabihatDuelCards(profileId, max: mdBudget));
+
+    createdCards.addAll(
+      await _generateNextVerseCards(profileId, verses, random, max: nvBudget),
+    );
+    createdCards.addAll(
+      await _generateSurahDetectiveCards(
+        profileId,
+        verses,
+        random,
+        max: sdBudget,
+      ),
+    );
+    createdCards.addAll(
+      await _generateVerseCompletionCards(
+        profileId,
+        verses,
+        random,
+        max: vcBudget,
+      ),
+    );
+    createdCards.addAll(
+      await _generatePreviousVerseCards(
+        profileId,
+        verses,
+        random,
+        max: pvBudget,
+      ),
+    );
+    createdCards.addAll(
+      await _generateConnectSequenceCards(
+        profileId,
+        verses,
+        random,
+        max: csBudget,
+      ),
+    );
+    createdCards.addAll(
+      await _generateMutashabihatDuelCards(profileId, max: mdBudget),
+    );
 
     for (final card in createdCards) {
       await _db.saveFlashcard(card);
     }
 
-    AppLogger.info('CardGen', '[Flashcard Gen] Total created: ${createdCards.length} new flashcards');
+    AppLogger.info(
+      'CardGen',
+      '[Flashcard Gen] Total created: ${createdCards.length} new flashcards',
+    );
     return createdCards.length;
   }
 
@@ -243,19 +260,19 @@ class CardGenerationService {
   }) async {
     if (max <= 0) return [];
     final created = <Flashcard>[];
-    
+
     // In sandbox, we don't care about needsPractice status
     final groups = isSandbox
         ? await _db.getAllMutashabihat()
         : await _db.getMutashabihatByStatus(MutashabihatStatus.needsPractice);
-    
+
     if (isSandbox) groups.shuffle(Random());
 
     for (final group in groups) {
       if (group.similarVerses.isEmpty) continue;
 
       final verseKey = group.sourceVerseKey;
-      
+
       if (!isSandbox) {
         final exists = await _db.flashcardExists(
           profileId,
@@ -278,7 +295,10 @@ class CardGenerationService {
         final simVerse = int.parse(simParts[1]);
         similarText = quran.getVerse(simSurah, simVerse);
       } catch (e) {
-        AppLogger.info('CardGen', '[Flashcard Gen] Failed to parse mutashabihat verse: $e');
+        AppLogger.info(
+          'CardGen',
+          '[Flashcard Gen] Failed to parse mutashabihat verse: $e',
+        );
         continue;
       }
 
@@ -533,7 +553,11 @@ class CardGenerationService {
   }
 
   /// Generate playful sandbox cards (no DB saves, random Amma verses).
-  Future<List<Flashcard>> generatePlayfulCards(String profileId, FlashcardType? type, {int count = 10}) async {
+  Future<List<Flashcard>> generatePlayfulCards(
+    String profileId,
+    FlashcardType? type, {
+    int count = 10,
+  }) async {
     final verses = <_VerseRef>[];
     for (int surah = 78; surah <= 114; surah++) {
       final verseCount = quran.getVerseCount(surah);
@@ -541,41 +565,133 @@ class CardGenerationService {
         verses.add(_VerseRef(surah, v, 1));
       }
     }
-    
+
     final random = Random();
     final cards = <Flashcard>[];
-    
+
     if (type == null) {
       // Mixed
-      cards.addAll(await _generateNextVerseCards(profileId, verses, random, max: 2, isSandbox: true));
-      cards.addAll(await _generateSurahDetectiveCards(profileId, verses, random, max: 2, isSandbox: true));
-      cards.addAll(await _generateVerseCompletionCards(profileId, verses, random, max: 2, isSandbox: true));
-      cards.addAll(await _generatePreviousVerseCards(profileId, verses, random, max: 2, isSandbox: true));
-      cards.addAll(await _generateConnectSequenceCards(profileId, verses, random, max: 1, isSandbox: true));
-      cards.addAll(await _generateMutashabihatDuelCards(profileId, max: 1, isSandbox: true));
+      cards.addAll(
+        await _generateNextVerseCards(
+          profileId,
+          verses,
+          random,
+          max: 2,
+          isSandbox: true,
+        ),
+      );
+      cards.addAll(
+        await _generateSurahDetectiveCards(
+          profileId,
+          verses,
+          random,
+          max: 2,
+          isSandbox: true,
+        ),
+      );
+      cards.addAll(
+        await _generateVerseCompletionCards(
+          profileId,
+          verses,
+          random,
+          max: 2,
+          isSandbox: true,
+        ),
+      );
+      cards.addAll(
+        await _generatePreviousVerseCards(
+          profileId,
+          verses,
+          random,
+          max: 2,
+          isSandbox: true,
+        ),
+      );
+      cards.addAll(
+        await _generateConnectSequenceCards(
+          profileId,
+          verses,
+          random,
+          max: 1,
+          isSandbox: true,
+        ),
+      );
+      cards.addAll(
+        await _generateMutashabihatDuelCards(
+          profileId,
+          max: 1,
+          isSandbox: true,
+        ),
+      );
     } else {
       switch (type) {
         case FlashcardType.nextVerse:
-          cards.addAll(await _generateNextVerseCards(profileId, verses, random, max: count, isSandbox: true));
+          cards.addAll(
+            await _generateNextVerseCards(
+              profileId,
+              verses,
+              random,
+              max: count,
+              isSandbox: true,
+            ),
+          );
           break;
         case FlashcardType.surahDetective:
-          cards.addAll(await _generateSurahDetectiveCards(profileId, verses, random, max: count, isSandbox: true));
+          cards.addAll(
+            await _generateSurahDetectiveCards(
+              profileId,
+              verses,
+              random,
+              max: count,
+              isSandbox: true,
+            ),
+          );
           break;
         case FlashcardType.mutashabihatDuel:
-          cards.addAll(await _generateMutashabihatDuelCards(profileId, max: count, isSandbox: true));
+          cards.addAll(
+            await _generateMutashabihatDuelCards(
+              profileId,
+              max: count,
+              isSandbox: true,
+            ),
+          );
           break;
         case FlashcardType.verseCompletion:
-          cards.addAll(await _generateVerseCompletionCards(profileId, verses, random, max: count, isSandbox: true));
+          cards.addAll(
+            await _generateVerseCompletionCards(
+              profileId,
+              verses,
+              random,
+              max: count,
+              isSandbox: true,
+            ),
+          );
           break;
         case FlashcardType.previousVerse:
-          cards.addAll(await _generatePreviousVerseCards(profileId, verses, random, max: count, isSandbox: true));
+          cards.addAll(
+            await _generatePreviousVerseCards(
+              profileId,
+              verses,
+              random,
+              max: count,
+              isSandbox: true,
+            ),
+          );
           break;
         case FlashcardType.connectSequence:
-          cards.addAll(await _generateConnectSequenceCards(profileId, verses, random, max: count, isSandbox: true));
+          cards.addAll(
+            await _generateConnectSequenceCards(
+              profileId,
+              verses,
+              random,
+              max: count,
+              isSandbox: true,
+            ),
+          );
           break;
       }
     }
-    
+
     cards.shuffle(random);
     return cards.take(count).toList();
   }

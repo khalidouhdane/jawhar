@@ -194,7 +194,12 @@ class _MutashabihatPracticeScreenState
           const SizedBox(width: 8),
           _modeChip(theme, _PracticeMode.context, LucideIcons.link, 'Context'),
           const SizedBox(width: 8),
-          _modeChip(theme, _PracticeMode.quiz, LucideIcons.clipboardList, 'Quiz'),
+          _modeChip(
+            theme,
+            _PracticeMode.quiz,
+            LucideIcons.clipboardList,
+            'Quiz',
+          ),
         ],
       ),
     );

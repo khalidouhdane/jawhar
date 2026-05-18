@@ -7,7 +7,9 @@ class GeistTokens {
 
   // ── Light Mode Neutrals ──
   static const lightScaffold = Color(0xFFFAFAFA); // background-200 (page)
-  static const lightSurface = Color(0xFFFFFFFF);  // background-100 (card/surface)
+  static const lightSurface = Color(
+    0xFFFFFFFF,
+  ); // background-100 (card/surface)
   static const lightSubtle = Color(0xFFFAFAFA); // Gray-50
   static const lightDivider = Color(0xFFEAEAEA); // Gray-200
   static const lightPrimary = Color(0xFF171717); // Gray-900
@@ -36,8 +38,12 @@ class GeistTokens {
   static const lightBackground100 = Color(0xFFFFFFFF);
   static const darkBackground100 = Color(0xFF000000);
 
-  static const lightGray400 = Color(0xFFEAEAEA); // Closer to accents 2 for light borders
-  static const darkGray400 = Color(0xFF333333); // Closer to accents 2 for dark borders
+  static const lightGray400 = Color(
+    0xFFEAEAEA,
+  ); // Closer to accents 2 for light borders
+  static const darkGray400 = Color(
+    0xFF333333,
+  ); // Closer to accents 2 for dark borders
 
   static const lightGrayAlpha1000 = Color(0xFF171717);
   static const darkGrayAlpha1000 = Color(0xFFEDEDED);

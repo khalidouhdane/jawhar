@@ -97,7 +97,10 @@ class BreakRecoveryService {
         );
         return result;
       } catch (e) {
-        AppLogger.info('Recovery', 'AI recovery plan failed, using template: $e');
+        AppLogger.info(
+          'Recovery',
+          'AI recovery plan failed, using template: $e',
+        );
       }
     }
 
@@ -122,7 +125,10 @@ class BreakRecoveryService {
         'currentSabaqPage': profile.startingPage,
       };
     } catch (e) {
-      AppLogger.info('Recovery', '[AI] Break recovery progress fetch failed: $e');
+      AppLogger.info(
+        'Recovery',
+        '[AI] Break recovery progress fetch failed: $e',
+      );
       return {
         'totalSessions': 0,
         'strongSessions': 0,

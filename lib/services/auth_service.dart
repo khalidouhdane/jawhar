@@ -53,7 +53,7 @@ class AuthService extends ChangeNotifier {
   /// Initialize — listen for auth state changes and resolve web redirects.
   void init() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
-    
+
     if (kIsWeb) {
       // Must call getRedirectResult on web to finalize the signInWithRedirect flow
       // when the user returns to the app from the Google login page.
@@ -140,11 +140,11 @@ class AuthService extends ChangeNotifier {
       try {
         final provider = GoogleAuthProvider();
         await _auth.signInWithRedirect(provider);
-        // The page will redirect to Google. Hang the future so the UI shows 
+        // The page will redirect to Google. Hang the future so the UI shows
         // a loading spinner until the browser actually navigates away,
         // preventing a false 'Sign-in failed' red toast from flashing.
         await Future.delayed(const Duration(seconds: 10));
-        return true; 
+        return true;
       } catch (e) {
         AppLogger.info('Auth', '[AUTH] Web redirect error: $e');
         return false;

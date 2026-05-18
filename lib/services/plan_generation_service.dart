@@ -86,10 +86,12 @@ class PlanGenerationService {
       manzilMin = params.manzilMinutes;
     }
 
-    AppLogger.info('PlanGen', '[PLAN] Time redistribution: '
-      'hasReview=$hasReviewContent, hasManzil=$hasManzilContent → '
-      'sabaq=${sabaqMin}m, sabqi=${sabqiMin}m, manzil=${manzilMin}m '
-      '(total=${sabaqMin + sabqiMin + manzilMin}m / daily=${profile.dailyTimeMinutes}m)',
+    AppLogger.info(
+      'PlanGen',
+      '[PLAN] Time redistribution: '
+          'hasReview=$hasReviewContent, hasManzil=$hasManzilContent → '
+          'sabaq=${sabaqMin}m, sabqi=${sabqiMin}m, manzil=${manzilMin}m '
+          '(total=${sabaqMin + sabqiMin + manzilMin}m / daily=${profile.dailyTimeMinutes}m)',
     );
 
     final plan = DailyPlan(
@@ -136,12 +138,17 @@ class PlanGenerationService {
       final prevPage = previousPlan.sabaqPage;
       final prevLineEnd = previousPlan.sabaqLineEnd;
 
-      AppLogger.info('PlanGen', '[PLAN] Previous plan: page=$prevPage, lineEnd=$prevLineEnd, linesPerSession=${params.linesPerSession}',
+      AppLogger.info(
+        'PlanGen',
+        '[PLAN] Previous plan: page=$prevPage, lineEnd=$prevLineEnd, linesPerSession=${params.linesPerSession}',
       );
 
       if (prevLineEnd >= 15) {
         // Full page was assigned — advance to next page
-        AppLogger.info('PlanGen', '[PLAN] Full page done → advancing to next page');
+        AppLogger.info(
+          'PlanGen',
+          '[PLAN] Full page done → advancing to next page',
+        );
         return _findNextUnstartedPage(profile, progress, params);
       } else {
         // Partial page — continue from next line on same page
@@ -158,10 +165,14 @@ class PlanGenerationService {
         if (remainingAfter > 0 &&
             remainingAfter < (params.linesPerSession / 2).ceil()) {
           nextLineEnd = 15;
-          AppLogger.info('PlanGen', '[PLAN] Absorbing $remainingAfter remaining lines → $nextLineStart-$nextLineEnd',
+          AppLogger.info(
+            'PlanGen',
+            '[PLAN] Absorbing $remainingAfter remaining lines → $nextLineStart-$nextLineEnd',
           );
         } else {
-          AppLogger.info('PlanGen', '[PLAN] Partial page → next lines: $nextLineStart-$nextLineEnd',
+          AppLogger.info(
+            'PlanGen',
+            '[PLAN] Partial page → next lines: $nextLineStart-$nextLineEnd',
           );
         }
 

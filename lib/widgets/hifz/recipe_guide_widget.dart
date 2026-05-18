@@ -208,7 +208,9 @@ class RecipeGuideWidget extends StatelessWidget {
                 child: Icon(
                   isComplete ? LucideIcons.check : LucideIcons.plus,
                   size: 24,
-                  color: isComplete ? theme.scaffoldBackground : theme.scaffoldBackground,
+                  color: isComplete
+                      ? theme.scaffoldBackground
+                      : theme.scaffoldBackground,
                 ),
               ),
             ),

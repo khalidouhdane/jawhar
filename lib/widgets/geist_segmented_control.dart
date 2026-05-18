@@ -29,11 +29,14 @@ class GeistSegmentedControl<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.isDark
             ? GeistTokens.darkSubtle
-            : GeistTokens.lightSubtle, // Very subtle background (Gray-50/Gray-900)
+            : GeistTokens
+                  .lightSubtle, // Very subtle background (Gray-50/Gray-900)
         borderRadius: BorderRadius.circular(GeistTokens.radiusXl),
         boxShadow: [
           BoxShadow(
-            color: theme.isDark ? const Color(0x33000000) : const Color(0x0A000000),
+            color: theme.isDark
+                ? const Color(0x33000000)
+                : const Color(0x0A000000),
             spreadRadius: 1,
             blurRadius: 0,
           ),
@@ -45,7 +48,8 @@ class GeistSegmentedControl<T> extends StatelessWidget {
           final isRtl = Directionality.of(context) == TextDirection.rtl;
 
           return SizedBox(
-            height: 40, // Fixed comfortable height (40 + 8 padding = 48dp minimum touch target)
+            height:
+                40, // Fixed comfortable height (40 + 8 padding = 48dp minimum touch target)
             child: Stack(
               children: [
                 // ── Animated Selection Pill ──
@@ -59,7 +63,8 @@ class GeistSegmentedControl<T> extends StatelessWidget {
                   width: tabWidth,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: theme.primaryText, // Inverted appearance (dark in light mode, white in dark mode)
+                      color: theme
+                          .primaryText, // Inverted appearance (dark in light mode, white in dark mode)
                       borderRadius: BorderRadius.circular(GeistTokens.radiusLg),
                       boxShadow: [
                         BoxShadow(

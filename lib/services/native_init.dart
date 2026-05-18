@@ -8,7 +8,10 @@ import 'package:quran_app/services/push_notification_service.dart';
 
 /// Initialize native-only services (desktop SQLite, audio session, notifications).
 /// This file is loaded on non-web platforms.
-Future<void> initNativePlatform(AudioProvider audioProvider, PushNotificationService pushNotifService) async {
+Future<void> initNativePlatform(
+  AudioProvider audioProvider,
+  PushNotificationService pushNotifService,
+) async {
   // Initialize SQLite FFI for desktop platforms (Windows, macOS, Linux)
   if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
     sqfliteFfiInit();

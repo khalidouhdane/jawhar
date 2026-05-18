@@ -7,7 +7,8 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
-import 'package:quran_app/widgets/context/tafsir_sheet.dart' show showTafsirSheet;
+import 'package:quran_app/widgets/context/tafsir_sheet.dart'
+    show showTafsirSheet;
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 
@@ -50,9 +51,7 @@ class TodayContextCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.isDark
-            ? const Color(0xFF1A1A1A)
-            : const Color(0xFF171717),
+        color: theme.isDark ? const Color(0xFF1A1A1A) : const Color(0xFF171717),
         borderRadius: BorderRadius.circular(theme.radiusLg),
         boxShadow: theme.shadowCard,
       ),
@@ -70,11 +69,7 @@ class TodayContextCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(theme.radiusLg),
                 ),
                 child: Center(
-                  child: Icon(
-                    LucideIcons.sparkles,
-                    size: 16,
-                    color: heroText,
-                  ),
+                  child: Icon(LucideIcons.sparkles, size: 16, color: heroText),
                 ),
               ),
               const SizedBox(width: 10),
@@ -132,7 +127,9 @@ class TodayContextCard extends StatelessWidget {
                     child: Text(
                       l10n.surahInfoLabel(
                         surah.nameSimple,
-                        surah.isMeccan ? l10n.revelationMeccan : l10n.revelationMedinan,
+                        surah.isMeccan
+                            ? l10n.revelationMeccan
+                            : l10n.revelationMedinan,
                         surah.versesCount,
                       ),
                       style: TextStyle(

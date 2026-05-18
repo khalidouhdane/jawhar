@@ -35,10 +35,8 @@ class ThemeProvider extends ChangeNotifier {
     } else {
       // No saved preference — detect system brightness
       try {
-        final brightness =
-            ui.PlatformDispatcher.instance.platformBrightness;
-        _theme =
-            brightness == Brightness.dark ? AppTheme.dark : AppTheme.light;
+        final brightness = ui.PlatformDispatcher.instance.platformBrightness;
+        _theme = brightness == Brightness.dark ? AppTheme.dark : AppTheme.light;
       } catch (_) {
         // Detection failed — fallback to light (encouraged default)
         _theme = AppTheme.light;
@@ -299,22 +297,29 @@ class ThemeProvider extends ChangeNotifier {
   Color get chipUnselectedText => secondaryText;
 
   // ── Button specific tokens ──
-  Color get buttonDefaultBg => isDark ? GeistTokens.darkGray1000 : GeistTokens.lightGray1000;
-  Color get buttonDefaultText => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
-  
-  Color get buttonSecondaryBg => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
-  Color get buttonSecondaryText => isDark ? GeistTokens.darkGray1000 : GeistTokens.lightGray1000;
-  Color get buttonSecondaryBorder => isDark ? GeistTokens.darkGray400 : GeistTokens.lightGray400;
+  Color get buttonDefaultBg =>
+      isDark ? GeistTokens.darkGray1000 : GeistTokens.lightGray1000;
+  Color get buttonDefaultText =>
+      isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
 
-  Color get buttonTertiaryText => isDark 
-      ? GeistTokens.darkGrayAlpha1000.withValues(alpha: 0.8) 
+  Color get buttonSecondaryBg =>
+      isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
+  Color get buttonSecondaryText =>
+      isDark ? GeistTokens.darkGray1000 : GeistTokens.lightGray1000;
+  Color get buttonSecondaryBorder =>
+      isDark ? GeistTokens.darkGray400 : GeistTokens.lightGray400;
+
+  Color get buttonTertiaryText => isDark
+      ? GeistTokens.darkGrayAlpha1000.withValues(alpha: 0.8)
       : GeistTokens.lightGrayAlpha1000.withValues(alpha: 0.8);
 
   Color get buttonWarningBg => GeistTokens.amber800;
-  Color get buttonWarningText => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
+  Color get buttonWarningText =>
+      isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
 
   Color get buttonErrorBg => GeistTokens.red800;
-  Color get buttonErrorText => isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
+  Color get buttonErrorText =>
+      isDark ? GeistTokens.darkBackground100 : GeistTokens.lightBackground100;
 
   // ── Shadows ──
   Color get shadowColor => isDark

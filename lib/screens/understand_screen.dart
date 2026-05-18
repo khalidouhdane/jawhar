@@ -86,7 +86,8 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
     context.watch<QuranReadingProvider>();
 
     // Show contextual card only when user has active plan with sabaq
-    final showContextCard = profile.hasActiveProfile &&
+    final showContextCard =
+        profile.hasActiveProfile &&
         plan.todayPlan != null &&
         (plan.todayPlan!.sabaqPage) > 0;
 
@@ -100,7 +101,12 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
             // ── Header ──
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
+                padding: const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: 16,
+                ),
                 child: AppHeader(
                   title: l10n.navUnderstand,
                   subtitle: l10n.undExploreDeeper,
@@ -218,17 +224,14 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final surah = filtered[index];
-                    return _SurahTile(
-                      surah: surah,
-                      theme: theme,
-                      onTap: () => _openSurahDetail(surah),
-                    );
-                  },
-                  childCount: filtered.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final surah = filtered[index];
+                  return _SurahTile(
+                    surah: surah,
+                    theme: theme,
+                    onTap: () => _openSurahDetail(surah),
+                  );
+                }, childCount: filtered.length),
               ),
             ),
           ],
@@ -333,11 +336,7 @@ class _SurahTile extends StatelessWidget {
               ),
 
               const SizedBox(width: 8),
-              Icon(
-                LucideIcons.chevronRight,
-                size: 16,
-                color: theme.mutedText,
-              ),
+              Icon(LucideIcons.chevronRight, size: 16, color: theme.mutedText),
             ],
           ),
         ),

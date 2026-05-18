@@ -42,12 +42,10 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
     _entranceOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
     );
-    _entranceSlide = Tween<Offset>(
-      begin: const Offset(0.0, 0.04),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
-    );
+    _entranceSlide =
+        Tween<Offset>(begin: const Offset(0.0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
+        );
     _entranceController.forward();
   }
 
@@ -153,8 +151,10 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
 
                 // ── Page indicators + CTA ──
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 24,
+                  ),
                   child: Column(
                     children: [
                       // Dots
@@ -189,7 +189,8 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
                             foregroundColor: theme.scaffoldBackground,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
-                                  GeistTokens.radiusXl),
+                                GeistTokens.radiusXl,
+                              ),
                             ),
                           ),
                           child: Text(
@@ -323,9 +324,7 @@ class _PhoneFrame extends StatelessWidget {
       width: frameWidth,
       height: frameHeight,
       decoration: BoxDecoration(
-        color: theme.isDark
-            ? const Color(0xFF1A1A1A)
-            : const Color(0xFF2C2C2E),
+        color: theme.isDark ? const Color(0xFF1A1A1A) : const Color(0xFF2C2C2E),
         borderRadius: BorderRadius.circular(bezelRadius),
         border: Border.all(
           color: theme.isDark
@@ -367,10 +366,7 @@ class _PhoneFrame extends StatelessWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(screenRadius - bezelWidth),
-                child: Container(
-                  color: theme.scaffoldBackground,
-                  child: child,
-                ),
+                child: Container(color: theme.scaffoldBackground, child: child),
               ),
             ),
 
@@ -420,8 +416,7 @@ class _ReadPhoneContent extends StatelessWidget {
                   color: theme.primaryText,
                 ),
               ),
-              Icon(LucideIcons.volume2,
-                  size: 12, color: theme.mutedText),
+              Icon(LucideIcons.volume2, size: 12, color: theme.mutedText),
             ],
           ),
           const SizedBox(height: 10),
@@ -440,8 +435,7 @@ class _ReadPhoneContent extends StatelessWidget {
 
           // Mini audio player bar
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: theme.surfaceColor,
               borderRadius: BorderRadius.circular(8),
@@ -449,8 +443,7 @@ class _ReadPhoneContent extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(LucideIcons.play,
-                    size: 12, color: theme.primaryText),
+                Icon(LucideIcons.play, size: 12, color: theme.primaryText),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Container(
@@ -541,7 +534,8 @@ class _UnderstandPhoneContent extends StatelessWidget {
             theme: theme,
             label: 'Translation',
             icon: LucideIcons.languages,
-            content: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
+            content:
+                'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
           ),
 
           const SizedBox(height: 8),
@@ -708,22 +702,25 @@ class _MemorizePhoneContent extends StatelessWidget {
 
           // Session phases
           _PhaseRow(
-              theme: theme,
-              label: 'New Lesson',
-              pages: 'p.305-306',
-              color: const Color(0xFF3B82F6)),
+            theme: theme,
+            label: 'New Lesson',
+            pages: 'p.305-306',
+            color: const Color(0xFF3B82F6),
+          ),
           const SizedBox(height: 4),
           _PhaseRow(
-              theme: theme,
-              label: 'Recent Review',
-              pages: 'p.303-304',
-              color: const Color(0xFFF59E0B)),
+            theme: theme,
+            label: 'Recent Review',
+            pages: 'p.303-304',
+            color: const Color(0xFFF59E0B),
+          ),
           const SizedBox(height: 4),
           _PhaseRow(
-              theme: theme,
-              label: 'Old Review',
-              pages: 'p.1-10',
-              color: const Color(0xFF22C55E)),
+            theme: theme,
+            label: 'Old Review',
+            pages: 'p.1-10',
+            color: const Color(0xFF22C55E),
+          ),
 
           const Spacer(),
 
@@ -780,10 +777,7 @@ class _PhaseRow extends StatelessWidget {
           Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
           Expanded(

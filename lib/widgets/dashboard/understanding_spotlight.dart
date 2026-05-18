@@ -8,20 +8,17 @@ import 'package:quran_app/l10n/app_localizations.dart';
 class UnderstandingSpotlight extends StatelessWidget {
   final int sabaqPage;
 
-  const UnderstandingSpotlight({
-    super.key,
-    required this.sabaqPage,
-  });
+  const UnderstandingSpotlight({super.key, required this.sabaqPage});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
-    
+
     if (sabaqPage <= 0 || sabaqPage > 604) {
       return const SizedBox.shrink();
     }
-    
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -44,11 +41,7 @@ class UnderstandingSpotlight extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  LucideIcons.sparkles,
-                  size: 14,
-                  color: theme.accentColor,
-                ),
+                Icon(LucideIcons.sparkles, size: 14, color: theme.accentColor),
                 const SizedBox(width: 6),
                 Text(
                   l10n.understandingContext,

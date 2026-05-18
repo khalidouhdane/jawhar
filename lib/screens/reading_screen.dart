@@ -119,10 +119,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   /// Find the page containing this verse key and slide to it
-  void _findAndSlideTo(
-    String verseKey,
-    QuranReadingProvider readingProvider,
-  ) {
+  void _findAndSlideTo(String verseKey, QuranReadingProvider readingProvider) {
     final currentPage = readingProvider.activePage;
 
     // Try the next page first (most common case: audio advancing forward)
@@ -935,7 +932,11 @@ class _QuranPageState extends State<_QuranPage>
                   _isLoading = false;
                 });
               },
-              icon: Icon(LucideIcons.refreshCw, size: 16, color: theme.accentColor),
+              icon: Icon(
+                LucideIcons.refreshCw,
+                size: 16,
+                color: theme.accentColor,
+              ),
               label: Text(
                 'Retry',
                 style: TextStyle(
@@ -946,10 +947,15 @@ class _QuranPageState extends State<_QuranPage>
                 ),
               ),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(theme.radiusMd),
-                  side: BorderSide(color: theme.mutedText.withValues(alpha: 0.3)),
+                  side: BorderSide(
+                    color: theme.mutedText.withValues(alpha: 0.3),
+                  ),
                 ),
               ),
             ),

@@ -21,7 +21,7 @@ class QuickActionsRow extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final flashcardProvider = context.watch<FlashcardProvider>();
     final dueCards = flashcardProvider.dueCardCount;
-    
+
     return Row(
       children: [
         Expanded(
@@ -83,10 +83,14 @@ class _ActionTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isAccent ? theme.accentColor.withValues(alpha: 0.1) : theme.pillBackground,
+          color: isAccent
+              ? theme.accentColor.withValues(alpha: 0.1)
+              : theme.pillBackground,
           borderRadius: BorderRadius.circular(theme.radiusMd),
           border: Border.all(
-            color: isAccent ? theme.accentColor.withValues(alpha: 0.2) : theme.dividerColor,
+            color: isAccent
+                ? theme.accentColor.withValues(alpha: 0.2)
+                : theme.dividerColor,
           ),
         ),
         child: Column(

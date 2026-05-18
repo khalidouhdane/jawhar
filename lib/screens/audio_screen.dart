@@ -289,11 +289,19 @@ class _AudioScreenState extends State<AudioScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.wifiOff, size: 48, color: Color(0xFF6B7280)),
+                  const Icon(
+                    LucideIcons.wifiOff,
+                    size: 48,
+                    color: Color(0xFF6B7280),
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     AppLocalizations.of(context)!.reciterNoFound,
-                    style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),

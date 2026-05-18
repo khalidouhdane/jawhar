@@ -106,8 +106,6 @@ void main() async {
   final asbabService = AsbabNuzulService();
   asbabService.importIfNeeded();
 
-
-
   // Determine initial language from saved or system locale
   final savedLocale = prefs.getString('app_locale');
   final systemLang = PlatformDispatcher.instance.locale.languageCode;
@@ -153,15 +151,19 @@ void main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = const String.fromEnvironment('SENTRY_DSN',
-          defaultValue: 'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704');
+      options.dsn = const String.fromEnvironment(
+        'SENTRY_DSN',
+        defaultValue:
+            'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704',
+      );
       // Disable performance tracing in debug — was 1.0 (100%), caused
       // significant CPU overhead by tracing every UI operation.
       options.tracesSampleRate = kReleaseMode ? 0.2 : 0.0;
     },
     appRunner: () {
       // Enable DevicePreview only on desktop debug builds
-      final enablePreview = !kReleaseMode &&
+      final enablePreview =
+          !kReleaseMode &&
           !kIsWeb &&
           (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
@@ -202,7 +204,9 @@ void main() async {
               ),
               ChangeNotifierProvider.value(value: audioProvider),
               ChangeNotifierProvider.value(value: themeProvider),
-              ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
+              ChangeNotifierProvider(
+                create: (_) => NavigationProvider(defaultTab),
+              ),
               ChangeNotifierProvider(
                 create: (_) => HifzProfileProvider(
                   hifzDb,
@@ -253,7 +257,9 @@ void main() async {
               ChangeNotifierProvider(
                 create: (_) {
                   final analyticsService = AnalyticsService(hifzDb);
-                  final notificationService = NotificationService(analyticsService);
+                  final notificationService = NotificationService(
+                    analyticsService,
+                  );
                   return AnalyticsProvider(
                     analyticsService,
                     notificationService,

@@ -46,16 +46,15 @@ class _SetupScreenState extends State<SetupScreen>
     super.initState();
 
     // Detect system language
-    final systemLang =
-        ui.PlatformDispatcher.instance.locale.languageCode;
+    final systemLang = ui.PlatformDispatcher.instance.locale.languageCode;
     _selectedLang = systemLang == 'ar' ? 'ar' : 'en';
 
     // Detect system theme — fallback to light
     try {
-      final brightness =
-          ui.PlatformDispatcher.instance.platformBrightness;
-      _selectedTheme =
-          brightness == Brightness.dark ? AppTheme.dark : AppTheme.light;
+      final brightness = ui.PlatformDispatcher.instance.platformBrightness;
+      _selectedTheme = brightness == Brightness.dark
+          ? AppTheme.dark
+          : AppTheme.light;
     } catch (_) {
       _selectedTheme = AppTheme.light;
     }
@@ -68,12 +67,10 @@ class _SetupScreenState extends State<SetupScreen>
     _entranceOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
     );
-    _entranceSlide = Tween<Offset>(
-      begin: const Offset(0.0, 0.04),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
-    );
+    _entranceSlide =
+        Tween<Offset>(begin: const Offset(0.0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
+        );
     _entranceController.forward();
   }
 
@@ -107,9 +104,9 @@ class _SetupScreenState extends State<SetupScreen>
     // Mark onboarding complete
     storage.setOnboardingComplete();
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const AppShell()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
   }
 
   Future<void> _signIn() async {
@@ -179,8 +176,7 @@ class _SetupScreenState extends State<SetupScreen>
                           child: Text(
                             'jawhar',
                             style: TextStyle(
-                              fontFamily:
-                                  GeistTypography.primaryFontFamily,
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
                               color: theme.primaryText,
@@ -193,8 +189,7 @@ class _SetupScreenState extends State<SetupScreen>
                           child: Text(
                             'Let\'s set things up.',
                             style: TextStyle(
-                              fontFamily:
-                                  GeistTypography.primaryFontFamily,
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 15,
                               color: theme.secondaryText,
                             ),
@@ -284,10 +279,8 @@ class _SetupScreenState extends State<SetupScreen>
                               child: _ThemeCard(
                                 icon: LucideIcons.sun,
                                 label: 'Light',
-                                isSelected:
-                                    _selectedTheme == AppTheme.light,
-                                onTap: () =>
-                                    _setTheme(AppTheme.light),
+                                isSelected: _selectedTheme == AppTheme.light,
+                                onTap: () => _setTheme(AppTheme.light),
                                 theme: theme,
                               ),
                             ),
@@ -296,10 +289,8 @@ class _SetupScreenState extends State<SetupScreen>
                               child: _ThemeCard(
                                 icon: LucideIcons.moon,
                                 label: 'Dark',
-                                isSelected:
-                                    _selectedTheme == AppTheme.dark,
-                                onTap: () =>
-                                    _setTheme(AppTheme.dark),
+                                isSelected: _selectedTheme == AppTheme.dark,
+                                onTap: () => _setTheme(AppTheme.dark),
                                 theme: theme,
                               ),
                             ),
@@ -310,8 +301,7 @@ class _SetupScreenState extends State<SetupScreen>
                           child: Text(
                             'Matched to your system preference',
                             style: TextStyle(
-                              fontFamily:
-                                  GeistTypography.primaryFontFamily,
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 12,
                               color: theme.mutedText,
                             ),
@@ -326,15 +316,11 @@ class _SetupScreenState extends State<SetupScreen>
 
                 // ── Bottom actions (pinned) ──
                 Container(
-                  padding: EdgeInsets.fromLTRB(
-                      28, 12, 28, 16 + bottomPadding),
+                  padding: EdgeInsets.fromLTRB(28, 12, 28, 16 + bottomPadding),
                   decoration: BoxDecoration(
                     color: theme.scaffoldBackground,
                     border: Border(
-                      top: BorderSide(
-                        color: theme.dividerColor,
-                        width: 0.5,
-                      ),
+                      top: BorderSide(color: theme.dividerColor, width: 0.5),
                     ),
                   ),
                   child: Column(
@@ -373,11 +359,9 @@ class _SetupScreenState extends State<SetupScreen>
                         GestureDetector(
                           onTap: _signIn,
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
                             child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   LucideIcons.cloud,
@@ -388,8 +372,8 @@ class _SetupScreenState extends State<SetupScreen>
                                 Text(
                                   'Sign in with Quran.com',
                                   style: TextStyle(
-                                    fontFamily: GeistTypography
-                                        .primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: theme.mutedText,
@@ -407,8 +391,7 @@ class _SetupScreenState extends State<SetupScreen>
                           child: Text(
                             _signInError!,
                             style: TextStyle(
-                              fontFamily:
-                                  GeistTypography.primaryFontFamily,
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 12,
                               color: const Color(0xFFFF6369),
                             ),
@@ -586,9 +569,7 @@ class _OptionCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected
-                      ? theme.primaryText
-                      : theme.dividerColor,
+                  color: isSelected ? theme.primaryText : theme.dividerColor,
                   width: isSelected ? 6 : 1.5,
                 ),
               ),
@@ -651,8 +632,7 @@ class _ThemeCard extends StatelessWidget {
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color:
-                    isSelected ? theme.primaryText : theme.secondaryText,
+                color: isSelected ? theme.primaryText : theme.secondaryText,
               ),
             ),
           ],

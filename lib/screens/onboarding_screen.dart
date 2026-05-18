@@ -59,20 +59,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       duration: const Duration(milliseconds: 600),
     );
     _entranceOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
     );
-    _entranceSlide = Tween<Offset>(
-      begin: const Offset(0.0, 0.05),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: Curves.easeOut,
-      ),
-    );
+    _entranceSlide =
+        Tween<Offset>(begin: const Offset(0.0, 0.05), end: Offset.zero).animate(
+          CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
+        );
     _entranceController.forward();
   }
 
@@ -119,9 +111,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     reading.setRewaya(_selectedRewaya);
     storage.setOnboardingComplete();
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const AppShell()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
   }
 
   Future<void> _signIn() async {
@@ -274,10 +266,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const Spacer(flex: 4),
 
           // CTA
-          _buildPrimaryButton(
-            label: 'Begin',
-            onTap: _next,
-          ),
+          _buildPrimaryButton(label: 'Begin', onTap: _next),
 
           const SizedBox(height: 16),
         ],
@@ -347,10 +336,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           const Spacer(flex: 3),
 
-          _buildPrimaryButton(
-            label: 'Continue',
-            onTap: _next,
-          ),
+          _buildPrimaryButton(label: 'Continue', onTap: _next),
 
           const SizedBox(height: 16),
         ],
@@ -420,10 +406,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           const Spacer(flex: 3),
 
-          _buildPrimaryButton(
-            label: 'Continue',
-            onTap: _next,
-          ),
+          _buildPrimaryButton(label: 'Continue', onTap: _next),
 
           const SizedBox(height: 16),
         ],

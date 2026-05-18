@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            
+
             // ── Scrollable Tab Content ──
             Expanded(
               child: SingleChildScrollView(
@@ -177,9 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             theme,
             icon: LucideIcons.bell,
             title: AppLocalizations.of(context)!.profileSessionReminders,
-            subtitle: AppLocalizations.of(
-              context,
-            )!.profileSessionRemindersDesc,
+            subtitle: AppLocalizations.of(context)!.profileSessionRemindersDesc,
           ),
         ),
         const SizedBox(height: 6),
@@ -447,6 +445,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
   // ── Stats Card ──
   Widget _buildStatsCard(
     BuildContext context,
@@ -758,7 +757,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     actions: [
                       GeistButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        label: AppLocalizations.of(context)!.profileActionCancel,
+                        label: AppLocalizations.of(
+                          context,
+                        )!.profileActionCancel,
                         type: GeistButtonType.tertiary,
                         size: GeistButtonSize.small,
                       ),
@@ -828,7 +829,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     actions: [
                       GeistButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        label: AppLocalizations.of(context)!.profileActionCancel,
+                        label: AppLocalizations.of(
+                          context,
+                        )!.profileActionCancel,
                         type: GeistButtonType.tertiary,
                         size: GeistButtonSize.small,
                       ),
@@ -1079,7 +1082,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.profileQfDisconnected),
+                      content: Text(
+                        AppLocalizations.of(context)!.profileQfDisconnected,
+                      ),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -1120,7 +1125,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.profileQfConnectedSuccess),
+                      content: Text(
+                        AppLocalizations.of(context)!.profileQfConnectedSuccess,
+                      ),
                       backgroundColor: theme.accentColor,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -1128,7 +1135,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 } else if (!qfAuth.isSigningIn) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.profileQfSignInFailed),
+                      content: Text(
+                        AppLocalizations.of(context)!.profileQfSignInFailed,
+                      ),
                       backgroundColor: GeistTokens.red800,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -1444,9 +1453,7 @@ class _MiniSegmentedControl extends StatelessWidget {
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  color: isActive
-                      ? theme.scaffoldBackground
-                      : theme.mutedText,
+                  color: isActive ? theme.scaffoldBackground : theme.mutedText,
                 ),
               ),
             ),

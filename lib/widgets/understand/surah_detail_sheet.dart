@@ -109,8 +109,12 @@ class SurahDetailSheet extends StatelessWidget {
                                   ? Icons.mosque_outlined
                                   : Icons.location_city_outlined,
                               color: isMeccan
-                                  ? SemanticColors.practiceAmber.fg(theme.isDark)
-                                  : SemanticColors.practiceEmerald.fg(theme.isDark),
+                                  ? SemanticColors.practiceAmber.fg(
+                                      theme.isDark,
+                                    )
+                                  : SemanticColors.practiceEmerald.fg(
+                                      theme.isDark,
+                                    ),
                               theme: theme,
                             ),
                             const SizedBox(width: 8),
@@ -217,20 +221,23 @@ class SurahDetailSheet extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            ...entry.occasions.map((o) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Text(
-                                o,
-                                style: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 13,
-                                  height: 1.5,
-                                  color: theme.secondaryText,
+                            ...entry.occasions.map(
+                              (o) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text(
+                                  o,
+                                  style: TextStyle(
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
+                                    fontSize: 13,
+                                    height: 1.5,
+                                    color: theme.secondaryText,
+                                  ),
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            )),
+                            ),
                           ],
                         ),
                       );
@@ -295,9 +302,8 @@ class SurahDetailSheet extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => ReadingScreen(
-                              initialPage: surah.startPage,
-                            ),
+                            builder: (_) =>
+                                ReadingScreen(initialPage: surah.startPage),
                           ),
                         );
                       },

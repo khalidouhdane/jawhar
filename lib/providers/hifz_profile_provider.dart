@@ -140,7 +140,9 @@ class HifzProfileProvider extends ChangeNotifier {
     final qfApi = _qfApi;
     if (qfApi != null && qfApi.isAvailable) {
       qfApi.recordStreakActivity().then((_) {
-        AppLogger.info('HifzProfile', '[QF_SYNC] Streak activity recorded via HifzProfileProvider',
+        AppLogger.info(
+          'HifzProfile',
+          '[QF_SYNC] Streak activity recorded via HifzProfileProvider',
         );
       });
     }

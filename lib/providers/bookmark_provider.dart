@@ -135,7 +135,10 @@ class BookmarkProvider extends ChangeNotifier {
     final qfApi = _qfApi;
     if (qfApi != null && qfApi.isAvailable && bookmark.verseKey != null) {
       qfApi.createBookmark(verseKey: bookmark.verseKey!).then((_) {
-        AppLogger.info('Bookmark', '[QF_SYNC] Bookmark synced: ${bookmark.verseKey}');
+        AppLogger.info(
+          'Bookmark',
+          '[QF_SYNC] Bookmark synced: ${bookmark.verseKey}',
+        );
       });
     }
   }

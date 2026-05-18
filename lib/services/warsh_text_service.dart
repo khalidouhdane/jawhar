@@ -31,7 +31,10 @@ class WarshTextService {
     _loading = true;
 
     try {
-      AppLogger.info('Warsh', '[WarshTextService] Fetching Warsh text from CDN...');
+      AppLogger.info(
+        'Warsh',
+        '[WarshTextService] Fetching Warsh text from CDN...',
+      );
       final response = await http
           .get(Uri.parse(_cdnUrl))
           .timeout(const Duration(seconds: 15));
@@ -48,12 +51,21 @@ class WarshTextService {
           _cache!['$chapter:$verse'] = text;
         }
 
-        AppLogger.info('Warsh', '[WarshTextService] Loaded ${_cache!.length} Warsh verses.');
+        AppLogger.info(
+          'Warsh',
+          '[WarshTextService] Loaded ${_cache!.length} Warsh verses.',
+        );
       } else {
-        AppLogger.info('Warsh', '[WarshTextService] CDN returned ${response.statusCode}');
+        AppLogger.info(
+          'Warsh',
+          '[WarshTextService] CDN returned ${response.statusCode}',
+        );
       }
     } catch (e) {
-      AppLogger.info('Warsh', '[WarshTextService] Failed to load Warsh text: $e');
+      AppLogger.info(
+        'Warsh',
+        '[WarshTextService] Failed to load Warsh text: $e',
+      );
     } finally {
       _loading = false;
     }

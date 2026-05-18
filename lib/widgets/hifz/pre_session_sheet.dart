@@ -120,180 +120,181 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
           children: [
             // ── Drag Handle ──
             const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: theme.dividerColor,
-              borderRadius: BorderRadius.circular(2),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // ── Header ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.preSessionDoneOffline,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: theme.primaryText,
+            // ── Header ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.preSessionDoneOffline,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: theme.primaryText,
+                          ),
                         ),
+                        const SizedBox(height: 2),
+                        Text(
+                          AppLocalizations.of(context)!.preSessionCheckPhases,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 12,
+                            color: theme.mutedText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Estimated time badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '~${estMinutes}m',
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: theme.accentColor,
                       ),
-                      const SizedBox(height: 2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Phase Rows ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  // Sabaq (always present)
+                  _phaseRow(
+                    theme,
+                    icon: LucideIcons.bookOpen,
+                    iconColor: SemanticColors.phaseSabaq.fg(theme.isDark),
+                    title: AppLocalizations.of(context)!.planSabaqNew,
+                    detail: AppLocalizations.of(context)!.planPageLines(
+                      plan.sabaqPage,
+                      plan.sabaqLineStart,
+                      plan.sabaqLineEnd,
+                    ),
+                    minutes: plan.sabaqTargetMinutes,
+                    isDone: _sabaqOffline,
+                    onToggle: (val) => setState(() => _sabaqOffline = val),
+                  ),
+
+                  // Sabqi
+                  if (hasSabqi) ...[
+                    const SizedBox(height: 8),
+                    _phaseRow(
+                      theme,
+                      icon: LucideIcons.repeat,
+                      iconColor: SemanticColors.phaseSabqi.fg(theme.isDark),
+                      title: AppLocalizations.of(context)!.planSabqiReview,
+                      detail: AppLocalizations.of(
+                        context,
+                      )!.planPagesCount(plan.sabqiPages.length),
+                      minutes: plan.sabqiTargetMinutes,
+                      isDone: _sabqiOffline,
+                      onToggle: (val) => setState(() => _sabqiOffline = val),
+                    ),
+                  ],
+
+                  // Manzil
+                  if (hasManzil) ...[
+                    const SizedBox(height: 8),
+                    _phaseRow(
+                      theme,
+                      icon: LucideIcons.library,
+                      iconColor: SemanticColors.phaseManzil.fg(theme.isDark),
+                      title: AppLocalizations.of(context)!.planManzilRevision,
+                      detail: AppLocalizations.of(
+                        context,
+                      )!.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
+                      minutes: plan.manzilTargetMinutes,
+                      isDone: _manzilOffline,
+                      onToggle: (val) => setState(() => _manzilOffline = val),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Start Button ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: GestureDetector(
+                onTap: _allDone ? _markAllDone : _startSession,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: _allDone
+                        ? theme.accentColor.withValues(alpha: 0.7)
+                        : theme.accentColor,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.accentColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _allDone ? LucideIcons.checkCircle : LucideIcons.play,
+                        size: 18,
+                        color: theme.scaffoldBackground,
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        AppLocalizations.of(context)!.preSessionCheckPhases,
+                        _allDone
+                            ? AppLocalizations.of(context)!.preSessionMarkDone
+                            : AppLocalizations.of(context)!.planStartSession,
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 12,
-                          color: theme.mutedText,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: theme.scaffoldBackground,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Estimated time badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.accentColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '~${estMinutes}m',
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: theme.accentColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // ── Phase Rows ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                // Sabaq (always present)
-                _phaseRow(
-                  theme,
-                  icon: LucideIcons.bookOpen,
-                  iconColor: SemanticColors.phaseSabaq.fg(theme.isDark),
-                  title: AppLocalizations.of(context)!.planSabaqNew,
-                  detail: AppLocalizations.of(context)!.planPageLines(
-                    plan.sabaqPage,
-                    plan.sabaqLineStart,
-                    plan.sabaqLineEnd,
-                  ),
-                  minutes: plan.sabaqTargetMinutes,
-                  isDone: _sabaqOffline,
-                  onToggle: (val) => setState(() => _sabaqOffline = val),
-                ),
-
-                // Sabqi
-                if (hasSabqi) ...[
-                  const SizedBox(height: 8),
-                  _phaseRow(
-                    theme,
-                    icon: LucideIcons.repeat,
-                    iconColor: SemanticColors.phaseSabqi.fg(theme.isDark),
-                    title: AppLocalizations.of(context)!.planSabqiReview,
-                    detail: AppLocalizations.of(
-                      context,
-                    )!.planPagesCount(plan.sabqiPages.length),
-                    minutes: plan.sabqiTargetMinutes,
-                    isDone: _sabqiOffline,
-                    onToggle: (val) => setState(() => _sabqiOffline = val),
-                  ),
-                ],
-
-                // Manzil
-                if (hasManzil) ...[
-                  const SizedBox(height: 8),
-                  _phaseRow(
-                    theme,
-                    icon: LucideIcons.library,
-                    iconColor: SemanticColors.phaseManzil.fg(theme.isDark),
-                    title: AppLocalizations.of(context)!.planManzilRevision,
-                    detail: AppLocalizations.of(
-                      context,
-                    )!.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
-                    minutes: plan.manzilTargetMinutes,
-                    isDone: _manzilOffline,
-                    onToggle: (val) => setState(() => _manzilOffline = val),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // ── Start Button ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: GestureDetector(
-              onTap: _allDone ? _markAllDone : _startSession,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: _allDone
-                      ? theme.accentColor.withValues(alpha: 0.7)
-                      : theme.accentColor,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.accentColor.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _allDone ? LucideIcons.checkCircle : LucideIcons.play,
-                      size: 18,
-                      color: theme.scaffoldBackground,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _allDone
-                          ? AppLocalizations.of(context)!.preSessionMarkDone
-                          : AppLocalizations.of(context)!.planStartSession,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: theme.scaffoldBackground,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _phaseRow(

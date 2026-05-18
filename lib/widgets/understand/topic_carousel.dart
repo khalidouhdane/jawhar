@@ -56,10 +56,7 @@ class TopicCarousel extends StatelessWidget {
             itemCount: topics.length,
             separatorBuilder: (context2, index2) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
-              return _TopicCard(
-                topic: topics[index],
-                theme: theme,
-              );
+              return _TopicCard(topic: topics[index], theme: theme);
             },
           ),
         ),
@@ -72,10 +69,7 @@ class _TopicCard extends StatelessWidget {
   final QuranTopic topic;
   final ThemeProvider theme;
 
-  const _TopicCard({
-    required this.topic,
-    required this.theme,
-  });
+  const _TopicCard({required this.topic, required this.theme});
 
   void _showRelatedSurahs(BuildContext context) {
     final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
@@ -97,8 +91,9 @@ class _TopicCard extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
               color: theme.scaffoldBackground,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
             ),
             child: Column(
               children: [
@@ -127,15 +122,21 @@ class _TopicCard extends StatelessWidget {
                           color: theme.isDark
                               ? Colors.white.withValues(alpha: 0.06)
                               : Colors.black.withValues(alpha: 0.05),
-                          borderRadius:
-                              BorderRadius.circular(theme.radiusLg + 2),
+                          borderRadius: BorderRadius.circular(
+                            theme.radiusLg + 2,
+                          ),
                         ),
                         child: Center(
-                          child: Icon(topic.icon, size: 20, color: theme.secondaryText),
+                          child: Icon(
+                            topic.icon,
+                            size: 20,
+                            color: theme.secondaryText,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
-                      if (Localizations.localeOf(context).languageCode != 'ar') ...[
+                      if (Localizations.localeOf(context).languageCode !=
+                          'ar') ...[
                         ExcludeSemantics(
                           child: Text(
                             topic.titleAr,
@@ -149,8 +150,11 @@ class _TopicCard extends StatelessWidget {
                         const SizedBox(height: 2),
                       ],
                       Text(
-                        Localizations.localeOf(context).languageCode == 'ar' ? topic.titleAr : topic.title,
-                        style: Localizations.localeOf(context).languageCode == 'ar'
+                        Localizations.localeOf(context).languageCode == 'ar'
+                            ? topic.titleAr
+                            : topic.title,
+                        style:
+                            Localizations.localeOf(context).languageCode == 'ar'
                             ? GoogleFonts.amiri(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
@@ -165,8 +169,11 @@ class _TopicCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        Localizations.localeOf(context).languageCode == 'ar' ? topic.subtitleAr : topic.subtitle,
-                        style: Localizations.localeOf(context).languageCode == 'ar'
+                        Localizations.localeOf(context).languageCode == 'ar'
+                            ? topic.subtitleAr
+                            : topic.subtitle,
+                        style:
+                            Localizations.localeOf(context).languageCode == 'ar'
                             ? GoogleFonts.amiri(
                                 fontSize: 16,
                                 color: theme.secondaryText,
@@ -179,7 +186,9 @@ class _TopicCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        AppLocalizations.of(context)!.topicSurahsCount(relatedSurahs.length),
+                        AppLocalizations.of(
+                          context,
+                        )!.topicSurahsCount(relatedSurahs.length),
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
@@ -192,8 +201,9 @@ class _TopicCard extends StatelessWidget {
 
                 const SizedBox(height: 8),
                 Divider(
-                    height: 1,
-                    color: theme.dividerColor.withValues(alpha: 0.5)),
+                  height: 1,
+                  color: theme.dividerColor.withValues(alpha: 0.5),
+                ),
 
                 // Related surah list
                 Expanded(
@@ -221,11 +231,12 @@ class _TopicCard extends StatelessWidget {
                               ),
                             );
                           },
-                          borderRadius:
-                              BorderRadius.circular(theme.radiusLg),
+                          borderRadius: BorderRadius.circular(theme.radiusLg),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 4),
+                              vertical: 10,
+                              horizontal: 4,
+                            ),
                             child: Row(
                               children: [
                                 // Surah number
@@ -237,7 +248,8 @@ class _TopicCard extends StatelessWidget {
                                         ? Colors.white.withValues(alpha: 0.06)
                                         : Colors.black.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(
-                                        theme.radiusLg),
+                                      theme.radiusLg,
+                                    ),
                                   ),
                                   child: Center(
                                     child: Text(
@@ -261,8 +273,8 @@ class _TopicCard extends StatelessWidget {
                                       Text(
                                         surah.nameSimple,
                                         style: TextStyle(
-                                          fontFamily: GeistTypography
-                                              .primaryFontFamily,
+                                          fontFamily:
+                                              GeistTypography.primaryFontFamily,
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
                                           color: theme.primaryText,
@@ -271,8 +283,8 @@ class _TopicCard extends StatelessWidget {
                                       Text(
                                         '${surah.revelationType} · ${surah.versesCount} verses',
                                         style: TextStyle(
-                                          fontFamily: GeistTypography
-                                              .primaryFontFamily,
+                                          fontFamily:
+                                              GeistTypography.primaryFontFamily,
                                           fontSize: 12,
                                           color: theme.mutedText,
                                         ),
@@ -336,13 +348,19 @@ class _TopicCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(theme.radiusLg),
                   ),
                   child: Center(
-                    child: Icon(topic.icon, size: 16, color: theme.secondaryText),
+                    child: Icon(
+                      topic.icon,
+                      size: 16,
+                      color: theme.secondaryText,
+                    ),
                   ),
                 ),
                 const Spacer(),
                 // Title
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ar' ? topic.titleAr : topic.title,
+                  Localizations.localeOf(context).languageCode == 'ar'
+                      ? topic.titleAr
+                      : topic.title,
                   style: Localizations.localeOf(context).languageCode == 'ar'
                       ? GoogleFonts.amiri(
                           fontSize: 16,
@@ -390,7 +408,9 @@ class _TopicCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 // Surah count pill
                 Text(
-                  AppLocalizations.of(context)!.topicSurahsCount(topic.surahIds.length),
+                  AppLocalizations.of(
+                    context,
+                  )!.topicSurahsCount(topic.surahIds.length),
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 11,

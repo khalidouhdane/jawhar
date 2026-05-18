@@ -58,7 +58,6 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   final AudioPlayer _samplePlayer = AudioPlayer();
   int? _playingReciterId;
 
-
   final _nameController = TextEditingController();
   String? _existingProfileId;
   DateTime? _existingCreatedAt;
@@ -67,9 +66,15 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   void initState() {
     super.initState();
     // Initialize birthday scroll controllers
-    _dayController = FixedExtentScrollController(initialItem: _birthday.day - 1);
-    _monthController = FixedExtentScrollController(initialItem: _birthday.month - 1);
-    _yearController = FixedExtentScrollController(initialItem: _birthday.year - 1940);
+    _dayController = FixedExtentScrollController(
+      initialItem: _birthday.day - 1,
+    );
+    _monthController = FixedExtentScrollController(
+      initialItem: _birthday.month - 1,
+    );
+    _yearController = FixedExtentScrollController(
+      initialItem: _birthday.year - 1940,
+    );
     // Pre-populate from existing profile ONLY if retaking assessment
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.isRetake) {
@@ -205,8 +210,12 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 children: [
                   _buildIdentityPage(theme), // 0 â€” name + avatar + birthday
                   _buildExperiencePage(theme), // 1 â€” hifz experience
-                  _buildMemoryProfilePage(theme), // 2 â€” encoding + retention + learning pref
-                  _buildSchedulePage(theme), // 3 â€” time + time-of-day + active days
+                  _buildMemoryProfilePage(
+                    theme,
+                  ), // 2 â€” encoding + retention + learning pref
+                  _buildSchedulePage(
+                    theme,
+                  ), // 3 â€” time + time-of-day + active days
                   _buildGoalPage(theme), // 4 â€” goal + pace + starting point
                   _buildReciterPage(theme), // 5 â€” reciter + sample audio
                   _buildSummaryPage(theme), // 6 â€” summary
@@ -231,7 +240,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           if (_currentPage > 0)
             GeistButton.icon(
               onPressed: _prevPage,
-              icon: Icon(LucideIcons.arrowLeft, size: 18, color: theme.primaryText),
+              icon: Icon(
+                LucideIcons.arrowLeft,
+                size: 18,
+                color: theme.primaryText,
+              ),
               type: GeistButtonType.secondary,
             )
           else
@@ -273,8 +286,18 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   static const _monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   void _updateBirthday() {
@@ -374,14 +397,13 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? theme.primaryText
-                          : theme.cardColor,
+                      color: isSelected ? theme.primaryText : theme.cardColor,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: theme.primaryText.withValues(alpha: 0.08),
-                          blurRadius: 0, spreadRadius: 1,
+                          blurRadius: 0,
+                          spreadRadius: 1,
                         ),
                       ],
                     ),
@@ -420,38 +442,45 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               boxShadow: [
                 BoxShadow(
                   color: theme.primaryText.withValues(alpha: 0.08),
-                  blurRadius: 0, spreadRadius: 1,
+                  blurRadius: 0,
+                  spreadRadius: 1,
                 ),
               ],
             ),
             child: Row(
               children: [
                 // Day
-                Expanded(child: _scrollWheel(
-                  theme,
-                  controller: _dayController,
-                  itemCount: 31,
-                  labelBuilder: (i) => '${i + 1}',
-                  onChanged: (_) => _updateBirthday(),
-                )),
+                Expanded(
+                  child: _scrollWheel(
+                    theme,
+                    controller: _dayController,
+                    itemCount: 31,
+                    labelBuilder: (i) => '${i + 1}',
+                    onChanged: (_) => _updateBirthday(),
+                  ),
+                ),
                 Container(width: 1, color: theme.dividerColor),
                 // Month
-                Expanded(child: _scrollWheel(
-                  theme,
-                  controller: _monthController,
-                  itemCount: 12,
-                  labelBuilder: (i) => _monthNames[i],
-                  onChanged: (_) => _updateBirthday(),
-                )),
+                Expanded(
+                  child: _scrollWheel(
+                    theme,
+                    controller: _monthController,
+                    itemCount: 12,
+                    labelBuilder: (i) => _monthNames[i],
+                    onChanged: (_) => _updateBirthday(),
+                  ),
+                ),
                 Container(width: 1, color: theme.dividerColor),
                 // Year
-                Expanded(child: _scrollWheel(
-                  theme,
-                  controller: _yearController,
-                  itemCount: DateTime.now().year - 1940 + 1,
-                  labelBuilder: (i) => '${1940 + i}',
-                  onChanged: (_) => _updateBirthday(),
-                )),
+                Expanded(
+                  child: _scrollWheel(
+                    theme,
+                    controller: _yearController,
+                    itemCount: DateTime.now().year - 1940 + 1,
+                    labelBuilder: (i) => '${1940 + i}',
+                    onChanged: (_) => _updateBirthday(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -577,7 +606,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Encoding Speed
-          _sectionLabel(theme, 'Encoding Speed', 'After 30 mins of practice...'),
+          _sectionLabel(
+            theme,
+            'Encoding Speed',
+            'After 30 mins of practice...',
+          ),
           const SizedBox(height: 8),
           _segmentedPills<EncodingSpeed>(
             theme,
@@ -623,18 +656,39 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _pillChip(theme, LucideIcons.eye, 'Visual',
-                  _learningPref == LearningPreference.visual,
-                  () => setState(() => _learningPref = LearningPreference.visual)),
-              _pillChip(theme, LucideIcons.ear, 'Listening',
-                  _learningPref == LearningPreference.auditory,
-                  () => setState(() => _learningPref = LearningPreference.auditory)),
-              _pillChip(theme, LucideIcons.pencil, 'Writing',
-                  _learningPref == LearningPreference.kinesthetic,
-                  () => setState(() => _learningPref = LearningPreference.kinesthetic)),
-              _pillChip(theme, LucideIcons.repeat, 'Repetition',
-                  _learningPref == LearningPreference.repetition,
-                  () => setState(() => _learningPref = LearningPreference.repetition)),
+              _pillChip(
+                theme,
+                LucideIcons.eye,
+                'Visual',
+                _learningPref == LearningPreference.visual,
+                () => setState(() => _learningPref = LearningPreference.visual),
+              ),
+              _pillChip(
+                theme,
+                LucideIcons.ear,
+                'Listening',
+                _learningPref == LearningPreference.auditory,
+                () =>
+                    setState(() => _learningPref = LearningPreference.auditory),
+              ),
+              _pillChip(
+                theme,
+                LucideIcons.pencil,
+                'Writing',
+                _learningPref == LearningPreference.kinesthetic,
+                () => setState(
+                  () => _learningPref = LearningPreference.kinesthetic,
+                ),
+              ),
+              _pillChip(
+                theme,
+                LucideIcons.repeat,
+                'Repetition',
+                _learningPref == LearningPreference.repetition,
+                () => setState(
+                  () => _learningPref = LearningPreference.repetition,
+                ),
+              ),
             ],
           ),
         ],
@@ -646,15 +700,24 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(
-          fontFamily: GeistTypography.primaryFontFamily,
-          fontSize: 14, fontWeight: FontWeight.w600, color: theme.primaryText,
-        )),
+        Text(
+          title,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: theme.primaryText,
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(subtitle, style: TextStyle(
-          fontFamily: GeistTypography.primaryFontFamily,
-          fontSize: 12, color: theme.mutedText,
-        )),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontFamily: GeistTypography.primaryFontFamily,
+            fontSize: 12,
+            color: theme.mutedText,
+          ),
+        ),
       ],
     );
   }
@@ -672,10 +735,13 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(
-          color: theme.primaryText.withValues(alpha: 0.08),
-          blurRadius: 0, spreadRadius: 1,
-        )],
+        boxShadow: [
+          BoxShadow(
+            color: theme.primaryText.withValues(alpha: 0.08),
+            blurRadius: 0,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Row(
         children: values.map((v) {
@@ -693,14 +759,25 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(icons[v], size: 14,
-                      color: isActive ? theme.scaffoldBackground : theme.mutedText),
+                    Icon(
+                      icons[v],
+                      size: 14,
+                      color: isActive
+                          ? theme.scaffoldBackground
+                          : theme.mutedText,
+                    ),
                     const SizedBox(width: 4),
-                    Text(labels[v]!, style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 12, fontWeight: FontWeight.w600,
-                      color: isActive ? theme.scaffoldBackground : theme.mutedText,
-                    )),
+                    Text(
+                      labels[v]!,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isActive
+                            ? theme.scaffoldBackground
+                            : theme.mutedText,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -711,7 +788,13 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     );
   }
 
-  Widget _pillChip(ThemeProvider theme, IconData icon, String label, bool isSelected, VoidCallback onTap) {
+  Widget _pillChip(
+    ThemeProvider theme,
+    IconData icon,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -720,28 +803,39 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         decoration: BoxDecoration(
           color: isSelected ? theme.primaryText : theme.cardColor,
           borderRadius: BorderRadius.circular(9999),
-          boxShadow: [BoxShadow(
-            color: theme.primaryText.withValues(alpha: 0.08),
-            blurRadius: 0, spreadRadius: 1,
-          )],
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryText.withValues(alpha: 0.08),
+              blurRadius: 0,
+              spreadRadius: 1,
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14,
-              color: isSelected ? theme.scaffoldBackground : theme.mutedText),
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? theme.scaffoldBackground : theme.mutedText,
+            ),
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 12, fontWeight: FontWeight.w600,
-              color: isSelected ? theme.scaffoldBackground : theme.secondaryText,
-            )),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? theme.scaffoldBackground
+                    : theme.secondaryText,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
 
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PAGE 3: SCHEDULE (time + tod + active days)
@@ -772,27 +866,42 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
             child: Slider(
               value: _dailyMinutes.toDouble(),
-              min: 15, max: 240, divisions: 15,
+              min: 15,
+              max: 240,
+              divisions: 15,
               label: '$_dailyMinutes min',
               onChanged: (v) => setState(() => _dailyMinutes = v.round()),
             ),
           ),
           const SizedBox(height: 20),
           // Time of day
-          _sectionLabel(theme, AppLocalizations.of(context)!.assessPrefTime, ''),
+          _sectionLabel(
+            theme,
+            AppLocalizations.of(context)!.assessPrefTime,
+            '',
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: StudyTimeOfDay.values.map((t) {
               final isSelected = _timeOfDay == t;
-              return _pillChip(theme, _timeOfDayIcon(t), _timeOfDayLabel(t),
-                  isSelected, () => setState(() => _timeOfDay = t));
+              return _pillChip(
+                theme,
+                _timeOfDayIcon(t),
+                _timeOfDayLabel(t),
+                isSelected,
+                () => setState(() => _timeOfDay = t),
+              );
             }).toList(),
           ),
           const SizedBox(height: 24),
           // Active days
-          _sectionLabel(theme, AppLocalizations.of(context)!.assessWhichDays, ''),
+          _sectionLabel(
+            theme,
+            AppLocalizations.of(context)!.assessWhichDays,
+            '',
+          ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -816,22 +925,36 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   decoration: BoxDecoration(
                     color: isActive ? theme.primaryText : theme.cardColor,
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [BoxShadow(
-                      color: theme.primaryText.withValues(alpha: 0.08),
-                      blurRadius: 0, spreadRadius: 1,
-                    )],
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryText.withValues(alpha: 0.08),
+                        blurRadius: 0,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(_dayIcons[i], size: 12,
-                        color: isActive ? theme.scaffoldBackground : theme.mutedText),
+                      Icon(
+                        _dayIcons[i],
+                        size: 12,
+                        color: isActive
+                            ? theme.scaffoldBackground
+                            : theme.mutedText,
+                      ),
                       const SizedBox(height: 3),
-                      Text(_dayLabels[i], style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 10, fontWeight: FontWeight.w600,
-                        color: isActive ? theme.scaffoldBackground : theme.mutedText,
-                      )),
+                      Text(
+                        _dayLabels[i],
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: isActive
+                              ? theme.scaffoldBackground
+                              : theme.mutedText,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -844,7 +967,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               '${_activeDays.length} active day${_activeDays.length != 1 ? 's' : ''} / week',
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
-                fontSize: 12, fontWeight: FontWeight.w500, color: theme.mutedText,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: theme.mutedText,
               ),
             ),
           ),
@@ -932,28 +1057,44 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 24),
           // Starting Point
-          _sectionLabel(theme, AppLocalizations.of(context)!.assessWhereStart, ''),
+          _sectionLabel(
+            theme,
+            AppLocalizations.of(context)!.assessWhereStart,
+            '',
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _pillChip(theme, LucideIcons.star, 'Juz 30 (p.582)',
-                  _startingPage == 582,
-                  () => setState(() => _startingPage = 582)),
-              _pillChip(theme, LucideIcons.star, 'Al-Baqarah (p.2)',
-                  _startingPage == 2,
-                  () => setState(() => _startingPage = 2)),
+              _pillChip(
+                theme,
+                LucideIcons.star,
+                'Juz 30 (p.582)',
+                _startingPage == 582,
+                () => setState(() => _startingPage = 582),
+              ),
+              _pillChip(
+                theme,
+                LucideIcons.star,
+                'Al-Baqarah (p.2)',
+                _startingPage == 2,
+                () => setState(() => _startingPage = 2),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           // Custom page input
           Row(
             children: [
-              Text('Or page:', style: TextStyle(
-                fontFamily: GeistTypography.primaryFontFamily,
-                fontSize: 12, color: theme.mutedText,
-              )),
+              Text(
+                'Or page:',
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  color: theme.mutedText,
+                ),
+              ),
               const SizedBox(width: 8),
               SizedBox(
                 width: 80,
@@ -962,7 +1103,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 14, fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     color: theme.primaryText,
                   ),
                   decoration: InputDecoration(
@@ -974,7 +1116,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
                   ),
                   onChanged: (v) {
                     final page = int.tryParse(v);
@@ -1001,13 +1146,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       await _samplePlayer.stop();
       setState(() => _playingReciterId = reciterId);
       // Play Surah Al-Fatiha as a sample
-      final url = 'https://api.quran.com/api/v4/chapter_recitations/$reciterId/1';
+      final url =
+          'https://api.quran.com/api/v4/chapter_recitations/$reciterId/1';
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final audioUrl = data['audio_file']?['audio_url'] as String?;
         if (audioUrl != null) {
-          final fullUrl = audioUrl.startsWith('http') ? audioUrl : 'https://audio.qurancdn.com/$audioUrl';
+          final fullUrl = audioUrl.startsWith('http')
+              ? audioUrl
+              : 'https://audio.qurancdn.com/$audioUrl';
           await _samplePlayer.play(UrlSource(fullUrl));
           // Stop after 10 seconds for a short preview
           Future.delayed(const Duration(seconds: 10), () {
@@ -1059,11 +1207,19 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(LucideIcons.wifiOff, size: 48, color: theme.dividerColor),
+                    Icon(
+                      LucideIcons.wifiOff,
+                      size: 48,
+                      color: theme.dividerColor,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       AppLocalizations.of(context)!.reciterNoFound,
-                      style: TextStyle(fontFamily: GeistTypography.primaryFontFamily, fontSize: 13, color: theme.mutedText),
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 13,
+                        color: theme.mutedText,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -1091,39 +1247,51 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10,
+                        horizontal: 12,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
                         color: isSelected ? theme.primaryText : theme.cardColor,
                         borderRadius: BorderRadius.circular(8),
-                        boxShadow: [BoxShadow(
-                          color: theme.primaryText.withValues(alpha: 0.08),
-                          blurRadius: 0, spreadRadius: 1,
-                        )],
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.primaryText.withValues(alpha: 0.08),
+                            blurRadius: 0,
+                            spreadRadius: 1,
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
                           // Reciter avatar
                           Container(
-                            width: 36, height: 36,
+                            width: 36,
+                            height: 36,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: isSelected
-                                  ? theme.scaffoldBackground.withValues(alpha: 0.2)
+                                  ? theme.scaffoldBackground.withValues(
+                                      alpha: 0.2,
+                                    )
                                   : theme.dividerColor.withValues(alpha: 0.3),
                             ),
                             child: ClipOval(
                               child: Image.asset(
                                 'assets/images/reciters/${reciter.id}.jpg',
-                                width: 36, height: 36,
+                                width: 36,
+                                height: 36,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, _, _) => Center(
                                   child: Text(
                                     reciter.reciterName.isNotEmpty
-                                        ? reciter.reciterName.trim().characters.first
+                                        ? reciter.reciterName
+                                              .trim()
+                                              .characters
+                                              .first
                                         : '?',
                                     style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                       color: isSelected
@@ -1143,8 +1311,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                                 Text(
                                   reciter.reciterName,
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
-                                    fontSize: 13, fontWeight: FontWeight.w600,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                     color: isSelected
                                         ? theme.scaffoldBackground
                                         : theme.primaryText,
@@ -1156,10 +1326,13 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                                   Text(
                                     reciter.style!,
                                     style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
                                       fontSize: 10,
                                       color: isSelected
-                                          ? theme.scaffoldBackground.withValues(alpha: 0.7)
+                                          ? theme.scaffoldBackground.withValues(
+                                              alpha: 0.7,
+                                            )
                                           : theme.mutedText,
                                     ),
                                   ),
@@ -1177,26 +1350,38 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                               }
                             },
                             child: Container(
-                              width: 28, height: 28,
+                              width: 28,
+                              height: 28,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: isPlaying
-                                    ? (isSelected ? theme.scaffoldBackground : theme.primaryText)
+                                    ? (isSelected
+                                          ? theme.scaffoldBackground
+                                          : theme.primaryText)
                                     : Colors.transparent,
                               ),
                               child: Icon(
-                                isPlaying ? LucideIcons.pause : LucideIcons.play,
+                                isPlaying
+                                    ? LucideIcons.pause
+                                    : LucideIcons.play,
                                 size: 14,
                                 color: isPlaying
-                                    ? (isSelected ? theme.primaryText : theme.scaffoldBackground)
-                                    : (isSelected ? theme.scaffoldBackground : theme.mutedText),
+                                    ? (isSelected
+                                          ? theme.primaryText
+                                          : theme.scaffoldBackground)
+                                    : (isSelected
+                                          ? theme.scaffoldBackground
+                                          : theme.mutedText),
                               ),
                             ),
                           ),
                           if (isSelected) ...[
                             const SizedBox(width: 6),
-                            Icon(LucideIcons.checkCircle2, size: 18,
-                              color: theme.scaffoldBackground),
+                            Icon(
+                              LucideIcons.checkCircle2,
+                              size: 18,
+                              color: theme.scaffoldBackground,
+                            ),
                           ],
                         ],
                       ),

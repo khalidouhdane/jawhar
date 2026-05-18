@@ -44,17 +44,15 @@ class ProgressStrip extends StatelessWidget {
             const SizedBox(width: 12),
             // Text
             Text(
-              AppLocalizations.of(context)!.progressStripInfo(pct.toStringAsFixed(1), memorizedPages, currentJuz),
-              style: theme.textCaption.copyWith(
-                color: theme.mutedText,
+              AppLocalizations.of(context)!.progressStripInfo(
+                pct.toStringAsFixed(1),
+                memorizedPages,
+                currentJuz,
               ),
+              style: theme.textCaption.copyWith(color: theme.mutedText),
             ),
             const SizedBox(width: 4),
-            Icon(
-              LucideIcons.chevronRight,
-              size: 14,
-              color: theme.mutedText,
-            ),
+            Icon(LucideIcons.chevronRight, size: 14, color: theme.mutedText),
           ],
         ),
       ),

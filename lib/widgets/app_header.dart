@@ -37,60 +37,59 @@ class AppHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Title Area
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                displayText,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 24, // Consistent unified size
+                  fontWeight: isBrand ? FontWeight.w800 : FontWeight.w700,
+                  letterSpacing: isBrand ? -1.0 : -0.5,
+                  color: theme.primaryText,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
                 Text(
-                  displayText,
+                  subtitle!,
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 24, // Consistent unified size
-                    fontWeight: isBrand ? FontWeight.w800 : FontWeight.w700,
-                    letterSpacing: isBrand ? -1.0 : -0.5,
-                    color: theme.primaryText,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: theme.secondaryText,
                   ),
                 ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle!,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: theme.secondaryText,
-                    ),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
-          
-          // Actions Area
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (action != null) ...[
-                action!,
-                const SizedBox(width: 12),
-              ],
-              // Avatar
-              GestureDetector(
-                onTap: onAvatarTap ?? () {
-                  // Default to navigating to the Profile tab (index 4)
-                  context.read<NavigationProvider>().setTab(4);
-                },
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.cardColor,
-                    border: Border.all(color: theme.dividerColor, width: 1),
-                  ),
-                  child: Center(
-                    child: initial != null 
+        ),
+
+        // Actions Area
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (action != null) ...[action!, const SizedBox(width: 12)],
+            // Avatar
+            GestureDetector(
+              onTap:
+                  onAvatarTap ??
+                  () {
+                    // Default to navigating to the Profile tab (index 4)
+                    context.read<NavigationProvider>().setTab(4);
+                  },
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.cardColor,
+                  border: Border.all(color: theme.dividerColor, width: 1),
+                ),
+                child: Center(
+                  child: initial != null
                       ? Text(
                           initial,
                           style: TextStyle(
@@ -105,12 +104,12 @@ class AppHeader extends StatelessWidget {
                           size: 16,
                           color: theme.secondaryText,
                         ),
-                  ),
                 ),
               ),
-            ],
-          ),
-        ],
-      );
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

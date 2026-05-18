@@ -66,22 +66,34 @@ class AsbabNuzulService {
 
       if (kIsWeb) {
         // Skip local cache on web
-        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Downloading dataset from GitHub (Web)...');
+        AppLogger.info(
+          'AsbabNuzul',
+          'AsbabNuzulService: Downloading dataset from GitHub (Web)...',
+        );
         jsonString = await _downloadDataset();
       } else {
         // Try loading from local cache first
         final cacheFile = await _getCacheFile();
         if (await cacheFile.exists()) {
-          AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Loading from local cache');
+          AppLogger.info(
+            'AsbabNuzul',
+            'AsbabNuzulService: Loading from local cache',
+          );
           jsonString = await cacheFile.readAsString();
         } else {
           // Download from GitHub
-          AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Downloading dataset from GitHub...');
+          AppLogger.info(
+            'AsbabNuzul',
+            'AsbabNuzulService: Downloading dataset from GitHub...',
+          );
           jsonString = await _downloadDataset();
           if (jsonString != null) {
             // Save to local cache
             await cacheFile.writeAsString(jsonString);
-            AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Dataset cached locally');
+            AppLogger.info(
+              'AsbabNuzul',
+              'AsbabNuzulService: Dataset cached locally',
+            );
           }
         }
       }
@@ -89,12 +101,17 @@ class AsbabNuzulService {
       if (jsonString != null) {
         _parseDataset(jsonString);
         _isLoaded = true;
-        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Loaded ${_entries.length} entries, '
-          '${_lookup.length} verse keys indexed',
+        AppLogger.info(
+          'AsbabNuzul',
+          'AsbabNuzulService: Loaded ${_entries.length} entries, '
+              '${_lookup.length} verse keys indexed',
         );
       }
     } catch (e) {
-      AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Error importing dataset: $e');
+      AppLogger.info(
+        'AsbabNuzul',
+        'AsbabNuzulService: Error importing dataset: $e',
+      );
     } finally {
       _isLoading = false;
     }
@@ -147,7 +164,9 @@ class AsbabNuzulService {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Download failed: ${response.statusCode}',
+        AppLogger.info(
+          'AsbabNuzul',
+          'AsbabNuzulService: Download failed: ${response.statusCode}',
         );
       }
     } catch (e) {

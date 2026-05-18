@@ -38,8 +38,6 @@ class AppLogger {
   /// Use for: caught exceptions, failed operations, data integrity issues.
   static void error(String tag, String message, [Object? error]) {
     if (kReleaseMode) return;
-    debugPrint(
-      '[$tag] ✖ $message${error != null ? ' ($error)' : ''}',
-    );
+    debugPrint('[$tag] ✖ $message${error != null ? ' ($error)' : ''}');
   }
 }

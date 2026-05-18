@@ -38,24 +38,29 @@ class ProfileDashboard extends StatelessWidget {
     final planProvider = context.watch<PlanProvider>();
     final plan = planProvider.todayPlan;
     final theme = context.watch<ThemeProvider>();
-    
+
     return ListView(
       padding: EdgeInsets.zero,
       children: [
         SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
+            padding: const EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: 16,
+            ),
             child: AppHeader(onAvatarTap: onAvatarTap),
           ),
         ),
-        
+
         // 1. Contextual Status
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: ContextualStatus(),
         ),
-        
+
         // 2. Plan Card / Rest Day / Loading
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -98,7 +103,9 @@ class ProfileDashboard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: FutureBuilder<Map<PageStatus, int>>(
-            future: context.read<HifzDatabaseService>().getPageStatusCounts(profile.id),
+            future: context.read<HifzDatabaseService>().getPageStatusCounts(
+              profile.id,
+            ),
             builder: (context, snapshot) {
               final counts = snapshot.data ?? {};
               final memorizedCount = counts[PageStatus.memorized] ?? 0;
@@ -122,9 +129,7 @@ class ProfileDashboard extends StatelessWidget {
         if (plan != null && plan.sabaqPage > 0) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: UnderstandingSpotlight(
-              sabaqPage: plan.sabaqPage,
-            ),
+            child: UnderstandingSpotlight(sabaqPage: plan.sabaqPage),
           ),
           const SizedBox(height: 16),
         ],
@@ -134,7 +139,7 @@ class ProfileDashboard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: _buildSuggestions(context),
         ),
-        
+
         const SizedBox(height: 48), // Bottom padding
       ],
     );
@@ -145,20 +150,22 @@ class ProfileDashboard extends StatelessWidget {
       builder: (context, analytics, child) {
         final suggestions = analytics.activeSuggestions;
         if (suggestions.isEmpty) return const SizedBox.shrink();
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...suggestions.map((s) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: SuggestionCard(
-                suggestion: s,
-                theme: Provider.of<ThemeProvider>(context, listen: false),
-                onAccept: () => analytics.acceptSuggestion(s.id),
-                onDismiss: () => analytics.dismissSuggestion(s.id),
-                onRemindLater: () => analytics.remindLater(s.id),
+            ...suggestions.map(
+              (s) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SuggestionCard(
+                  suggestion: s,
+                  theme: Provider.of<ThemeProvider>(context, listen: false),
+                  onAccept: () => analytics.acceptSuggestion(s.id),
+                  onDismiss: () => analytics.dismissSuggestion(s.id),
+                  onRemindLater: () => analytics.remindLater(s.id),
+                ),
               ),
-            )),
+            ),
           ],
         );
       },
@@ -177,11 +184,7 @@ class ProfileDashboard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            LucideIcons.moonStar,
-            size: 32,
-            color: theme.mutedText,
-          ),
+          Icon(LucideIcons.moonStar, size: 32, color: theme.mutedText),
           const SizedBox(height: 12),
           Text(
             'Rest Day',
@@ -212,16 +215,24 @@ class ProfileDashboard extends StatelessWidget {
                   label: 'Continue Reading',
                   theme: theme,
                   onTap: () {
-                    final nav = Provider.of<NavigationProvider>(context, listen: false);
-                    final localStorage = Provider.of<LocalStorageService>(context, listen: false);
+                    final nav = Provider.of<NavigationProvider>(
+                      context,
+                      listen: false,
+                    );
+                    final localStorage = Provider.of<LocalStorageService>(
+                      context,
+                      listen: false,
+                    );
                     final lastRead = localStorage.getLastRead();
                     final page = lastRead?.page ?? 1;
                     nav.enterReadingView();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => ReadingScreen(initialPage: page),
-                      ),
-                    ).then((_) => nav.exitReadingView());
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (_) => ReadingScreen(initialPage: page),
+                          ),
+                        )
+                        .then((_) => nav.exitReadingView());
                   },
                 ),
               ),
@@ -257,22 +268,57 @@ class ProfileDashboard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(width: 18, height: 18, decoration: BoxDecoration(color: theme.dividerColor, borderRadius: BorderRadius.circular(4))),
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
               const SizedBox(width: 8),
-              Container(width: 120, height: 16, decoration: BoxDecoration(color: theme.dividerColor, borderRadius: BorderRadius.circular(4))),
+              Container(
+                width: 120,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             children: [
-              Container(width: 18, height: 18, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(4))),
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: theme.pillBackground,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(width: 100, height: 14, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(4))),
+                  Container(
+                    width: 100,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Container(width: 160, height: 12, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(4))),
+                  Container(
+                    width: 160,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -280,20 +326,48 @@ class ProfileDashboard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Container(width: 18, height: 18, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(4))),
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: theme.pillBackground,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(width: 80, height: 14, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(4))),
+                  Container(
+                    width: 80,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Container(width: 140, height: 12, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(4))),
+                  Container(
+                    width: 140,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
           const Spacer(),
-          Container(width: double.infinity, height: 48, decoration: BoxDecoration(color: theme.pillBackground, borderRadius: BorderRadius.circular(8))),
+          Container(
+            width: double.infinity,
+            height: 48,
+            decoration: BoxDecoration(
+              color: theme.pillBackground,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         ],
       ),
     );

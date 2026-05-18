@@ -438,7 +438,9 @@ class AudioProvider extends ChangeNotifier {
             );
           }).toList();
         } catch (e) {
-          AppLogger.info('Audio', 'No timing data found for MP3Quran reciter $_reciterId: $e',
+          AppLogger.info(
+            'Audio',
+            'No timing data found for MP3Quran reciter $_reciterId: $e',
           );
         }
 
@@ -554,11 +556,13 @@ class AudioProvider extends ChangeNotifier {
 
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
-      AppLogger.info('Audio', '[AudioProvider] verse=${startVerse.verseKey}, '
-        'timings=${data.timings.length}, '
-        'timing found=${timing != null}, '
-        'seekMs=${timing?.firstSegmentMs}, '
-        'audioUrl=${data.audioUrl.substring(0, data.audioUrl.length.clamp(0, 80))}',
+      AppLogger.info(
+        'Audio',
+        '[AudioProvider] verse=${startVerse.verseKey}, '
+            'timings=${data.timings.length}, '
+            'timing found=${timing != null}, '
+            'seekMs=${timing?.firstSegmentMs}, '
+            'audioUrl=${data.audioUrl.substring(0, data.audioUrl.length.clamp(0, 80))}',
       );
 
       await _player.setSourceUrl(data.audioUrl);
@@ -578,7 +582,9 @@ class AudioProvider extends ChangeNotifier {
           if (gen != _generation) return;
           await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
           if (gen != _generation) return;
-          AppLogger.info('Audio', '[AudioProvider] MP3Quran seek to ${timing.firstSegmentMs}ms',
+          AppLogger.info(
+            'Audio',
+            '[AudioProvider] MP3Quran seek to ${timing.firstSegmentMs}ms',
           );
         } else {
           await _player.seek(Duration(milliseconds: timing.firstSegmentMs));

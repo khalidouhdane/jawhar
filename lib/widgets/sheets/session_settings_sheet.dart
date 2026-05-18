@@ -43,11 +43,7 @@ class SessionSettingsSheet extends StatelessWidget {
               // Title
               Row(
                 children: [
-                  Icon(
-                    LucideIcons.sliders,
-                    size: 20,
-                    color: theme.accentColor,
-                  ),
+                  Icon(LucideIcons.sliders, size: 20, color: theme.accentColor),
                   const SizedBox(width: 10),
                   Text(
                     'Session Settings',
@@ -126,7 +122,7 @@ class SessionSettingsSheet extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               if (!session.hasRecipes && session.isGuidedMode)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -141,7 +137,7 @@ class SessionSettingsSheet extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                
+
               const SizedBox(height: 16),
             ],
           ),
@@ -177,8 +173,8 @@ class SessionSettingsSheet extends StatelessWidget {
                 color: disabled
                     ? theme.mutedText
                     : selected
-                        ? theme.scaffoldBackground
-                        : theme.secondaryText,
+                    ? theme.scaffoldBackground
+                    : theme.secondaryText,
               ),
               const SizedBox(width: 6),
               Text(
@@ -190,8 +186,8 @@ class SessionSettingsSheet extends StatelessWidget {
                   color: disabled
                       ? theme.mutedText
                       : selected
-                          ? theme.scaffoldBackground
-                          : theme.secondaryText,
+                      ? theme.scaffoldBackground
+                      : theme.secondaryText,
                 ),
               ),
             ],

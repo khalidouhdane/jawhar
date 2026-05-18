@@ -31,11 +31,17 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
 
       if (!profile.hasActiveProfile || fc.totalCards == 0) {
         // Sandbox mode
-        await fc.loadPlayfulCards(profile.activeProfile?.id ?? 'sandbox', widget.filterType);
+        await fc.loadPlayfulCards(
+          profile.activeProfile?.id ?? 'sandbox',
+          widget.filterType,
+        );
       } else {
         // Normal mode
         if (widget.filterType != null) {
-          await fc.loadDueCardsByType(profile.activeProfile!.id, widget.filterType);
+          await fc.loadDueCardsByType(
+            profile.activeProfile!.id,
+            widget.filterType,
+          );
         } else {
           await fc.loadDueCards(profile.activeProfile!.id, generate: false);
         }
@@ -83,7 +89,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
               ),
               const Spacer(),
               Text(
-                fc.isSandbox 
+                fc.isSandbox
                     ? '${fc.currentIndex + 1} / ${fc.dueCards.length}  |  Sandbox Mode 🎲'
                     : '${fc.currentIndex + 1} / ${fc.dueCards.length}',
                 style: TextStyle(

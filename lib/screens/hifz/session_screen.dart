@@ -102,7 +102,6 @@ class _SessionScreenState extends State<SessionScreen> {
     }
   }
 
-
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
@@ -272,7 +271,11 @@ class _SessionScreenState extends State<SessionScreen> {
               if (isCountdown)
                 GeistButton.icon(
                   onPressed: () => session.adjustTime(-1),
-                  icon: Icon(LucideIcons.minus, size: 14, color: theme.primaryText),
+                  icon: Icon(
+                    LucideIcons.minus,
+                    size: 14,
+                    color: theme.primaryText,
+                  ),
                   type: GeistButtonType.secondary,
                 ),
               if (isCountdown) const SizedBox(width: 24),
@@ -308,27 +311,30 @@ class _SessionScreenState extends State<SessionScreen> {
               if (isCountdown)
                 GeistButton.icon(
                   onPressed: () => session.adjustTime(1),
-                  icon: Icon(LucideIcons.plus, size: 14, color: theme.primaryText),
+                  icon: Icon(
+                    LucideIcons.plus,
+                    size: 14,
+                    color: theme.primaryText,
+                  ),
                   type: GeistButtonType.secondary,
                 ),
             ],
           ),
-          
-          if (isCountdown)
-             Padding(
-               padding: const EdgeInsets.only(top: 8),
-               child: Text(
-                 '${(session.targetSeconds / 60).ceil()} min',
-                 style: TextStyle(
-                   fontFamily: GeistTypography.primaryFontFamily,
-                   fontSize: 12,
-                   fontWeight: FontWeight.w500,
-                   color: theme.mutedText,
-                 ),
-               ),
-             ),
-          const SizedBox(height: 16),
 
+          if (isCountdown)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                '${(session.targetSeconds / 60).ceil()} min',
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: theme.mutedText,
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
 
           // ── Guided recipe view OR Free-mode rep counter ──
           Expanded(
@@ -418,7 +424,11 @@ class _SessionScreenState extends State<SessionScreen> {
             child: GeistButton(
               onPressed: () => setState(() => _isDigitalMode = true),
               label: 'Open Digital Quran',
-              prefix: const Icon(LucideIcons.bookOpen, size: 18, color: Colors.white),
+              prefix: const Icon(
+                LucideIcons.bookOpen,
+                size: 18,
+                color: Colors.white,
+              ),
               type: GeistButtonType.primary,
               size: GeistButtonSize.large,
             ),
@@ -758,7 +768,8 @@ class _SessionScreenState extends State<SessionScreen> {
                         Navigator.of(ctx).pop();
                         session.setActualCoverage(pages);
                       },
-                      label: 'Confirm — $pageCount page${pageCount > 1 ? 's' : ''}',
+                      label:
+                          'Confirm — $pageCount page${pageCount > 1 ? 's' : ''}',
                       type: GeistButtonType.primary,
                       size: GeistButtonSize.large,
                     ),
@@ -886,7 +897,8 @@ class _SessionScreenState extends State<SessionScreen> {
                           );
                         }
                       },
-                      label: 'Confirm — verse${startVerse > 1 ? 's $startVerse' : ' 1'} to $_lastVerseLearned',
+                      label:
+                          'Confirm — verse${startVerse > 1 ? 's $startVerse' : ' 1'} to $_lastVerseLearned',
                       type: GeistButtonType.primary,
                       size: GeistButtonSize.large,
                     ),
@@ -1120,7 +1132,9 @@ class _SessionScreenState extends State<SessionScreen> {
                         ),
                       );
                     },
-                    label: AppLocalizations.of(context)!.completePracticeFlashcards(due),
+                    label: AppLocalizations.of(
+                      context,
+                    )!.completePracticeFlashcards(due),
                     prefix: Icon(
                       LucideIcons.layers,
                       size: 16,

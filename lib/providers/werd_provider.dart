@@ -57,7 +57,9 @@ class WerdProvider extends ChangeNotifier {
             period: 'daily',
           )
           .then((_) {
-            AppLogger.info('Werd', '[QF_SYNC] Goal synced: ${newConfig.todayTarget} pages/day',
+            AppLogger.info(
+              'Werd',
+              '[QF_SYNC] Goal synced: ${newConfig.todayTarget} pages/day',
             );
           });
     }

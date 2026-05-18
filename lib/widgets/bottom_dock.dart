@@ -16,7 +16,8 @@ class BottomDock extends StatefulWidget {
     required this.onPageSelected,
     required this.surahName,
     required this.hizbName,
-  });  @override
+  });
+  @override
   State<BottomDock> createState() => _BottomDockState();
 }
 
@@ -355,7 +356,9 @@ class _PaginationSliderState extends State<PaginationSlider> {
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0,
-                        color: isActive ? theme.scaffoldBackground : theme.secondaryText,
+                        color: isActive
+                            ? theme.scaffoldBackground
+                            : theme.secondaryText,
                       ),
                     ),
                   ],

@@ -76,53 +76,59 @@ class _SplashScreenState extends State<SplashScreen>
     _diamondScale = TweenSequence<double>([
       // Phase 1 (0%–10%): Appear — tiny dot materializes
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 0.15)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween(
+          begin: 0.0,
+          end: 0.15,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 10,
       ),
       // Phase 2 (10%–50%): Expand — smooth scale-up from center
       TweenSequenceItem(
-        tween: Tween(begin: 0.15, end: 1.05)
-            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        tween: Tween(
+          begin: 0.15,
+          end: 1.05,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 40,
       ),
       // Phase 3 (50%–65%): Settle — slight overshoot bounce-back
       TweenSequenceItem(
-        tween: Tween(begin: 1.05, end: 0.7)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(
+          begin: 1.05,
+          end: 0.7,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 15,
       ),
       // Phase 4 (65%–100%): Hold at final size
-      TweenSequenceItem(
-        tween: ConstantTween(0.7),
-        weight: 35,
-      ),
+      TweenSequenceItem(tween: ConstantTween(0.7), weight: 35),
     ]).animate(_timeline);
 
     // Diamond fades in quickly at the start
     _diamondOpacity = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 8,
       ),
-      TweenSequenceItem(
-        tween: ConstantTween(1.0),
-        weight: 92,
-      ),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 92),
     ]).animate(_timeline);
 
     // Glow grows with the diamond, slightly delayed
     _glowOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween(0.0), weight: 15),
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 0.5)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween(
+          begin: 0.0,
+          end: 0.5,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 35,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 0.5, end: 0.3)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(
+          begin: 0.5,
+          end: 0.3,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 15,
       ),
       TweenSequenceItem(tween: ConstantTween(0.3), weight: 35),
@@ -131,8 +137,10 @@ class _SplashScreenState extends State<SplashScreen>
     _glowScale = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween(0.3), weight: 10),
       TweenSequenceItem(
-        tween: Tween(begin: 0.3, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        tween: Tween(
+          begin: 0.3,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 50,
       ),
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 40),
@@ -142,8 +150,10 @@ class _SplashScreenState extends State<SplashScreen>
     _wordmarkOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween(0.0), weight: 63),
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 15,
       ),
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 22),
@@ -167,8 +177,10 @@ class _SplashScreenState extends State<SplashScreen>
     _taglineOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween(0.0), weight: 72),
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 12,
       ),
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 16),
@@ -210,11 +222,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _loadSpriteSheet() async {
     try {
-      final data = await DefaultAssetBundle.of(context)
-          .load('assets/images/diamond_spritesheet.webp');
-      final codec = await ui.instantiateImageCodec(
-        data.buffer.asUint8List(),
-      );
+      final data = await DefaultAssetBundle.of(
+        context,
+      ).load('assets/images/diamond_spritesheet.webp');
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       if (mounted) {
         setState(() {
@@ -238,9 +249,7 @@ class _SplashScreenState extends State<SplashScreen>
     await _timeline.forward();
 
     // Brief hold at the end
-    await Future.delayed(
-      Duration(milliseconds: _isFirstLaunch ? 500 : 200),
-    );
+    await Future.delayed(Duration(milliseconds: _isFirstLaunch ? 500 : 200));
 
     // Fade out and navigate
     await _fadeOutController.forward();
@@ -359,8 +368,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Text(
                             'jawhar',
                             style: TextStyle(
-                              fontFamily:
-                                  GeistTypography.primaryFontFamily,
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 36,
                               fontWeight: FontWeight.w700,
                               color: theme.primaryText,
@@ -381,8 +389,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Text(
                             'Memorize with Meaning',
                             style: TextStyle(
-                              fontFamily:
-                                  GeistTypography.primaryFontFamily,
+                              fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
                               color: theme.secondaryText,
@@ -428,12 +435,7 @@ class _SpriteFramePainter extends CustomPainter {
     final col = clampedFrame % cols;
     final row = clampedFrame ~/ cols;
 
-    final src = Rect.fromLTWH(
-      col * frameW,
-      row * frameH,
-      frameW,
-      frameH,
-    );
+    final src = Rect.fromLTWH(col * frameW, row * frameH, frameW, frameH);
     final dst = Rect.fromLTWH(0, 0, size.width, size.height);
 
     canvas.drawImageRect(

@@ -71,8 +71,6 @@ class TafsirService {
   List<TafsirResource>? _availableTranslations;
   List<TafsirResource>? _availableTafsirs;
 
-
-
   // ── Translation Methods ──
 
   /// Fetch the translation for a single verse via /verses/by_key.
@@ -117,12 +115,17 @@ class TafsirService {
           return result;
         }
       } else {
-        AppLogger.info('Tafsir', 'TafsirService: Failed to fetch translation for $verseKey: '
-          '${response.statusCode}',
+        AppLogger.info(
+          'Tafsir',
+          'TafsirService: Failed to fetch translation for $verseKey: '
+              '${response.statusCode}',
         );
       }
     } catch (e) {
-      AppLogger.info('Tafsir', 'TafsirService: Error fetching translation for $verseKey: $e');
+      AppLogger.info(
+        'Tafsir',
+        'TafsirService: Error fetching translation for $verseKey: $e',
+      );
     }
     return null;
   }
@@ -171,12 +174,17 @@ class TafsirService {
           }
         }
       } else {
-        AppLogger.info('Tafsir', 'TafsirService: Failed to fetch page translations: '
-          '${response.statusCode}',
+        AppLogger.info(
+          'Tafsir',
+          'TafsirService: Failed to fetch page translations: '
+              '${response.statusCode}',
         );
       }
     } catch (e) {
-      AppLogger.info('Tafsir', 'TafsirService: Error fetching page translations: $e');
+      AppLogger.info(
+        'Tafsir',
+        'TafsirService: Error fetching page translations: $e',
+      );
     }
     return results;
   }
@@ -225,12 +233,17 @@ class TafsirService {
           return result;
         }
       } else {
-        AppLogger.info('Tafsir', 'TafsirService: Failed to fetch tafsir for $verseKey: '
-          '${response.statusCode}',
+        AppLogger.info(
+          'Tafsir',
+          'TafsirService: Failed to fetch tafsir for $verseKey: '
+              '${response.statusCode}',
         );
       }
     } catch (e) {
-      AppLogger.info('Tafsir', 'TafsirService: Error fetching tafsir for $verseKey: $e');
+      AppLogger.info(
+        'Tafsir',
+        'TafsirService: Error fetching tafsir for $verseKey: $e',
+      );
     }
     return null;
   }
@@ -259,7 +272,10 @@ class TafsirService {
         }
       }
     } catch (e) {
-      AppLogger.info('Tafsir', 'TafsirService: Error fetching translations list: $e');
+      AppLogger.info(
+        'Tafsir',
+        'TafsirService: Error fetching translations list: $e',
+      );
     }
     return [];
   }
@@ -286,7 +302,10 @@ class TafsirService {
         }
       }
     } catch (e) {
-      AppLogger.info('Tafsir', 'TafsirService: Error fetching tafsirs list: $e');
+      AppLogger.info(
+        'Tafsir',
+        'TafsirService: Error fetching tafsirs list: $e',
+      );
     }
     return [];
   }

@@ -35,8 +35,8 @@ class GeistButton extends StatefulWidget {
     this.isDisabled = false,
     this.onPressed,
     this.padding,
-  })  : svgOnly = false,
-        icon = null;
+  }) : svgOnly = false,
+       icon = null;
 
   const GeistButton.icon({
     super.key,
@@ -48,10 +48,10 @@ class GeistButton extends StatefulWidget {
     this.isDisabled = false,
     this.onPressed,
     this.padding,
-  })  : svgOnly = true,
-        label = null,
-        prefix = null,
-        suffix = null;
+  }) : svgOnly = true,
+       label = null,
+       prefix = null,
+       suffix = null;
 
   @override
   State<GeistButton> createState() => _GeistButtonState();
@@ -69,11 +69,19 @@ class _GeistButtonState extends State<GeistButton> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: effectiveDisabled ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+      cursor: effectiveDisabled
+          ? SystemMouseCursors.forbidden
+          : SystemMouseCursors.click,
       child: GestureDetector(
-        onTapDown: effectiveDisabled ? null : (_) => setState(() => _isPressed = true),
-        onTapUp: effectiveDisabled ? null : (_) => setState(() => _isPressed = false),
-        onTapCancel: effectiveDisabled ? null : () => setState(() => _isPressed = false),
+        onTapDown: effectiveDisabled
+            ? null
+            : (_) => setState(() => _isPressed = true),
+        onTapUp: effectiveDisabled
+            ? null
+            : (_) => setState(() => _isPressed = false),
+        onTapCancel: effectiveDisabled
+            ? null
+            : () => setState(() => _isPressed = false),
         onTap: effectiveDisabled ? null : widget.onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -105,10 +113,7 @@ class _GeistButtonState extends State<GeistButton> {
 
     if (widget.svgOnly && widget.icon != null) {
       return IconTheme(
-        data: IconThemeData(
-          color: _getTextColor(theme),
-          size: _getIconSize(),
-        ),
+        data: IconThemeData(color: _getTextColor(theme), size: _getIconSize()),
         child: widget.icon!,
       );
     }
@@ -178,14 +183,18 @@ class _GeistButtonState extends State<GeistButton> {
 
     if (_isPressed) {
       if (widget.type == GeistButtonType.tertiary) {
-        return theme.isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05);
+        return theme.isDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.black.withValues(alpha: 0.05);
       }
       return baseColor.withValues(alpha: 0.8);
     }
 
     if (_isHovered) {
       if (widget.type == GeistButtonType.tertiary) {
-        return theme.isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03);
+        return theme.isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03);
       }
       return baseColor.withValues(alpha: 0.9);
     }
@@ -223,7 +232,9 @@ class _GeistButtonState extends State<GeistButton> {
   BoxBorder? _getBorder(ThemeProvider theme) {
     if (widget.type == GeistButtonType.secondary) {
       return Border.all(
-        color: widget.isDisabled ? theme.buttonSecondaryBorder.withValues(alpha: 0.5) : theme.buttonSecondaryBorder,
+        color: widget.isDisabled
+            ? theme.buttonSecondaryBorder.withValues(alpha: 0.5)
+            : theme.buttonSecondaryBorder,
         width: 1,
       );
     }

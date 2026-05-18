@@ -211,8 +211,9 @@ class _PlanCardState extends State<PlanCard> {
 
   Widget _buildMethodPills(ThemeProvider theme) {
     // Extract sabaq recipe steps (the primary session recipe)
-    final sabaqRecipe =
-        widget.recipes.where((r) => r.phase == 'sabaq').toList();
+    final sabaqRecipe = widget.recipes
+        .where((r) => r.phase == 'sabaq')
+        .toList();
     if (sabaqRecipe.isEmpty || sabaqRecipe.first.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -263,7 +264,11 @@ class _PlanCardState extends State<PlanCard> {
           children: [
             Row(
               children: [
-                Icon(LucideIcons.lightbulb, size: 12, color: theme.secondaryText),
+                Icon(
+                  LucideIcons.lightbulb,
+                  size: 12,
+                  color: theme.secondaryText,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   l.planWhyThisPlan,
@@ -310,9 +315,7 @@ class _PlanCardState extends State<PlanCard> {
     final isCompleted = plan.isCompleted;
 
     return Material(
-      color: isCompleted
-          ? theme.cardColor
-          : theme.foregroundColor,
+      color: isCompleted ? theme.cardColor : theme.foregroundColor,
       borderRadius: BorderRadius.circular(theme.radiusLg),
       child: InkWell(
         onTap: isCompleted ? null : widget.onStartSession,
@@ -338,9 +341,7 @@ class _PlanCardState extends State<PlanCard> {
               Icon(
                 isCompleted ? LucideIcons.check : LucideIcons.sparkles,
                 size: 16,
-                color: isCompleted
-                    ? theme.mutedText
-                    : theme.scaffoldBackground,
+                color: isCompleted ? theme.mutedText : theme.scaffoldBackground,
               ),
             ],
           ),

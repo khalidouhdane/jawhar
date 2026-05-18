@@ -65,7 +65,9 @@ class ApiClient {
     bool retryOn5xx = true,
   }) async {
     if (kIsWeb) {
-      uri = Uri.parse('https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}');
+      uri = Uri.parse(
+        'https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}',
+      );
     }
 
     final authHeaders = await _getAuthHeaders();
@@ -88,8 +90,10 @@ class ApiClient {
             response.statusCode >= 500 &&
             attempt < maxRetries - 1) {
           final delay = Duration(seconds: 1 << attempt);
-          AppLogger.info('ApiClient', '[ApiClient] Server ${response.statusCode} on $uri — '
-            'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+          AppLogger.info(
+            'ApiClient',
+            '[ApiClient] Server ${response.statusCode} on $uri — '
+                'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
           );
           await Future.delayed(delay);
           continue;
@@ -100,8 +104,10 @@ class ApiClient {
         lastError = e;
         if (attempt < maxRetries - 1) {
           final delay = Duration(seconds: 1 << attempt);
-          AppLogger.info('ApiClient', '[ApiClient] Timeout on $uri — '
-            'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+          AppLogger.info(
+            'ApiClient',
+            '[ApiClient] Timeout on $uri — '
+                'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
           );
           await Future.delayed(delay);
         }
@@ -109,25 +115,30 @@ class ApiClient {
         lastError = e;
         if (attempt < maxRetries - 1) {
           final delay = Duration(seconds: 1 << attempt);
-          AppLogger.info('ApiClient', '[ApiClient] Client error on $uri ($e) — '
-            'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+          AppLogger.info(
+            'ApiClient',
+            '[ApiClient] Client error on $uri ($e) — '
+                'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
           );
           await Future.delayed(delay);
         }
       } catch (e) {
         final errorStr = e.toString();
-        final isNetworkError = errorStr.contains('SocketException') || 
-                               errorStr.contains('XMLHttpRequest') || 
-                               errorStr.contains('ClientException') ||
-                               _isSslError(e);
-                               
+        final isNetworkError =
+            errorStr.contains('SocketException') ||
+            errorStr.contains('XMLHttpRequest') ||
+            errorStr.contains('ClientException') ||
+            _isSslError(e);
+
         if (isNetworkError) {
           lastError = e as Exception;
           if (attempt < maxRetries - 1) {
             final delay = Duration(seconds: 1 << attempt);
             final kind = _isSslError(e) ? 'SSL' : 'Network';
-            AppLogger.info('ApiClient', '[ApiClient] $kind error on $uri ($e) — '
-              'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+            AppLogger.info(
+              'ApiClient',
+              '[ApiClient] $kind error on $uri ($e) — '
+                  'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
             );
             await Future.delayed(delay);
           }
@@ -135,8 +146,10 @@ class ApiClient {
           lastError = e;
           if (attempt < maxRetries - 1) {
             final delay = Duration(seconds: 1 << attempt);
-            AppLogger.info('ApiClient', '[ApiClient] Unexpected error on $uri ($e) — '
-              'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+            AppLogger.info(
+              'ApiClient',
+              '[ApiClient] Unexpected error on $uri ($e) — '
+                  'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
             );
             await Future.delayed(delay);
           }
@@ -160,7 +173,9 @@ class ApiClient {
     int maxRetries = 3,
   }) async {
     if (kIsWeb) {
-      uri = Uri.parse('https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}');
+      uri = Uri.parse(
+        'https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}',
+      );
     }
 
     Object? lastError;
@@ -175,16 +190,20 @@ class ApiClient {
       } on TimeoutException catch (e) {
         lastError = e;
         if (attempt < maxRetries - 1) {
-          AppLogger.info('ApiClient', '[ApiClient] POST timeout on $uri — '
-            'retry ${attempt + 1}/$maxRetries',
+          AppLogger.info(
+            'ApiClient',
+            '[ApiClient] POST timeout on $uri — '
+                'retry ${attempt + 1}/$maxRetries',
           );
           await Future.delayed(Duration(seconds: 1 << attempt));
         }
       } catch (e) {
         lastError = e;
         if (attempt < maxRetries - 1) {
-          AppLogger.info('ApiClient', '[ApiClient] POST error on $uri ($e) — '
-            'retry ${attempt + 1}/$maxRetries',
+          AppLogger.info(
+            'ApiClient',
+            '[ApiClient] POST error on $uri ($e) — '
+                'retry ${attempt + 1}/$maxRetries',
           );
           await Future.delayed(Duration(seconds: 1 << attempt));
         }
@@ -210,9 +229,6 @@ class ApiClient {
   /// Get authenticated headers (OAuth token + client ID).
   static Future<Map<String, String>> _getAuthHeaders() async {
     final token = await QuranAuthService.getValidToken();
-    return {
-      'x-auth-token': token,
-      'x-client-id': QuranAuthService.clientId,
-    };
+    return {'x-auth-token': token, 'x-client-id': QuranAuthService.clientId};
   }
 }

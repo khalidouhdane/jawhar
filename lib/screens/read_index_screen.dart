@@ -87,7 +87,12 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
           children: [
             // ── Header & Reciter Shortcut ──
             Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 16,
+              ),
               child: AppHeader(
                 title: l!.readTitle,
                 action: GestureDetector(
@@ -98,24 +103,35 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                       backgroundColor: Colors.transparent,
                       builder: (ctx) => ExcludeSemantics(
                         child: Padding(
-                          padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
+                          padding: EdgeInsets.only(
+                            top: MediaQuery.of(ctx).size.height * 0.1,
+                          ),
                           child: DefaultTextStyle(
                             style: const TextStyle(fontFamily: 'Inter'),
-                            child: ReciterMenuSheet(onClose: () => Navigator.pop(ctx)),
+                            child: ReciterMenuSheet(
+                              onClose: () => Navigator.pop(ctx),
+                            ),
                           ),
                         ),
                       ),
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Row(
                       children: [
-                        Icon(LucideIcons.headphones, size: 14, color: theme.accentColor),
+                        Icon(
+                          LucideIcons.headphones,
+                          size: 14,
+                          color: theme.accentColor,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           audioProvider.reciterName.split(' ').first,
@@ -161,7 +177,9 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                             height: 44,
                             decoration: BoxDecoration(
                               color: theme.inputFill,
-                              borderRadius: BorderRadius.circular(theme.radiusLg),
+                              borderRadius: BorderRadius.circular(
+                                theme.radiusLg,
+                              ),
                             ),
                             child: TextField(
                               focusNode: _searchFocusNode,
@@ -183,9 +201,12 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                                   color: theme.mutedText,
                                 ),
                                 border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
-                              onChanged: (val) => setState(() => _searchQuery = val),
+                              onChanged: (val) =>
+                                  setState(() => _searchQuery = val),
                             ),
                           ),
                         ),
@@ -196,13 +217,17 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                             height: 36,
                             decoration: BoxDecoration(
                               color: theme.inputFill,
-                              borderRadius: BorderRadius.circular(theme.radiusMd),
+                              borderRadius: BorderRadius.circular(
+                                theme.radiusMd,
+                              ),
                             ),
                             child: TabBar(
                               controller: _tabController,
                               indicator: BoxDecoration(
                                 color: theme.accentColor,
-                                borderRadius: BorderRadius.circular(theme.radiusMd),
+                                borderRadius: BorderRadius.circular(
+                                  theme.radiusMd,
+                                ),
                               ),
                               indicatorSize: TabBarIndicatorSize.tab,
                               dividerHeight: 0,

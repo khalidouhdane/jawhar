@@ -238,12 +238,13 @@ class _SessionOverlayState extends State<SessionOverlay> {
                           ),
                         ),
                       ),
-                      
+
                       // Action Controls
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (session.isGuidedMode && session.currentStep != null) ...[
+                          if (session.isGuidedMode &&
+                              session.currentStep != null) ...[
                             _ActionButton(
                               icon: LucideIcons.chevronLeft,
                               theme: theme,
@@ -252,7 +253,8 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             const SizedBox(width: 12),
                             _buildBigAddRepButton(theme, session),
                             const SizedBox(width: 12),
-                            if (session.currentStepIndex < (session.currentRecipe?.steps.length ?? 1) - 1)
+                            if (session.currentStepIndex <
+                                (session.currentRecipe?.steps.length ?? 1) - 1)
                               _ActionButton(
                                 icon: LucideIcons.chevronRight,
                                 theme: theme,
@@ -308,13 +310,17 @@ class _SessionOverlayState extends State<SessionOverlay> {
                                   color: theme.accentColor,
                                 ),
                               ),
-                              if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
+                              if (session.currentPhase == SessionPhase.sabaq &&
+                                  session.plan != null)
                                 Text(
                                   '/${session.plan!.sabaqRepetitionTarget}',
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 11,
-                                    color: theme.accentColor.withValues(alpha: 0.7),
+                                    color: theme.accentColor.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -326,7 +332,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 8),
 
             // ── Full Audio Player Bridge ──
@@ -441,10 +447,11 @@ class _SessionOverlayState extends State<SessionOverlay> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: (session.isStepComplete
-                      ? SemanticColors.practiceEmerald.fg(theme.isDark)
-                      : theme.accentColor)
-                  .withValues(alpha: 0.3),
+              color:
+                  (session.isStepComplete
+                          ? SemanticColors.practiceEmerald.fg(theme.isDark)
+                          : theme.accentColor)
+                      .withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

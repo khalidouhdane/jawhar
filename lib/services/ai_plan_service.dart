@@ -120,22 +120,25 @@ Return valid JSON only.
 
     // 3. Call Firebase Cloud Function
     try {
-      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
-          .httpsCallable('generateDailyPlan');
-          
-      final result = await callable.call<Map<Object?, Object?>>({
-        'context': context,
-        'isRecoveryMode': isRecoveryMode,
-        'systemPrompt': systemPrompt,
-      }).timeout(
-        const Duration(seconds: 20),
-        onTimeout: () {
-          throw const AIPlanException(
-            'AI plan generation timed out after 20 seconds. Check your connection.',
-            isRetryable: true,
+      final callable = FirebaseFunctions.instanceFor(
+        region: 'europe-west1',
+      ).httpsCallable('generateDailyPlan');
+
+      final result = await callable
+          .call<Map<Object?, Object?>>({
+            'context': context,
+            'isRecoveryMode': isRecoveryMode,
+            'systemPrompt': systemPrompt,
+          })
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () {
+              throw const AIPlanException(
+                'AI plan generation timed out after 20 seconds. Check your connection.',
+                isRetryable: true,
+              );
+            },
           );
-        },
-      );
 
       final data = result.data;
       if (data.isEmpty) {
@@ -171,7 +174,10 @@ Return valid JSON only.
         'assets/prompts/plan_system_prompt_v1.md',
       );
     } catch (e) {
-      AppLogger.info('AIPlan', 'Failed to load system prompt asset, using fallback: $e');
+      AppLogger.info(
+        'AIPlan',
+        'Failed to load system prompt asset, using fallback: $e',
+      );
       return _fallbackSystemPrompt;
     }
   }

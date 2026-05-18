@@ -32,12 +32,18 @@ class AppBottomNavBar extends StatelessWidget {
 
   String _label(AppLocalizations l, int i) {
     switch (i) {
-      case 0: return l.navHome;
-      case 1: return l.navRead;
-      case 2: return l.navUnderstand;
-      case 3: return l.navPractice;
-      case 4: return l.navProfile;
-      default: return '';
+      case 0:
+        return l.navHome;
+      case 1:
+        return l.navRead;
+      case 2:
+        return l.navUnderstand;
+      case 3:
+        return l.navPractice;
+      case 4:
+        return l.navProfile;
+      default:
+        return '';
     }
   }
 
@@ -57,12 +63,7 @@ class AppBottomNavBar extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: theme.navBarBackground,
-        border: Border(
-          top: BorderSide(
-            color: theme.dividerColor,
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: theme.dividerColor, width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -88,16 +89,14 @@ class AppBottomNavBar extends StatelessWidget {
                       width: isActive ? 19 : 24,
                       margin: const EdgeInsets.only(bottom: 10),
                       decoration: BoxDecoration(
-                        color: isActive ? theme.foregroundColor : Colors.transparent,
+                        color: isActive
+                            ? theme.foregroundColor
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
                     // ── Icon (22×22, stroke 2px) ──
-                    Icon(
-                      _icons[i],
-                      size: 22,
-                      color: color,
-                    ),
+                    Icon(_icons[i], size: 22, color: color),
                     const SizedBox(height: 10),
                     // ── Label (Geist 12px Regular) ──
                     Text(

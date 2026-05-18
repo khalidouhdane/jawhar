@@ -22,10 +22,10 @@ import 'package:quran_app/utils/app_logger.dart';
 /// 6. Returns access_token for User API calls
 class QfUserAuthService extends ChangeNotifier {
   // ── Credentials injected via --dart-define-from-file=.env ──
-  static const _clientId =
-      String.fromEnvironment('QURAN_PREPROD_CLIENT_ID');
-  static const _clientSecret =
-      String.fromEnvironment('QURAN_PREPROD_CLIENT_SECRET');
+  static const _clientId = String.fromEnvironment('QURAN_PREPROD_CLIENT_ID');
+  static const _clientSecret = String.fromEnvironment(
+    'QURAN_PREPROD_CLIENT_SECRET',
+  );
 
   // ── Pre-live OAuth2 endpoints (from OIDC discovery) ──
   static const _authEndpoint =
@@ -99,9 +99,15 @@ class QfUserAuthService extends ChangeNotifier {
     }
 
     if (_accessToken != null) {
-      AppLogger.info('QfAuth', '[QF_AUTH] Restored session for user: $_userSub');
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Restored session for user: $_userSub',
+      );
       if (_isTokenExpired && _refreshToken != null) {
-        AppLogger.info('QfAuth', '[QF_AUTH] Token expired, attempting refresh...');
+        AppLogger.info(
+          'QfAuth',
+          '[QF_AUTH] Token expired, attempting refresh...',
+        );
         await refreshAccessToken();
       }
     }
@@ -152,13 +158,18 @@ class QfUserAuthService extends ChangeNotifier {
           _loopbackPort,
         );
       } on SocketException catch (e) {
-        AppLogger.info('QfAuth', '[QF_AUTH] Port $_loopbackPort is in use. '
-          'Stop the website dev server first, then try again. Error: $e',
+        AppLogger.info(
+          'QfAuth',
+          '[QF_AUTH] Port $_loopbackPort is in use. '
+              'Stop the website dev server first, then try again. Error: $e',
         );
         return false;
       }
       final redirectUri = 'http://localhost:$_loopbackPort/callback';
-      AppLogger.info('QfAuth', '[QF_AUTH] Loopback server listening on port $_loopbackPort');
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Loopback server listening on port $_loopbackPort',
+      );
 
       // 2. Generate PKCE code verifier + challenge
       final codeVerifier = _generateCodeVerifier();
@@ -183,7 +194,10 @@ class QfUserAuthService extends ChangeNotifier {
       );
 
       // 5. Open the browser
-      AppLogger.info('QfAuth', '[QF_AUTH] Opening browser for QF User sign-in...');
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Opening browser for QF User sign-in...',
+      );
       await _openBrowser(authUrl.toString());
 
       // 6. Wait for the redirect (with timeout)
@@ -193,7 +207,10 @@ class QfUserAuthService extends ChangeNotifier {
       ).timeout(const Duration(minutes: 5));
 
       if (code == null) {
-        AppLogger.info('QfAuth', '[QF_AUTH] User cancelled or error in OAuth flow');
+        AppLogger.info(
+          'QfAuth',
+          '[QF_AUTH] User cancelled or error in OAuth flow',
+        );
         return false;
       }
 
@@ -241,7 +258,10 @@ class QfUserAuthService extends ChangeNotifier {
         );
         AppLogger.info('QfAuth', '[QF_AUTH] Refresh token revoked');
       } catch (e) {
-        AppLogger.info('QfAuth', '[QF_AUTH] Token revocation failed (non-critical): $e');
+        AppLogger.info(
+          'QfAuth',
+          '[QF_AUTH] Token revocation failed (non-critical): $e',
+        );
       }
     }
 
@@ -303,7 +323,10 @@ class QfUserAuthService extends ChangeNotifier {
 
       final data = jsonDecode(responseBody) as Map<String, dynamic>;
       await _storeTokens(data);
-      AppLogger.info('QfAuth', '[QF_AUTH] Signed in successfully. User: $_userSub');
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Signed in successfully. User: $_userSub',
+      );
       return true;
     } catch (e, stack) {
       AppLogger.info('QfAuth', '[QF_AUTH] Token exchange error: $e');
@@ -404,7 +427,10 @@ try {
 }
 ''';
 
-      AppLogger.info('QfAuth', '[QF_AUTH] Calling QF via PowerShell (Basic Auth)...');
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Calling QF via PowerShell (Basic Auth)...',
+      );
       final result = await Process.run('powershell', [
         '-NoProfile',
         '-NonInteractive',
@@ -413,13 +439,17 @@ try {
       ]);
 
       if (result.exitCode != 0) {
-        AppLogger.info('QfAuth', '[QF_AUTH] PowerShell error (exit ${result.exitCode}): ${result.stderr}',
+        AppLogger.info(
+          'QfAuth',
+          '[QF_AUTH] PowerShell error (exit ${result.exitCode}): ${result.stderr}',
         );
         return null;
       }
 
       final responseBody = (result.stdout as String).trim();
-      AppLogger.info('QfAuth', '[QF_AUTH] PowerShell response received (${responseBody.length} chars)',
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] PowerShell response received (${responseBody.length} chars)',
       );
       return responseBody;
     } catch (e) {
@@ -502,7 +532,10 @@ try {
       final claims = jsonDecode(payload) as Map<String, dynamic>;
       return claims['sub'] as String?;
     } catch (e) {
-      AppLogger.info('QfAuth', '[QF_AUTH] Failed to extract sub from id_token: $e');
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Failed to extract sub from id_token: $e',
+      );
       return null;
     }
   }
@@ -544,7 +577,9 @@ try {
       // Verify state matches (CSRF protection)
       final returnedState = uri.queryParameters['state'];
       if (returnedState != expectedState) {
-        AppLogger.info('QfAuth', '[QF_AUTH] State mismatch! Expected: $expectedState, got: $returnedState',
+        AppLogger.info(
+          'QfAuth',
+          '[QF_AUTH] State mismatch! Expected: $expectedState, got: $returnedState',
         );
         _sendResponse(
           request,

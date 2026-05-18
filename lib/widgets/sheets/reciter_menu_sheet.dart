@@ -38,7 +38,24 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
 
   /// Reciter IDs that have an image in assets/images/reciters/
   static const _reciterImageIds = <int>{
-    1, 2, 3, 4, 5, 6, 7, 12, 13, 19, 97, 158, 159, 160, 161, 173, 174, 175,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    12,
+    13,
+    19,
+    97,
+    158,
+    159,
+    160,
+    161,
+    173,
+    174,
+    175,
   };
 
   /// Build initials from a reciter name (first + last).
@@ -58,7 +75,10 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
         backgroundColor: theme.pillBackground,
         backgroundImage: AssetImage('assets/images/reciters/${reciter.id}.jpg'),
         onBackgroundImageError: (e, _) {
-          AppLogger.info('ReciterMenu', '[ReciterImage] Asset decode error for ${reciter.id}');
+          AppLogger.info(
+            'ReciterMenu',
+            '[ReciterImage] Asset decode error for ${reciter.id}',
+          );
         },
       );
     }
@@ -242,24 +262,34 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
           Expanded(
             child: Consumer<QuranReadingProvider>(
               builder: (context, readingProvider, child) {
-                if (readingProvider.isLoadingReciters && readingProvider.reciters.isEmpty) {
+                if (readingProvider.isLoadingReciters &&
+                    readingProvider.reciters.isEmpty) {
                   return Center(
                     child: CircularProgressIndicator(color: theme.accentColor),
                   );
                 }
 
-                if (readingProvider.recitersError.isNotEmpty && readingProvider.reciters.isEmpty) {
+                if (readingProvider.recitersError.isNotEmpty &&
+                    readingProvider.reciters.isEmpty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.wifiOff, size: 48, color: theme.dividerColor),
+                          Icon(
+                            LucideIcons.wifiOff,
+                            size: 48,
+                            color: theme.dividerColor,
+                          ),
                           const SizedBox(height: 12),
                           Text(
                             l.reciterNoFound,
-                            style: TextStyle(color: theme.mutedText, fontSize: 14, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              color: theme.mutedText,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),

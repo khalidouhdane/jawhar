@@ -220,7 +220,9 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
               Icon(
                 icon,
                 size: 14,
-                color: selected ? theme.scaffoldBackground : theme.secondaryText,
+                color: selected
+                    ? theme.scaffoldBackground
+                    : theme.secondaryText,
               ),
               const SizedBox(width: 6),
               Text(
@@ -229,7 +231,9 @@ class _WerdSetupSheetState extends State<WerdSetupSheet> {
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: selected ? theme.scaffoldBackground : theme.secondaryText,
+                  color: selected
+                      ? theme.scaffoldBackground
+                      : theme.secondaryText,
                 ),
               ),
             ],

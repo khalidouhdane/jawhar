@@ -60,7 +60,10 @@ class QfUserApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       } else if (response.statusCode == 401) {
-        AppLogger.info('QfApi', '[QF_API] 401 on GET $path — token may be expired');
+        AppLogger.info(
+          'QfApi',
+          '[QF_API] 401 on GET $path — token may be expired',
+        );
         // Try refresh and retry once
         final refreshed = await _authService.refreshAccessToken();
         if (refreshed) {
@@ -68,7 +71,9 @@ class QfUserApiService {
         }
         return null;
       } else {
-        AppLogger.info('QfApi', '[QF_API] GET $path failed: ${response.statusCode} ${response.body}',
+        AppLogger.info(
+          'QfApi',
+          '[QF_API] GET $path failed: ${response.statusCode} ${response.body}',
         );
         return null;
       }
@@ -85,7 +90,10 @@ class QfUserApiService {
   }) async {
     final headers = await _getHeaders();
     if (headers == null) {
-      AppLogger.info('QfApi', '[QF_API] Not authenticated, skipping POST $path');
+      AppLogger.info(
+        'QfApi',
+        '[QF_API] Not authenticated, skipping POST $path',
+      );
       return null;
     }
 
@@ -102,14 +110,19 @@ class QfUserApiService {
         if (response.body.isEmpty) return {};
         return jsonDecode(response.body) as Map<String, dynamic>;
       } else if (response.statusCode == 401) {
-        AppLogger.info('QfApi', '[QF_API] 401 on POST $path — attempting refresh');
+        AppLogger.info(
+          'QfApi',
+          '[QF_API] 401 on POST $path — attempting refresh',
+        );
         final refreshed = await _authService.refreshAccessToken();
         if (refreshed) {
           return _post(path, body: body);
         }
         return null;
       } else {
-        AppLogger.info('QfApi', '[QF_API] POST $path failed: ${response.statusCode} ${response.body}',
+        AppLogger.info(
+          'QfApi',
+          '[QF_API] POST $path failed: ${response.statusCode} ${response.body}',
         );
         return null;
       }
@@ -140,7 +153,9 @@ class QfUserApiService {
         if (response.body.isEmpty) return {};
         return jsonDecode(response.body) as Map<String, dynamic>;
       } else {
-        AppLogger.info('QfApi', '[QF_API] PATCH $path failed: ${response.statusCode} ${response.body}',
+        AppLogger.info(
+          'QfApi',
+          '[QF_API] PATCH $path failed: ${response.statusCode} ${response.body}',
         );
         return null;
       }
@@ -163,7 +178,9 @@ class QfUserApiService {
       if (response.statusCode == 200 || response.statusCode == 204) {
         return true;
       } else {
-        AppLogger.info('QfApi', '[QF_API] DELETE $path failed: ${response.statusCode} ${response.body}',
+        AppLogger.info(
+          'QfApi',
+          '[QF_API] DELETE $path failed: ${response.statusCode} ${response.body}',
         );
         return false;
       }

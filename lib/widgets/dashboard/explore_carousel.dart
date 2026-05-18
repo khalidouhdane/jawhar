@@ -50,11 +50,7 @@ class ExploreCarousel extends StatelessWidget {
             ],
           ),
         ),
-        TopicCarousel(
-          sectionTitle: '',
-          topics: mixed,
-          hideLabel: true,
-        ),
+        TopicCarousel(sectionTitle: '', topics: mixed, hideLabel: true),
       ],
     );
   }

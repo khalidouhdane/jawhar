@@ -72,15 +72,24 @@ class CloudSyncService extends ChangeNotifier {
 
       if (hasCloudData && !hasLocalData) {
         // New device: pull everything from cloud
-        AppLogger.info('Sync', '[SYNC] New device detected — pulling from cloud');
+        AppLogger.info(
+          'Sync',
+          '[SYNC] New device detected — pulling from cloud',
+        );
         await _pullAllFromCloud(uid);
       } else if (!hasCloudData && hasLocalData) {
         // First login ever: push local data to cloud
-        AppLogger.info('Sync', '[SYNC] First login — pushing local data to cloud');
+        AppLogger.info(
+          'Sync',
+          '[SYNC] First login — pushing local data to cloud',
+        );
         await _pushAllToCloud(uid, localProfile);
       } else if (hasCloudData && hasLocalData) {
         // Both exist: merge strategy
-        AppLogger.info('Sync', '[SYNC] Both local and cloud data exist — merging');
+        AppLogger.info(
+          'Sync',
+          '[SYNC] Both local and cloud data exist — merging',
+        );
         await _mergeData(uid, localProfile);
       } else {
         // No data anywhere — fresh user
@@ -134,7 +143,9 @@ class CloudSyncService extends ChangeNotifier {
         attempt++;
         if (attempt >= maxAttempts) rethrow;
         final delay = Duration(seconds: 1 << (attempt - 1)); // 1s, 2s, 4s
-        AppLogger.info('Sync', '[SYNC] Retry $attempt/$maxAttempts after ${delay.inSeconds}s',
+        AppLogger.info(
+          'Sync',
+          '[SYNC] Retry $attempt/$maxAttempts after ${delay.inSeconds}s',
         );
         await Future.delayed(delay);
       }
@@ -201,7 +212,10 @@ class CloudSyncService extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Progress push error for page $pageNumber: $e');
+      AppLogger.info(
+        'Sync',
+        '[SYNC] Progress push error for page $pageNumber: $e',
+      );
     }
   }
 
@@ -333,7 +347,10 @@ class CloudSyncService extends ChangeNotifier {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
-    AppLogger.info('Sync', '[SYNC] Pulled ${progressSnap.docs.length} progress records');
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pulled ${progressSnap.docs.length} progress records',
+    );
 
     // 5. Pull session history
     final sessionsSnap = await _userDoc(uid).collection('sessions').get();
@@ -347,7 +364,10 @@ class CloudSyncService extends ChangeNotifier {
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }
-    AppLogger.info('Sync', '[SYNC] Pulled ${sessionsSnap.docs.length} session records');
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pulled ${sessionsSnap.docs.length} session records',
+    );
 
     // 6. Pull daily plans
     final plansSnap = await _userDoc(uid).collection('plans').get();
@@ -361,7 +381,10 @@ class CloudSyncService extends ChangeNotifier {
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }
-    AppLogger.info('Sync', '[SYNC] Pulled ${plansSnap.docs.length} plan records');
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pulled ${plansSnap.docs.length} plan records',
+    );
   }
 
   /// Push all local data to Firestore.
@@ -389,7 +412,10 @@ class CloudSyncService extends ChangeNotifier {
           .doc('${row['pageNumber']}')
           .set({...row, 'updatedAt': FieldValue.serverTimestamp()});
     }
-    AppLogger.info('Sync', '[SYNC] Pushed ${progressRows.length} progress records');
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pushed ${progressRows.length} progress records',
+    );
 
     // 5. Push all session history
     final sessionRows = await db.query(
@@ -403,7 +429,10 @@ class CloudSyncService extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
-    AppLogger.info('Sync', '[SYNC] Pushed ${sessionRows.length} session records');
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pushed ${sessionRows.length} session records',
+    );
 
     // 6. Push all daily plans
     final planRows = await db.query(
@@ -431,7 +460,10 @@ class CloudSyncService extends ChangeNotifier {
         SetOptions(merge: true),
       );
     }
-    AppLogger.info('Sync', '[SYNC] Pushed ${cardRows.length} flashcard records');
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pushed ${cardRows.length} flashcard records',
+    );
 
     // 8. Push flashcard reviews
     final reviewRows = await db.query('flashcard_reviews');
@@ -447,7 +479,9 @@ class CloudSyncService extends ChangeNotifier {
         'syncedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
-    AppLogger.info('Sync', '[SYNC] Pushed ${profileReviews.length} flashcard review records',
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Pushed ${profileReviews.length} flashcard review records',
     );
   }
 
@@ -466,7 +500,10 @@ class CloudSyncService extends ChangeNotifier {
         await _db.updateProfile(cloudProfile);
         AppLogger.info('Sync', '[SYNC] Profile merged (cloud wins)');
       } catch (e) {
-        AppLogger.info('Sync', '[SYNC] Cloud profile parse error, keeping local: $e');
+        AppLogger.info(
+          'Sync',
+          '[SYNC] Cloud profile parse error, keeping local: $e',
+        );
         // If cloud data is corrupted, push local
         await syncProfile(uid, localProfile);
       }
@@ -542,7 +579,9 @@ class CloudSyncService extends ChangeNotifier {
         );
       }
     }
-    AppLogger.info('Sync', '[SYNC] Progress merged (${cloudProgress.docs.length} cloud records)',
+    AppLogger.info(
+      'Sync',
+      '[SYNC] Progress merged (${cloudProgress.docs.length} cloud records)',
     );
 
     // Push merged local progress back to cloud

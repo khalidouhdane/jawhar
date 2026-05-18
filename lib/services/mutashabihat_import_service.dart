@@ -19,15 +19,24 @@ class MutashabihatImportService {
   Future<int> importIfNeeded() async {
     final existingCount = await _db.getMutashabihatCount();
     if (existingCount > 0) {
-      AppLogger.info('Mutashabihat', 'Mutashabihat already imported ($existingCount groups)');
+      AppLogger.info(
+        'Mutashabihat',
+        'Mutashabihat already imported ($existingCount groups)',
+      );
       return 0;
     }
 
     try {
-      AppLogger.info('Mutashabihat', 'Fetching mutashabihat dataset from GitHub...');
+      AppLogger.info(
+        'Mutashabihat',
+        'Fetching mutashabihat dataset from GitHub...',
+      );
       final response = await http.get(Uri.parse(_dataUrl));
       if (response.statusCode != 200) {
-        AppLogger.info('Mutashabihat', 'Failed to fetch mutashabihat data: ${response.statusCode}');
+        AppLogger.info(
+          'Mutashabihat',
+          'Failed to fetch mutashabihat data: ${response.statusCode}',
+        );
         return 0;
       }
 
@@ -49,7 +58,10 @@ class MutashabihatImportService {
 
       if (groups.isNotEmpty) {
         await _db.importMutashabihatBatch(groups);
-        AppLogger.info('Mutashabihat', 'Imported ${groups.length} mutashabihat groups');
+        AppLogger.info(
+          'Mutashabihat',
+          'Imported ${groups.length} mutashabihat groups',
+        );
       }
 
       return groups.length;
@@ -124,7 +136,10 @@ class MutashabihatImportService {
         userStatus: MutashabihatStatus.notStudied,
       );
     } catch (e) {
-      AppLogger.info('Mutashabihat', 'Failed to parse mutashabihat entry $index: $e');
+      AppLogger.info(
+        'Mutashabihat',
+        'Failed to parse mutashabihat entry $index: $e',
+      );
       return null;
     }
   }

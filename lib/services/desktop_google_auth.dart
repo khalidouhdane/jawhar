@@ -17,13 +17,13 @@ import 'package:quran_app/utils/app_logger.dart';
 /// 5. Returns the idToken + accessToken for Firebase signInWithCredential
 class DesktopGoogleAuth {
   /// Web OAuth Client ID — injected via --dart-define-from-file=.env
-  static const _clientId =
-      String.fromEnvironment('DESKTOP_OAUTH_CLIENT_ID');
+  static const _clientId = String.fromEnvironment('DESKTOP_OAUTH_CLIENT_ID');
 
   /// Client secret — injected via --dart-define-from-file=.env
   /// Required for Web-type OAuth clients (Google considers non-confidential).
-  static const _clientSecret =
-      String.fromEnvironment('DESKTOP_OAUTH_CLIENT_SECRET');
+  static const _clientSecret = String.fromEnvironment(
+    'DESKTOP_OAUTH_CLIENT_SECRET',
+  );
 
   static const _authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
   static const _tokenEndpoint = 'https://oauth2.googleapis.com/token';
@@ -64,7 +64,10 @@ class DesktopGoogleAuth {
       );
 
       // 5. Open the browser
-      AppLogger.info('DesktopAuth', '[AUTH] Opening browser for Google Sign-In...');
+      AppLogger.info(
+        'DesktopAuth',
+        '[AUTH] Opening browser for Google Sign-In...',
+      );
       await _openBrowser(authUrl.toString());
 
       // 6. Wait for the redirect (with timeout)
@@ -74,7 +77,10 @@ class DesktopGoogleAuth {
       ).timeout(const Duration(minutes: 3));
 
       if (code == null) {
-        AppLogger.info('DesktopAuth', '[AUTH] User cancelled or error in OAuth flow');
+        AppLogger.info(
+          'DesktopAuth',
+          '[AUTH] User cancelled or error in OAuth flow',
+        );
         return null;
       }
 
@@ -157,7 +163,9 @@ class DesktopGoogleAuth {
     );
 
     if (response.statusCode != 200) {
-      AppLogger.info('DesktopAuth', '[AUTH] Token exchange failed: ${response.statusCode} ${response.body}',
+      AppLogger.info(
+        'DesktopAuth',
+        '[AUTH] Token exchange failed: ${response.statusCode} ${response.body}',
       );
       return null;
     }

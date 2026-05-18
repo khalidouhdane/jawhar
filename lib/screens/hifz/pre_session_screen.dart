@@ -354,7 +354,6 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
                           ],
                         ),
                       ),
-
                     ],
                   ),
                 ),

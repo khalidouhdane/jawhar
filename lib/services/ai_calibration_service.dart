@@ -39,13 +39,16 @@ class AICalibrationService {
         totalSessions: totalSessionCount,
       );
 
-      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
-          .httpsCallable('generateCalibration');
+      final callable = FirebaseFunctions.instanceFor(
+        region: 'europe-west1',
+      ).httpsCallable('generateCalibration');
 
-      final result = await callable.call<Map<Object?, Object?>>({
-        'context': contextMap,
-        'systemPrompt': _calibrationPrompt,
-      }).timeout(const Duration(seconds: 20));
+      final result = await callable
+          .call<Map<Object?, Object?>>({
+            'context': contextMap,
+            'systemPrompt': _calibrationPrompt,
+          })
+          .timeout(const Duration(seconds: 20));
 
       final data = result.data;
       if (data.isEmpty) {

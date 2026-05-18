@@ -47,7 +47,9 @@ class _HifzCtaCardState extends State<HifzCtaCard> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(11), // Matching Figma design exactly
+            borderRadius: BorderRadius.circular(
+              11,
+            ), // Matching Figma design exactly
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -55,7 +55,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!profile.hasActiveProfile) return;
 
     final recoveryService = context.read<BreakRecoveryService>();
-    final missedDays = await recoveryService.detectBreak(profile.activeProfile!);
+    final missedDays = await recoveryService.detectBreak(
+      profile.activeProfile!,
+    );
 
     if (missedDays > 0 && mounted) {
       final theme = context.read<ThemeProvider>();
@@ -140,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ...profiles.map((p) {
-                        final isActive = p.id == profileProvider.activeProfile?.id;
+                        final isActive =
+                            p.id == profileProvider.activeProfile?.id;
                         return GestureDetector(
                           onTap: () async {
                             if (!isActive) {
@@ -174,18 +177,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  IconResolver.avatarIcons[p.avatarIndex.clamp(0, 7)],
+                                  IconResolver.avatarIcons[p.avatarIndex.clamp(
+                                    0,
+                                    7,
+                                  )],
                                   size: 24,
-                                  color: isActive ? theme.accentColor : theme.secondaryText,
+                                  color: isActive
+                                      ? theme.accentColor
+                                      : theme.secondaryText,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     p.name,
                                     style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
                                       fontSize: 15,
-                                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                                      fontWeight: isActive
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
                                       color: theme.primaryText,
                                     ),
                                   ),
@@ -259,9 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navigateToAssessment() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const AssessmentScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const AssessmentScreen()),
     ).then((_) {
       if (context.mounted) _loadPlanIfNeeded();
     });
@@ -275,7 +284,9 @@ class _HomeScreenState extends State<HomeScreen> {
       // Force-generate a plan on rest day ("Start Anyway")
       final profile = context.read<HifzProfileProvider>().activeProfile;
       if (profile != null) {
-        planProvider.loadOrGeneratePlan(profile, forceRegenerate: true).then((_) {
+        planProvider.loadOrGeneratePlan(profile, forceRegenerate: true).then((
+          _,
+        ) {
           if (mounted && planProvider.todayPlan != null) {
             PreSessionSheet.show(context);
           }
@@ -283,7 +294,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-
 
   void _navigateToProgressDetail() {
     Navigator.push(
@@ -295,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       body: Consumer<HifzProfileProvider>(

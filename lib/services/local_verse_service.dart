@@ -38,15 +38,17 @@ class LocalVerseService {
         final verseKey = '$surah:$v';
         final globalId = _globalVerseId(surah, v);
 
-        verses.add(Verse(
-          id: globalId,
-          verseNumber: v,
-          verseKey: verseKey,
-          pageNumber: page,
-          juzNumber: quran.getJuzNumber(surah, v),
-          hizbNumber: _computeHizb(surah, v),
-          words: _textToWords(text, globalId),
-        ));
+        verses.add(
+          Verse(
+            id: globalId,
+            verseNumber: v,
+            verseKey: verseKey,
+            pageNumber: page,
+            juzNumber: quran.getJuzNumber(surah, v),
+            hizbNumber: _computeHizb(surah, v),
+            words: _textToWords(text, globalId),
+          ),
+        );
       }
     }
 

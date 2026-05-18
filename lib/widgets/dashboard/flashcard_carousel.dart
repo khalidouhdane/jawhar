@@ -99,7 +99,10 @@ class FlashcardCarousel extends StatelessWidget {
               if (totalDue > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.isDark
                         ? Colors.white.withValues(alpha: 0.08)
@@ -160,10 +163,7 @@ class _FlashcardCategoryCard extends StatelessWidget {
   final _CardCategory category;
   final ThemeProvider theme;
 
-  const _FlashcardCategoryCard({
-    required this.category,
-    required this.theme,
-  });
+  const _FlashcardCategoryCard({required this.category, required this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -181,9 +181,8 @@ class _FlashcardCategoryCard extends StatelessWidget {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => FlashcardReviewScreen(
-                  filterType: category.type,
-                ),
+                builder: (_) =>
+                    FlashcardReviewScreen(filterType: category.type),
               ),
             );
           },
@@ -208,7 +207,11 @@ class _FlashcardCategoryCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(theme.radiusLg),
                       ),
                       child: Center(
-                        child: Icon(category.icon, size: 14, color: theme.secondaryText),
+                        child: Icon(
+                          category.icon,
+                          size: 14,
+                          color: theme.secondaryText,
+                        ),
                       ),
                     ),
                     const Spacer(),
