@@ -784,5 +784,232 @@
         "type": "int"
       }
     }
-  }
+  },
+  "homeStatusFreshStart": "Every return is a fresh start",
+  "homeStatusWelcomeBack": "Welcome back · review session ready",
+  "homeStatusDoneToday": "Done for today · {activeDays} active days",
+  "@homeStatusDoneToday": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatusReady": "Ready when you are",
+  "homeStatusPageAwaits": "Page {page} awaits",
+  "@homeStatusPageAwaits": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatusSessionReady": "Session ready",
+  "homeStatusEstimate": "{info} · ~{minutes} min",
+  "@homeStatusEstimate": {
+    "placeholders": {
+      "info": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSubtitle": "{revelationType} · {versesCount} verses · Page {page}",
+  "@surahSubtitle": {
+    "placeholders": {
+      "revelationType": {
+        "type": "String"
+      },
+      "versesCount": {
+        "type": "int"
+      },
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "meccan": "Meccan",
+  "medinan": "Medinan",
+  "appName": "jawhar",
+  "progressTitle": "Progress",
+  "progressTabPages": "Pages",
+  "progressTabSurahs": "Surahs",
+  "progressTotalPages": "{total}/604 pages",
+  "@progressTotalPages": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressActiveDays": "{days} days",
+  "@progressActiveDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "progressMemorized": "{count} memorized",
+  "@progressMemorized": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressPagesPerWeek": "{pages}/wk",
+  "@progressPagesPerWeek": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "progressEstWeeks": "{weeks} weeks",
+  "@progressEstWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "progressEstYears": "{years} years",
+  "@progressEstYears": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "progressComplete": "Complete!",
+  "progressViewHistory": "View Session History",
+  "progressSessionsCount": "{count} sessions",
+  "@progressSessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressJuz": "Juz {num}",
+  "@progressJuz": {
+    "placeholders": {
+      "num": {
+        "type": "int"
+      }
+    }
+  },
+  "progressLegendMemorized": "Memorized",
+  "progressLegendLearning": "Learning",
+  "progressLegendReviewing": "Reviewing",
+  "progressLegendNotStarted": "Not started",
+  "progressPageRangeSingle": "Page {page}",
+  "@progressPageRangeSingle": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "progressPageRangeMultiple": "Pages {start}–{end}",
+  "@progressPageRangeMultiple": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirTitle": "Tafsir — {verse}",
+  "@tafsirTitle": {
+    "placeholders": {
+      "verse": {
+        "type": "String"
+      }
+    }
+  },
+  "tafsirTabBrief": "Brief",
+  "tafsirTabDetailed": "Detailed",
+  "tafsirTabOccasion": "Occasion",
+  "tafsirEmptyBrief": "No brief tafsir available for this verse.",
+  "tafsirEmptyDetailed": "Tap the Detailed tab to load.",
+  "tafsirEmptyOccasion": "No occasion of revelation recorded for this verse.",
+  "tafsirOccasionTitle": "Occasion of Revelation",
+  "tafsirNarrationCount": "{count, plural, =1 {1 narration} other {{count} narrations}}",
+  "tafsirNarrationLabel": "Narration {number}",
+  "undReadSurah": "Read Surah",
+  "undOverview": "Overview",
+  "undKeyThemes": "Key Themes",
+  "undReasonsOfRevelation": "Reasons of Revelation",
+  "undEntriesCount": "{count} entries",
+  "@undEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undMoreEntries": "+ {count} more entries",
+  "@undMoreEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undIntroComingSoon": "Detailed introduction coming soon.\nOpen the surah to explore translations and tafsir.",
+  "undVersesCount": "{count} verses",
+  "@undVersesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undPagePrefix": "Page {page}",
+  "@undPagePrefix": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "pracContextNeeded": "Context needed",
+  "pracNotStudied": "Not studied",
+  "pracSource": "Source",
+  "pracSimilar": "Similar",
+  "pracMastered": "Mastered",
+  "pracMarkForPractice": "Mark for Practice",
+  "pracMutashabihat": "Mutashabihat",
+  "pracAll": "All",
+  "pracNeedsPractice": "Needs Practice",
+  "pracTapToReveal": "Tap to reveal",
+  "cardTypeVerseCompletion": "Verse Completion",
+  "cardTypeNextVerse": "Next Verse",
+  "cardTypePreviousVerse": "Previous Verse",
+  "cardTypeIdentifySurah": "Identify Surah",
+  "cardTypeTranslation": "Translation",
+  "cardTypeRootWord": "Root Word",
+  "pracDifference": "Difference",
+  "pracShowOriginal": "Show original verse from {surah}",
+  "@pracShowOriginal": {
+    "placeholders": {
+      "surah": {
+        "type": "String"
+      }
+    }
+  },
+  "pracWhichSurahWord": "In which surah is this word:",
+  "pracContext": "Context",
+  "pracQuiz": "Quiz",
+  "pracPracticing": "Practicing",
+  "pracMarkForPractice": "Mark for Practice",
+  "pracMastered": "Mastered",
+  "pracNeedsPractice": "Needs Practice",
+  "pracNotStudied": "Not Studied"
 }

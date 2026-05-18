@@ -5,6 +5,7 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class AppHeader extends StatelessWidget {
   final String? title;
@@ -29,8 +30,9 @@ class AppHeader extends StatelessWidget {
     // Use the first letter of the name if available, else standard icon
     final initial = name.isNotEmpty ? name.trim()[0].toUpperCase() : null;
 
+    final l10n = AppLocalizations.of(context)!;
     final isBrand = title == null || title!.toLowerCase() == 'jawhar';
-    final displayText = title ?? 'jawhar';
+    final displayText = title ?? l10n.appName;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

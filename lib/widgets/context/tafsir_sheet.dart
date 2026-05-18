@@ -4,6 +4,7 @@ import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/tafsir_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Bottom sheet that shows tafsir (exegesis) for a selected verse.
 ///
@@ -111,6 +112,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
+    final l = AppLocalizations.of(context)!;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.55,
@@ -161,7 +163,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Tafsir — ${widget.verseKey}',
+                            l.tafsirTitle(widget.verseKey),
                             style: GoogleFonts.ibmPlexSansArabic(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -218,10 +220,10 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
-                  tabs: const [
-                    Tab(text: 'Brief'),
-                    Tab(text: 'Detailed'),
-                    Tab(text: 'Occasion'),
+                  tabs: [
+                    Tab(text: l.tafsirTabBrief),
+                    Tab(text: l.tafsirTabDetailed),
+                    Tab(text: l.tafsirTabOccasion),
                   ],
                 ),
               ),
@@ -237,14 +239,14 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                       text: _briefTafsir?.text,
                       isLoading: _isLoadingBrief,
                       isArabic: _isArabic,
-                      emptyMessage: 'No brief tafsir available for this verse.',
+                      emptyMessage: l.tafsirEmptyBrief,
                       theme: theme,
                     ),
                     _TafsirTextView(
                       text: _detailedTafsir?.text,
                       isLoading: _isLoadingDetailed,
                       isArabic: _isArabic,
-                      emptyMessage: 'Tap the Detailed tab to load.',
+                      emptyMessage: l.tafsirEmptyDetailed,
                       theme: theme,
                     ),
                     _OccasionView(occasions: _occasions, theme: theme),
@@ -360,7 +362,8 @@ class _OccasionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (occasions == null || occasions!.isEmpty) return _buildEmpty();
+    final l = AppLocalizations.of(context)!;
+    if (occasions == null || occasions!.isEmpty) return _buildEmpty(l);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -379,7 +382,7 @@ class _OccasionView extends StatelessWidget {
                 Icon(Icons.history_edu, size: 16, color: theme.accentColor),
                 const SizedBox(width: 8),
                 Text(
-                  'سبب النزول',
+                  l.tafsirOccasionTitle,
                   style: GoogleFonts.amiri(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -388,7 +391,7 @@ class _OccasionView extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${occasions!.length} ${occasions!.length == 1 ? 'narration' : 'narrations'}',
+                  l.tafsirNarrationCount(occasions!.length),
                   style: GoogleFonts.ibmPlexSansArabic(
                     fontSize: 11,
                     color: theme.secondaryText,
@@ -409,7 +412,7 @@ class _OccasionView extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      'الرواية ${index + 1}',
+                      l.tafsirNarrationLabel(index + 1),
                       style: GoogleFonts.amiri(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -444,7 +447,7 @@ class _OccasionView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(AppLocalizations l) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -454,7 +457,7 @@ class _OccasionView extends StatelessWidget {
             Icon(Icons.history_edu, size: 40, color: theme.mutedText),
             const SizedBox(height: 12),
             Text(
-              'No occasion of revelation recorded\nfor this verse.',
+              l.tafsirEmptyOccasion,
               style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 14,
                 color: theme.secondaryText,

@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/utils/app_logger.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Browsable collection of mutashabihat (similar verse) groups.
 /// Filter by status (All/Needs Practice/Mastered/Not Studied).
@@ -86,7 +87,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Mutashabihat',
+          AppLocalizations.of(context)!.pracMutashabihat,
           style: TextStyle(
             fontFamily: GeistTypography.primaryFontFamily,
             fontSize: 18,
@@ -123,15 +124,15 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                _filterChip(theme, 'All', null),
+                _filterChip(theme, AppLocalizations.of(context)!.pracAll, null),
                 const SizedBox(width: 8),
                 _filterChip(
                   theme,
-                  'Needs Practice',
+                  AppLocalizations.of(context)!.pracNeedsPractice,
                   MutashabihatStatus.needsPractice,
                 ),
                 const SizedBox(width: 8),
-                _filterChip(theme, 'Mastered', MutashabihatStatus.mastered),
+                _filterChip(theme, AppLocalizations.of(context)!.pracMastered, MutashabihatStatus.mastered),
               ],
             ),
           ),
@@ -219,7 +220,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Context needed',
+                      AppLocalizations.of(context)!.pracContextNeeded,
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 10,
@@ -235,7 +236,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           // SOURCE VERSE — with Arabic text
           _verseCard(
             theme,
-            label: 'Source',
+            label: AppLocalizations.of(context)!.pracSource,
             verseKey: group.sourceVerseKey,
             surahName: srcSurah,
             verseText: srcText,
@@ -252,7 +253,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               padding: const EdgeInsets.only(top: 6),
               child: _verseCard(
                 theme,
-                label: '↔ Similar',
+                label: '↔ ${AppLocalizations.of(context)!.pracSimilar}',
                 verseKey: v.verseKey,
                 surahName: mutSurah,
                 verseText: mutText,
@@ -268,8 +269,8 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               _actionButton(
                 theme,
                 group.userStatus == MutashabihatStatus.needsPractice
-                    ? 'Practicing'
-                    : 'Mark for Practice',
+                    ? AppLocalizations.of(context)!.pracPracticing
+                    : AppLocalizations.of(context)!.pracMarkForPractice,
                 group.userStatus == MutashabihatStatus.needsPractice,
                 () async {
                   final db = context.read<HifzDatabaseService>();
@@ -283,9 +284,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               const SizedBox(width: 8),
               _actionButton(
                 theme,
-                group.userStatus == MutashabihatStatus.mastered
-                    ? 'Mastered'
-                    : 'Mastered',
+                AppLocalizations.of(context)!.pracMastered,
                 group.userStatus == MutashabihatStatus.mastered,
                 () async {
                   final db = context.read<HifzDatabaseService>();
@@ -402,15 +401,15 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
     Color color;
     switch (group.userStatus) {
       case MutashabihatStatus.mastered:
-        label = 'Mastered';
+        label = AppLocalizations.of(context)!.pracMastered;
         color = Colors.green;
         break;
       case MutashabihatStatus.needsPractice:
-        label = 'Practice';
+        label = AppLocalizations.of(context)!.pracNeedsPractice;
         color = Colors.orange;
         break;
       case MutashabihatStatus.notStudied:
-        label = 'Not studied';
+        label = AppLocalizations.of(context)!.pracNotStudied;
         color = theme.mutedText;
         break;
     }

@@ -38,22 +38,17 @@ class ContextualStatus extends StatelessWidget {
         } else if (plan == null) {
           message = l.homeReadyToStart(profile.name);
         } else if (missedDays > 3) {
-          message = "Every return is a fresh start";
+          message = l.homeStatusFreshStart;
         } else if (missedDays > 0) {
-          message = "Welcome back · review session ready";
+          message = l.homeStatusWelcomeBack;
         } else if (plan.isCompleted) {
-          message =
-              "Done for today · ${profileProvider.streak.totalActiveDays} active days";
-        } else if (plan.sabaqDoneOffline &&
-            plan.sabqiDoneOffline &&
-            plan.manzilDoneOffline) {
-          message = "Ready when you are";
+          message = l.homeStatusDoneToday(profileProvider.streak.totalActiveDays);
+        } else if (plan.sabaqDoneOffline && plan.sabqiDoneOffline && plan.manzilDoneOffline) {
+          message = l.homeStatusReady;
         } else {
           // Normal state: Page X awaits · ~Y min
-          final pageInfo = plan.sabaqPage > 0
-              ? "Page ${plan.sabaqPage} awaits"
-              : "Session ready";
-          message = "$pageInfo · ~${plan.estimatedMinutes} min";
+          final pageInfo = plan.sabaqPage > 0 ? l.homeStatusPageAwaits(plan.sabaqPage) : l.homeStatusSessionReady;
+          message = l.homeStatusEstimate(pageInfo, plan.estimatedMinutes);
         }
 
         return Padding(

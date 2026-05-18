@@ -88,6 +88,8 @@ class _TopicCard extends StatelessWidget {
         maxChildSize: 0.85,
         minChildSize: 0.3,
         builder: (ctx, scrollController) {
+          final l10n = AppLocalizations.of(ctx)!;
+          final isArabic = l10n.localeName == 'ar';
           return Container(
             decoration: BoxDecoration(
               color: theme.scaffoldBackground,
@@ -135,8 +137,7 @@ class _TopicCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      if (Localizations.localeOf(context).languageCode !=
-                          'ar') ...[
+                      if (!isArabic) ...[
                         ExcludeSemantics(
                           child: Text(
                             topic.titleAr,
@@ -150,11 +151,8 @@ class _TopicCard extends StatelessWidget {
                         const SizedBox(height: 2),
                       ],
                       Text(
-                        Localizations.localeOf(context).languageCode == 'ar'
-                            ? topic.titleAr
-                            : topic.title,
-                        style:
-                            Localizations.localeOf(context).languageCode == 'ar'
+                        isArabic ? topic.titleAr : topic.title,
+                        style: isArabic
                             ? GoogleFonts.amiri(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
@@ -169,11 +167,8 @@ class _TopicCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        Localizations.localeOf(context).languageCode == 'ar'
-                            ? topic.subtitleAr
-                            : topic.subtitle,
-                        style:
-                            Localizations.localeOf(context).languageCode == 'ar'
+                        isArabic ? topic.subtitleAr : topic.subtitle,
+                        style: isArabic
                             ? GoogleFonts.amiri(
                                 fontSize: 16,
                                 color: theme.secondaryText,
@@ -271,17 +266,18 @@ class _TopicCard extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        surah.nameSimple,
+                                        isArabic ? surah.nameArabic : surah.nameSimple,
                                         style: TextStyle(
-                                          fontFamily:
-                                              GeistTypography.primaryFontFamily,
-                                          fontSize: 15,
+                                          fontFamily: isArabic
+                                              ? GoogleFonts.amiri().fontFamily
+                                              : GeistTypography.primaryFontFamily,
+                                          fontSize: isArabic ? 18 : 15,
                                           fontWeight: FontWeight.w600,
                                           color: theme.primaryText,
                                         ),
                                       ),
                                       Text(
-                                        '${surah.revelationType} · ${surah.versesCount} verses',
+                                        '${surah.isMeccan ? l10n.meccan : l10n.medinan} · ${l10n.undVersesCount(surah.versesCount)}',
                                         style: TextStyle(
                                           fontFamily:
                                               GeistTypography.primaryFontFamily,
@@ -358,10 +354,8 @@ class _TopicCard extends StatelessWidget {
                 const Spacer(),
                 // Title
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ar'
-                      ? topic.titleAr
-                      : topic.title,
-                  style: Localizations.localeOf(context).languageCode == 'ar'
+                  isArabic ? topic.titleAr : topic.title,
+                  style: isArabic
                       ? GoogleFonts.amiri(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -380,7 +374,7 @@ class _TopicCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 // Secondary text / subtitle
-                if (Localizations.localeOf(context).languageCode != 'ar') ...[
+                if (AppLocalizations.of(context)!.localeName != 'ar') ...[
                   ExcludeSemantics(
                     child: Text(
                       topic.titleAr,

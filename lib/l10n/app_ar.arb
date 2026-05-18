@@ -749,5 +749,197 @@
         "type": "int"
       }
     }
-  }
+  },
+  "homeStatusFreshStart": "كل عودة هي بداية جديدة",
+  "homeStatusWelcomeBack": "مرحباً بعودتك · جلسة المراجعة جاهزة",
+  "homeStatusDoneToday": "أنجزت اليوم · {activeDays} أيام نشطة",
+  "@homeStatusDoneToday": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatusReady": "نحن بانتظارك",
+  "homeStatusPageAwaits": "صفحة {page} بانتظارك",
+  "@homeStatusPageAwaits": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatusSessionReady": "الجلسة جاهزة",
+  "homeStatusEstimate": "{info} · ~{minutes} دقيقة",
+  "@homeStatusEstimate": {
+    "placeholders": {
+      "info": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSubtitle": "{revelationType} · {versesCount} آية · صفحة {page}",
+  "@surahSubtitle": {
+    "placeholders": {
+      "revelationType": {
+        "type": "String"
+      },
+      "versesCount": {
+        "type": "int"
+      },
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "meccan": "مكية",
+  "medinan": "مدنية",
+  "appName": "جوهر",
+  "progressTitle": "التقدم",
+  "progressTabPages": "الصفحات",
+  "progressTabSurahs": "السور",
+  "progressTotalPages": "{total}/604 صفحة",
+  "@progressTotalPages": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressActiveDays": "{days} أيام",
+  "@progressActiveDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "progressMemorized": "{count} محفوظة",
+  "@progressMemorized": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressPagesPerWeek": "{pages}/أسبوع",
+  "@progressPagesPerWeek": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "progressEstWeeks": "{weeks} أسابيع",
+  "@progressEstWeeks": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "progressEstYears": "{years} سنوات",
+  "@progressEstYears": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      }
+    }
+  },
+  "progressComplete": "مكتمل!",
+  "progressViewHistory": "عرض سجل الجلسات",
+  "progressSessionsCount": "{count} جلسات",
+  "@progressSessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressJuz": "الجزء {num}",
+  "@progressJuz": {
+    "placeholders": {
+      "num": {
+        "type": "int"
+      }
+    }
+  },
+  "progressLegendMemorized": "مكتملة",
+  "progressLegendLearning": "قيد الحفظ",
+  "progressLegendReviewing": "للمراجعة",
+  "progressLegendNotStarted": "لم تبدأ",
+  "progressPageRangeSingle": "صفحة {page}",
+  "@progressPageRangeSingle": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "progressPageRangeMultiple": "الصفحات {start}–{end}",
+  "@progressPageRangeMultiple": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "tafsirTitle": "التفسير — {verse}",
+  "@tafsirTitle": {
+    "placeholders": {
+      "verse": {
+        "type": "String"
+      }
+    }
+  },
+  "tafsirTabBrief": "مختصر",
+  "tafsirTabDetailed": "مفصل",
+  "tafsirTabOccasion": "أسباب النزول",
+  "tafsirEmptyBrief": "لا يوجد تفسير ميسر لهذه الآية.",
+  "tafsirEmptyDetailed": "انقر على التبويب المفصل للتحميل.",
+  "tafsirEmptyOccasion": "لا توجد أسباب نزول مسجلة لهذه الآية.",
+  "tafsirOccasionTitle": "سبب النزول",
+  "tafsirNarrationCount": "{count, plural, =1 {رواية واحدة} =2 {روايتان} few {{count} روايات} other {{count} رواية}}",
+  "tafsirNarrationLabel": "الرواية {number}",
+  "undReadSurah": "اقرأ السورة",
+  "undOverview": "نظرة عامة",
+  "undKeyThemes": "المواضيع الرئيسية",
+  "undReasonsOfRevelation": "أسباب النزول",
+  "undEntriesCount": "{count} إدخالات",
+  "undMoreEntries": "+ {count} إدخالات إضافية",
+  "undIntroComingSoon": "مقدمة مفصلة قريباً.\nافتح السورة لاستكشاف التراجم والتفاسير.",
+  "undVersesCount": "{count} آيات",
+  "undPagePrefix": "الصفحة {page}",
+  "pracContextNeeded": "بحاجة لسياق",
+  "pracNotStudied": "لم تدرس بعد",
+  "pracSource": "المصدر",
+  "pracSimilar": "مشابهة",
+  "pracMastered": "متقن",
+  "pracMarkForPractice": "علم للمراجعة",
+  "pracMutashabihat": "المتشابهات",
+  "pracAll": "الكل",
+  "pracNeedsPractice": "يحتاج مراجعة",
+  "pracTapToReveal": "انقر للإظهار",
+  "cardTypeVerseCompletion": "إكمال الآية",
+  "cardTypeNextVerse": "الآية التالية",
+  "cardTypePreviousVerse": "الآية السابقة",
+  "cardTypeIdentifySurah": "التعرف على السورة",
+  "cardTypeTranslation": "الترجمة",
+  "cardTypeRootWord": "جذر الكلمة",
+  "pracDifference": "الفرق",
+  "pracShowOriginal": "إظهار الآية الأصلية من {surah}",
+  "pracWhichSurahWord": "في أي سورة توجد هذه الكلمة:",
+  "pracContext": "السياق",
+  "pracQuiz": "اختبار",
+  "pracPracticing": "قيد المراجعة",
+  "pracMarkForPractice": "تحديد للمراجعة",
+  "pracMastered": "متقن",
+  "pracNeedsPractice": "يحتاج مراجعة",
+  "pracNotStudied": "لم يُدرس"
 }

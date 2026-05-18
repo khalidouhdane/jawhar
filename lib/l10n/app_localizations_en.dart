@@ -933,7 +933,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeLetsGo => 'Let\\\'s Go! ✨';
 
   @override
-  String get pracMutashabihat => 'Mutashabihat Practice';
+  String get pracMutashabihat => 'Mutashabihat';
 
   @override
   String get pracSpotDiff => 'Spot Diff';
@@ -1938,4 +1938,266 @@ class AppLocalizationsEn extends AppLocalizations {
   String progressStripInfo(String pct, int pages, int juz) {
     return '$pct% · $pages pages · Juz $juz';
   }
+
+  @override
+  String get homeStatusFreshStart => 'Every return is a fresh start';
+
+  @override
+  String get homeStatusWelcomeBack => 'Welcome back · review session ready';
+
+  @override
+  String homeStatusDoneToday(int activeDays) {
+    return 'Done for today · $activeDays active days';
+  }
+
+  @override
+  String get homeStatusReady => 'Ready when you are';
+
+  @override
+  String homeStatusPageAwaits(int page) {
+    return 'Page $page awaits';
+  }
+
+  @override
+  String get homeStatusSessionReady => 'Session ready';
+
+  @override
+  String homeStatusEstimate(String info, int minutes) {
+    return '$info · ~$minutes min';
+  }
+
+  @override
+  String surahSubtitle(String revelationType, int versesCount, int page) {
+    return '$revelationType · $versesCount verses · Page $page';
+  }
+
+  @override
+  String get meccan => 'Meccan';
+
+  @override
+  String get medinan => 'Medinan';
+
+  @override
+  String get appName => 'jawhar';
+
+  @override
+  String get progressTitle => 'Progress';
+
+  @override
+  String get progressTabPages => 'Pages';
+
+  @override
+  String get progressTabSurahs => 'Surahs';
+
+  @override
+  String progressTotalPages(int total) {
+    return '$total/604 pages';
+  }
+
+  @override
+  String progressActiveDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String progressMemorized(int count) {
+    return '$count memorized';
+  }
+
+  @override
+  String progressPagesPerWeek(int pages) {
+    return '$pages/wk';
+  }
+
+  @override
+  String progressEstWeeks(int weeks) {
+    return '$weeks weeks';
+  }
+
+  @override
+  String progressEstYears(String years) {
+    return '$years years';
+  }
+
+  @override
+  String get progressComplete => 'Complete!';
+
+  @override
+  String get progressViewHistory => 'View Session History';
+
+  @override
+  String progressSessionsCount(int count) {
+    return '$count sessions';
+  }
+
+  @override
+  String progressJuz(int num) {
+    return 'Juz $num';
+  }
+
+  @override
+  String get progressLegendMemorized => 'Memorized';
+
+  @override
+  String get progressLegendLearning => 'Learning';
+
+  @override
+  String get progressLegendReviewing => 'Reviewing';
+
+  @override
+  String get progressLegendNotStarted => 'Not started';
+
+  @override
+  String progressPageRangeSingle(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String progressPageRangeMultiple(int start, int end) {
+    return 'Pages $start–$end';
+  }
+
+  @override
+  String tafsirTitle(String verse) {
+    return 'Tafsir — $verse';
+  }
+
+  @override
+  String get tafsirTabBrief => 'Brief';
+
+  @override
+  String get tafsirTabDetailed => 'Detailed';
+
+  @override
+  String get tafsirTabOccasion => 'Occasion';
+
+  @override
+  String get tafsirEmptyBrief => 'No brief tafsir available for this verse.';
+
+  @override
+  String get tafsirEmptyDetailed => 'Tap the Detailed tab to load.';
+
+  @override
+  String get tafsirEmptyOccasion =>
+      'No occasion of revelation recorded for this verse.';
+
+  @override
+  String get tafsirOccasionTitle => 'Occasion of Revelation';
+
+  @override
+  String tafsirNarrationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count narrations',
+      one: '1 narration',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tafsirNarrationLabel(Object number) {
+    return 'Narration $number';
+  }
+
+  @override
+  String get undReadSurah => 'Read Surah';
+
+  @override
+  String get undOverview => 'Overview';
+
+  @override
+  String get undKeyThemes => 'Key Themes';
+
+  @override
+  String get undReasonsOfRevelation => 'Reasons of Revelation';
+
+  @override
+  String undEntriesCount(int count) {
+    return '$count entries';
+  }
+
+  @override
+  String undMoreEntries(int count) {
+    return '+ $count more entries';
+  }
+
+  @override
+  String get undIntroComingSoon =>
+      'Detailed introduction coming soon.\nOpen the surah to explore translations and tafsir.';
+
+  @override
+  String undVersesCount(int count) {
+    return '$count verses';
+  }
+
+  @override
+  String undPagePrefix(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String get pracContextNeeded => 'Context needed';
+
+  @override
+  String get pracNotStudied => 'Not Studied';
+
+  @override
+  String get pracSource => 'Source';
+
+  @override
+  String get pracSimilar => 'Similar';
+
+  @override
+  String get pracMastered => 'Mastered';
+
+  @override
+  String get pracMarkForPractice => 'Mark for Practice';
+
+  @override
+  String get pracAll => 'All';
+
+  @override
+  String get pracNeedsPractice => 'Needs Practice';
+
+  @override
+  String get pracTapToReveal => 'Tap to reveal';
+
+  @override
+  String get cardTypeVerseCompletion => 'Verse Completion';
+
+  @override
+  String get cardTypeNextVerse => 'Next Verse';
+
+  @override
+  String get cardTypePreviousVerse => 'Previous Verse';
+
+  @override
+  String get cardTypeIdentifySurah => 'Identify Surah';
+
+  @override
+  String get cardTypeTranslation => 'Translation';
+
+  @override
+  String get cardTypeRootWord => 'Root Word';
+
+  @override
+  String get pracDifference => 'Difference';
+
+  @override
+  String pracShowOriginal(String surah) {
+    return 'Show original verse from $surah';
+  }
+
+  @override
+  String get pracWhichSurahWord => 'In which surah is this word:';
+
+  @override
+  String get pracContext => 'Context';
+
+  @override
+  String get pracQuiz => 'Quiz';
+
+  @override
+  String get pracPracticing => 'Practicing';
 }

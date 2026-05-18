@@ -255,6 +255,7 @@ class _SurahTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -302,17 +303,27 @@ class _SurahTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      surah.nameSimple,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: theme.primaryText,
-                      ),
+                      AppLocalizations.of(context)!.localeName == 'ar' ? surah.nameArabic : surah.nameSimple,
+                      style: AppLocalizations.of(context)!.localeName == 'ar'
+                          ? GoogleFonts.amiri(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                            )
+                          : TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: theme.primaryText,
+                            ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${surah.revelationType} · ${surah.versesCount} verses · Page ${surah.startPage}',
+                      l10n.surahSubtitle(
+                        surah.isMeccan ? l10n.meccan : l10n.medinan,
+                        surah.versesCount,
+                        surah.startPage,
+                      ),
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
@@ -323,17 +334,18 @@ class _SurahTile extends StatelessWidget {
                 ),
               ),
 
-              // Arabic name
-              ExcludeSemantics(
-                child: Text(
-                  surah.nameArabic,
-                  style: GoogleFonts.amiri(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: theme.secondaryText,
+              // Secondary name
+              if (AppLocalizations.of(context)!.localeName != 'ar')
+                ExcludeSemantics(
+                  child: Text(
+                    surah.nameArabic,
+                    style: GoogleFonts.amiri(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: theme.secondaryText,
+                    ),
                   ),
                 ),
-              ),
 
               const SizedBox(width: 8),
               Icon(LucideIcons.chevronRight, size: 16, color: theme.mutedText),

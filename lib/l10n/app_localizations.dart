@@ -1907,7 +1907,7 @@ abstract class AppLocalizations {
   /// No description provided for @pracMutashabihat.
   ///
   /// In en, this message translates to:
-  /// **'Mutashabihat Practice'**
+  /// **'Mutashabihat'**
   String get pracMutashabihat;
 
   /// No description provided for @pracSpotDiff.
@@ -3685,6 +3685,426 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{pct}% · {pages} pages · Juz {juz}'**
   String progressStripInfo(String pct, int pages, int juz);
+
+  /// No description provided for @homeStatusFreshStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Every return is a fresh start'**
+  String get homeStatusFreshStart;
+
+  /// No description provided for @homeStatusWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back · review session ready'**
+  String get homeStatusWelcomeBack;
+
+  /// No description provided for @homeStatusDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done for today · {activeDays} active days'**
+  String homeStatusDoneToday(int activeDays);
+
+  /// No description provided for @homeStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready when you are'**
+  String get homeStatusReady;
+
+  /// No description provided for @homeStatusPageAwaits.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} awaits'**
+  String homeStatusPageAwaits(int page);
+
+  /// No description provided for @homeStatusSessionReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Session ready'**
+  String get homeStatusSessionReady;
+
+  /// No description provided for @homeStatusEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'{info} · ~{minutes} min'**
+  String homeStatusEstimate(String info, int minutes);
+
+  /// No description provided for @surahSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{revelationType} · {versesCount} verses · Page {page}'**
+  String surahSubtitle(String revelationType, int versesCount, int page);
+
+  /// No description provided for @meccan.
+  ///
+  /// In en, this message translates to:
+  /// **'Meccan'**
+  String get meccan;
+
+  /// No description provided for @medinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Medinan'**
+  String get medinan;
+
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'jawhar'**
+  String get appName;
+
+  /// No description provided for @progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get progressTitle;
+
+  /// No description provided for @progressTabPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get progressTabPages;
+
+  /// No description provided for @progressTabSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'Surahs'**
+  String get progressTabSurahs;
+
+  /// No description provided for @progressTotalPages.
+  ///
+  /// In en, this message translates to:
+  /// **'{total}/604 pages'**
+  String progressTotalPages(int total);
+
+  /// No description provided for @progressActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String progressActiveDays(int days);
+
+  /// No description provided for @progressMemorized.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memorized'**
+  String progressMemorized(int count);
+
+  /// No description provided for @progressPagesPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{pages}/wk'**
+  String progressPagesPerWeek(int pages);
+
+  /// No description provided for @progressEstWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks} weeks'**
+  String progressEstWeeks(int weeks);
+
+  /// No description provided for @progressEstYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} years'**
+  String progressEstYears(String years);
+
+  /// No description provided for @progressComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete!'**
+  String get progressComplete;
+
+  /// No description provided for @progressViewHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View Session History'**
+  String get progressViewHistory;
+
+  /// No description provided for @progressSessionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sessions'**
+  String progressSessionsCount(int count);
+
+  /// No description provided for @progressJuz.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz {num}'**
+  String progressJuz(int num);
+
+  /// No description provided for @progressLegendMemorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorized'**
+  String get progressLegendMemorized;
+
+  /// No description provided for @progressLegendLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get progressLegendLearning;
+
+  /// No description provided for @progressLegendReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get progressLegendReviewing;
+
+  /// No description provided for @progressLegendNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get progressLegendNotStarted;
+
+  /// No description provided for @progressPageRangeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page}'**
+  String progressPageRangeSingle(int page);
+
+  /// No description provided for @progressPageRangeMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages {start}–{end}'**
+  String progressPageRangeMultiple(int start, int end);
+
+  /// No description provided for @tafsirTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tafsir — {verse}'**
+  String tafsirTitle(String verse);
+
+  /// No description provided for @tafsirTabBrief.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief'**
+  String get tafsirTabBrief;
+
+  /// No description provided for @tafsirTabDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed'**
+  String get tafsirTabDetailed;
+
+  /// No description provided for @tafsirTabOccasion.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasion'**
+  String get tafsirTabOccasion;
+
+  /// No description provided for @tafsirEmptyBrief.
+  ///
+  /// In en, this message translates to:
+  /// **'No brief tafsir available for this verse.'**
+  String get tafsirEmptyBrief;
+
+  /// No description provided for @tafsirEmptyDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the Detailed tab to load.'**
+  String get tafsirEmptyDetailed;
+
+  /// No description provided for @tafsirEmptyOccasion.
+  ///
+  /// In en, this message translates to:
+  /// **'No occasion of revelation recorded for this verse.'**
+  String get tafsirEmptyOccasion;
+
+  /// No description provided for @tafsirOccasionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasion of Revelation'**
+  String get tafsirOccasionTitle;
+
+  /// No description provided for @tafsirNarrationCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {1 narration} other {{count} narrations}}'**
+  String tafsirNarrationCount(num count);
+
+  /// No description provided for @tafsirNarrationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Narration {number}'**
+  String tafsirNarrationLabel(Object number);
+
+  /// No description provided for @undReadSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Surah'**
+  String get undReadSurah;
+
+  /// No description provided for @undOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get undOverview;
+
+  /// No description provided for @undKeyThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Themes'**
+  String get undKeyThemes;
+
+  /// No description provided for @undReasonsOfRevelation.
+  ///
+  /// In en, this message translates to:
+  /// **'Reasons of Revelation'**
+  String get undReasonsOfRevelation;
+
+  /// No description provided for @undEntriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} entries'**
+  String undEntriesCount(int count);
+
+  /// No description provided for @undMoreEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {count} more entries'**
+  String undMoreEntries(int count);
+
+  /// No description provided for @undIntroComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed introduction coming soon.\nOpen the surah to explore translations and tafsir.'**
+  String get undIntroComingSoon;
+
+  /// No description provided for @undVersesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} verses'**
+  String undVersesCount(int count);
+
+  /// No description provided for @undPagePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page}'**
+  String undPagePrefix(int page);
+
+  /// No description provided for @pracContextNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Context needed'**
+  String get pracContextNeeded;
+
+  /// No description provided for @pracNotStudied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Studied'**
+  String get pracNotStudied;
+
+  /// No description provided for @pracSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get pracSource;
+
+  /// No description provided for @pracSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar'**
+  String get pracSimilar;
+
+  /// No description provided for @pracMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get pracMastered;
+
+  /// No description provided for @pracMarkForPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark for Practice'**
+  String get pracMarkForPractice;
+
+  /// No description provided for @pracAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get pracAll;
+
+  /// No description provided for @pracNeedsPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Practice'**
+  String get pracNeedsPractice;
+
+  /// No description provided for @pracTapToReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to reveal'**
+  String get pracTapToReveal;
+
+  /// No description provided for @cardTypeVerseCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse Completion'**
+  String get cardTypeVerseCompletion;
+
+  /// No description provided for @cardTypeNextVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Verse'**
+  String get cardTypeNextVerse;
+
+  /// No description provided for @cardTypePreviousVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Verse'**
+  String get cardTypePreviousVerse;
+
+  /// No description provided for @cardTypeIdentifySurah.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify Surah'**
+  String get cardTypeIdentifySurah;
+
+  /// No description provided for @cardTypeTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation'**
+  String get cardTypeTranslation;
+
+  /// No description provided for @cardTypeRootWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Root Word'**
+  String get cardTypeRootWord;
+
+  /// No description provided for @pracDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get pracDifference;
+
+  /// No description provided for @pracShowOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Show original verse from {surah}'**
+  String pracShowOriginal(String surah);
+
+  /// No description provided for @pracWhichSurahWord.
+  ///
+  /// In en, this message translates to:
+  /// **'In which surah is this word:'**
+  String get pracWhichSurahWord;
+
+  /// No description provided for @pracContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Context'**
+  String get pracContext;
+
+  /// No description provided for @pracQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz'**
+  String get pracQuiz;
+
+  /// No description provided for @pracPracticing.
+  ///
+  /// In en, this message translates to:
+  /// **'Practicing'**
+  String get pracPracticing;
 }
 
 class _AppLocalizationsDelegate

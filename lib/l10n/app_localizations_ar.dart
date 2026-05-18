@@ -923,7 +923,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeLetsGo => 'هيا بنا! ✨';
 
   @override
-  String get pracMutashabihat => 'تدريب المتشابهات';
+  String get pracMutashabihat => 'المتشابهات';
 
   @override
   String get pracSpotDiff => 'اكتشف الفرق';
@@ -1917,4 +1917,267 @@ class AppLocalizationsAr extends AppLocalizations {
   String progressStripInfo(String pct, int pages, int juz) {
     return '$pct% · $pages صفحة · الجزء $juz';
   }
+
+  @override
+  String get homeStatusFreshStart => 'كل عودة هي بداية جديدة';
+
+  @override
+  String get homeStatusWelcomeBack => 'مرحباً بعودتك · جلسة المراجعة جاهزة';
+
+  @override
+  String homeStatusDoneToday(int activeDays) {
+    return 'أنجزت اليوم · $activeDays أيام نشطة';
+  }
+
+  @override
+  String get homeStatusReady => 'نحن بانتظارك';
+
+  @override
+  String homeStatusPageAwaits(int page) {
+    return 'صفحة $page بانتظارك';
+  }
+
+  @override
+  String get homeStatusSessionReady => 'الجلسة جاهزة';
+
+  @override
+  String homeStatusEstimate(String info, int minutes) {
+    return '$info · ~$minutes دقيقة';
+  }
+
+  @override
+  String surahSubtitle(String revelationType, int versesCount, int page) {
+    return '$revelationType · $versesCount آية · صفحة $page';
+  }
+
+  @override
+  String get meccan => 'مكية';
+
+  @override
+  String get medinan => 'مدنية';
+
+  @override
+  String get appName => 'جوهر';
+
+  @override
+  String get progressTitle => 'التقدم';
+
+  @override
+  String get progressTabPages => 'الصفحات';
+
+  @override
+  String get progressTabSurahs => 'السور';
+
+  @override
+  String progressTotalPages(int total) {
+    return '$total/604 صفحة';
+  }
+
+  @override
+  String progressActiveDays(int days) {
+    return '$days أيام';
+  }
+
+  @override
+  String progressMemorized(int count) {
+    return '$count محفوظة';
+  }
+
+  @override
+  String progressPagesPerWeek(int pages) {
+    return '$pages/أسبوع';
+  }
+
+  @override
+  String progressEstWeeks(int weeks) {
+    return '$weeks أسابيع';
+  }
+
+  @override
+  String progressEstYears(String years) {
+    return '$years سنوات';
+  }
+
+  @override
+  String get progressComplete => 'مكتمل!';
+
+  @override
+  String get progressViewHistory => 'عرض سجل الجلسات';
+
+  @override
+  String progressSessionsCount(int count) {
+    return '$count جلسات';
+  }
+
+  @override
+  String progressJuz(int num) {
+    return 'الجزء $num';
+  }
+
+  @override
+  String get progressLegendMemorized => 'مكتملة';
+
+  @override
+  String get progressLegendLearning => 'قيد الحفظ';
+
+  @override
+  String get progressLegendReviewing => 'للمراجعة';
+
+  @override
+  String get progressLegendNotStarted => 'لم تبدأ';
+
+  @override
+  String progressPageRangeSingle(int page) {
+    return 'صفحة $page';
+  }
+
+  @override
+  String progressPageRangeMultiple(int start, int end) {
+    return 'الصفحات $start–$end';
+  }
+
+  @override
+  String tafsirTitle(String verse) {
+    return 'التفسير — $verse';
+  }
+
+  @override
+  String get tafsirTabBrief => 'مختصر';
+
+  @override
+  String get tafsirTabDetailed => 'مفصل';
+
+  @override
+  String get tafsirTabOccasion => 'أسباب النزول';
+
+  @override
+  String get tafsirEmptyBrief => 'لا يوجد تفسير ميسر لهذه الآية.';
+
+  @override
+  String get tafsirEmptyDetailed => 'انقر على التبويب المفصل للتحميل.';
+
+  @override
+  String get tafsirEmptyOccasion => 'لا توجد أسباب نزول مسجلة لهذه الآية.';
+
+  @override
+  String get tafsirOccasionTitle => 'سبب النزول';
+
+  @override
+  String tafsirNarrationCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رواية',
+      few: '$count روايات',
+      two: 'روايتان',
+      one: 'رواية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tafsirNarrationLabel(Object number) {
+    return 'الرواية $number';
+  }
+
+  @override
+  String get undReadSurah => 'اقرأ السورة';
+
+  @override
+  String get undOverview => 'نظرة عامة';
+
+  @override
+  String get undKeyThemes => 'المواضيع الرئيسية';
+
+  @override
+  String get undReasonsOfRevelation => 'أسباب النزول';
+
+  @override
+  String undEntriesCount(int count) {
+    return '$count إدخالات';
+  }
+
+  @override
+  String undMoreEntries(int count) {
+    return '+ $count إدخالات إضافية';
+  }
+
+  @override
+  String get undIntroComingSoon =>
+      'مقدمة مفصلة قريباً.\nافتح السورة لاستكشاف التراجم والتفاسير.';
+
+  @override
+  String undVersesCount(int count) {
+    return '$count آيات';
+  }
+
+  @override
+  String undPagePrefix(int page) {
+    return 'الصفحة $page';
+  }
+
+  @override
+  String get pracContextNeeded => 'بحاجة لسياق';
+
+  @override
+  String get pracNotStudied => 'لم يُدرس';
+
+  @override
+  String get pracSource => 'المصدر';
+
+  @override
+  String get pracSimilar => 'مشابهة';
+
+  @override
+  String get pracMastered => 'متقن';
+
+  @override
+  String get pracMarkForPractice => 'تحديد للمراجعة';
+
+  @override
+  String get pracAll => 'الكل';
+
+  @override
+  String get pracNeedsPractice => 'يحتاج مراجعة';
+
+  @override
+  String get pracTapToReveal => 'انقر للإظهار';
+
+  @override
+  String get cardTypeVerseCompletion => 'إكمال الآية';
+
+  @override
+  String get cardTypeNextVerse => 'الآية التالية';
+
+  @override
+  String get cardTypePreviousVerse => 'الآية السابقة';
+
+  @override
+  String get cardTypeIdentifySurah => 'التعرف على السورة';
+
+  @override
+  String get cardTypeTranslation => 'الترجمة';
+
+  @override
+  String get cardTypeRootWord => 'جذر الكلمة';
+
+  @override
+  String get pracDifference => 'الفرق';
+
+  @override
+  String pracShowOriginal(String surah) {
+    return 'إظهار الآية الأصلية من $surah';
+  }
+
+  @override
+  String get pracWhichSurahWord => 'في أي سورة توجد هذه الكلمة:';
+
+  @override
+  String get pracContext => 'السياق';
+
+  @override
+  String get pracQuiz => 'اختبار';
+
+  @override
+  String get pracPracticing => 'قيد المراجعة';
 }

@@ -192,13 +192,13 @@ class _MutashabihatPracticeScreenState
             AppLocalizations.of(context)!.pracSpotDiff,
           ),
           const SizedBox(width: 8),
-          _modeChip(theme, _PracticeMode.context, LucideIcons.link, 'Context'),
+          _modeChip(theme, _PracticeMode.context, LucideIcons.link, AppLocalizations.of(context)!.pracContext),
           const SizedBox(width: 8),
           _modeChip(
             theme,
             _PracticeMode.quiz,
             LucideIcons.clipboardList,
-            'Quiz',
+            AppLocalizations.of(context)!.pracQuiz,
           ),
         ],
       ),
@@ -326,7 +326,7 @@ class _MutashabihatPracticeScreenState
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            'الفرق',
+            AppLocalizations.of(context)!.pracDifference,
             textDirection: TextDirection.rtl,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
@@ -466,7 +466,7 @@ class _MutashabihatPracticeScreenState
 
         // Compare with source
         if (!_isRevealed)
-          _actionButton(theme, 'Show original verse from $srcName', () {
+          _actionButton(theme, AppLocalizations.of(context)!.pracShowOriginal(srcName), () {
             setState(() {
               _isRevealed = true;
               _totalAttempted++;
@@ -537,7 +537,7 @@ class _MutashabihatPracticeScreenState
         children: [
           // Question
           Text(
-            'في أي سورة الكلمة:',
+            AppLocalizations.of(context)!.pracWhichSurahWord,
             textDirection: TextDirection.rtl,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
