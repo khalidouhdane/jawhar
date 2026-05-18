@@ -8,7 +8,7 @@ import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/screens/reading_screen.dart';
-import 'package:quran_app/widgets/dashboard/dashboard_header.dart';
+import 'package:quran_app/widgets/app_header.dart';
 import 'package:quran_app/widgets/dashboard/contextual_status.dart';
 import 'package:quran_app/widgets/dashboard/flashcard_carousel.dart';
 import 'package:quran_app/widgets/dashboard/explore_carousel.dart';
@@ -46,7 +46,7 @@ class ProfileDashboard extends StatelessWidget {
           bottom: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DashboardHeader(onAvatarTap: onAvatarTap),
+            child: AppHeader(onAvatarTap: onAvatarTap),
           ),
         ),
         

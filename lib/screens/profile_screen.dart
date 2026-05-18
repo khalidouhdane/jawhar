@@ -23,6 +23,7 @@ import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
+import 'package:quran_app/widgets/app_header.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/widgets/geist_segmented_control.dart';
 
@@ -61,25 +62,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  Text(
-                    l!.profileTitle,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: theme.primaryText,
-                      letterSpacing: -1.28,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l.profileSubtitle,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: theme.secondaryText,
-                    ),
+                  AppHeader(
+                    title: l!.profileTitle,
+                    subtitle: l.profileSubtitle,
+                    // Remove avatar tap action here so it just shows the avatar without infinite looping to profile
+                    onAvatarTap: () {},
                   ),
                   const SizedBox(height: 24),
                   GeistSegmentedControl<ProfileTab>(
