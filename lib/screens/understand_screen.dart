@@ -13,6 +13,7 @@ import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/understand/today_context_card.dart';
 import 'package:quran_app/widgets/understand/topic_carousel.dart';
 import 'package:quran_app/widgets/understand/surah_detail_sheet.dart';
+import 'package:quran_app/widgets/app_header.dart';
 
 /// Understand tab — Study Hub for exploring Quran context.
 ///
@@ -94,29 +95,9 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.navUnderstand,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: theme.primaryText,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.undExploreDeeper,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 14,
-                        color: theme.secondaryText,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                child: AppHeader(
+                  title: l10n.navUnderstand,
+                  subtitle: l10n.undExploreDeeper,
                 ),
               ),
             ),

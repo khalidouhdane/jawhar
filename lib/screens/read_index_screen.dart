@@ -13,6 +13,7 @@ import 'package:quran_app/widgets/read/continue_reading_card.dart';
 import 'package:quran_app/widgets/werd_card.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/widgets/sheets/reciter_menu_sheet.dart';
+import 'package:quran_app/widgets/app_header.dart';
 
 /// Static lookup: Surah number → starting Mushaf page (Madani/Standard)
 const List<int> _surahStartPages = [
@@ -87,59 +88,48 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
             // ── Header & Reciter Shortcut ──
             Padding(
               padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l!.readTitle,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: theme.primaryText,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (ctx) => ExcludeSemantics(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
-                            child: DefaultTextStyle(
-                              style: const TextStyle(fontFamily: 'Inter'),
-                              child: ReciterMenuSheet(onClose: () => Navigator.pop(ctx)),
-                            ),
+              child: AppHeader(
+                title: l!.readTitle,
+                action: GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => ExcludeSemantics(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: MediaQuery.of(ctx).size.height * 0.1),
+                          child: DefaultTextStyle(
+                            style: const TextStyle(fontFamily: 'Inter'),
+                            child: ReciterMenuSheet(onClose: () => Navigator.pop(ctx)),
                           ),
                         ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: theme.accentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(100),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(LucideIcons.headphones, size: 14, color: theme.accentColor),
-                          const SizedBox(width: 6),
-                          Text(
-                            audioProvider.reciterName.split(' ').first,
-                            style: TextStyle(
-                              fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: theme.accentColor,
-                            ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(LucideIcons.headphones, size: 14, color: theme.accentColor),
+                        const SizedBox(width: 6),
+                        Text(
+                          audioProvider.reciterName.split(' ').first,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: theme.accentColor,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
 

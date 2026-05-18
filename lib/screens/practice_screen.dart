@@ -11,6 +11,7 @@ import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/app_header.dart';
 
 /// Practice tab — flashcard category hub + mutashabihat practice.
 class PracticeScreen extends StatefulWidget {
@@ -59,23 +60,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Text(
-                AppLocalizations.of(context)!.pracPracticeTab,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: theme.primaryText,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(context)!.pracStrengthen,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 14,
-                  color: theme.secondaryText,
-                ),
+              AppHeader(
+                title: AppLocalizations.of(context)!.pracPracticeTab,
+                subtitle: AppLocalizations.of(context)!.pracStrengthen,
               ),
               const SizedBox(height: 24),
 

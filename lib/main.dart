@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,8 @@ import 'package:quran_app/services/qf_user_api_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/screens/splash_screen.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:device_preview_screenshot/device_preview_screenshot.dart';
 
 // Conditional imports for native-only packages
 import 'package:quran_app/services/native_init.dart'
@@ -156,105 +159,127 @@ void main() async {
       // significant CPU overhead by tracing every UI operation.
       options.tracesSampleRate = kReleaseMode ? 0.2 : 0.0;
     },
-    appRunner: () => runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) {
-              // Detect initial locale for reciter names
-              final savedLocale = prefs.getString('app_locale');
-              String lang;
-              if (savedLocale != null) {
-                lang = savedLocale;
-              } else {
-                final systemLang =
-                    PlatformDispatcher.instance.locale.languageCode;
-                lang = systemLang == 'ar' ? 'ar' : 'en';
-              }
-              return QuranReadingProvider(
-                storage: storageService,
-                language: lang,
-              );
-            },
-          ),
-          ChangeNotifierProvider.value(value: audioProvider),
-          ChangeNotifierProvider.value(value: themeProvider),
-          ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
-          ChangeNotifierProvider(
-            create: (_) => HifzProfileProvider(
-              hifzDb,
-              authService,
-              cloudSyncService,
-              qfApi: qfUserApi,
+    appRunner: () {
+      // Enable DevicePreview only on desktop debug builds
+      final enablePreview = !kReleaseMode &&
+          !kIsWeb &&
+          (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+
+      // Save screenshots to a 'screenshots' folder in the project directory
+      final screenshotDir = Directory('${Directory.current.path}/screenshots');
+      if (!screenshotDir.existsSync()) {
+        screenshotDir.createSync();
+      }
+
+      runApp(
+        DevicePreview(
+          enabled: enablePreview,
+          tools: [
+            ...DevicePreview.defaultTools,
+            DevicePreviewScreenshot(
+              onScreenshot: screenshotAsFiles(screenshotDir),
             ),
+          ],
+          builder: (context) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (_) {
+                  // Detect initial locale for reciter names
+                  final savedLocale = prefs.getString('app_locale');
+                  String lang;
+                  if (savedLocale != null) {
+                    lang = savedLocale;
+                  } else {
+                    final systemLang =
+                        PlatformDispatcher.instance.locale.languageCode;
+                    lang = systemLang == 'ar' ? 'ar' : 'en';
+                  }
+                  return QuranReadingProvider(
+                    storage: storageService,
+                    language: lang,
+                  );
+                },
+              ),
+              ChangeNotifierProvider.value(value: audioProvider),
+              ChangeNotifierProvider.value(value: themeProvider),
+              ChangeNotifierProvider(create: (_) => NavigationProvider(defaultTab)),
+              ChangeNotifierProvider(
+                create: (_) => HifzProfileProvider(
+                  hifzDb,
+                  authService,
+                  cloudSyncService,
+                  qfApi: qfUserApi,
+                ),
+              ),
+              ChangeNotifierProvider(
+                create: (_) => PlanProvider(
+                  hifzDb,
+                  authService,
+                  cloudSyncService,
+                  aiPlanService: aiPlanService,
+                ),
+              ),
+              ChangeNotifierProvider(
+                create: (_) => SessionProvider(
+                  hifzDb,
+                  authService,
+                  cloudSyncService,
+                  qfApi: qfUserApi,
+                ),
+              ),
+              ChangeNotifierProvider(
+                create: (_) =>
+                    FlashcardProvider(hifzDb, authService, cloudSyncService),
+              ),
+              ChangeNotifierProvider(
+                create: (_) => WerdProvider(storageService, qfApi: qfUserApi),
+              ),
+              ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
+              ChangeNotifierProvider(create: (_) => UpdateProvider()),
+              ChangeNotifierProvider(
+                create: (_) => BookmarkProvider(
+                  storageService,
+                  authService,
+                  cloudSyncService,
+                  qfApi: qfUserApi,
+                ),
+              ),
+              ChangeNotifierProvider(
+                create: (_) => NotificationProvider(pushNotifService, prefs),
+              ),
+              ChangeNotifierProvider(
+                create: (_) => SocialProvider(SharingService(), hifzDb),
+              ),
+              ChangeNotifierProvider(
+                create: (_) {
+                  final analyticsService = AnalyticsService(hifzDb);
+                  final notificationService = NotificationService(analyticsService);
+                  return AnalyticsProvider(
+                    analyticsService,
+                    notificationService,
+                    calibrationService: aiCalibrationService,
+                  );
+                },
+              ),
+              ChangeNotifierProvider(
+                create: (_) => ContextProvider(asbabService: asbabService),
+              ),
+              Provider.value(value: storageService),
+              Provider.value(value: hifzDb),
+              Provider.value(value: aiPlanService),
+              Provider.value(value: breakRecoveryService),
+              Provider.value(value: contextualTipsService),
+              Provider.value(value: motivationalService),
+              ChangeNotifierProvider.value(value: authService),
+              ChangeNotifierProvider.value(value: cloudSyncService),
+              ChangeNotifierProvider.value(value: qfUserAuth),
+              Provider.value(value: qfUserApi),
+            ],
+            child: const QuranApp(),
           ),
-          ChangeNotifierProvider(
-            create: (_) => PlanProvider(
-              hifzDb,
-              authService,
-              cloudSyncService,
-              aiPlanService: aiPlanService,
-            ),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => SessionProvider(
-              hifzDb,
-              authService,
-              cloudSyncService,
-              qfApi: qfUserApi,
-            ),
-          ),
-          ChangeNotifierProvider(
-            create: (_) =>
-                FlashcardProvider(hifzDb, authService, cloudSyncService),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => WerdProvider(storageService, qfApi: qfUserApi),
-          ),
-          ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
-          ChangeNotifierProvider(create: (_) => UpdateProvider()),
-          ChangeNotifierProvider(
-            create: (_) => BookmarkProvider(
-              storageService,
-              authService,
-              cloudSyncService,
-              qfApi: qfUserApi,
-            ),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => NotificationProvider(pushNotifService, prefs),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => SocialProvider(SharingService(), hifzDb),
-          ),
-          ChangeNotifierProvider(
-            create: (_) {
-              final analyticsService = AnalyticsService(hifzDb);
-              final notificationService = NotificationService(analyticsService);
-              return AnalyticsProvider(
-                analyticsService,
-                notificationService,
-                calibrationService: aiCalibrationService,
-              );
-            },
-          ),
-          ChangeNotifierProvider(
-            create: (_) => ContextProvider(asbabService: asbabService),
-          ),
-          Provider.value(value: storageService),
-          Provider.value(value: hifzDb),
-          Provider.value(value: aiPlanService),
-          Provider.value(value: breakRecoveryService),
-          Provider.value(value: contextualTipsService),
-          Provider.value(value: motivationalService),
-          ChangeNotifierProvider.value(value: authService),
-          ChangeNotifierProvider.value(value: cloudSyncService),
-          ChangeNotifierProvider.value(value: qfUserAuth),
-          Provider.value(value: qfUserApi),
-        ],
-        child: const QuranApp(),
-      ),
-    ),
+        ),
+      );
+    },
   );
 }
 
@@ -269,6 +294,8 @@ class QuranApp extends StatelessWidget {
         final readingProvider = context.read<QuranReadingProvider>();
         readingProvider.setLanguage(localeProvider.locale.languageCode);
         return MaterialApp(
+          useInheritedMediaQuery: true,
+          builder: DevicePreview.appBuilder,
           title: 'Jawhar',
           debugShowCheckedModeBanner: false,
           locale: localeProvider.locale,

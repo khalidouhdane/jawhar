@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quran_app/widgets/dashboard/dashboard_header.dart';
+import 'package:quran_app/widgets/app_header.dart';
 import 'package:quran_app/widgets/hifz/hifz_cta_card.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/widgets/werd_card.dart';
@@ -27,7 +27,7 @@ class NoProfileDashboard extends StatelessWidget {
             children: [
               SafeArea(
                 bottom: false,
-                child: DashboardHeader(onAvatarTap: onAvatarTap),
+                child: AppHeader(onAvatarTap: onAvatarTap),
               ),
               
               // Werd Hero Card

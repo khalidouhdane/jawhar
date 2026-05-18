@@ -42,6 +42,7 @@ class GeistSegmentedControl<T> extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final tabWidth = constraints.maxWidth / keys.length;
+          final isRtl = Directionality.of(context) == TextDirection.rtl;
 
           return SizedBox(
             height: 40, // Fixed comfortable height (40 + 8 padding = 48dp minimum touch target)
@@ -51,7 +52,8 @@ class GeistSegmentedControl<T> extends StatelessWidget {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOutCubic,
-                  left: selectedIndex * tabWidth,
+                  left: isRtl ? null : selectedIndex * tabWidth,
+                  right: isRtl ? selectedIndex * tabWidth : null,
                   top: 0,
                   bottom: 0,
                   width: tabWidth,
