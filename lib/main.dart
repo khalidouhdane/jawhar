@@ -1,12 +1,8 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:audio_service/audio_service.dart';
-import 'package:audio_session/audio_session.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
@@ -29,7 +25,6 @@ import 'package:quran_app/services/notification_service.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
-import 'package:quran_app/services/quran_audio_handler.dart';
 import 'package:quran_app/providers/notification_provider.dart';
 import 'package:quran_app/providers/social_provider.dart';
 import 'package:quran_app/services/push_notification_service.dart';
@@ -50,18 +45,27 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/screens/splash_screen.dart';
 
+// Conditional imports for native-only packages
+import 'package:quran_app/services/native_init.dart'
+    if (dart.library.js_interop) 'package:quran_app/services/native_init_web.dart'
+    as native_init;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize SQLite FFI for desktop platforms (Windows, macOS, Linux)
-  if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
 
   // Initialize local storage
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
+
+  // Create AudioProvider (works on all platforms for basic playback)
+  final audioProvider = AudioProvider();
+
+  // Initialize push notification service
+  final pushNotifService = PushNotificationService();
+
+  // Initialize native-only services (SQLite FFI, AudioSession, AudioService, push notifs)
+  // On web this is a no-op via conditional import
+  await native_init.initNativePlatform(audioProvider, pushNotifService);
 
   // Initialize Hifz database
   final hifzDb = HifzDatabaseService();
@@ -99,28 +103,7 @@ void main() async {
   final asbabService = AsbabNuzulService();
   asbabService.importIfNeeded();
 
-  // Initialize push notification service
-  final pushNotifService = PushNotificationService();
-  await pushNotifService.initialize();
 
-  // Initialize AudioSession for iOS background stability and interruption control
-  final session = await AudioSession.instance;
-  await session.configure(const AudioSessionConfiguration.music());
-
-  // Initialize audio_service — creates a foreground service for media notification
-  final audioHandler = await AudioService.init(
-    builder: () => QuranAudioHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.quranapp.audio',
-      androidNotificationChannelName: 'Quran Audio',
-      androidNotificationOngoing: true,
-      androidStopForegroundOnPause: true,
-    ),
-  );
-
-  // Create AudioProvider and wire the handler
-  final audioProvider = AudioProvider();
-  audioProvider.attachAudioHandler(audioHandler);
 
   // Determine initial language from saved or system locale
   final savedLocale = prefs.getString('app_locale');
