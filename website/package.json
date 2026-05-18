@@ -6,7 +6,8 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:content": "node scripts/check-landing-content.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

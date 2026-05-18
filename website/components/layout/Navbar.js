@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import ThemeToggle from "../shared/ThemeToggle";
 import styles from "./Navbar.module.css";
@@ -11,7 +12,7 @@ export default function Navbar() {
     <nav className={styles.nav}>
       <div className={`container ${styles.inner}`}>
         {/* Logo / brand */}
-        <a href="/" className={styles.brand}>
+        <Link href="/" className={styles.brand}>
           <svg
             width="24"
             height="24"
@@ -64,22 +65,22 @@ export default function Navbar() {
             />
           </svg>
           <span className={styles.wordmark}>jawhar</span>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <div className={styles.links}>
-          <a href="/#system" className={styles.link}>Features</a>
-          <a href="/struggles" className={styles.link}>Struggles</a>
-          <a href="/hackathon" className={styles.link}>Hackathon</a>
-          <a href="/download" className={styles.link}>Download</a>
+          <Link href="/#read-section" className={styles.link}>Features</Link>
+          <Link href="/struggles" className={styles.link}>Struggles</Link>
+          <Link href="/hackathon" className={styles.link}>Hackathon</Link>
+          <Link href="/download" className={styles.link}>Download</Link>
         </div>
 
         {/* Right side: theme toggle + CTA */}
         <div className={styles.actions}>
           <ThemeToggle />
-          <a href="/download" className={`btn btn-primary ${styles.cta}`}>
+          <Link href="/download" className={`btn btn-primary ${styles.cta}`}>
             Download
-          </a>
+          </Link>
         </div>
 
         {/* Mobile toggle */}
@@ -95,23 +96,23 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className={styles.mobileMenu}>
-          <a href="/#system" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+          <Link href="/#read-section" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Features
-          </a>
-          <a href="/struggles" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+          </Link>
+          <Link href="/struggles" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Struggles
-          </a>
-          <a href="/hackathon" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+          </Link>
+          <Link href="/hackathon" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Hackathon
-          </a>
-          <a href="/download" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+          </Link>
+          <Link href="/download" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Download
-          </a>
+          </Link>
           <div className={styles.mobileActions}>
             <ThemeToggle />
-            <a href="/download" className="btn btn-primary" style={{ marginTop: 8 }}>
+            <Link href="/download" className="btn btn-primary" style={{ marginTop: 8 }}>
               Download
-            </a>
+            </Link>
           </div>
         </div>
       )}

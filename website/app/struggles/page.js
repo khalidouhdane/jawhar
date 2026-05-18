@@ -181,7 +181,7 @@ export default function StrugglesPage() {
                 margin: "16px auto 0",
               }}
             >
-              Free, open source, no ads. Start today.
+              Free to use, closed source for now, no ads. Start today.
             </p>
             <div style={{ marginTop: 32 }}>
               <a href="/download" className="btn btn-primary btn-large">

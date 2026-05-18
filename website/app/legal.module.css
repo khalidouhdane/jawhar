@@ -1,0 +1,51 @@
+.main {
+  padding-top: var(--nav-height);
+}
+
+.hero {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.updated {
+  color: var(--text-secondary);
+  margin-top: 16px;
+}
+
+.content {
+  max-width: 820px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.block {
+  display: grid;
+  gap: 12px;
+}
+
+.block h2 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.72px;
+}
+
+.block p,
+.block li {
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.block ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+}
+
+.link {
+  color: var(--link-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

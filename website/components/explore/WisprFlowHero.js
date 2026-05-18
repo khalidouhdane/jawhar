@@ -311,7 +311,7 @@ export default function WisprFlowHero() {
         </h1>
         <p className={styles.subtitle}>
           The first Quran companion built on understanding.<br/>
-          Closed source for now, forever free.
+          Closed source for now. Free forever.
         </p>
         <div className={styles.ctas}>
           <a href="#waitlist" className="btn btn-primary btn-large">

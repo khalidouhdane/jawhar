@@ -4,6 +4,7 @@ import WisprFlowHero from '../explore/WisprFlowHero';
 import ReadSection from './ReadSection';
 import UnderstandSection from './UnderstandSection';
 import MemorizeSection from './MemorizeSection';
+import WaitlistSection from './WaitlistSection';
 
 export default function ScrollStory() {
   return (
@@ -18,6 +19,8 @@ export default function ScrollStory() {
         <UnderstandSection />
         <div className="section-divider" />
         <MemorizeSection />
+        <div className="section-divider" />
+        <WaitlistSection />
       </div>
 
     </div>
