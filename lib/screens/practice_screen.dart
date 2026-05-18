@@ -144,7 +144,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
           : theme.cardColor,
       borderRadius: BorderRadius.circular(theme.radiusXl),
       child: InkWell(
-        onTap: hasDue ? () => _openReview() : null,
+        onTap: () => _openReview(),
         borderRadius: BorderRadius.circular(theme.radiusXl),
         child: Container(
           width: double.infinity,
@@ -335,7 +335,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
       color: theme.cardColor,
       borderRadius: BorderRadius.circular(theme.radiusXl),
       child: InkWell(
-        onTap: hasDue ? onTap : null,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(theme.radiusXl),
         child: Container(
           padding: const EdgeInsets.all(16),

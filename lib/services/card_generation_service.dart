@@ -71,56 +71,63 @@ class CardGenerationService {
           budget,
         );
 
-    created += await _generateNextVerseCards(
+    final createdCards = <Flashcard>[];
+    
+    createdCards.addAll(await _generateNextVerseCards(
       profileId,
       verses,
       random,
       max: nvBudget,
-    );
-    created += await _generateSurahDetectiveCards(
+    ));
+    createdCards.addAll(await _generateSurahDetectiveCards(
       profileId,
       verses,
       random,
       max: sdBudget,
-    );
-    created += await _generateVerseCompletionCards(
+    ));
+    createdCards.addAll(await _generateVerseCompletionCards(
       profileId,
       verses,
       random,
       max: vcBudget,
-    );
-    created += await _generatePreviousVerseCards(
+    ));
+    createdCards.addAll(await _generatePreviousVerseCards(
       profileId,
       verses,
       random,
       max: pvBudget,
-    );
-    created += await _generateConnectSequenceCards(
+    ));
+    createdCards.addAll(await _generateConnectSequenceCards(
       profileId,
       verses,
       random,
       max: csBudget,
-    );
-    created += await _generateMutashabihatDuelCards(profileId, max: mdBudget);
+    ));
+    createdCards.addAll(await _generateMutashabihatDuelCards(profileId, max: mdBudget));
 
-    AppLogger.info('CardGen', '[Flashcard Gen] Total created: $created new flashcards');
-    return created;
+    for (final card in createdCards) {
+      await _db.saveFlashcard(card);
+    }
+
+    AppLogger.info('CardGen', '[Flashcard Gen] Total created: ${createdCards.length} new flashcards');
+    return createdCards.length;
   }
 
   /// Next Verse: show a verse, ask what comes after it.
-  Future<int> _generateNextVerseCards(
+  Future<List<Flashcard>> _generateNextVerseCards(
     String profileId,
     List<_VerseRef> verses,
     Random random, {
     int max = 10,
+    bool isSandbox = false,
   }) async {
-    if (max <= 0) return 0;
-    int created = 0;
+    if (max <= 0) return [];
+    final created = <Flashcard>[];
     // Pick up to max random verses (not the last verse of a surah)
     final eligible = verses
         .where((v) => v.verse < quran.getVerseCount(v.surah))
         .toList();
-    if (eligible.isEmpty) return 0;
+    if (eligible.isEmpty) return [];
 
     eligible.shuffle(random);
     final sampleSize = min(max, eligible.length);
@@ -129,12 +136,14 @@ class CardGenerationService {
       final v = eligible[i];
       final verseKey = '${v.surah}:${v.verse}';
 
-      final exists = await _db.flashcardExists(
-        profileId,
-        verseKey,
-        FlashcardType.nextVerse,
-      );
-      if (exists) continue;
+      if (!isSandbox) {
+        final exists = await _db.flashcardExists(
+          profileId,
+          verseKey,
+          FlashcardType.nextVerse,
+        );
+        if (exists) continue;
+      }
 
       final questionText = quran.getVerse(v.surah, v.verse);
       final answerText = quran.getVerse(v.surah, v.verse + 1);
@@ -162,22 +171,22 @@ class CardGenerationService {
         dueDate: DateTime.now(),
       );
 
-      await _db.saveFlashcard(card);
-      created++;
-      if (created >= max) break;
+      created.add(card);
+      if (created.length >= max) break;
     }
     return created;
   }
 
   /// Surah Detective: show a verse, ask which surah it's from.
-  Future<int> _generateSurahDetectiveCards(
+  Future<List<Flashcard>> _generateSurahDetectiveCards(
     String profileId,
     List<_VerseRef> verses,
     Random random, {
     int max = 8,
+    bool isSandbox = false,
   }) async {
-    if (max <= 0) return 0;
-    int created = 0;
+    if (max <= 0) return [];
+    final created = <Flashcard>[];
     final shuffled = List.of(verses)..shuffle(random);
     final sampleSize = min(max, shuffled.length);
 
@@ -185,12 +194,14 @@ class CardGenerationService {
       final v = shuffled[i];
       final verseKey = '${v.surah}:${v.verse}';
 
-      final exists = await _db.flashcardExists(
-        profileId,
-        verseKey,
-        FlashcardType.surahDetective,
-      );
-      if (exists) continue;
+      if (!isSandbox) {
+        final exists = await _db.flashcardExists(
+          profileId,
+          verseKey,
+          FlashcardType.surahDetective,
+        );
+        if (exists) continue;
+      }
 
       final verseText = quran.getVerse(v.surah, v.verse);
       final surahName = quran.getSurahNameArabic(v.surah);
@@ -218,34 +229,41 @@ class CardGenerationService {
         dueDate: DateTime.now(),
       );
 
-      await _db.saveFlashcard(card);
-      created++;
-      if (created >= max) break;
+      created.add(card);
+      if (created.length >= max) break;
     }
     return created;
   }
 
   /// Mutashabihat Duel: from imported mutashabihat dataset.
-  Future<int> _generateMutashabihatDuelCards(
+  Future<List<Flashcard>> _generateMutashabihatDuelCards(
     String profileId, {
     int max = 5,
+    bool isSandbox = false,
   }) async {
-    if (max <= 0) return 0;
-    int created = 0;
-    final groups = await _db.getMutashabihatByStatus(
-      MutashabihatStatus.needsPractice,
-    );
+    if (max <= 0) return [];
+    final created = <Flashcard>[];
+    
+    // In sandbox, we don't care about needsPractice status
+    final groups = isSandbox
+        ? await _db.getAllMutashabihat()
+        : await _db.getMutashabihatByStatus(MutashabihatStatus.needsPractice);
+    
+    if (isSandbox) groups.shuffle(Random());
 
     for (final group in groups) {
       if (group.similarVerses.isEmpty) continue;
 
       final verseKey = group.sourceVerseKey;
-      final exists = await _db.flashcardExists(
-        profileId,
-        verseKey,
-        FlashcardType.mutashabihatDuel,
-      );
-      if (exists) continue;
+      
+      if (!isSandbox) {
+        final exists = await _db.flashcardExists(
+          profileId,
+          verseKey,
+          FlashcardType.mutashabihatDuel,
+        );
+        if (exists) continue;
+      }
 
       // Parse verse keys to get actual text
       final sourceparts = group.sourceVerseKey.split(':');
@@ -284,29 +302,29 @@ class CardGenerationService {
         dueDate: DateTime.now(),
       );
 
-      await _db.saveFlashcard(card);
-      created++;
+      created.add(card);
 
-      if (created >= 5) break;
+      if (created.length >= max) break;
     }
     return created;
   }
 
   /// Verse Completion: show partial verse with blanked words, ask user to recall.
-  Future<int> _generateVerseCompletionCards(
+  Future<List<Flashcard>> _generateVerseCompletionCards(
     String profileId,
     List<_VerseRef> verses,
     Random random, {
     int max = 6,
+    bool isSandbox = false,
   }) async {
-    if (max <= 0) return 0;
-    int created = 0;
+    if (max <= 0) return [];
+    final created = <Flashcard>[];
     // Need verses with at least 5 words to blank meaningfully
     final eligible = verses.where((v) {
       final text = quran.getVerse(v.surah, v.verse);
       return text.split(' ').length >= 5;
     }).toList();
-    if (eligible.isEmpty) return 0;
+    if (eligible.isEmpty) return [];
 
     eligible.shuffle(random);
     final sampleSize = min(max, eligible.length);
@@ -315,12 +333,14 @@ class CardGenerationService {
       final v = eligible[i];
       final verseKey = '${v.surah}:${v.verse}';
 
-      final exists = await _db.flashcardExists(
-        profileId,
-        verseKey,
-        FlashcardType.verseCompletion,
-      );
-      if (exists) continue;
+      if (!isSandbox) {
+        final exists = await _db.flashcardExists(
+          profileId,
+          verseKey,
+          FlashcardType.verseCompletion,
+        );
+        if (exists) continue;
+      }
 
       final fullText = quran.getVerse(v.surah, v.verse);
       final words = fullText.split(' ');
@@ -356,25 +376,25 @@ class CardGenerationService {
         dueDate: DateTime.now(),
       );
 
-      await _db.saveFlashcard(card);
-      created++;
-      if (created >= max) break;
+      created.add(card);
+      if (created.length >= max) break;
     }
     return created;
   }
 
   /// Previous Verse: show a verse, ask what came before it.
-  Future<int> _generatePreviousVerseCards(
+  Future<List<Flashcard>> _generatePreviousVerseCards(
     String profileId,
     List<_VerseRef> verses,
     Random random, {
     int max = 6,
+    bool isSandbox = false,
   }) async {
-    if (max <= 0) return 0;
-    int created = 0;
+    if (max <= 0) return [];
+    final created = <Flashcard>[];
     // Must not be the first verse of a surah
     final eligible = verses.where((v) => v.verse > 1).toList();
-    if (eligible.isEmpty) return 0;
+    if (eligible.isEmpty) return [];
 
     eligible.shuffle(random);
     final sampleSize = min(max, eligible.length);
@@ -383,12 +403,14 @@ class CardGenerationService {
       final v = eligible[i];
       final verseKey = '${v.surah}:${v.verse}';
 
-      final exists = await _db.flashcardExists(
-        profileId,
-        verseKey,
-        FlashcardType.previousVerse,
-      );
-      if (exists) continue;
+      if (!isSandbox) {
+        final exists = await _db.flashcardExists(
+          profileId,
+          verseKey,
+          FlashcardType.previousVerse,
+        );
+        if (exists) continue;
+      }
 
       final questionText = quran.getVerse(v.surah, v.verse);
       final answerText = quran.getVerse(v.surah, v.verse - 1);
@@ -416,22 +438,22 @@ class CardGenerationService {
         dueDate: DateTime.now(),
       );
 
-      await _db.saveFlashcard(card);
-      created++;
-      if (created >= max) break;
+      created.add(card);
+      if (created.length >= max) break;
     }
     return created;
   }
 
   /// Connect Sequence: scramble 3 consecutive verses, user reorders.
-  Future<int> _generateConnectSequenceCards(
+  Future<List<Flashcard>> _generateConnectSequenceCards(
     String profileId,
     List<_VerseRef> verses,
     Random random, {
     int max = 4,
+    bool isSandbox = false,
   }) async {
-    if (max <= 0) return 0;
-    int created = 0;
+    if (max <= 0) return [];
+    final created = <Flashcard>[];
 
     // Group verses by surah so we can pick consecutive sequences
     final bySurah = <int, List<_VerseRef>>{};
@@ -452,19 +474,21 @@ class CardGenerationService {
       }
     }
 
-    if (candidates.isEmpty) return 0;
+    if (candidates.isEmpty) return [];
     candidates.shuffle(random);
 
     for (final seq in candidates) {
-      if (created >= max) break;
+      if (created.length >= max) break;
       final anchorKey = '${seq[0].surah}:${seq[0].verse}-${seq[2].verse}';
 
-      final exists = await _db.flashcardExists(
-        profileId,
-        anchorKey,
-        FlashcardType.connectSequence,
-      );
-      if (exists) continue;
+      if (!isSandbox) {
+        final exists = await _db.flashcardExists(
+          profileId,
+          anchorKey,
+          FlashcardType.connectSequence,
+        );
+        if (exists) continue;
+      }
 
       final surahName = quran.getSurahNameArabic(seq[0].surah);
       // Build verse data in correct order
@@ -503,10 +527,57 @@ class CardGenerationService {
         dueDate: DateTime.now(),
       );
 
-      await _db.saveFlashcard(card);
-      created++;
+      created.add(card);
     }
     return created;
+  }
+
+  /// Generate playful sandbox cards (no DB saves, random Amma verses).
+  Future<List<Flashcard>> generatePlayfulCards(String profileId, FlashcardType? type, {int count = 10}) async {
+    final verses = <_VerseRef>[];
+    for (int surah = 78; surah <= 114; surah++) {
+      final verseCount = quran.getVerseCount(surah);
+      for (int v = 1; v <= verseCount; v++) {
+        verses.add(_VerseRef(surah, v, 1));
+      }
+    }
+    
+    final random = Random();
+    final cards = <Flashcard>[];
+    
+    if (type == null) {
+      // Mixed
+      cards.addAll(await _generateNextVerseCards(profileId, verses, random, max: 2, isSandbox: true));
+      cards.addAll(await _generateSurahDetectiveCards(profileId, verses, random, max: 2, isSandbox: true));
+      cards.addAll(await _generateVerseCompletionCards(profileId, verses, random, max: 2, isSandbox: true));
+      cards.addAll(await _generatePreviousVerseCards(profileId, verses, random, max: 2, isSandbox: true));
+      cards.addAll(await _generateConnectSequenceCards(profileId, verses, random, max: 1, isSandbox: true));
+      cards.addAll(await _generateMutashabihatDuelCards(profileId, max: 1, isSandbox: true));
+    } else {
+      switch (type) {
+        case FlashcardType.nextVerse:
+          cards.addAll(await _generateNextVerseCards(profileId, verses, random, max: count, isSandbox: true));
+          break;
+        case FlashcardType.surahDetective:
+          cards.addAll(await _generateSurahDetectiveCards(profileId, verses, random, max: count, isSandbox: true));
+          break;
+        case FlashcardType.mutashabihatDuel:
+          cards.addAll(await _generateMutashabihatDuelCards(profileId, max: count, isSandbox: true));
+          break;
+        case FlashcardType.verseCompletion:
+          cards.addAll(await _generateVerseCompletionCards(profileId, verses, random, max: count, isSandbox: true));
+          break;
+        case FlashcardType.previousVerse:
+          cards.addAll(await _generatePreviousVerseCards(profileId, verses, random, max: count, isSandbox: true));
+          break;
+        case FlashcardType.connectSequence:
+          cards.addAll(await _generateConnectSequenceCards(profileId, verses, random, max: count, isSandbox: true));
+          break;
+      }
+    }
+    
+    cards.shuffle(random);
+    return cards.take(count).toList();
   }
 }
 

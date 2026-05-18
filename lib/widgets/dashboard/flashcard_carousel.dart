@@ -7,6 +7,7 @@ import 'package:quran_app/providers/flashcard_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Horizontal scrolling flashcard category strip for the Dashboard.
 ///
@@ -176,17 +177,15 @@ class _FlashcardCategoryCard extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusXl),
         child: InkWell(
-          onTap: hasDue
-              ? () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => FlashcardReviewScreen(
-                        filterType: category.type,
-                      ),
-                    ),
-                  );
-                }
-              : null,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FlashcardReviewScreen(
+                  filterType: category.type,
+                ),
+              ),
+            );
+          },
           borderRadius: BorderRadius.circular(theme.radiusXl),
           child: Container(
             padding: const EdgeInsets.all(14),

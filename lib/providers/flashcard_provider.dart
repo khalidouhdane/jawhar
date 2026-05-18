@@ -17,6 +17,7 @@ class FlashcardProvider extends ChangeNotifier {
   int _currentIndex = 0;
   bool _isLoading = false;
   bool _isRevealed = false;
+  bool _isSandbox = false;
 
   // Session stats
   int _reviewedCount = 0;
@@ -43,6 +44,7 @@ class FlashcardProvider extends ChangeNotifier {
       _currentIndex < _dueCards.length ? _dueCards[_currentIndex] : null;
   bool get isLoading => _isLoading;
   bool get isRevealed => _isRevealed;
+  bool get isSandbox => _isSandbox;
   bool get hasCards => _dueCards.isNotEmpty;
   bool get isSessionComplete => _currentIndex >= _dueCards.length;
   int get remainingCards => (_dueCards.length - _currentIndex).clamp(0, 999);
@@ -94,6 +96,7 @@ class FlashcardProvider extends ChangeNotifier {
       AppLogger.info('Flashcard', '[FlashcardProvider] Due cards loaded: ${_dueCards.length}');
       _currentIndex = 0;
       _isRevealed = false;
+      _isSandbox = false;
       _resetSessionStats();
 
       // Load dashboard stats + per-type stats
@@ -123,9 +126,32 @@ class FlashcardProvider extends ChangeNotifier {
       );
       _currentIndex = 0;
       _isRevealed = false;
+      _isSandbox = false;
       _resetSessionStats();
     } catch (e) {
       AppLogger.info('Flashcard', '[FlashcardProvider] ERROR loading by type: $e');
+      _dueCards = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Load playful cards for sandbox mode (no DB saves, just random practice).
+  Future<void> loadPlayfulCards(String profileId, FlashcardType? type) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final gen = CardGenerationService(_db);
+      _dueCards = await gen.generatePlayfulCards(profileId, type, count: 10);
+      AppLogger.info('Flashcard', '[FlashcardProvider] Loaded ${_dueCards.length} playful cards for type: ${type?.name ?? "mixed"}');
+      _currentIndex = 0;
+      _isRevealed = false;
+      _isSandbox = true;
+      _resetSessionStats();
+    } catch (e) {
+      AppLogger.info('Flashcard', '[FlashcardProvider] ERROR loading playful cards: $e');
       _dueCards = [];
     } finally {
       _isLoading = false;
@@ -184,18 +210,27 @@ class FlashcardProvider extends ChangeNotifier {
   Future<void> rate(FlashcardRating rating) async {
     if (currentCard == null) return;
 
-    // Process SRS
     final updated = SrsEngine.processReview(currentCard!, rating);
-    await _db.updateFlashcard(updated);
 
-    // Save review event
-    final review = FlashcardReview(
-      id: '${currentCard!.id}_${DateTime.now().millisecondsSinceEpoch}',
-      cardId: currentCard!.id,
-      rating: rating,
-      reviewedAt: DateTime.now(),
-    );
-    await _db.saveFlashcardReview(review);
+    if (!_isSandbox) {
+      // Process SRS and DB only for real cards
+      await _db.updateFlashcard(updated);
+
+      // Save review event
+      final review = FlashcardReview(
+        id: '${currentCard!.id}_${DateTime.now().millisecondsSinceEpoch}',
+        cardId: currentCard!.id,
+        rating: rating,
+        reviewedAt: DateTime.now(),
+      );
+      await _db.saveFlashcardReview(review);
+
+      // Cloud sync (fire-and-forget)
+      if (_auth.isSignedIn) {
+        _sync.syncFlashcard(_auth.uid!, updated);
+        _sync.syncFlashcardReview(_auth.uid!, review);
+      }
+    }
 
     // Update session stats
     _reviewedCount++;
@@ -219,16 +254,10 @@ class FlashcardProvider extends ChangeNotifier {
     _isRevealed = false;
 
     // Integration trigger: check if weak/forgot card is a mutashabihat verse
-    if (rating == FlashcardRating.weak || rating == FlashcardRating.forgot) {
+    if (!_isSandbox && (rating == FlashcardRating.weak || rating == FlashcardRating.forgot)) {
       _checkMutashabihatForVerse(updated.verseKey);
     } else {
       _lastWeakWasMutashabihat = false;
-    }
-
-    // Cloud sync (fire-and-forget)
-    if (_auth.isSignedIn) {
-      _sync.syncFlashcard(_auth.uid!, updated);
-      _sync.syncFlashcardReview(_auth.uid!, review);
     }
 
     notifyListeners();

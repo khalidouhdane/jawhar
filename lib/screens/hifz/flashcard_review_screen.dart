@@ -25,14 +25,19 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final profile = context.read<HifzProfileProvider>();
-      if (profile.hasActiveProfile) {
-        final fc = context.read<FlashcardProvider>();
+      final fc = context.read<FlashcardProvider>();
+
+      if (!profile.hasActiveProfile || fc.totalCards == 0) {
+        // Sandbox mode
+        await fc.loadPlayfulCards(profile.activeProfile?.id ?? 'sandbox', widget.filterType);
+      } else {
+        // Normal mode
         if (widget.filterType != null) {
-          fc.loadDueCardsByType(profile.activeProfile!.id, widget.filterType);
+          await fc.loadDueCardsByType(profile.activeProfile!.id, widget.filterType);
         } else {
-          fc.loadDueCards(profile.activeProfile!.id, generate: false);
+          await fc.loadDueCards(profile.activeProfile!.id, generate: false);
         }
       }
     });
@@ -78,7 +83,9 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
               ),
               const Spacer(),
               Text(
-                '${fc.currentIndex + 1} / ${fc.dueCards.length}',
+                fc.isSandbox 
+                    ? '${fc.currentIndex + 1} / ${fc.dueCards.length}  |  Sandbox Mode 🎲'
+                    : '${fc.currentIndex + 1} / ${fc.dueCards.length}',
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
