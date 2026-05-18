@@ -240,8 +240,8 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
 
             // Instruction
             Text(
-              'ما الآية التالية؟',
-              textDirection: TextDirection.rtl,
+              AppLocalizations.of(context)!.pracNextVerseSub,
+              textDirection: Directionality.of(context),
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
@@ -300,8 +300,8 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           children: [
             // Instruction
             Text(
-              'من أي سورة هذه الآية؟',
-              textDirection: TextDirection.rtl,
+              AppLocalizations.of(context)!.pracSurahDetectiveSub,
+              textDirection: Directionality.of(context),
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
@@ -377,8 +377,8 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'أي الآيتين من السورة الصحيحة؟',
-              textDirection: TextDirection.rtl,
+              AppLocalizations.of(context)!.pracMutashabihatSub,
+              textDirection: Directionality.of(context),
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
@@ -496,8 +496,8 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
 
             // Instruction
             Text(
-              '\u0623\u0643\u0645\u0644 \u0627\u0644\u0622\u064a\u0629',
-              textDirection: TextDirection.rtl,
+              AppLocalizations.of(context)!.pracCompleteItSub,
+              textDirection: Directionality.of(context),
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
@@ -583,8 +583,8 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
 
             // Instruction
             Text(
-              '\u0645\u0627 \u0627\u0644\u0622\u064a\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629\u061f',
-              textDirection: TextDirection.rtl,
+              AppLocalizations.of(context)!.pracPrevVerseSub,
+              textDirection: Directionality.of(context),
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,

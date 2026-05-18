@@ -3505,6 +3505,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Themes'**
   String get undThemes;
+
+  /// No description provided for @todaysStudyContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Study Context'**
+  String get todaysStudyContext;
+
+  /// No description provided for @yourSabaqIsOnPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sabaq is on page {page}'**
+  String yourSabaqIsOnPage(int page);
+
+  /// No description provided for @actionOpenPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Page'**
+  String get actionOpenPage;
+
+  /// No description provided for @actionResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get actionResume;
+
+  /// No description provided for @surahInfoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {type} · {count} verses'**
+  String surahInfoLabel(String name, String type, int count);
+
+  /// No description provided for @revelationMeccan.
+  ///
+  /// In en, this message translates to:
+  /// **'Meccan'**
+  String get revelationMeccan;
+
+  /// No description provided for @revelationMedinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Medinan'**
+  String get revelationMedinan;
+
+  /// No description provided for @understandingContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Understanding Context'**
+  String get understandingContext;
+
+  /// No description provided for @understandingContextDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s sabaq is on page {page}. Build deeper understanding of these verses before you memorize.'**
+  String understandingContextDesc(int page);
+
+  /// No description provided for @flashcardsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'due {count}'**
+  String flashcardsDue(int count);
+
+  /// No description provided for @planPageAwaits.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} awaits · ~{min} min'**
+  String planPageAwaits(int page, int min);
+
+  /// No description provided for @planMinDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'min {min}'**
+  String planMinDuration(int min);
+
+  /// No description provided for @dashboardFlashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcards'**
+  String get dashboardFlashcards;
+
+  /// No description provided for @fcMixedReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed Review'**
+  String get fcMixedReview;
+
+  /// No description provided for @fcNextVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Verse'**
+  String get fcNextVerse;
+
+  /// No description provided for @fcPreviousVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Verse'**
+  String get fcPreviousVerse;
+
+  /// No description provided for @fcCompleteIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete It'**
+  String get fcCompleteIt;
+
+  /// No description provided for @fcSurahDetective.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah Detective'**
+  String get fcSurahDetective;
+
+  /// No description provided for @fcSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence'**
+  String get fcSequence;
+
+  /// No description provided for @fcMutashabihat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutashabihat'**
+  String get fcMutashabihat;
+
+  /// No description provided for @undSpotlightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Understanding Spotlight'**
+  String get undSpotlightTitle;
+
+  /// No description provided for @pracNextVerseSub.
+  ///
+  /// In en, this message translates to:
+  /// **'What comes next?'**
+  String get pracNextVerseSub;
+
+  /// No description provided for @pracPrevVerseSub.
+  ///
+  /// In en, this message translates to:
+  /// **'What comes before?'**
+  String get pracPrevVerseSub;
+
+  /// No description provided for @pracCompleteItSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the verse'**
+  String get pracCompleteItSub;
+
+  /// No description provided for @pracSurahDetectiveSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Which surah is this from?'**
+  String get pracSurahDetectiveSub;
+
+  /// No description provided for @pracSequenceSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Order the verses'**
+  String get pracSequenceSub;
+
+  /// No description provided for @pracMutashabihatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Which verse is from the correct Surah?'**
+  String get pracMutashabihatSub;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class UnderstandingSpotlight extends StatelessWidget {
   final int sabaqPage;
@@ -14,6 +15,7 @@ class UnderstandingSpotlight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
     
     if (sabaqPage <= 0 || sabaqPage > 604) {
@@ -49,7 +51,7 @@ class UnderstandingSpotlight extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Understanding Context',
+                  l10n.understandingContext,
                   style: theme.textCaption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: theme.primaryText,
@@ -59,7 +61,7 @@ class UnderstandingSpotlight extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              "Today's sabaq is on page $sabaqPage. Build deeper understanding of these verses before you memorize.",
+              l10n.understandingContextDesc(sabaqPage),
               style: theme.textCaption.copyWith(
                 color: theme.secondaryText,
                 height: 1.4,

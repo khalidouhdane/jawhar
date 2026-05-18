@@ -18,6 +18,7 @@ class FlashcardCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
     final fc = context.watch<FlashcardProvider>();
     final totalDue = fc.dueCardCount;
@@ -27,7 +28,7 @@ class FlashcardCarousel extends StatelessWidget {
       if (totalDue > 0)
         _CardCategory(
           icon: LucideIcons.shuffle,
-          title: 'Mixed Review',
+          title: l10n.fcMixedReview,
           titleAr: 'مراجعة شاملة',
           dueCount: totalDue,
           isHero: true,
@@ -35,42 +36,42 @@ class FlashcardCarousel extends StatelessWidget {
         ),
       _CardCategory(
         icon: LucideIcons.skipForward,
-        title: 'Next Verse',
+        title: l10n.fcNextVerse,
         titleAr: 'ما بعدها؟',
         dueCount: fc.getDueCountForType(FlashcardType.nextVerse),
         type: FlashcardType.nextVerse,
       ),
       _CardCategory(
         icon: LucideIcons.skipBack,
-        title: 'Previous Verse',
+        title: l10n.fcPreviousVerse,
         titleAr: 'ما قبلها؟',
         dueCount: fc.getDueCountForType(FlashcardType.previousVerse),
         type: FlashcardType.previousVerse,
       ),
       _CardCategory(
         icon: LucideIcons.pencil,
-        title: 'Complete It',
+        title: l10n.fcCompleteIt,
         titleAr: 'أكمل الآية',
         dueCount: fc.getDueCountForType(FlashcardType.verseCompletion),
         type: FlashcardType.verseCompletion,
       ),
       _CardCategory(
         icon: LucideIcons.search,
-        title: 'Surah Detective',
+        title: l10n.fcSurahDetective,
         titleAr: 'من أي سورة؟',
         dueCount: fc.getDueCountForType(FlashcardType.surahDetective),
         type: FlashcardType.surahDetective,
       ),
       _CardCategory(
         icon: LucideIcons.link,
-        title: 'Sequence',
+        title: l10n.fcSequence,
         titleAr: 'رتب الآيات',
         dueCount: fc.getDueCountForType(FlashcardType.connectSequence),
         type: FlashcardType.connectSequence,
       ),
       _CardCategory(
         icon: LucideIcons.swords,
-        title: 'Mutashabihat',
+        title: l10n.fcMutashabihat,
         titleAr: 'المتشابهات',
         dueCount: fc.getDueCountForType(FlashcardType.mutashabihatDuel),
         type: FlashcardType.mutashabihatDuel,
@@ -87,7 +88,7 @@ class FlashcardCarousel extends StatelessWidget {
               Icon(LucideIcons.layers, size: 14, color: theme.secondaryText),
               const SizedBox(width: 6),
               Text(
-                'Flashcards',
+                l10n.dashboardFlashcards,
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
@@ -106,7 +107,7 @@ class FlashcardCarousel extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    '$totalDue due',
+                    l10n.flashcardsDue(totalDue),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 11,

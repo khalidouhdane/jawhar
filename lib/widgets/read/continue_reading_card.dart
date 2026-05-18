@@ -6,12 +6,14 @@ import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class ContinueReadingCard extends StatelessWidget {
   const ContinueReadingCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
     final localStorage = context.read<LocalStorageService>();
     final lastRead = localStorage.getLastRead();
@@ -30,7 +32,7 @@ class ContinueReadingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'CONTINUE READING',
+            l10n.homeContinue.toUpperCase(),
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 11,
@@ -61,7 +63,7 @@ class ContinueReadingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Page $lastReadPage',
+                      '${l10n.homePage} $lastReadPage',
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 14,
@@ -93,7 +95,7 @@ class ContinueReadingCard extends StatelessWidget {
                       Icon(LucideIcons.bookOpen, size: 16, color: theme.scaffoldBackground),
                       const SizedBox(width: 8),
                       Text(
-                        'Resume',
+                        l10n.actionResume,
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 13,

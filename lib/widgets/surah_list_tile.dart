@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class SurahListTile extends StatelessWidget {
   final int number;
@@ -22,6 +23,7 @@ class SurahListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
 
     return GestureDetector(
@@ -83,7 +85,7 @@ class SurahListTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$versesCount Verses',
+                    '$versesCount ${l10n.readVerses}',
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,

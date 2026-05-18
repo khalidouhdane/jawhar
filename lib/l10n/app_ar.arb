@@ -648,5 +648,83 @@
   "profileTabHifz": "الحفظ",
   "profileTabAccount": "الحساب",
   "undStories": "القصص",
-  "undThemes": "المواضيع"
+  "undThemes": "المواضيع",
+  "todaysStudyContext": "سياق دراسة اليوم",
+  "yourSabaqIsOnPage": "سبقك اليوم في صفحة {page}",
+  "@yourSabaqIsOnPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "actionOpenPage": "فتح الصفحة",
+  "actionResume": "متابعة",
+  "surahInfoLabel": "{name} · {type} · {count} آيات",
+  "@surahInfoLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "revelationMeccan": "مكية",
+  "revelationMedinan": "مدنية",
+  "understandingContext": "فهم السياق",
+  "understandingContextDesc": "سبقك اليوم في صفحة {page}. ابني فهماً أعمق لهذه الآيات قبل أن تحفظها.",
+  "@understandingContextDesc": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "flashcardsDue": "مستحقة {count}",
+  "@flashcardsDue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planPageAwaits": "صفحة {page} بانتظارك · ~{min} دقيقة",
+  "@planPageAwaits": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "planMinDuration": "دقيقة {min}",
+  "@planMinDuration": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardFlashcards": "بطاقات المراجعة",
+  "fcMixedReview": "مراجعة شاملة",
+  "fcNextVerse": "ما بعدها؟",
+  "fcPreviousVerse": "ما قبلها؟",
+  "fcCompleteIt": "أكمل الآية",
+  "fcSurahDetective": "من أي سورة؟",
+  "fcSequence": "رتب الآيات",
+  "fcMutashabihat": "المتشابهات",
+  "undSpotlightTitle": "إضاءات قرآنية",
+  "pracNextVerseSub": "ما بعدها؟",
+  "pracPrevVerseSub": "ما قبلها؟",
+  "pracCompleteItSub": "أكمل الآية",
+  "pracSurahDetectiveSub": "من أي سورة؟",
+  "pracSequenceSub": "رتب الآيات",
+  "pracMutashabihatSub": "أي الآيتين من السورة الصحيحة؟"
 }

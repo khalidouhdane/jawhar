@@ -683,5 +683,83 @@
   "profileTabHifz": "Hifz",
   "profileTabAccount": "Account",
   "undStories": "Stories",
-  "undThemes": "Themes"
+  "undThemes": "Themes",
+  "todaysStudyContext": "Today's Study Context",
+  "yourSabaqIsOnPage": "Your sabaq is on page {page}",
+  "@yourSabaqIsOnPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "actionOpenPage": "Open Page",
+  "actionResume": "Resume",
+  "surahInfoLabel": "{name} · {type} · {count} verses",
+  "@surahInfoLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "revelationMeccan": "Meccan",
+  "revelationMedinan": "Medinan",
+  "understandingContext": "Understanding Context",
+  "understandingContextDesc": "Today's sabaq is on page {page}. Build deeper understanding of these verses before you memorize.",
+  "@understandingContextDesc": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "flashcardsDue": "due {count}",
+  "@flashcardsDue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planPageAwaits": "Page {page} awaits · ~{min} min",
+  "@planPageAwaits": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "planMinDuration": "min {min}",
+  "@planMinDuration": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardFlashcards": "Flashcards",
+  "fcMixedReview": "Mixed Review",
+  "fcNextVerse": "Next Verse",
+  "fcPreviousVerse": "Previous Verse",
+  "fcCompleteIt": "Complete It",
+  "fcSurahDetective": "Surah Detective",
+  "fcSequence": "Sequence",
+  "fcMutashabihat": "Mutashabihat",
+  "undSpotlightTitle": "Understanding Spotlight",
+  "pracNextVerseSub": "What comes next?",
+  "pracPrevVerseSub": "What comes before?",
+  "pracCompleteItSub": "Complete the verse",
+  "pracSurahDetectiveSub": "Which surah is this from?",
+  "pracSequenceSub": "Order the verses",
+  "pracMutashabihatSub": "Which verse is from the correct Surah?"
 }

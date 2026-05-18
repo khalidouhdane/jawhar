@@ -1811,4 +1811,97 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get undThemes => 'المواضيع';
+
+  @override
+  String get todaysStudyContext => 'سياق دراسة اليوم';
+
+  @override
+  String yourSabaqIsOnPage(int page) {
+    return 'سبقك اليوم في صفحة $page';
+  }
+
+  @override
+  String get actionOpenPage => 'فتح الصفحة';
+
+  @override
+  String get actionResume => 'متابعة';
+
+  @override
+  String surahInfoLabel(String name, String type, int count) {
+    return '$name · $type · $count آيات';
+  }
+
+  @override
+  String get revelationMeccan => 'مكية';
+
+  @override
+  String get revelationMedinan => 'مدنية';
+
+  @override
+  String get understandingContext => 'فهم السياق';
+
+  @override
+  String understandingContextDesc(int page) {
+    return 'سبقك اليوم في صفحة $page. ابني فهماً أعمق لهذه الآيات قبل أن تحفظها.';
+  }
+
+  @override
+  String flashcardsDue(int count) {
+    return 'مستحقة $count';
+  }
+
+  @override
+  String planPageAwaits(int page, int min) {
+    return 'صفحة $page بانتظارك · ~$min دقيقة';
+  }
+
+  @override
+  String planMinDuration(int min) {
+    return 'دقيقة $min';
+  }
+
+  @override
+  String get dashboardFlashcards => 'بطاقات المراجعة';
+
+  @override
+  String get fcMixedReview => 'مراجعة شاملة';
+
+  @override
+  String get fcNextVerse => 'ما بعدها؟';
+
+  @override
+  String get fcPreviousVerse => 'ما قبلها؟';
+
+  @override
+  String get fcCompleteIt => 'أكمل الآية';
+
+  @override
+  String get fcSurahDetective => 'من أي سورة؟';
+
+  @override
+  String get fcSequence => 'رتب الآيات';
+
+  @override
+  String get fcMutashabihat => 'المتشابهات';
+
+  @override
+  String get undSpotlightTitle => 'إضاءات قرآنية';
+
+  @override
+  String get pracNextVerseSub => 'ما بعدها؟';
+
+  @override
+  String get pracPrevVerseSub => 'ما قبلها؟';
+
+  @override
+  String get pracCompleteItSub => 'أكمل الآية';
+
+  @override
+  String get pracSurahDetectiveSub => 'من أي سورة؟';
+
+  @override
+  String get pracSequenceSub => 'رتب الآيات';
+
+  @override
+  String get pracMutashabihatSub => 'أي الآيتين من السورة الصحيحة؟';
 }

@@ -126,7 +126,7 @@ class _PlanCardState extends State<PlanCard> {
               Icon(LucideIcons.clock, size: 11, color: theme.secondaryText),
               const SizedBox(width: 4),
               Text(
-                '~${plan.estimatedMinutes} min',
+                '~${l.planMinDuration(plan.estimatedMinutes)}',
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 11,
@@ -163,6 +163,7 @@ class _PlanCardState extends State<PlanCard> {
           timeMinutes: plan.sabaqTargetMinutes,
           pageInfo: _sabaqPageInfo(plan, l),
           isDone: plan.sabaqDoneOffline,
+          l10n: l,
         ),
       ),
     );
@@ -178,6 +179,7 @@ class _PlanCardState extends State<PlanCard> {
             timeMinutes: plan.sabqiTargetMinutes,
             pageInfo: _formatPageList(plan.sabqiPages, l),
             isDone: plan.sabqiDoneOffline,
+            l10n: l,
           ),
         ),
       );
@@ -194,6 +196,7 @@ class _PlanCardState extends State<PlanCard> {
             timeMinutes: plan.manzilTargetMinutes,
             pageInfo: l.planJuzPages(plan.manzilJuz, plan.manzilPages.length),
             isDone: plan.manzilDoneOffline,
+            l10n: l,
           ),
         ),
       );
@@ -369,7 +372,7 @@ class _PlanCardState extends State<PlanCard> {
     // Show compact range if sequential
     final sorted = [...pages]..sort();
     if (sorted.last - sorted.first == sorted.length - 1) {
-      return 'p. ${sorted.first}–${sorted.last}';
+      return '${l.homePage} ${sorted.first}–${sorted.last}';
     }
     return l.planPagesListMore(pages.take(2).join(', '), pages.length - 2);
   }
@@ -386,12 +389,15 @@ class _PhaseCard extends StatelessWidget {
   final String pageInfo;
   final bool isDone;
 
+  final AppLocalizations l10n;
+
   const _PhaseCard({
     required this.theme,
     required this.title,
     required this.timeMinutes,
     required this.pageInfo,
     required this.isDone,
+    required this.l10n,
   });
 
   @override
@@ -413,7 +419,7 @@ class _PhaseCard extends StatelessWidget {
               border: Border.all(color: theme.dividerColor, width: 1),
             ),
             child: Text(
-              '$timeMinutes min',
+              l10n.planMinDuration(timeMinutes),
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 11,

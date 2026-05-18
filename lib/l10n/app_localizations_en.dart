@@ -1832,4 +1832,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get undThemes => 'Themes';
+
+  @override
+  String get todaysStudyContext => 'Today\'s Study Context';
+
+  @override
+  String yourSabaqIsOnPage(int page) {
+    return 'Your sabaq is on page $page';
+  }
+
+  @override
+  String get actionOpenPage => 'Open Page';
+
+  @override
+  String get actionResume => 'Resume';
+
+  @override
+  String surahInfoLabel(String name, String type, int count) {
+    return '$name · $type · $count verses';
+  }
+
+  @override
+  String get revelationMeccan => 'Meccan';
+
+  @override
+  String get revelationMedinan => 'Medinan';
+
+  @override
+  String get understandingContext => 'Understanding Context';
+
+  @override
+  String understandingContextDesc(int page) {
+    return 'Today\'s sabaq is on page $page. Build deeper understanding of these verses before you memorize.';
+  }
+
+  @override
+  String flashcardsDue(int count) {
+    return 'due $count';
+  }
+
+  @override
+  String planPageAwaits(int page, int min) {
+    return 'Page $page awaits · ~$min min';
+  }
+
+  @override
+  String planMinDuration(int min) {
+    return 'min $min';
+  }
+
+  @override
+  String get dashboardFlashcards => 'Flashcards';
+
+  @override
+  String get fcMixedReview => 'Mixed Review';
+
+  @override
+  String get fcNextVerse => 'Next Verse';
+
+  @override
+  String get fcPreviousVerse => 'Previous Verse';
+
+  @override
+  String get fcCompleteIt => 'Complete It';
+
+  @override
+  String get fcSurahDetective => 'Surah Detective';
+
+  @override
+  String get fcSequence => 'Sequence';
+
+  @override
+  String get fcMutashabihat => 'Mutashabihat';
+
+  @override
+  String get undSpotlightTitle => 'Understanding Spotlight';
+
+  @override
+  String get pracNextVerseSub => 'What comes next?';
+
+  @override
+  String get pracPrevVerseSub => 'What comes before?';
+
+  @override
+  String get pracCompleteItSub => 'Complete the verse';
+
+  @override
+  String get pracSurahDetectiveSub => 'Which surah is this from?';
+
+  @override
+  String get pracSequenceSub => 'Order the verses';
+
+  @override
+  String get pracMutashabihatSub => 'Which verse is from the correct Surah?';
 }

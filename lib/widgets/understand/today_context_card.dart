@@ -8,6 +8,7 @@ import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/widgets/context/tafsir_sheet.dart' show showTafsirSheet;
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Contextual header card shown at the top of the Understand tab
 /// when the user has an active hifz plan with a sabaq page.
@@ -19,6 +20,7 @@ class TodayContextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
     final plan = context.watch<PlanProvider>();
     final todayPlan = plan.todayPlan;
@@ -78,7 +80,7 @@ class TodayContextCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Today's Study Context",
+                      l10n.todaysStudyContext,
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 15,
@@ -87,7 +89,7 @@ class TodayContextCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Your sabaq is on page $sabaqPage',
+                      l10n.yourSabaqIsOnPage(sabaqPage),
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
@@ -125,7 +127,11 @@ class TodayContextCard extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      '${surah.nameSimple} · ${surah.revelationType} · ${surah.versesCount} verses',
+                      l10n.surahInfoLabel(
+                        surah.nameSimple,
+                        surah.isMeccan ? l10n.revelationMeccan : l10n.revelationMedinan,
+                        surah.versesCount,
+                      ),
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
@@ -144,7 +150,7 @@ class TodayContextCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _ActionChip(
-                  label: 'Tafsir',
+                  label: l10n.readingTafsir,
                   icon: LucideIcons.bookMarked,
                   onTap: () => _openTafsir(context, sabaqPage),
                   theme: theme,
@@ -154,7 +160,7 @@ class TodayContextCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _ActionChip(
-                  label: 'Open Page',
+                  label: l10n.readingRead,
                   icon: LucideIcons.bookOpen,
                   onTap: () => Navigator.push(
                     context,
