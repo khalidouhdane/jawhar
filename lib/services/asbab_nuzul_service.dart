@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -63,19 +64,25 @@ class AsbabNuzulService {
     try {
       String? jsonString;
 
-      // Try loading from local cache first
-      final cacheFile = await _getCacheFile();
-      if (await cacheFile.exists()) {
-        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Loading from local cache');
-        jsonString = await cacheFile.readAsString();
-      } else {
-        // Download from GitHub
-        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Downloading dataset from GitHub...');
+      if (kIsWeb) {
+        // Skip local cache on web
+        AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Downloading dataset from GitHub (Web)...');
         jsonString = await _downloadDataset();
-        if (jsonString != null) {
-          // Save to local cache
-          await cacheFile.writeAsString(jsonString);
-          AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Dataset cached locally');
+      } else {
+        // Try loading from local cache first
+        final cacheFile = await _getCacheFile();
+        if (await cacheFile.exists()) {
+          AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Loading from local cache');
+          jsonString = await cacheFile.readAsString();
+        } else {
+          // Download from GitHub
+          AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Downloading dataset from GitHub...');
+          jsonString = await _downloadDataset();
+          if (jsonString != null) {
+            // Save to local cache
+            await cacheFile.writeAsString(jsonString);
+            AppLogger.info('AsbabNuzul', 'AsbabNuzulService: Dataset cached locally');
+          }
         }
       }
 

@@ -1,8 +1,10 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
+import 'package:quran_app/services/db_factory.dart';
 
 /// Central SQLite database service for the Hifz program.
 /// Manages profiles, page progress, session history, daily plans,
@@ -20,6 +22,17 @@ class HifzDatabaseService {
   }
 
   Future<Database> _initDatabase() async {
+    if (kIsWeb) {
+      return webDatabaseFactory.openDatabase(
+        _dbName,
+        options: OpenDatabaseOptions(
+          version: _dbVersion,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
+      );
+    }
+
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, _dbName);
 

@@ -85,7 +85,7 @@ flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   adaptive_icon_background: "#EBEBEB" # Super subtle light grey
-  adaptive_icon_foreground: "assets/images/diamond_logo.png"
+  adaptive_icon_foreground: "assets/images/diamond_logo_padded.png"
   windows:
     generate: true
     icon_path: "assets/images/diamond_bg_desktop.png"

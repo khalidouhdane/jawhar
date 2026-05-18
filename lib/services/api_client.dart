@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 import 'package:quran_app/services/quran_auth_service.dart';
 import 'package:quran_app/utils/app_logger.dart';
+
+import 'api_client_native.dart' if (dart.library.html) 'api_client_web.dart';
 
 /// Centralized, resilient HTTP client for all Quran API communication.
 ///
 /// ## Architecture: Fresh Client Per Request
 ///
-/// Each request gets its own `HttpClient` → `IOClient` instance. This is
+/// Each request gets its own client. This is
 /// intentional and solves three problems at once:
 ///
 /// 1. **SSLV3_ALERT_BAD_RECORD_MAC** — The primary failure mode. BoringSSL's
@@ -39,10 +39,7 @@ class ApiClient {
   /// Each client gets its own TCP connection and TLS context — no
   /// cached sessions, no stale connections, no shared state.
   static http.Client _freshClient() {
-    final inner = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 10)
-      ..idleTimeout = const Duration(seconds: 0); // Close immediately after use
-    return IOClient(inner);
+    return createFreshHttpClient();
   }
 
   /// Check if an error is SSL/TLS related.
@@ -103,33 +100,41 @@ class ApiClient {
           );
           await Future.delayed(delay);
         }
-      } on SocketException catch (e) {
-        lastError = e;
-        if (attempt < maxRetries - 1) {
-          final delay = Duration(seconds: 1 << attempt);
-          AppLogger.info('ApiClient', '[ApiClient] Network error on $uri ($e) — '
-            'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
-          );
-          await Future.delayed(delay);
-        }
       } on http.ClientException catch (e) {
         lastError = e;
         if (attempt < maxRetries - 1) {
           final delay = Duration(seconds: 1 << attempt);
-          final kind = _isSslError(e) ? 'SSL' : 'Connection';
-          AppLogger.info('ApiClient', '[ApiClient] $kind error on $uri ($e) — '
+          AppLogger.info('ApiClient', '[ApiClient] Client error on $uri ($e) — '
             'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
           );
           await Future.delayed(delay);
         }
       } catch (e) {
-        lastError = e;
-        if (attempt < maxRetries - 1) {
-          final delay = Duration(seconds: 1 << attempt);
-          AppLogger.info('ApiClient', '[ApiClient] Unexpected error on $uri ($e) — '
-            'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
-          );
-          await Future.delayed(delay);
+        final errorStr = e.toString();
+        final isNetworkError = errorStr.contains('SocketException') || 
+                               errorStr.contains('XMLHttpRequest') || 
+                               errorStr.contains('ClientException') ||
+                               _isSslError(e);
+                               
+        if (isNetworkError) {
+          lastError = e as Exception;
+          if (attempt < maxRetries - 1) {
+            final delay = Duration(seconds: 1 << attempt);
+            final kind = _isSslError(e) ? 'SSL' : 'Network';
+            AppLogger.info('ApiClient', '[ApiClient] $kind error on $uri ($e) — '
+              'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+            );
+            await Future.delayed(delay);
+          }
+        } else {
+          lastError = e;
+          if (attempt < maxRetries - 1) {
+            final delay = Duration(seconds: 1 << attempt);
+            AppLogger.info('ApiClient', '[ApiClient] Unexpected error on $uri ($e) — '
+              'retry ${attempt + 1}/$maxRetries in ${delay.inSeconds}s',
+            );
+            await Future.delayed(delay);
+          }
         }
       } finally {
         client.close();
