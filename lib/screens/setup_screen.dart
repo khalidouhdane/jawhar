@@ -12,6 +12,7 @@ import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Unified setup screen — Language + Rewaya + Theme in one screen.
 ///
@@ -125,7 +126,7 @@ class _SetupScreenState extends State<SetupScreen>
         } else {
           setState(() {
             _isSigningIn = false;
-            _signInError = 'Sign-in was cancelled';
+            _signInError = AppLocalizations.of(context)!.onboardingSignInCancelled;
           });
         }
       }
@@ -133,7 +134,7 @@ class _SetupScreenState extends State<SetupScreen>
       if (mounted) {
         setState(() {
           _isSigningIn = false;
-          _signInError = 'Could not connect. Try again later.';
+          _signInError = AppLocalizations.of(context)!.onboardingSignInError;
         });
       }
     }
@@ -143,6 +144,7 @@ class _SetupScreenState extends State<SetupScreen>
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
@@ -174,7 +176,7 @@ class _SetupScreenState extends State<SetupScreen>
                         const SizedBox(height: 16),
                         Center(
                           child: Text(
-                            'jawhar',
+                            l10n.appName,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 28,
@@ -187,7 +189,7 @@ class _SetupScreenState extends State<SetupScreen>
                         const SizedBox(height: 6),
                         Center(
                           child: Text(
-                            'Let\'s set things up.',
+                            l10n.setupSubtitle,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 15,
@@ -201,7 +203,7 @@ class _SetupScreenState extends State<SetupScreen>
                         // ═══ Section: Language ═══
                         _SectionHeader(
                           icon: LucideIcons.globe,
-                          label: 'Language',
+                          label: l10n.profileLanguage,
                           theme: theme,
                         ),
                         const SizedBox(height: 12),
@@ -238,13 +240,13 @@ class _SetupScreenState extends State<SetupScreen>
                         // ═══ Section: Recitation ═══
                         _SectionHeader(
                           icon: LucideIcons.bookOpen,
-                          label: 'Recitation',
+                          label: l10n.reciterRecitation,
                           theme: theme,
                         ),
                         const SizedBox(height: 12),
                         _OptionCard(
-                          label: 'حفص عن عاصم',
-                          subtitle: 'Hafs · Most widely used',
+                          label: l10n.reciterHafs,
+                          subtitle: l10n.onboardingHafsSub,
                           isSelected: _selectedRewaya == 1,
                           onTap: () {
                             HapticFeedback.lightImpact();
@@ -254,8 +256,8 @@ class _SetupScreenState extends State<SetupScreen>
                         ),
                         const SizedBox(height: 8),
                         _OptionCard(
-                          label: 'ورش عن نافع',
-                          subtitle: 'Warsh · North & West Africa',
+                          label: l10n.reciterWarsh,
+                          subtitle: l10n.onboardingWarshSub,
                           isSelected: _selectedRewaya == 2,
                           onTap: () {
                             HapticFeedback.lightImpact();
@@ -269,7 +271,7 @@ class _SetupScreenState extends State<SetupScreen>
                         // ═══ Section: Appearance ═══
                         _SectionHeader(
                           icon: LucideIcons.palette,
-                          label: 'Appearance',
+                          label: l10n.profileAppearance,
                           theme: theme,
                         ),
                         const SizedBox(height: 12),
@@ -278,7 +280,7 @@ class _SetupScreenState extends State<SetupScreen>
                             Expanded(
                               child: _ThemeCard(
                                 icon: LucideIcons.sun,
-                                label: 'Light',
+                                label: l10n.profileThemeLight,
                                 isSelected: _selectedTheme == AppTheme.light,
                                 onTap: () => _setTheme(AppTheme.light),
                                 theme: theme,
@@ -288,7 +290,7 @@ class _SetupScreenState extends State<SetupScreen>
                             Expanded(
                               child: _ThemeCard(
                                 icon: LucideIcons.moon,
-                                label: 'Dark',
+                                label: l10n.profileThemeDark,
                                 isSelected: _selectedTheme == AppTheme.dark,
                                 onTap: () => _setTheme(AppTheme.dark),
                                 theme: theme,
@@ -299,7 +301,7 @@ class _SetupScreenState extends State<SetupScreen>
                         const SizedBox(height: 8),
                         Center(
                           child: Text(
-                            'Matched to your system preference',
+                            l10n.setupMatchedSystem,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 12,
@@ -331,7 +333,7 @@ class _SetupScreenState extends State<SetupScreen>
                         width: double.infinity,
                         height: 52,
                         child: GeistButton(
-                          label: 'Continue',
+                          label: l10n.actionContinue,
                           type: GeistButtonType.primary,
                           size: GeistButtonSize.large,
                           onPressed: _completeSetup,
@@ -370,7 +372,7 @@ class _SetupScreenState extends State<SetupScreen>
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Sign in with Quran.com',
+                                  l10n.onboardingSignIn,
                                   style: TextStyle(
                                     fontFamily:
                                         GeistTypography.primaryFontFamily,

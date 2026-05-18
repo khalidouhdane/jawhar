@@ -7,6 +7,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/utils/app_logger.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // ─── Sprite sheet config (must match the generated sheet) ───
 const _kCols = 10;
@@ -289,6 +290,7 @@ class _SplashScreenState extends State<SplashScreen>
     final theme = context.watch<ThemeProvider>();
     final screenSize = MediaQuery.of(context).size;
     final diamondBaseSize = screenSize.width * 0.35;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
@@ -366,7 +368,7 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Opacity(
                           opacity: _wordmarkOpacity.value,
                           child: Text(
-                            'jawhar',
+                            l10n.appName,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 36,
@@ -387,7 +389,7 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Opacity(
                           opacity: _taglineOpacity.value,
                           child: Text(
-                            'Memorize with Meaning',
+                            l10n.appTagline,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 14,

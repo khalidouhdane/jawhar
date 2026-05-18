@@ -11,6 +11,7 @@ import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// First-launch onboarding — Vercel/Geist Design System, dark-mode first.
 ///
@@ -133,7 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         } else {
           setState(() {
             _isSigningIn = false;
-            _signInError = 'Sign-in was cancelled';
+            _signInError = AppLocalizations.of(context)!.onboardingSignInCancelled;
           });
         }
       }
@@ -141,7 +142,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       if (mounted) {
         setState(() {
           _isSigningIn = false;
-          _signInError = 'Could not connect. Try again later.';
+          _signInError = AppLocalizations.of(context)!.onboardingSignInError;
         });
       }
     }
@@ -149,6 +150,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: GeistTokens.darkScaffold,
       body: SafeArea(
@@ -181,10 +183,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     physics: const NeverScrollableScrollPhysics(),
                     onPageChanged: (i) => setState(() => _currentStep = i),
                     children: [
-                      _buildWelcomeStep(),
-                      _buildLanguageStep(),
-                      _buildRewayaStep(),
-                      _buildAccountStep(),
+                      _buildWelcomeStep(l10n),
+                      _buildLanguageStep(l10n),
+                      _buildRewayaStep(l10n),
+                      _buildAccountStep(l10n),
                     ],
                   ),
                 ),
@@ -221,7 +223,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ═══════════════════════════════════════════
   // Step 0: Welcome
   // ═══════════════════════════════════════════
-  Widget _buildWelcomeStep() {
+  Widget _buildWelcomeStep(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -239,7 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           // App name
           Text(
-            'jawhar',
+            l10n.appName,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 36,
@@ -252,7 +254,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           // Brand statement
           Text(
-            'We believe memorization without\nunderstanding is incomplete.',
+            l10n.onboardingBrandStatement,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
@@ -266,7 +268,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const Spacer(flex: 4),
 
           // CTA
-          _buildPrimaryButton(label: 'Begin', onTap: _next),
+          _buildPrimaryButton(label: l10n.onboardingBegin, onTap: _next),
 
           const SizedBox(height: 16),
         ],
@@ -277,7 +279,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ═══════════════════════════════════════════
   // Step 1: Language
   // ═══════════════════════════════════════════
-  Widget _buildLanguageStep() {
+  Widget _buildLanguageStep(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -292,7 +294,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const SizedBox(height: 16),
 
           Text(
-            'Choose your language',
+            l10n.onboardingChooseLang,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
@@ -302,7 +304,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'You can change this later in settings',
+            l10n.onboardingChangeLater,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
@@ -314,7 +316,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           _buildOptionCard(
             label: 'English',
-            subtitle: 'Continue in English',
+            subtitle: l10n.onboardingEnglishSub,
             icon: LucideIcons.globe,
             isSelected: _selectedLang == 'en',
             onTap: () {
@@ -325,7 +327,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const SizedBox(height: 12),
           _buildOptionCard(
             label: 'العربية',
-            subtitle: 'المتابعة بالعربية',
+            subtitle: l10n.onboardingArabicSub,
             icon: LucideIcons.languages,
             isSelected: _selectedLang == 'ar',
             onTap: () {
@@ -336,7 +338,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           const Spacer(flex: 3),
 
-          _buildPrimaryButton(label: 'Continue', onTap: _next),
+          _buildPrimaryButton(label: l10n.actionContinue, onTap: _next),
 
           const SizedBox(height: 16),
         ],
@@ -347,7 +349,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ═══════════════════════════════════════════
   // Step 2: Rewaya
   // ═══════════════════════════════════════════
-  Widget _buildRewayaStep() {
+  Widget _buildRewayaStep(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -362,7 +364,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const SizedBox(height: 16),
 
           Text(
-            'اختر القراءة',
+            l10n.onboardingChooseRecitationAr,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
@@ -372,7 +374,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Choose your Quranic recitation',
+            l10n.onboardingChooseRecitation,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
@@ -383,8 +385,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const Spacer(flex: 2),
 
           _buildOptionCard(
-            label: 'حفص عن عاصم',
-            subtitle: 'Hafs · Most widely used',
+            label: l10n.reciterHafs,
+            subtitle: l10n.onboardingHafsSub,
             icon: LucideIcons.bookOpen,
             isSelected: _selectedRewaya == 1,
             onTap: () {
@@ -394,8 +396,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
           const SizedBox(height: 12),
           _buildOptionCard(
-            label: 'ورش عن نافع',
-            subtitle: 'Warsh · North & West Africa',
+            label: l10n.reciterWarsh,
+            subtitle: l10n.onboardingWarshSub,
             icon: LucideIcons.bookOpen,
             isSelected: _selectedRewaya == 2,
             onTap: () {
@@ -406,7 +408,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           const Spacer(flex: 3),
 
-          _buildPrimaryButton(label: 'Continue', onTap: _next),
+          _buildPrimaryButton(label: l10n.actionContinue, onTap: _next),
 
           const SizedBox(height: 16),
         ],
@@ -417,7 +419,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ═══════════════════════════════════════════
   // Step 3: Account (QF OAuth)
   // ═══════════════════════════════════════════
-  Widget _buildAccountStep() {
+  Widget _buildAccountStep(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -432,7 +434,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const SizedBox(height: 16),
 
           Text(
-            'Sync your progress',
+            l10n.onboardingSyncProgress,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 22,
@@ -442,7 +444,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Sign in to sync across devices.\nYour data stays on your device otherwise.',
+            l10n.onboardingSyncDesc,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
@@ -476,7 +478,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             )
           else
             _buildPrimaryButton(
-              label: 'Sign in with Quran.com',
+              label: l10n.onboardingSignIn,
               icon: LucideIcons.logIn,
               onTap: _signIn,
             ),
@@ -496,7 +498,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             GestureDetector(
               onTap: _signIn,
               child: Text(
-                'Try again',
+                l10n.actionTryAgain,
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 13,
@@ -515,7 +517,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             width: double.infinity,
             height: 52,
             child: GeistButton(
-              label: 'Skip for now',
+              label: l10n.onboardingSkip,
               type: GeistButtonType.secondary,
               size: GeistButtonSize.large,
               isDisabled: _isSigningIn,
