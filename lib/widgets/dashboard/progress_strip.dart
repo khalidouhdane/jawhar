@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class ProgressStrip extends StatelessWidget {
   final int memorizedPages;
@@ -43,7 +44,7 @@ class ProgressStrip extends StatelessWidget {
             const SizedBox(width: 12),
             // Text
             Text(
-              '${pct.toStringAsFixed(1)}% · $memorizedPages pages · Juz $currentJuz',
+              AppLocalizations.of(context)!.progressStripInfo(pct.toStringAsFixed(1), memorizedPages, currentJuz),
               style: theme.textCaption.copyWith(
                 color: theme.mutedText,
               ),

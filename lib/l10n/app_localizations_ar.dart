@@ -1904,4 +1904,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pracMutashabihatSub => 'أي الآيتين من السورة الصحيحة؟';
+
+  @override
+  String get dashboardExplore => 'استكشف';
+
+  @override
+  String topicSurahsCount(int count) {
+    return '$count سور';
+  }
+
+  @override
+  String progressStripInfo(String pct, int pages, int juz) {
+    return '$pct% · $pages صفحة · الجزء $juz';
+  }
 }

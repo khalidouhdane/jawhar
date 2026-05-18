@@ -7,6 +7,7 @@ import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/data/surah_metadata.dart';
 
 class ContinueReadingCard extends StatelessWidget {
   const ContinueReadingCard({super.key});
@@ -18,7 +19,14 @@ class ContinueReadingCard extends StatelessWidget {
     final localStorage = context.read<LocalStorageService>();
     final lastRead = localStorage.getLastRead();
     final lastReadPage = lastRead?.page ?? 1;
-    final lastReadSurah = lastRead?.surahName ?? 'Al-Fatihah';
+    final lastReadSurahSimple = lastRead?.surahName ?? 'Al-Fatihah';
+    
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final surahInfo = allSurahs.firstWhere(
+      (s) => s.nameSimple == lastReadSurahSimple,
+      orElse: () => allSurahs.first,
+    );
+    final lastReadSurah = isArabic ? surahInfo.nameArabic : surahInfo.nameSimple;
 
     return Container(
       width: double.infinity,

@@ -3667,6 +3667,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Which verse is from the correct Surah?'**
   String get pracMutashabihatSub;
+
+  /// No description provided for @dashboardExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get dashboardExplore;
+
+  /// No description provided for @topicSurahsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} surahs'**
+  String topicSurahsCount(int count);
+
+  /// No description provided for @progressStripInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% · {pages} pages · Juz {juz}'**
+  String progressStripInfo(String pct, int pages, int juz);
 }
 
 class _AppLocalizationsDelegate

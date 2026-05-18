@@ -5,6 +5,7 @@ import 'package:quran_app/data/quran_topics.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/understand/topic_carousel.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// A mixed carousel of Stories + Themes for the Dashboard's explore section.
 ///
@@ -38,7 +39,7 @@ class ExploreCarousel extends StatelessWidget {
               Icon(LucideIcons.compass, size: 14, color: theme.secondaryText),
               const SizedBox(width: 6),
               Text(
-                'Explore',
+                AppLocalizations.of(context)!.dashboardExplore,
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,

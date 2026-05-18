@@ -6,6 +6,7 @@ import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/understand/surah_detail_sheet.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// A horizontal-scrolling section of topic/story cards.
 ///
@@ -47,7 +48,7 @@ class TopicCarousel extends StatelessWidget {
 
         // Horizontal scroll — no padding end so last card peeks
         SizedBox(
-          height: 120,
+          height: 144,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20, right: 12),
@@ -131,38 +132,51 @@ class _TopicCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      ExcludeSemantics(
-                        child: Text(
-                          topic.titleAr,
-                          style: GoogleFonts.amiri(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: theme.primaryText,
+                      if (Localizations.localeOf(context).languageCode != 'ar') ...[
+                        ExcludeSemantics(
+                          child: Text(
+                            topic.titleAr,
+                            style: GoogleFonts.amiri(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: theme.secondaryText,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
+                        const SizedBox(height: 2),
+                      ],
                       Text(
-                        topic.title,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: theme.primaryText,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        topic.subtitle,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 13,
-                          color: theme.secondaryText,
-                        ),
+                        Localizations.localeOf(context).languageCode == 'ar' ? topic.titleAr : topic.title,
+                        style: Localizations.localeOf(context).languageCode == 'ar'
+                            ? GoogleFonts.amiri(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: theme.primaryText,
+                              )
+                            : TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: theme.primaryText,
+                              ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${relatedSurahs.length} related surahs',
+                        Localizations.localeOf(context).languageCode == 'ar' ? topic.subtitleAr : topic.subtitle,
+                        style: Localizations.localeOf(context).languageCode == 'ar'
+                            ? GoogleFonts.amiri(
+                                fontSize: 16,
+                                color: theme.secondaryText,
+                              )
+                            : TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                color: theme.secondaryText,
+                              ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        AppLocalizations.of(context)!.topicSurahsCount(relatedSurahs.length),
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
@@ -325,35 +339,55 @@ class _TopicCard extends StatelessWidget {
                 const Spacer(),
                 // Title
                 Text(
-                  topic.title,
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: theme.primaryText,
-                    height: 1.2,
-                  ),
+                  Localizations.localeOf(context).languageCode == 'ar' ? topic.titleAr : topic.title,
+                  style: Localizations.localeOf(context).languageCode == 'ar'
+                      ? GoogleFonts.amiri(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: theme.primaryText,
+                          height: 1.2,
+                        )
+                      : TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: theme.primaryText,
+                          height: 1.2,
+                        ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                // Arabic subtitle
-                ExcludeSemantics(
-                  child: Text(
-                    topic.titleAr,
+                const SizedBox(height: 10),
+                // Secondary text / subtitle
+                if (Localizations.localeOf(context).languageCode != 'ar') ...[
+                  ExcludeSemantics(
+                    child: Text(
+                      topic.titleAr,
+                      style: GoogleFonts.amiri(
+                        fontSize: 13,
+                        color: theme.secondaryText,
+                        height: 1.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ] else ...[
+                  Text(
+                    topic.subtitleAr,
                     style: GoogleFonts.amiri(
-                      fontSize: 13,
+                      fontSize: 12,
                       color: theme.secondaryText,
                       height: 1.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(height: 4),
+                ],
+                const SizedBox(height: 12),
                 // Surah count pill
                 Text(
-                  '${topic.surahIds.length} surahs',
+                  AppLocalizations.of(context)!.topicSurahsCount(topic.surahIds.length),
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 11,

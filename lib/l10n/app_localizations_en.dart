@@ -1925,4 +1925,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pracMutashabihatSub => 'Which verse is from the correct Surah?';
+
+  @override
+  String get dashboardExplore => 'Explore';
+
+  @override
+  String topicSurahsCount(int count) {
+    return '$count surahs';
+  }
+
+  @override
+  String progressStripInfo(String pct, int pages, int juz) {
+    return '$pct% · $pages pages · Juz $juz';
+  }
 }

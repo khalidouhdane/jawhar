@@ -726,5 +726,28 @@
   "pracCompleteItSub": "أكمل الآية",
   "pracSurahDetectiveSub": "من أي سورة؟",
   "pracSequenceSub": "رتب الآيات",
-  "pracMutashabihatSub": "أي الآيتين من السورة الصحيحة؟"
+  "pracMutashabihatSub": "أي الآيتين من السورة الصحيحة؟",
+  "dashboardExplore": "استكشف",
+  "topicSurahsCount": "{count} سور",
+  "@topicSurahsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressStripInfo": "{pct}% · {pages} صفحة · الجزء {juz}",
+  "@progressStripInfo": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "int"
+      },
+      "juz": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -761,5 +761,28 @@
   "pracCompleteItSub": "Complete the verse",
   "pracSurahDetectiveSub": "Which surah is this from?",
   "pracSequenceSub": "Order the verses",
-  "pracMutashabihatSub": "Which verse is from the correct Surah?"
+  "pracMutashabihatSub": "Which verse is from the correct Surah?",
+  "dashboardExplore": "Explore",
+  "topicSurahsCount": "{count} surahs",
+  "@topicSurahsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressStripInfo": "{pct}% · {pages} pages · Juz {juz}",
+  "@progressStripInfo": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "int"
+      },
+      "juz": {
+        "type": "int"
+      }
+    }
+  }
 }
