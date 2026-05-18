@@ -1,5 +1,6 @@
 import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/models/quran_models.dart';
+import 'package:quran_app/data/surah_metadata.dart';
 
 /// Zero-latency, offline Quran page data service.
 ///
@@ -15,6 +16,7 @@ import 'package:quran_app/models/quran_models.dart';
 class LocalVerseService {
   /// Cached chapters built once from local data.
   List<Chapter>? _chapters;
+  int _cachedRewaya = 1;
 
   /// Get all verses for a Mushaf page — instant, offline, zero failures.
   ///
@@ -52,18 +54,28 @@ class LocalVerseService {
   }
 
   /// Get all 114 chapters from local data — instant, offline.
-  List<Chapter> getChapters() {
-    if (_chapters != null) return _chapters!;
+  ///
+  /// When [rewaya] is [rewayaWarsh] (2), verse counts are sourced
+  /// from the Warsh-aware metadata instead of the Hafs-only quran package.
+  List<Chapter> getChapters({int rewaya = rewayaHafs}) {
+    if (_chapters != null && _cachedRewaya == rewaya) return _chapters!;
     _chapters = List.generate(114, (i) {
       final n = i + 1;
       return Chapter(
         id: n,
         nameSimple: quran.getSurahNameEnglish(n),
         nameArabic: quran.getSurahNameArabic(n),
-        versesCount: quran.getVerseCount(n),
+        versesCount: getVersesCount(n, rewaya: rewaya),
       );
     });
+    _cachedRewaya = rewaya;
     return _chapters!;
+  }
+
+  /// Refresh chapters with the given rewaya (clears cache).
+  void refreshChapters({int rewaya = rewayaHafs}) {
+    _chapters = null;
+    getChapters(rewaya: rewaya);
   }
 
   /// Compute a deterministic global verse ID (1-based, across all 6236 verses).

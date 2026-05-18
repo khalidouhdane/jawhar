@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/widgets/context/surah_intro_card.dart';
@@ -25,6 +26,7 @@ class SurahDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final contextProvider = context.watch<ContextProvider>();
+    final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
     final asbabService = contextProvider.asbabService;
     final intro = surahIntroductions[surah.id];
     final asbabEntries = asbabService.isLoaded
@@ -32,6 +34,7 @@ class SurahDetailSheet extends StatelessWidget {
         : <AsbabNuzulEntry>[];
 
     final isMeccan = surah.isMeccan;
+    final displayVersesCount = getVersesCount(surah.id, rewaya: rewaya);
 
     return Container(
       decoration: BoxDecoration(
@@ -112,7 +115,7 @@ class SurahDetailSheet extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             _Badge(
-                              label: '${surah.versesCount} verses',
+                              label: '$displayVersesCount verses',
                               icon: Icons.format_list_numbered,
                               color: theme.accentColor,
                               theme: theme,

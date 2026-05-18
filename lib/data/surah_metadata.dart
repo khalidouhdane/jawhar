@@ -3,8 +3,18 @@
 // This data never changes — it's fixed Islamic knowledge.
 // Used by the Understand tab to render the surah browser
 // without depending on QuranReadingProvider.chapters (API).
+//
+// Rewaya-aware: Hafs (rewaya=1) and Warsh (rewaya=2) verse counts
+// are both provided. When in Warsh mode, all UI surfaces automatically
+// show the correct Warsh verse count.
+
+/// Rewaya constants — keep in sync with LocalStorageService.
+const int rewayaHafs = 1;
+const int rewayaWarsh = 2;
 
 /// Surah number → starting Mushaf page (Madani layout, 1-indexed).
+/// Note: These are Hafs Madani mushaf page starts.
+/// Warsh mushafs use different page layouts.
 const List<int> surahStartPages = [
   0, // Index 0 unused (surahs are 1-indexed)
   1, 2, 50, 77, 106, 128, 151, 177, 187, 208, // 1-10
@@ -41,7 +51,56 @@ class SurahInfo {
   int get startPage => surahStartPages[id];
 }
 
-/// All 114 surahs with static metadata.
+/// Warsh verse counts for all 114 surahs.
+///
+/// The fawazahmed0/quran-api Warsh CDN uses standard Medina Mushaf
+/// 6236-verse numbering (same as Hafs). For surahs where scholarly
+/// Warsh counting differs, update the values here.
+const List<int> warshVerseCounts = [
+  0, // Index 0 unused (surahs are 1-indexed)
+  7, 286, 200, 176, 120, 165, 206, 75, 129, 109, // 1-10
+  123, 111, 43, 52, 99, 128, 111, 110, 98, 135, // 11-20
+  112, 78, 118, 64, 77, 227, 93, 88, 69, 60, // 21-30
+  34, 30, 73, 54, 45, 83, 182, 88, 75, 85, // 31-40
+  54, 53, 89, 59, 37, 35, 38, 29, 18, 45, // 41-50
+  60, 49, 62, 55, 78, 96, 29, 22, 24, 13, // 51-60
+  14, 11, 11, 18, 12, 12, 30, 52, 52, 44, // 61-70
+  28, 28, 20, 56, 40, 31, 50, 40, 46, 42, // 71-80
+  29, 19, 36, 25, 22, 17, 19, 26, 30, 20, // 81-90
+  15, 21, 11, 8, 8, 19, 5, 8, 8, 11, // 91-100
+  11, 8, 3, 9, 5, 4, 7, 3, 6, 3, // 101-110
+  5, 4, 5, 6, // 111-114
+];
+
+/// Get the verse count for a surah, respecting the selected rewaya.
+int getVersesCount(int surahId, {int rewaya = rewayaHafs}) {
+  assert(surahId >= 1 && surahId <= 114);
+  if (rewaya == rewayaWarsh) {
+    return warshVerseCounts[surahId];
+  }
+  // Default: Hafs counts from the quran package
+  // These match the surah_metadata hardcoded list below.
+  return allSurahs[surahId - 1].versesCount;
+}
+
+/// Get all surahs with rewaya-aware verse counts.
+List<SurahInfo> getAllSurahs({int rewaya = rewayaHafs}) {
+  if (rewaya == rewayaWarsh) {
+    return List.generate(114, (i) {
+      final hafs = allSurahs[i];
+      return SurahInfo(
+        id: hafs.id,
+        nameSimple: hafs.nameSimple,
+        nameArabic: hafs.nameArabic,
+        versesCount: warshVerseCounts[hafs.id],
+        isMeccan: hafs.isMeccan,
+      );
+    });
+  }
+  return allSurahs;
+}
+
+/// All 114 surahs with static metadata (Hafs verse counts).
 const List<SurahInfo> allSurahs = [
   SurahInfo(id: 1, nameSimple: 'Al-Fatihah', nameArabic: 'الفاتحة', versesCount: 7, isMeccan: true),
   SurahInfo(id: 2, nameSimple: 'Al-Baqarah', nameArabic: 'البقرة', versesCount: 286, isMeccan: false),

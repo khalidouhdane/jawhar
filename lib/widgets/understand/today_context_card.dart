@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/widgets/context/tafsir_sheet.dart' show showTafsirSheet;
 import 'package:quran_app/theme/geist_typography.dart';
@@ -32,10 +33,12 @@ class TodayContextCard extends StatelessWidget {
     final sabaqPage = todayPlan.sabaqPage;
 
     // Find which surah this page belongs to
+    final rewaya = context.watch<QuranReadingProvider>().selectedRewaya;
+    final surahs = getAllSurahs(rewaya: rewaya);
     SurahInfo? surah;
-    for (int i = allSurahs.length - 1; i >= 0; i--) {
-      if (allSurahs[i].startPage <= sabaqPage) {
-        surah = allSurahs[i];
+    for (int i = surahs.length - 1; i >= 0; i--) {
+      if (surahs[i].startPage <= sabaqPage) {
+        surah = surahs[i];
         break;
       }
     }
@@ -181,11 +184,12 @@ class TodayContextCard extends StatelessWidget {
   }
 
   void _openTafsir(BuildContext context, int sabaqPage) {
-    // Find first surah/verse on this page (approximate)
+    final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
+    final surahs = getAllSurahs(rewaya: rewaya);
     SurahInfo? surah;
-    for (int i = allSurahs.length - 1; i >= 0; i--) {
-      if (allSurahs[i].startPage <= sabaqPage) {
-        surah = allSurahs[i];
+    for (int i = surahs.length - 1; i >= 0; i--) {
+      if (surahs[i].startPage <= sabaqPage) {
+        surah = surahs[i];
         break;
       }
     }

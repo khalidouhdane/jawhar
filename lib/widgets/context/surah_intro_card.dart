@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +44,7 @@ class SurahIntroData {
 class SurahIntroCard extends StatelessWidget {
   final int surahId;
   final VoidCallback? onDismiss;
+  final int rewaya;
 
   /// Optional: provide the data directly instead of using the static map.
   final SurahIntroData? data;
@@ -52,6 +54,7 @@ class SurahIntroCard extends StatelessWidget {
     required this.surahId,
     this.onDismiss,
     this.data,
+    this.rewaya = rewayaHafs,
   });
 
   @override
@@ -64,6 +67,7 @@ class SurahIntroCard extends StatelessWidget {
     }
 
     final isMeccan = intro.revelationType == 'Meccan';
+    final displayVersesCount = getVersesCount(surahId, rewaya: rewaya);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -133,7 +137,7 @@ class SurahIntroCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     _Badge(
-                      label: '${intro.versesCount} verses',
+                      label: '$displayVersesCount verses',
                       icon: Icons.format_list_numbered,
                       color: theme.accentColor,
                       theme: theme,

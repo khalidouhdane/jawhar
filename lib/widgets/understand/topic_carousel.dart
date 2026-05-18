@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/data/quran_topics.dart';
 import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/understand/surah_detail_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
@@ -77,9 +78,11 @@ class _TopicCard extends StatelessWidget {
   });
 
   void _showRelatedSurahs(BuildContext context) {
+    final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
+    final surahs = getAllSurahs(rewaya: rewaya);
     final relatedSurahs = topic.surahIds
         .where((id) => id >= 1 && id <= 114)
-        .map((id) => allSurahs[id - 1])
+        .map((id) => surahs[id - 1])
         .toList();
 
     showModalBottomSheet(

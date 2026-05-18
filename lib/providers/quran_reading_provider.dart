@@ -35,6 +35,8 @@ class QuranReadingProvider extends ChangeNotifier {
   int _activePage = 1;
   String _error = '';
   int _selectedRewaya = 1; // 1 = Hafs, 2 = Warsh
+  bool _isLoadingReciters = false;
+  String _recitersError = '';
 
   // Page cache — since local data is free, we can be generous.
   final Map<int, List<Verse>> _pageCache = {};
@@ -47,6 +49,8 @@ class QuranReadingProvider extends ChangeNotifier {
   int get activePage => _activePage;
   String get error => _error;
   int get selectedRewaya => _selectedRewaya;
+  bool get isLoadingReciters => _isLoadingReciters;
+  String get recitersError => _recitersError;
 
   /// Whether the Warsh text data is loaded and ready
   bool get isWarshTextLoaded => _warshTextService.isLoaded;
@@ -57,6 +61,8 @@ class QuranReadingProvider extends ChangeNotifier {
     _storage?.saveRewaya(rewaya);
     // Clear page cache so pages re-render with the new text
     _pageCache.clear();
+    // Rebuild chapters with correct rewaya verse counts
+    _chapters = _localService.getChapters(rewaya: rewaya);
     notifyListeners();
     if (rewaya == 2) {
       _preloadWarshText();
@@ -92,13 +98,14 @@ class QuranReadingProvider extends ChangeNotifier {
 
     // ── OFFLINE-FIRST STARTUP ──
     // Chapters: built instantly from local data (no API call)
-    _chapters = _localService.getChapters();
+    _chapters = _localService.getChapters(rewaya: _selectedRewaya);
 
     // Page 1: loaded instantly from local data (no API call)
     _verses = _localService.getVersesByPage(1);
     _pageCache[1] = _verses;
 
     // Reciters: only API call at startup (non-blocking, deferred)
+    _isLoadingReciters = true;
     Future.delayed(const Duration(milliseconds: 500), () {
       loadReciters();
     });
@@ -115,6 +122,10 @@ class QuranReadingProvider extends ChangeNotifier {
   }
 
   Future<void> loadReciters() async {
+    _isLoadingReciters = true;
+    _recitersError = '';
+    notifyListeners();
+
     try {
       _hafsReciters = await _apiService.getReciters(language: _language);
       try {
@@ -125,9 +136,13 @@ class QuranReadingProvider extends ChangeNotifier {
       } catch (e) {
         AppLogger.info('Reader', "Failed to load Warsh reciters: $e");
       }
+      _isLoadingReciters = false;
       notifyListeners();
     } catch (e) {
+      _isLoadingReciters = false;
+      _recitersError = e.toString();
       AppLogger.info('Reader', "Failed to load Hafs reciters: $e");
+      notifyListeners();
     }
   }
 

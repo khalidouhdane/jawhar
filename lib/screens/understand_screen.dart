@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/data/quran_topics.dart';
@@ -9,6 +9,7 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/understand/today_context_card.dart';
 import 'package:quran_app/widgets/understand/topic_carousel.dart';
@@ -49,9 +50,11 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
   }
 
   List<SurahInfo> get _filteredSurahs {
-    if (_searchQuery.isEmpty) return allSurahs;
+    final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
+    final surahs = getAllSurahs(rewaya: rewaya);
+    if (_searchQuery.isEmpty) return surahs;
     final q = _searchQuery.toLowerCase();
-    return allSurahs.where((s) {
+    return surahs.where((s) {
       return s.nameSimple.toLowerCase().contains(q) ||
           s.nameArabic.contains(q) ||
           s.id.toString() == q;
@@ -78,6 +81,9 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
     final profile = context.watch<HifzProfileProvider>();
     final plan = context.watch<PlanProvider>();
     final l10n = AppLocalizations.of(context)!;
+
+    // Watch rewaya so the surah list rebuilds when user switches rewaya
+    context.watch<QuranReadingProvider>();
 
     // Show contextual card only when user has active plan with sabaq
     final showContextCard = profile.hasActiveProfile &&
