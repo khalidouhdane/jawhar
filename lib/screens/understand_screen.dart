@@ -94,7 +94,7 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
             // ── Header ──
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
                 child: AppHeader(
                   title: l10n.navUnderstand,
                   subtitle: l10n.undExploreDeeper,

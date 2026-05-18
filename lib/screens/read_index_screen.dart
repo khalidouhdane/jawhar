@@ -87,7 +87,7 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
           children: [
             // ── Header & Reciter Shortcut ──
             Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
               child: AppHeader(
                 title: l!.readTitle,
                 action: GestureDetector(

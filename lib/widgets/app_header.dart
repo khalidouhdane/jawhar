@@ -32,13 +32,11 @@ class AppHeader extends StatelessWidget {
     final isBrand = title == null || title!.toLowerCase() == 'jawhar';
     final displayText = title ?? 'jawhar';
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0, top: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title Area
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title Area
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +111,6 @@ class AppHeader extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
+      );
   }
 }

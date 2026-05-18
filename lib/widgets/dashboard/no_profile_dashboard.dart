@@ -27,7 +27,11 @@ class NoProfileDashboard extends StatelessWidget {
             children: [
               SafeArea(
                 bottom: false,
-                child: AppHeader(onAvatarTap: onAvatarTap),
+                child: Padding(
+                  // Parent provides 16 horizontal padding, add 4 to reach 20 left/right.
+                  padding: const EdgeInsets.only(left: 4, right: 4, top: 20, bottom: 16),
+                  child: AppHeader(onAvatarTap: onAvatarTap),
+                ),
               ),
               
               // Werd Hero Card

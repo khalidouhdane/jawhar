@@ -55,18 +55,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Sticky Header & Segmented Control ──
+            // ── Header ──
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
-                  AppHeader(
-                    title: l!.profileTitle,
-                    subtitle: l.profileSubtitle,
-                    // Remove avatar tap action here so it just shows the avatar without infinite looping to profile
-                    onAvatarTap: () {},
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: AppHeader(
+                      title: l!.profileTitle,
+                      subtitle: l.profileSubtitle,
+                      // Remove avatar tap action here so it just shows the avatar without infinite looping to profile
+                      onAvatarTap: () {},
+                    ),
                   ),
                   const SizedBox(height: 24),
                   GeistSegmentedControl<ProfileTab>(

@@ -60,9 +60,12 @@ class _PracticeScreenState extends State<PracticeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              AppHeader(
-                title: AppLocalizations.of(context)!.pracPracticeTab,
-                subtitle: AppLocalizations.of(context)!.pracStrengthen,
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 16),
+                child: AppHeader(
+                  title: AppLocalizations.of(context)!.pracPracticeTab,
+                  subtitle: AppLocalizations.of(context)!.pracStrengthen,
+                ),
               ),
               const SizedBox(height: 24),
 
