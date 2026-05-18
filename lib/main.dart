@@ -328,9 +328,7 @@ class QuranApp extends StatelessWidget {
               PointerDeviceKind.trackpad,
             },
           ),
-          builder: (context, child) {
-            return child!;
-          },
+
           home: const SplashScreen(),
         );
       },
