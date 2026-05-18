@@ -273,11 +273,37 @@ class _AudioScreenState extends State<AudioScreen>
     return Consumer<QuranReadingProvider>(
       builder: (context, provider, _) {
         final reciters = provider.reciters;
-        if (reciters.isEmpty) {
+        if (provider.isLoadingReciters && reciters.isEmpty) {
           return Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
               color: theme.accentColor,
+            ),
+          );
+        }
+
+        if (provider.recitersError.isNotEmpty && reciters.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(LucideIcons.wifiOff, size: 48, color: Color(0xFF6B7280)),
+                  const SizedBox(height: 12),
+                  Text(
+                    AppLocalizations.of(context)!.reciterNoFound,
+                    style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => provider.loadReciters(),
+                    icon: const Icon(LucideIcons.refreshCw, size: 16),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
             ),
           );
         }

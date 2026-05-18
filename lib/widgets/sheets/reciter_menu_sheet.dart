@@ -242,9 +242,35 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
           Expanded(
             child: Consumer<QuranReadingProvider>(
               builder: (context, readingProvider, child) {
-                if (readingProvider.reciters.isEmpty) {
+                if (readingProvider.isLoadingReciters && readingProvider.reciters.isEmpty) {
                   return Center(
                     child: CircularProgressIndicator(color: theme.accentColor),
+                  );
+                }
+
+                if (readingProvider.recitersError.isNotEmpty && readingProvider.reciters.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(LucideIcons.wifiOff, size: 48, color: theme.dividerColor),
+                          const SizedBox(height: 12),
+                          Text(
+                            l.reciterNoFound,
+                            style: TextStyle(color: theme.mutedText, fontSize: 14, fontWeight: FontWeight.w500),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: () => readingProvider.loadReciters(),
+                            icon: const Icon(LucideIcons.refreshCw, size: 16),
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 }
 

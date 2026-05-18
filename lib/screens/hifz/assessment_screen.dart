@@ -1032,7 +1032,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       icon: LucideIcons.mic,
       title: AppLocalizations.of(context)!.assessChooseQari,
       subtitle: AppLocalizations.of(context)!.assessStickingOne,
-      child: reciters.isEmpty
+      child: readingProvider.isLoadingReciters && reciters.isEmpty
           ? Center(
               child: Column(
                 children: [
@@ -1050,6 +1050,30 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     ),
                   ),
                 ],
+              ),
+            )
+          : reciters.isEmpty && readingProvider.recitersError.isNotEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.wifiOff, size: 48, color: theme.dividerColor),
+                    const SizedBox(height: 12),
+                    Text(
+                      AppLocalizations.of(context)!.reciterNoFound,
+                      style: TextStyle(fontFamily: GeistTypography.primaryFontFamily, fontSize: 13, color: theme.mutedText),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => readingProvider.loadReciters(),
+                      icon: const Icon(LucideIcons.refreshCw, size: 16),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
             )
           : SizedBox(
