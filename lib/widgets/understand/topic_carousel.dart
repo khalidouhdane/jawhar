@@ -316,6 +316,7 @@ class _TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = AppLocalizations.of(context)!.localeName == 'ar';
     return SizedBox(
       width: 150,
       child: Material(
