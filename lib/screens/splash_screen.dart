@@ -7,7 +7,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/utils/app_logger.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 // ─── Sprite sheet config (must match the generated sheet) ───
 const _kCols = 10;

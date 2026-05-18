@@ -11,7 +11,7 @@ import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// First-launch onboarding — Vercel/Geist Design System, dark-mode first.
 ///
