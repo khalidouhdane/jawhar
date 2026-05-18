@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:quran_app/services/quran_auth_service.dart';
 import 'package:quran_app/utils/app_logger.dart';
@@ -63,6 +64,10 @@ class ApiClient {
     Map<String, String>? headers,
     bool retryOn5xx = true,
   }) async {
+    if (kIsWeb) {
+      uri = Uri.parse('https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}');
+    }
+
     final authHeaders = await _getAuthHeaders();
     final mergedHeaders = {...authHeaders, ...?headers};
 
@@ -154,6 +159,10 @@ class ApiClient {
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
   }) async {
+    if (kIsWeb) {
+      uri = Uri.parse('https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}');
+    }
+
     Object? lastError;
 
     for (int attempt = 0; attempt < maxRetries; attempt++) {

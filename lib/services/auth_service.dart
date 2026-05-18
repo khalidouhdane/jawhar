@@ -50,9 +50,19 @@ class AuthService extends ChangeNotifier {
           defaultTargetPlatform == TargetPlatform.macOS ||
           defaultTargetPlatform == TargetPlatform.linux);
 
-  /// Initialize — listen for auth state changes.
+  /// Initialize — listen for auth state changes and resolve web redirects.
   void init() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
+    
+    if (kIsWeb) {
+      // Must call getRedirectResult on web to finalize the signInWithRedirect flow
+      // when the user returns to the app from the Google login page.
+      _auth.getRedirectResult().catchError((e) {
+        AppLogger.info('Auth', '[AUTH] Redirect result error: $e');
+        // ignore: null_check_always_fails
+        return null; // Ignore errors, they just mean no sign-in happened
+      });
+    }
   }
 
   void _onAuthStateChanged(User? user) {
@@ -121,8 +131,27 @@ class AuthService extends ChangeNotifier {
     return true;
   }
 
-  /// Mobile/Web: Native Google Sign-In via the google_sign_in plugin.
+  /// Mobile/Web: Native Google Sign-In via the google_sign_in plugin, or Firebase Auth Redirect for Web.
   Future<bool> _signInMobile() async {
+    if (kIsWeb) {
+      // Web: Use Firebase Auth's built-in Google provider with redirect.
+      // We use redirect instead of popup because the required Cross-Origin-Opener-Policy
+      // for the SQLite WASM database completely blocks cross-origin popups.
+      try {
+        final provider = GoogleAuthProvider();
+        await _auth.signInWithRedirect(provider);
+        // The page will redirect to Google. Hang the future so the UI shows 
+        // a loading spinner until the browser actually navigates away,
+        // preventing a false 'Sign-in failed' red toast from flashing.
+        await Future.delayed(const Duration(seconds: 10));
+        return true; 
+      } catch (e) {
+        AppLogger.info('Auth', '[AUTH] Web redirect error: $e');
+        return false;
+      }
+    }
+
+    // Mobile: Use native google_sign_in plugin
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) {
       // User cancelled

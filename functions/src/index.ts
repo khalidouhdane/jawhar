@@ -120,3 +120,67 @@ export const generateCalibration = functions.https.onCall(
     }
   }
 );
+
+/**
+ * CORS Proxy for Web App
+ * Bypasses CORS restrictions for Quran Foundation APIs.
+ */
+export const quranApiProxy = functions.https.onRequest(
+  {
+    region: 'europe-west1',
+    cors: true,
+    invoker: 'public',
+  },
+  async (request, response) => {
+    // Set CORS headers
+    response.set('Access-Control-Allow-Origin', '*');
+    response.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, x-client-id');
+    response.set('Access-Control-Max-Age', '3600');
+
+    if (request.method === 'OPTIONS') {
+      response.status(204).send('');
+      return;
+    }
+
+    const targetUrl = request.query.url as string;
+    if (!targetUrl) {
+      response.status(400).send('Missing url parameter');
+      return;
+    }
+
+    try {
+      const headers: Record<string, string> = {};
+      if (request.header('Content-Type')) headers['Content-Type'] = request.header('Content-Type')!;
+      if (request.header('Authorization')) headers['Authorization'] = request.header('Authorization')!;
+      if (request.header('x-auth-token')) headers['x-auth-token'] = request.header('x-auth-token')!;
+      if (request.header('x-client-id')) headers['x-client-id'] = request.header('x-client-id')!;
+
+      const fetchOptions: RequestInit = {
+        method: request.method,
+        headers,
+      };
+
+      if (request.method === 'POST' || request.method === 'PUT') {
+        fetchOptions.body = request.rawBody;
+      }
+
+      const fetchResponse = await fetch(targetUrl, fetchOptions);
+      const data = await fetchResponse.arrayBuffer();
+      
+      fetchResponse.headers.forEach((value, key) => {
+        if (key.toLowerCase() !== 'access-control-allow-origin' && 
+            key.toLowerCase() !== 'content-encoding' && 
+            key.toLowerCase() !== 'content-length' &&
+            key.toLowerCase() !== 'transfer-encoding') {
+          response.set(key, value);
+        }
+      });
+
+      response.status(fetchResponse.status).send(Buffer.from(data));
+    } catch (error: any) {
+      console.error('Proxy Error:', error);
+      response.status(500).send(`Proxy Error: ${error.message}`);
+    }
+  }
+);

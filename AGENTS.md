@@ -325,7 +325,7 @@ GitHub Releases as update server for sideloaded APKs. `UpdateProvider.checkForUp
 13. **Cloud sync is optional** — Auth is not required. App must work fully offline.
 14. **Sync triggers are fire-and-forget** — Never block UI on sync operations.
 15. **Desktop OAuth needs client_secret** — Web-type OAuth client IDs require it even with PKCE.
-16. **API credentials are in `.env`** — Never hardcode secrets in source files or docs.
+16. **API credentials are in `.env`** — Never hardcode secrets in source files or docs. **You MUST pass `--dart-define-from-file=.env` to ALL `flutter run` and `flutter build` commands** for Auth to work.
 17. **No `const` with `GeistTypography`** — Never use `const` on `Text` or `TextStyle` when setting `fontFamily: GeistTypography.primaryFontFamily`, as it evaluates dynamically via GoogleFonts.
 
 ---
