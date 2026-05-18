@@ -123,7 +123,7 @@ class ContinueReadingCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${l10n.homePage} $lastReadPage · $pagesInSurah pages',
+                            '${l10n.homePage} $lastReadPage · ${l10n.planPagesCount(pagesInSurah)}',
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 13,
