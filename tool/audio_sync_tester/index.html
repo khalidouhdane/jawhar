@@ -281,9 +281,7 @@
                         <span class="text-sm font-mono text-center max-w-lg break-words">${err.message}</span>
                     </div>`;
                 });
-        }
-
-        function renderVerseList() {
+        }        function renderVerseList() {
             if (timings.length === 0) {
                 verseListContainer.innerHTML = `<div class="flex items-center justify-center h-full text-neutral-500 font-mono">No verses found</div>`;
                 return;
@@ -295,18 +293,19 @@
                 card.id = `verse-card-${t.verseKey.replace(':', '-')}`;
                 // Load user offset if previously configured
                 const userOffset = userOffsets[t.verseKey] || 0;
+                const isCalibrated = userOffset !== 0;
                 
                 card.className = "p-4 rounded-xl border border-neutral-850 bg-neutral-950/40 hover:bg-neutral-950/80 transition flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer";
                 card.innerHTML = `
                     <div class="flex-1 space-y-1">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="px-2.5 py-1 text-xs font-bold rounded bg-neutral-900 border border-neutral-800 font-mono text-emerald-450">${t.verseKey}</span>
-                            <span class="text-xs text-neutral-500 font-mono">Original: ${t.originalFrom}ms - ${t.originalTo}ms (Word0: ${t.firstSegmentMs}ms)</span>
+                            <span class="text-xs text-neutral-500 font-mono">Original: ${t.originalFrom}ms - ${t.originalTo}ms <span class="text-neutral-700">(Word0: ${t.firstSegmentMs}ms)</span></span>
+                            ${isCalibrated ? `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono">Calibrated (${userOffset >= 0 ? '+' : ''}${userOffset}ms)</span>` : ''}
                         </div>
                         <div class="text-sm flex items-center space-x-2">
-                            <span class="text-neutral-400">Calibrated: </span>
-                            <span class="font-mono text-emerald-400 font-semibold" id="calibrated-${t.verseKey.replace(':', '-')}">${t.timestampFrom} ms</span>
-                            <span class="text-xs font-mono text-neutral-550" id="offset-label-${t.verseKey.replace(':', '-')}">(${userOffset >= 0 ? '+' : ''}${userOffset}ms)</span>
+                            <span class="text-neutral-400">Playhead Start: </span>
+                            <span class="font-mono ${isCalibrated ? 'text-amber-400 font-semibold' : 'text-emerald-400 font-semibold'}" id="calibrated-${t.verseKey.replace(':', '-')}">${t.timestampFrom} ms</span>
                         </div>
                     </div>
                     
@@ -318,7 +317,7 @@
                         <button onclick="adjustOffset('${t.verseKey}', 50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+50</button>
                         <button onclick="adjustOffset('${t.verseKey}', 100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+100</button>
                         <button onclick="adjustOffset('${t.verseKey}', 500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+500</button>
-                        <button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono whitespace-nowrap transition">Reset</button>
+                        ${isCalibrated ? `<button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono whitespace-nowrap transition">Reset</button>` : ''}
                     </div>
                 `;
                 
@@ -344,19 +343,7 @@
             if (entry) {
                 entry.timestampFrom = entry.originalFrom + userOffsets[verseKey];
                 entry.timestampTo = entry.originalTo + userOffsets[verseKey];
-                
-                const keySlug = verseKey.replace(':', '-');
-                document.getElementById(`calibrated-${keySlug}`).textContent = `${entry.timestampFrom} ms`;
-                
-                const offsetLabel = document.getElementById(`offset-label-${keySlug}`);
-                const offsetVal = userOffsets[verseKey];
-                offsetLabel.textContent = `(${offsetVal >= 0 ? '+' : ''}${offsetVal}ms)`;
-                
-                if (offsetVal !== 0) {
-                    offsetLabel.className = "text-xs font-mono text-yellow-500 font-medium";
-                } else {
-                    offsetLabel.className = "text-xs font-mono text-neutral-550";
-                }
+                renderVerseList();
             }
         };
 
@@ -367,13 +354,7 @@
             if (entry) {
                 entry.timestampFrom = entry.originalFrom;
                 entry.timestampTo = entry.originalTo;
-                
-                const keySlug = verseKey.replace(':', '-');
-                document.getElementById(`calibrated-${keySlug}`).textContent = `${entry.timestampFrom} ms`;
-                
-                const offsetLabel = document.getElementById(`offset-label-${keySlug}`);
-                offsetLabel.textContent = `(0ms)`;
-                offsetLabel.className = "text-xs font-mono text-neutral-555";
+                renderVerseList();
             }
         };
 
