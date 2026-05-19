@@ -16,6 +16,7 @@ class QuranTopic {
   final IconData icon;
   final List<int> surahIds; // Primary surahs where this topic features
   final Color color;
+  final bool isComplete; // true if curated TopicContent exists
 
   const QuranTopic({
     required this.id,
@@ -26,6 +27,7 @@ class QuranTopic {
     required this.icon,
     required this.surahIds,
     required this.color,
+    this.isComplete = false,
   });
 }
 
@@ -41,6 +43,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.flame,
     surahIds: [2, 7, 10, 20, 26, 28, 40, 79],
     color: Color(0xFFE57373),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'yusuf',
@@ -51,6 +54,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.star,
     surahIds: [12],
     color: Color(0xFF81C784),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'ibrahim',
@@ -61,6 +65,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.mountain,
     surahIds: [2, 6, 14, 15, 19, 21, 37],
     color: Color(0xFF64B5F6),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'nuh',
@@ -146,6 +151,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.circle,
     surahIds: [1, 2, 6, 112],
     color: Color(0xFF42A5F5),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'akhirah',
@@ -156,6 +162,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.sunrise,
     surahIds: [36, 50, 56, 69, 75, 78, 81, 82, 84, 99, 101],
     color: Color(0xFFFF7043),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'patience',
@@ -166,6 +173,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.anchor,
     surahIds: [2, 3, 12, 18, 93, 94],
     color: Color(0xFF26A69A),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'justice',
