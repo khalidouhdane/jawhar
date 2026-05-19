@@ -76,6 +76,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.waves,
     surahIds: [7, 11, 23, 26, 54, 71],
     color: Color(0xFF4FC3F7),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'isa_maryam',
@@ -86,6 +87,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.sparkles,
     surahIds: [3, 5, 19, 61],
     color: Color(0xFFBA68C8),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'adam',
@@ -96,6 +98,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.trees,
     surahIds: [2, 7, 15, 17, 20, 38],
     color: Color(0xFF66BB6A),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'dawud_sulayman',
@@ -106,6 +109,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.crown,
     surahIds: [21, 27, 34, 38],
     color: Color(0xFFFFB74D),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'dhul_qarnayn',
@@ -116,6 +120,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.compass,
     surahIds: [18],
     color: Color(0xFF4DD0E1),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'khidr',
@@ -126,6 +131,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.eyeOff,
     surahIds: [18],
     color: Color(0xFF9575CD),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'luqman',
@@ -136,6 +142,7 @@ const List<QuranTopic> prophetStories = [
     icon: LucideIcons.messageCircle,
     surahIds: [31],
     color: Color(0xFF7986CB),
+    isComplete: true,
   ),
 ];
 
@@ -184,6 +191,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.scale,
     surahIds: [4, 5, 16, 42, 49, 83],
     color: Color(0xFF5C6BC0),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'nature',
@@ -194,6 +202,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.leaf,
     surahIds: [6, 13, 16, 30, 36, 55],
     color: Color(0xFF66BB6A),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'mercy',
@@ -204,6 +213,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.heart,
     surahIds: [9, 39, 55, 93],
     color: Color(0xFFEF5350),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'gratitude',
@@ -214,6 +224,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.gift,
     surahIds: [14, 16, 31, 55],
     color: Color(0xFFFFA726),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'parables',
@@ -224,6 +235,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.lightbulb,
     surahIds: [2, 13, 14, 16, 18, 24, 29, 59],
     color: Color(0xFFFFCA28),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'family',
@@ -234,6 +246,7 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.users,
     surahIds: [2, 4, 24, 33, 49, 65, 66],
     color: Color(0xFF78909C),
+    isComplete: true,
   ),
   QuranTopic(
     id: 'dua',
@@ -244,5 +257,6 @@ const List<QuranTopic> quranThemes = [
     icon: LucideIcons.hand,
     surahIds: [1, 2, 3, 14, 25, 40],
     color: Color(0xFF8D6E63),
+    isComplete: true,
   ),
 ];
