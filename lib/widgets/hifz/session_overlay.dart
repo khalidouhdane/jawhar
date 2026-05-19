@@ -347,6 +347,7 @@ class _SessionOverlayState extends State<SessionOverlay> {
               reciterId: audioProvider.reciterId,
               reciterName: audioProvider.reciterName,
               repeatMode: audioProvider.repeatMode,
+              repeatCount: audioProvider.repeatCount,
               onToggleExpand: () =>
                   setState(() => _isAudioExpanded = !_isAudioExpanded),
               onTogglePlay: () {
