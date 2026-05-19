@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jawhar - Audio Sync Calibrator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ededed;
+        }
+        .font-title { font-family: 'Outfit', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        /* Custom scrollbar for modern aesthetics */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262626;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #404040;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+    <!-- Header -->
+    <header class="border-b border-neutral-850 bg-black/50 py-4 px-6 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-white shadow-lg shadow-emerald-950/20 font-title">J</div>
+            <div>
+                <h1 class="text-lg font-semibold tracking-tight font-title">Jawhar Audio Sync Calibrator</h1>
+                <p class="text-xs text-neutral-500">Diagnosing API Timings vs Player Position reporting</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2.5 text-xs">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse" id="connection-status"></span>
+            <span class="text-neutral-400 font-mono" id="connection-text">Connecting to proxy...</span>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <!-- Left Sidebar: Reciters & Config -->
+        <aside class="w-full md:w-80 border-r border-neutral-850 bg-neutral-950 p-6 flex flex-col space-y-6">
+            <div>
+                <label class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 font-mono">1. Select Reciter</label>
+                <select id="reciter-select" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-emerald-600 transition font-title">
+                    <option value="7">Mishary Rashid Alafasy (Murattal)</option>
+                    <option value="64">Yasser al-Dosari (Murattal - CDN 64)</option>
+                    <option value="174">Yasser al-Dosari (Murattal - CDN 174)</option>
+                    <option value="1">Abdul Basit Abdul Samad (Mujawwad)</option>
+                    <option value="3">Abdur-Rahman as-Sudais (Murattal)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 font-mono">2. Select Chapter (Surah)</label>
+                <select id="surah-select" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-emerald-600 transition max-h-48 overflow-y-auto">
+                    <!-- Loaded dynamically -->
+                </select>
+            </div>
+
+            <div class="border-t border-neutral-850 pt-4">
+                <h3 class="text-xs font-semibold text-neutral-450 uppercase tracking-wider mb-3 font-mono">Live Analysis Stats</h3>
+                <div class="space-y-3 text-xs">
+                    <div class="flex justify-between bg-neutral-900/60 p-2.5 rounded border border-neutral-850">
+                        <span class="text-neutral-500">Audio Clock:</span>
+                        <span class="font-mono text-emerald-400 font-semibold" id="stat-audio-time">0 ms</span>
+                    </div>
+                    <div class="flex justify-between bg-neutral-900/60 p-2.5 rounded border border-neutral-850">
+                        <span class="text-neutral-500">Active Verse:</span>
+                        <span class="font-mono text-white font-semibold" id="stat-active-verse">-</span>
+                    </div>
+                    <div class="flex justify-between bg-neutral-900/60 p-2.5 rounded border border-neutral-850">
+                        <span class="text-neutral-500">API Bounds:</span>
+                        <span class="font-mono text-neutral-400" id="stat-verse-bounds">0 - 0 ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Panel -->
+            <div class="flex-1 flex flex-col justify-end min-h-[150px]">
+                <button id="btn-export" class="w-full bg-emerald-650/10 hover:bg-emerald-650/20 border border-emerald-900/40 text-emerald-350 font-medium py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+                    <span class="font-title">Export Calibration JSON</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Right Side: Content Area -->
+        <main class="flex-1 flex flex-col bg-neutral-900 overflow-hidden">
+            <!-- Audio Controller Bar -->
+            <div class="bg-black/40 border-b border-neutral-850 p-4 flex flex-col space-y-3 md:flex-row md:space-y-0 md:items-center justify-between">
+                <!-- Audio player controls -->
+                <div class="flex items-center space-x-4">
+                    <button id="btn-play-pause" class="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-lg transition">
+                        <span class="text-sm">▶</span>
+                    </button>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-neutral-450 font-mono" id="player-time-display">0:00 / 0:00</span>
+                        <span class="text-[10px] text-neutral-550 max-w-[200px] md:max-w-[300px] truncate font-mono" id="player-src-display">No audio loaded</span>
+                    </div>
+                </div>
+
+                <!-- Custom Scrubber -->
+                <div class="flex-1 px-4 flex items-center space-x-2">
+                    <span class="text-[10px] text-neutral-500 font-mono">0:00</span>
+                    <input type="range" id="audio-scrubber" min="0" max="100" value="0" step="0.1" class="flex-1 h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                    <span class="text-[10px] text-neutral-500 font-mono" id="audio-duration-display">0:00</span>
+                </div>
+
+                <!-- Rate selector -->
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs text-neutral-500 font-medium font-mono">Speed:</label>
+                    <select id="rate-select" class="bg-neutral-950 border border-neutral-800 rounded px-2 py-1 text-xs focus:outline-none font-mono">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2.0">2.0x</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Verse List (Scrollable) -->
+            <div id="verse-list-container" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="flex items-center justify-center h-full text-neutral-500" id="initial-state">
+                    Select a surah to begin diagnostics
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hidden native audio element -->
+    <audio id="native-audio" class="hidden" preload="auto"></audio>
+
+    <!-- Modal for export -->
+    <div id="export-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="bg-neutral-950 border border-neutral-850 rounded-xl max-w-lg w-full p-6 space-y-4 relative">
+            <h3 class="text-lg font-bold text-white font-title">Calibration JSON</h3>
+            <p class="text-xs text-neutral-450">Copy this configuration to import adjusted offsets back into the Jawhar app configuration.</p>
+            <textarea id="export-textarea" readonly class="w-full h-64 bg-neutral-900 border border-neutral-800 rounded-lg p-3 font-mono text-xs text-emerald-400 focus:outline-none"></textarea>
+            <div class="flex justify-end space-x-3">
+                <button id="btn-modal-close" class="bg-neutral-900 border border-neutral-800 px-4 py-2 rounded text-xs font-semibold hover:bg-neutral-850 transition">Close</button>
+                <button id="btn-modal-copy" class="bg-emerald-600 px-4 py-2 rounded text-xs font-semibold hover:bg-emerald-500 text-white transition">Copy JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const reciterSelect = document.getElementById('reciter-select');
+        const surahSelect = document.getElementById('surah-select');
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const audioScrubber = document.getElementById('audio-scrubber');
+        const rateSelect = document.getElementById('rate-select');
+        const nativeAudio = document.getElementById('native-audio');
+        const verseListContainer = document.getElementById('verse-list-container');
+        const connectionStatus = document.getElementById('connection-status');
+        const connectionText = document.getElementById('connection-text');
+        
+        const statAudioTime = document.getElementById('stat-audio-time');
+        const statActiveVerse = document.getElementById('stat-active-verse');
+        const statVerseBounds = document.getElementById('stat-verse-bounds');
+        const playerTimeDisplay = document.getElementById('player-time-display');
+        const playerSrcDisplay = document.getElementById('player-src-display');
+        const audioDurationDisplay = document.getElementById('audio-duration-display');
+
+        let timings = []; // Current surah timing entries
+        let userOffsets = {}; // format: { verseKey: offset_ms }
+        let lastActiveVerseKey = null;
+
+        // Load Surah names
+        const surahNames = [
+            "Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa'", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus",
+            "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra'", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya'", "Al-Hajj",
+            "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara'", "An-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah",
+            "Al-Ahzab", "Saba'", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf",
+            "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm",
+            "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah",
+            "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn",
+            "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba'", "An-Nazi'at", "Abasa", "At-Takwir",
+            "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad",
+            "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-Adiyat",
+            "Al-Qari'ah", "At-Takathur", "Al-Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr",
+            "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"
+        ];
+
+        // Build Surah options
+        surahNames.forEach((name, index) => {
+            const option = document.createElement('option');
+            option.value = index + 1;
+            option.textContent = `${index + 1}. ${name}`;
+            surahSelect.appendChild(option);
+        });
+
+        // Check proxy connectivity
+        fetch('/api/token')
+            .then(r => {
+                if (!r.ok) throw new Error("Unhealthy server response");
+                return r.json();
+            })
+            .then(data => {
+                connectionStatus.className = "inline-block w-2.5 h-2.5 rounded-full bg-emerald-500";
+                connectionText.textContent = "Proxy connected";
+                loadTimings();
+            })
+            .catch(err => {
+                connectionStatus.className = "inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+                connectionText.textContent = "Proxy connection failed. Run server.py.";
+                console.error(err);
+            });
+
+        // Fetch and Load timings
+        function loadTimings() {
+            const reciter = reciterSelect.value;
+            const surah = surahSelect.value;
+            
+            verseListContainer.innerHTML = `<div class="flex items-center justify-center h-full text-neutral-500">Fetching timing data from proxy...</div>`;
+            
+            fetch(`/api/proxy?path=chapter_recitations/${reciter}/${surah}?segments=true`)
+                .then(r => r.json())
+                .then(data => {
+                    const audioFile = data.audio_file;
+                    if (!audioFile) throw new Error("No audio file configuration found for this surah/reciter.");
+                    
+                    playerSrcDisplay.textContent = audioFile.audio_url;
+                    nativeAudio.src = audioFile.audio_url;
+                    nativeAudio.load();
+                    
+                    timings = (audioFile.timestamps || []).map(t => {
+                        const from = parseInt(t.timestamp_from);
+                        const to = parseInt(t.timestamp_to);
+                        // Extract first segment word-boundary for diagnostic
+                        let firstSeg = from;
+                        if (t.segments && t.segments.length > 0) {
+                            firstSeg = parseInt(t.segments[0][1]);
+                        }
+                        return {
+                            verseKey: t.verse_key,
+                            timestampFrom: from,
+                            timestampTo: to,
+                            firstSegmentMs: firstSeg,
+                            originalFrom: from,
+                            originalTo: to
+                        };
+                    });
+                    
+                    renderVerseList();
+                })
+                .catch(err => {
+                    verseListContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-red-400 space-y-2">
+                        <span class="text-lg font-bold">Error loading diagnostics</span>
+                        <span>${err.message}</span>
+                    </div>`;
+                });
+        }
+
+        function renderVerseList() {
+            if (timings.length === 0) {
+                verseListContainer.innerHTML = `<div class="flex items-center justify-center h-full text-neutral-500 font-mono">No verses found</div>`;
+                return;
+            }
+
+            verseListContainer.innerHTML = '';
+            timings.forEach(t => {
+                const card = document.createElement('div');
+                card.id = `verse-card-${t.verseKey.replace(':', '-')}`;
+                // Load user offset if previously configured
+                const userOffset = userOffsets[t.verseKey] || 0;
+                
+                card.className = "p-4 rounded-xl border border-neutral-850 bg-neutral-950/40 hover:bg-neutral-950/80 transition flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer";
+                card.innerHTML = `
+                    <div class="flex-1 space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded bg-neutral-900 border border-neutral-800 font-mono text-emerald-450">${t.verseKey}</span>
+                            <span class="text-xs text-neutral-500 font-mono">Original: ${t.originalFrom}ms - ${t.originalTo}ms (Word0: ${t.firstSegmentMs}ms)</span>
+                        </div>
+                        <div class="text-sm flex items-center space-x-2">
+                            <span class="text-neutral-400">Calibrated: </span>
+                            <span class="font-mono text-emerald-400 font-semibold" id="calibrated-${t.verseKey.replace(':', '-')}">${t.timestampFrom} ms</span>
+                            <span class="text-xs font-mono text-neutral-550" id="offset-label-${t.verseKey.replace(':', '-')}">(${userOffset >= 0 ? '+' : ''}${userOffset}ms)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Adjustment Controls -->
+                    <div class="flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
+                        <button onclick="adjustOffset('${t.verseKey}', -500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">-500</button>
+                        <button onclick="adjustOffset('${t.verseKey}', -100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">-100</button>
+                        <button onclick="adjustOffset('${t.verseKey}', -50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">-50</button>
+                        <button onclick="adjustOffset('${t.verseKey}', 50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">+50</button>
+                        <button onclick="adjustOffset('${t.verseKey}', 100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">+100</button>
+                        <button onclick="adjustOffset('${t.verseKey}', 500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">+500</button>
+                        <button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono transition">Reset</button>
+                    </div>
+                `;
+                
+                // Seeking action on verse click
+                card.onclick = () => {
+                    const targetMs = t.timestampFrom;
+                    nativeAudio.currentTime = targetMs / 1000;
+                    nativeAudio.play();
+                    btnPlayPause.textContent = "⏸";
+                };
+                
+                verseListContainer.appendChild(card);
+            });
+        }
+
+        // Offset modifications
+        window.adjustOffset = function(verseKey, delta) {
+            if (!userOffsets[verseKey]) userOffsets[verseKey] = 0;
+            userOffsets[verseKey] += delta;
+            
+            // Apply to timing struct
+            const entry = timings.find(t => t.verseKey === verseKey);
+            if (entry) {
+                entry.timestampFrom = entry.originalFrom + userOffsets[verseKey];
+                entry.timestampTo = entry.originalTo + userOffsets[verseKey];
+                
+                const keySlug = verseKey.replace(':', '-');
+                document.getElementById(`calibrated-${keySlug}`).textContent = `${entry.timestampFrom} ms`;
+                
+                const offsetLabel = document.getElementById(`offset-label-${keySlug}`);
+                const offsetVal = userOffsets[verseKey];
+                offsetLabel.textContent = `(${offsetVal >= 0 ? '+' : ''}${offsetVal}ms)`;
+                
+                if (offsetVal !== 0) {
+                    offsetLabel.className = "text-xs font-mono text-yellow-500 font-medium";
+                } else {
+                    offsetLabel.className = "text-xs font-mono text-neutral-550";
+                }
+            }
+        };
+
+        window.resetOffset = function(verseKey) {
+            userOffsets[verseKey] = 0;
+            
+            const entry = timings.find(t => t.verseKey === verseKey);
+            if (entry) {
+                entry.timestampFrom = entry.originalFrom;
+                entry.timestampTo = entry.originalTo;
+                
+                const keySlug = verseKey.replace(':', '-');
+                document.getElementById(`calibrated-${keySlug}`).textContent = `${entry.timestampFrom} ms`;
+                
+                const offsetLabel = document.getElementById(`offset-label-${keySlug}`);
+                offsetLabel.textContent = `(0ms)`;
+                offsetLabel.className = "text-xs font-mono text-neutral-555";
+            }
+        };
+
+        // Listeners
+        reciterSelect.onchange = loadTimings;
+        surahSelect.onchange = loadTimings;
+        
+        btnPlayPause.onclick = () => {
+            if (nativeAudio.paused) {
+                nativeAudio.play();
+                btnPlayPause.textContent = "⏸";
+            } else {
+                nativeAudio.pause();
+                btnPlayPause.textContent = "▶";
+            }
+        };
+
+        rateSelect.onchange = () => {
+            nativeAudio.playbackRate = parseFloat(rateSelect.value);
+        };
+
+        audioScrubber.oninput = () => {
+            const pct = parseFloat(audioScrubber.value);
+            nativeAudio.currentTime = (pct / 100) * nativeAudio.duration;
+        };
+
+        function formatTime(secs) {
+            if (isNaN(secs)) return "0:00";
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // Audio status loop
+        function updatePlaybackInfo() {
+            if (!nativeAudio.paused || nativeAudio.currentTime > 0) {
+                const currentMs = Math.round(nativeAudio.currentTime * 1000);
+                const duration = nativeAudio.duration || 0;
+                const progress = duration > 0 ? (nativeAudio.currentTime / duration) * 100 : 0;
+                
+                audioScrubber.value = progress;
+                statAudioTime.textContent = `${currentMs} ms`;
+                playerTimeDisplay.textContent = `${formatTime(nativeAudio.currentTime)} / ${formatTime(duration)}`;
+                audioDurationDisplay.textContent = formatTime(duration);
+
+                // Find current playing verse in loaded timings
+                let activeVerse = null;
+                for (let i = 0; i < timings.length; i++) {
+                    const t = timings[i];
+                    if (currentMs >= t.timestampFrom && currentMs < t.timestampTo) {
+                        activeVerse = t;
+                        break;
+                    }
+                }
+
+                if (activeVerse) {
+                    statActiveVerse.textContent = activeVerse.verseKey;
+                    statVerseBounds.textContent = `${activeVerse.timestampFrom} - ${activeVerse.timestampTo} ms`;
+                    
+                    if (activeVerse.verseKey !== lastActiveVerseKey) {
+                        // Update highlighting
+                        if (lastActiveVerseKey) {
+                            const prevSlug = lastActiveVerseKey.replace(':', '-');
+                            const prevEl = document.getElementById(`verse-card-${prevSlug}`);
+                            if (prevEl) prevEl.className = "p-4 rounded-xl border border-neutral-850 bg-neutral-950/40 hover:bg-neutral-950/80 transition flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer";
+                        }
+                        
+                        const curSlug = activeVerse.verseKey.replace(':', '-');
+                        const curEl = document.getElementById(`verse-card-${curSlug}`);
+                        if (curEl) {
+                            curEl.className = "p-4 rounded-xl border border-emerald-600 bg-emerald-950/20 shadow-lg shadow-emerald-950/10 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer";
+                            curEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                        
+                        lastActiveVerseKey = activeVerse.verseKey;
+                    }
+                }
+            }
+            requestAnimationFrame(updatePlaybackInfo);
+        }
+        requestAnimationFrame(updatePlaybackInfo);
+
+        // Modal Export Actions
+        const exportModal = document.getElementById('export-modal');
+        const exportTextarea = document.getElementById('export-textarea');
+        
+        document.getElementById('btn-export').onclick = () => {
+            const payload = {
+                reciterId: reciterSelect.value,
+                surahId: surahSelect.value,
+                timestamp: new Date().toISOString(),
+                offsets: userOffsets
+            };
+            exportTextarea.value = JSON.stringify(payload, null, 2);
+            exportModal.classList.remove('hidden');
+        };
+        
+        document.getElementById('btn-modal-close').onclick = () => {
+            exportModal.classList.add('hidden');
+        };
+        
+        document.getElementById('btn-modal-copy').onclick = () => {
+            exportTextarea.select();
+            navigator.clipboard.writeText(exportTextarea.value)
+                .then(() => {
+                    alert("JSON copied to clipboard!");
+                });
+        };
+    </script>
+</body>
+</html>
