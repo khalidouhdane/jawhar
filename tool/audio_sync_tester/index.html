@@ -209,9 +209,14 @@
 
         // Check proxy connectivity
         fetch('/api/token')
-            .then(r => {
-                if (!r.ok) throw new Error("Unhealthy server response");
-                return r.json();
+            .then(async r => {
+                const text = await r.text();
+                if (!r.ok) throw new Error(`Server error: ${r.status} - ${text}`);
+                try {
+                    return JSON.parse(text);
+                } catch(e) {
+                    throw new Error(`Invalid JSON: ${text}`);
+                }
             })
             .then(data => {
                 connectionStatus.className = "inline-block w-2.5 h-2.5 rounded-full bg-emerald-500";
@@ -220,7 +225,7 @@
             })
             .catch(err => {
                 connectionStatus.className = "inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
-                connectionText.textContent = "Proxy connection failed. Run server.py.";
+                connectionText.textContent = `Proxy connection failed: ${err.message}`;
                 console.error(err);
             });
 
@@ -232,7 +237,17 @@
             verseListContainer.innerHTML = `<div class="flex items-center justify-center h-full text-neutral-500">Fetching timing data from proxy...</div>`;
             
             fetch(`/api/proxy?path=chapter_recitations/${reciter}/${surah}?segments=true`)
-                .then(r => r.json())
+                .then(async r => {
+                    const text = await r.text();
+                    if (!r.ok) {
+                        throw new Error(`Proxy error: ${r.status} - ${text}`);
+                    }
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {
+                        throw new Error(`Invalid JSON response: ${text.substring(0, 100)}`);
+                    }
+                })
                 .then(data => {
                     const audioFile = data.audio_file;
                     if (!audioFile) throw new Error("No audio file configuration found for this surah/reciter.");
@@ -262,9 +277,9 @@
                     renderVerseList();
                 })
                 .catch(err => {
-                    verseListContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-red-400 space-y-2">
+                    verseListContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-red-450 space-y-2">
                         <span class="text-lg font-bold">Error loading diagnostics</span>
-                        <span>${err.message}</span>
+                        <span class="text-sm font-mono text-center max-w-lg break-words">${err.message}</span>
                     </div>`;
                 });
         }

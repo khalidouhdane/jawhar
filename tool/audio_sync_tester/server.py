@@ -1,10 +1,10 @@
 import os
 import sys
 import json
-import urllib.request
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import webbrowser
+import requests  # Use requests to avoid SSLv3 alert bad record mac on Windows
 
 # Locate and parse the .env file in the project root
 def load_env():
@@ -59,20 +59,23 @@ def get_oauth_token():
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': auth_header
     }
-    data = urllib.parse.urlencode({
+    data = {
         'grant_type': 'client_credentials',
         'scope': 'content'
-    }).encode('utf-8')
+    }
     
     try:
-        req = urllib.request.Request(AUTH_URL, data=data, headers=headers, method='POST')
-        with urllib.request.urlopen(req, timeout=10) as response:
-            res_data = json.loads(response.read().decode('utf-8'))
+        r = requests.post(AUTH_URL, data=data, headers=headers, timeout=10)
+        if r.status_code == 200:
+            res_data = r.json()
             token_cache['token'] = res_data['access_token']
             expires_in = res_data.get('expires_in', 3600)
             token_cache['expiry'] = time.time() + expires_in
             print(f"Token acquired successfully. Expires in {expires_in}s.")
             return token_cache['token']
+        else:
+            print(f"Failed to fetch token: HTTP {r.status_code} - {r.text}")
+            return None
     except Exception as e:
         print(f"Failed to fetch OAuth token: {e}")
         return None
@@ -132,12 +135,13 @@ class DiagnosticProxyHandler(SimpleHTTPRequestHandler):
             }
             
             try:
-                req = urllib.request.Request(url, headers=headers)
-                with urllib.request.urlopen(req, timeout=15) as response:
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(response.read())
+                # Use requests to perform the GET to bypass SSL errors
+                r = requests.get(url, headers=headers, timeout=15)
+                self.send_response(r.status_code)
+                content_type = r.headers.get('Content-Type', 'application/json')
+                self.send_header('Content-Type', content_type)
+                self.end_headers()
+                self.wfile.write(r.content)
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
