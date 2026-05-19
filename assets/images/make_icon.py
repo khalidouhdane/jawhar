@@ -6,15 +6,15 @@ def create_composite_icons():
     bg_color = (235, 235, 235, 255) # EBEBEB
     
     # 1. Prepare the scaled logo
-    logo = Image.open("diamond_logo.png").convert("RGBA")
+    logo = Image.open("assets/images/diamond_logo.png").convert("RGBA")
     
     # Crop to bounding box to remove extra padding before scaling
     bbox = logo.getbbox()
     if bbox:
         logo = logo.crop(bbox)
         
-    # Scale up the logo to ~60% of 1024 = 614
-    target_size = 614
+    # Scale up the logo to ~75% of 1024 = 768 (was 614)
+    target_size = 768
     
     # Calculate aspect ratio
     aspect = logo.width / logo.height
@@ -25,7 +25,7 @@ def create_composite_icons():
         new_h = target_size
         new_w = int(target_size * aspect)
         
-    logo = logo.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    logo_scaled = logo.resize((new_w, new_h), Image.Resampling.LANCZOS)
     
     # Calculate centered position
     x = (size - new_w) // 2
@@ -33,8 +33,8 @@ def create_composite_icons():
     
     # --- Create iOS Icon (Solid Square, no transparency) ---
     ios_bg = Image.new("RGBA", (size, size), bg_color)
-    ios_bg.alpha_composite(logo, (x, y))
-    ios_bg.convert("RGB").save("diamond_bg_ios.png")
+    ios_bg.alpha_composite(logo_scaled, (x, y))
+    ios_bg.convert("RGB").save("assets/images/diamond_bg_ios.png")
     print("Created diamond_bg_ios.png")
     
     # --- Create Desktop/Web Icon (Rounded Rectangle, transparent corners) ---
@@ -46,9 +46,18 @@ def create_composite_icons():
     draw.rounded_rectangle([(0, 0), (size-1, size-1)], radius=radius, fill=bg_color)
     
     # Composite logo
-    desktop_bg.alpha_composite(logo, (x, y))
-    desktop_bg.save("diamond_bg_desktop.png")
+    desktop_bg.alpha_composite(logo_scaled, (x, y))
+    desktop_bg.save("assets/images/diamond_bg_desktop.png")
     print("Created diamond_bg_desktop.png")
+
+    # --- Create Android Padded Logo (Transparent bg) ---
+    # We want the logo to be larger relative to the frame.
+    # The current logo inside diamond_logo_padded is ~59% width. Let's make it ~75% width.
+    android_size = 1024
+    android_bg = Image.new("RGBA", (android_size, android_size), (0, 0, 0, 0))
+    android_bg.alpha_composite(logo_scaled, (x, y))
+    android_bg.save("assets/images/diamond_logo_padded.png")
+    print("Created diamond_logo_padded.png")
 
 if __name__ == "__main__":
     create_composite_icons()
