@@ -91,7 +91,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     color: theme.pillBackground,
                     borderRadius: BorderRadius.circular(30),
@@ -108,14 +108,16 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                           return Expanded(
                             child: GestureDetector(
                               onTap: () => setState(() => activeTab = tabKey),
-                              child: Container(
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeOutCubic,
                                 alignment: Alignment.center,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? theme.cardColor
+                                      ? theme.primaryText
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(30),
                                   boxShadow: isSelected
@@ -128,7 +130,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: isSelected
-                                        ? theme.accentColor
+                                        ? theme.scaffoldBackground
                                         : theme.chipUnselectedText,
                                   ),
                                 ),
@@ -175,22 +177,122 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
   Widget _buildTabContent(ThemeProvider theme, AppLocalizations l) {
     if (activeTab == 'surah') return _buildSurahList(theme, l);
     if (activeTab == 'bookmarks') return _buildBookmarksList(theme, l);
-    // Juz tab
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(LucideIcons.bookOpen, size: 48, color: theme.dividerColor),
-          const SizedBox(height: 12),
-          Text(
-            l.navJuzComing,
-            style: TextStyle(
-              color: theme.mutedText,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+    return _buildJuzList(theme, l);
+  }
+
+  int _getJuzForPage(int page) {
+    const juzPages = [
+      1, 22, 42, 62, 82, 102, 121, 142, 162, 182, 
+      201, 222, 242, 262, 282, 302, 322, 342, 362, 382, 
+      402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+    ];
+    for (int i = juzPages.length - 1; i >= 0; i--) {
+      if (page >= juzPages[i]) {
+        return i + 1;
+      }
+    }
+    return 1;
+  }
+
+  Widget _buildJuzList(ThemeProvider theme, AppLocalizations l) {
+    return Consumer<QuranReadingProvider>(
+      builder: (context, readingProvider, child) {
+        final currentPage = readingProvider.activePage;
+        final currentJuz = _getJuzForPage(currentPage);
+
+        const juzPages = [
+          1, 22, 42, 62, 82, 102, 121, 142, 162, 182, 
+          201, 222, 242, 262, 282, 302, 322, 342, 362, 382, 
+          402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+        ];
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: 30,
+          itemBuilder: (context, index) {
+            final juzNumber = index + 1;
+            final page = juzPages[index];
+            final isCurrent = juzNumber == currentJuz;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: isCurrent ? theme.inputFill : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isCurrent
+                      ? theme.accentColor.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                ),
+              ),
+              child: ListTile(
+                onTap: () {
+                  widget.onPageSelected(page);
+                },
+                leading: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Transform.rotate(
+                        angle: 0.785398, // 45 degrees
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: isCurrent ? theme.accentColor : null,
+                            border: Border.all(
+                              color: isCurrent
+                                  ? theme.accentColor
+                                  : theme.accentColor.withValues(alpha: 0.3),
+                              width: 1.2,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        juzNumber.toString(),
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isCurrent
+                              ? Colors.white
+                              : theme.accentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                title: Text(
+                  '${l.readTabJuz} $juzNumber',
+                  style: TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isCurrent ? theme.accentColor : theme.primaryText,
+                  ),
+                ),
+                subtitle: Text(
+                  "${l.navPage} $page",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.mutedText,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: Icon(
+                  LucideIcons.chevronRight,
+                  size: 16,
+                  color: theme.mutedText.withValues(alpha: 0.5),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -886,10 +988,12 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _bookmarkFilter = key),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isActive ? theme.cardColor : Colors.transparent,
+            color: isActive ? theme.primaryText : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             boxShadow: isActive ? theme.shadowCard : null,
           ),
@@ -902,21 +1006,23 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: isActive
-                      ? theme.accentColor
+                      ? theme.scaffoldBackground
                       : theme.chipUnselectedText,
                 ),
               ),
               if (count > 0) ...[
                 const SizedBox(width: 6),
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
                     vertical: 1,
                   ),
                   decoration: BoxDecoration(
                     color: isActive
-                        ? theme.accentColor.withValues(alpha: 0.12)
-                        : theme.pillBackground,
+                        ? theme.scaffoldBackground.withValues(alpha: 0.2)
+                        : theme.inputFill,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -924,7 +1030,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: isActive ? theme.accentColor : theme.mutedText,
+                      color: isActive
+                          ? theme.scaffoldBackground
+                          : theme.mutedText,
                     ),
                   ),
                 ),

@@ -149,62 +149,78 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                 ),
                 const SizedBox(height: 16),
                 Consumer<QuranReadingProvider>(
-                  builder: (context, rp, _) => Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            rp.setRewaya(1);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: rp.selectedRewaya == 1
-                                  ? theme.accentColor
-                                  : theme.inputFill,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              l.reciterHafs,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                  builder: (context, rp, _) => Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              rp.setRewaya(1);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
                                 color: rp.selectedRewaya == 1
-                                    ? Colors.white
-                                    : theme.primaryText,
+                                    ? theme.primaryText
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: rp.selectedRewaya == 1
+                                    ? theme.shadowCard
+                                    : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                l.reciterHafs,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: rp.selectedRewaya == 1
+                                      ? theme.scaffoldBackground
+                                      : theme.chipUnselectedText,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            rp.setRewaya(2);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: rp.selectedRewaya == 2
-                                  ? theme.accentColor
-                                  : theme.inputFill,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              l.reciterWarsh,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              rp.setRewaya(2);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
                                 color: rp.selectedRewaya == 2
-                                    ? Colors.white
-                                    : theme.primaryText,
+                                    ? theme.primaryText
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: rp.selectedRewaya == 2
+                                    ? theme.shadowCard
+                                    : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                l.reciterWarsh,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: rp.selectedRewaya == 2
+                                      ? theme.scaffoldBackground
+                                      : theme.chipUnselectedText,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -511,28 +527,7 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
       );
     }
 
-    // For the active reciter, show drift correction status
-    if (isActive && audioProvider.syncQuality == AudioSyncQuality.corrected) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.activity,
-            size: 10,
-            color: Colors.amber.withValues(alpha: 0.7),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Verse sync adjusted',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.amber.withValues(alpha: 0.7),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      );
-    }
+
 
     return null;
   }
