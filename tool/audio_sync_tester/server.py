@@ -4,7 +4,10 @@ import json
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import webbrowser
-import requests  # Use requests to avoid SSLv3 alert bad record mac on Windows
+import requests
+import ssl
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
 
 # Locate and parse the .env file in the project root
 def load_env():
@@ -34,6 +37,26 @@ CLIENT_ID = ENV.get('QURAN_API_CLIENT_ID', '')
 CLIENT_SECRET = ENV.get('QURAN_API_CLIENT_SECRET', '')
 AUTH_URL = ENV.get('QURAN_API_AUTH_URL', 'https://oauth2.quran.foundation/oauth2/token')
 BASE_URL = ENV.get('QURAN_API_BASE_URL', 'https://apis.quran.foundation/content/api/v4')
+
+# Force TLS 1.2 by disabling TLS 1.3 to avoid middlebox SSL record MAC corruption
+class TLS12Adapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        context = ssl.create_default_context()
+        if hasattr(ssl, 'TLSVersion'):
+            context.maximum_version = ssl.TLSVersion.TLSv1_2
+        else:
+            context.options |= 0x40000000  # Fallback for older SSL modules
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_context=context,
+            **pool_kwargs
+        )
+
+# Global requests session with TLS 1.2 mounted
+session = requests.Session()
+session.mount('https://', TLS12Adapter())
 
 token_cache = {
     'token': None,
@@ -65,7 +88,7 @@ def get_oauth_token():
     }
     
     try:
-        r = requests.post(AUTH_URL, data=data, headers=headers, timeout=10)
+        r = session.post(AUTH_URL, data=data, headers=headers, timeout=10)
         if r.status_code == 200:
             res_data = r.json()
             token_cache['token'] = res_data['access_token']
@@ -135,8 +158,8 @@ class DiagnosticProxyHandler(SimpleHTTPRequestHandler):
             }
             
             try:
-                # Use requests to perform the GET to bypass SSL errors
-                r = requests.get(url, headers=headers, timeout=15)
+                # Use session to perform the GET to inherit TLS 1.2 configuration
+                r = session.get(url, headers=headers, timeout=15)
                 self.send_response(r.status_code)
                 content_type = r.headers.get('Content-Type', 'application/json')
                 self.send_header('Content-Type', content_type)
