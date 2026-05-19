@@ -311,6 +311,9 @@
                     
                     <!-- Adjustment Controls -->
                     <div class="flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
+                        <span class="text-[10px] text-neutral-500 font-mono">Offset:</span>
+                        <input type="number" value="${userOffset}" onchange="setOffset('${t.verseKey}', this.value)" class="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-0.5 text-xs text-center text-white font-mono focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" placeholder="0">
+                        <span class="text-[10px] text-neutral-500 font-mono mr-2">ms</span>
                         <button onclick="adjustOffset('${t.verseKey}', -500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-500</button>
                         <button onclick="adjustOffset('${t.verseKey}', -100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-100</button>
                         <button onclick="adjustOffset('${t.verseKey}', -50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-50</button>
@@ -343,6 +346,19 @@
             if (entry) {
                 entry.timestampFrom = entry.originalFrom + userOffsets[verseKey];
                 entry.timestampTo = entry.originalTo + userOffsets[verseKey];
+                renderVerseList();
+            }
+        };
+
+        window.setOffset = function(verseKey, value) {
+            const offset = parseInt(value) || 0;
+            userOffsets[verseKey] = offset;
+            
+            // Apply to timing struct
+            const entry = timings.find(t => t.verseKey === verseKey);
+            if (entry) {
+                entry.timestampFrom = entry.originalFrom + offset;
+                entry.timestampTo = entry.originalTo + offset;
                 renderVerseList();
             }
         };
