@@ -49,7 +49,7 @@ assert(
 );
 assert(
   !footer.includes("Open source") &&
-    !footer.includes("github.com/khalidouhdane/le-quran") &&
+    !footer.includes("github.com/khalidouhdane/jawhar") &&
     !download.includes("fully open source") &&
     !download.includes("View on GitHub"),
   "Open-source source-code claims should be removed"

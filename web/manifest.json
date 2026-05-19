@@ -1,11 +1,11 @@
 {
-    "name": "quran_app",
-    "short_name": "quran_app",
+    "name": "Jawhar",
+    "short_name": "Jawhar",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#EBEBEB",
     "theme_color": "#000000",
-    "description": "A new Flutter project.",
+    "description": "Jawhar — Memorize with Meaning. A Quran memorization companion built on understanding.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

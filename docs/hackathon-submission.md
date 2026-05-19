@@ -6,7 +6,7 @@
 ---
 
 ## Short Description
-Jawhar is a revolutionary Hifz companion that shifts the focus from rote memorization to profound comprehension. By combining AI-generated daily plans, structured digital sessions, and seamlessly integrated contextual resources (translations, tafsir, Asbab al-Nuzul), Jawhar ensures that every verse memorized is a verse understood.
+Jawhar is the first Hifz companion that shifts the focus from rote memorization to profound comprehension. By combining AI-generated daily plans, structured digital sessions, and seamlessly integrated contextual resources (translations, tafsir, Asbab al-Nuzul), Jawhar ensures that every verse memorized is a verse understood.
 
 ---
 

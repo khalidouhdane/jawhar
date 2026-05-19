@@ -10,14 +10,14 @@ const platforms = [
     icon: Monitor,
     name: "Windows",
     action: "Download .exe",
-    href: "https://github.com/khalidouhdane/le-quran/releases/latest",
+    href: "https://github.com/khalidouhdane/jawhar/releases/latest",
     available: true,
   },
   {
     icon: Smartphone,
     name: "Android",
     action: "Download APK",
-    href: "https://github.com/khalidouhdane/le-quran/releases/latest",
+    href: "https://github.com/khalidouhdane/jawhar/releases/latest",
     available: true,
   },
   {
