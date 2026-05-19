@@ -23,6 +23,7 @@ import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ReadingScreen extends StatefulWidget {
   final int initialPage;
@@ -337,6 +338,13 @@ class _ReadingScreenState extends State<ReadingScreen> {
     );
   }
 
+  /// Switch to translation mode and highlight a specific verse.
+  void _switchToTranslationMode(String verseKey) {
+    final ctxProvider = context.read<ContextProvider>();
+    ctxProvider.setHighlightVerse(verseKey);
+    setState(() => readMode = 'tafsir');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
@@ -367,6 +375,9 @@ class _ReadingScreenState extends State<ReadingScreen> {
 
                       // Track Werd reading progress
                       _startPageReadTimer(page);
+
+                      // Prefetch adjacent page translations
+                      context.read<ContextProvider>().prefetchAdjacentPages(page);
                     },
                     itemBuilder: (context, index) {
                       final page = _totalPages - index;
@@ -374,6 +385,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                         pageNumber: page,
                         onCanvasTapped: _toggleFullScreen,
                         readMode: readMode,
+                        onTranslateVerse: _switchToTranslationMode,
                       );
                     },
                   ),
@@ -848,11 +860,13 @@ class _QuranPage extends StatefulWidget {
   final int pageNumber;
   final VoidCallback onCanvasTapped;
   final String readMode;
+  final ValueChanged<String>? onTranslateVerse;
 
   const _QuranPage({
     required this.pageNumber,
     required this.onCanvasTapped,
     this.readMode = 'read',
+    this.onTranslateVerse,
   });
 
   @override
@@ -914,7 +928,8 @@ class _QuranPageState extends State<_QuranPage>
             ),
             const SizedBox(height: 12),
             Text(
-              'Could not load page ${widget.pageNumber}',
+              AppLocalizations.of(context)?.pageLoadError(widget.pageNumber) ??
+                  'Could not load page ${widget.pageNumber}',
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 14,
@@ -938,7 +953,7 @@ class _QuranPageState extends State<_QuranPage>
                 color: theme.accentColor,
               ),
               label: Text(
-                'Retry',
+                AppLocalizations.of(context)?.retry ?? 'Retry',
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 14,
@@ -985,6 +1000,7 @@ class _QuranPageState extends State<_QuranPage>
             }
           },
           onCanvasTapped: widget.onCanvasTapped,
+          onTranslateVerse: widget.onTranslateVerse,
         ),
 
         // Inline translation overlay — floats at the bottom above the canvas
@@ -1010,11 +1026,12 @@ class _QuranPageState extends State<_QuranPage>
     );
   }
 
-  /// Verse-by-verse tafsir view: Arabic text + translation for each verse.
+  /// Verse-by-verse translation view: Arabic text + translation for each verse.
   /// Uses batch page translations to avoid N individual API calls.
   Widget _buildTafsirView(ThemeProvider theme) {
     final contextProvider = context.watch<ContextProvider>();
-    final translations = contextProvider.pageTranslations;
+    final l = AppLocalizations.of(context)!;
+    final translations = contextProvider.getPageTranslations(widget.pageNumber);
 
     // Load page translations if not already cached
     if (translations.isEmpty && !contextProvider.isLoadingTranslation) {
@@ -1033,7 +1050,7 @@ class _QuranPageState extends State<_QuranPage>
             CircularProgressIndicator(color: theme.accentColor),
             const SizedBox(height: 12),
             Text(
-              'Loading translations...',
+              l.translationLoading,
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
@@ -1045,7 +1062,36 @@ class _QuranPageState extends State<_QuranPage>
       );
     }
 
+    // Check for highlighted verse to auto-scroll
+    final highlightKey = contextProvider.highlightVerseKey;
+    int? highlightIndex;
+    if (highlightKey != null && _verses != null) {
+      highlightIndex = _verses!.indexWhere((v) => v.verseKey == highlightKey);
+      if (highlightIndex < 0) highlightIndex = null;
+    }
+
+    // Use an ItemScrollController approach via initial scroll offset
+    final scrollController = ScrollController();
+
+    // Schedule scroll to highlighted verse after build
+    if (highlightIndex != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        // Estimate position: ~180px per verse item
+        final estimatedOffset = highlightIndex! * 180.0;
+        if (scrollController.hasClients) {
+          scrollController.animateTo(
+            estimatedOffset,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+          );
+        }
+        context.read<ContextProvider>().clearHighlightVerse();
+      });
+    }
+
     return ListView.builder(
+      controller: scrollController,
       padding: EdgeInsets.only(
         top: MediaQuery.paddingOf(context).top > 0
             ? MediaQuery.paddingOf(context).top + 60
@@ -1062,103 +1108,141 @@ class _QuranPageState extends State<_QuranPage>
             .map((w) => w.textUthmani)
             .join(' ');
         final translation = translations[verse.verseKey];
+        final isHighlighted = verse.verseKey == highlightKey;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Verse number badge
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: theme.accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(theme.radiusLg),
-                ),
-                child: Text(
-                  verse.verseKey,
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: theme.accentColor,
+        return GestureDetector(
+          onTap: () {
+            // Tap to play audio from this verse
+            final audioProvider = context.read<AudioProvider>();
+            audioProvider.playSingleVerse(verse);
+          },
+          onLongPress: () {
+            // Open tafsir sheet for this verse
+            final readingProv = context.read<QuranReadingProvider>();
+            final chapterId =
+                int.tryParse(verse.verseKey.split(':').first) ?? 1;
+            String? surahName;
+            try {
+              surahName = readingProv.chapters
+                  .firstWhere((c) => c.id == chapterId)
+                  .nameSimple;
+            } catch (_) {}
+            showTafsirSheet(
+              context,
+              verseKey: verse.verseKey,
+              surahName: surahName,
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              color: isHighlighted
+                  ? theme.accentColor.withValues(alpha: 0.08)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(theme.radiusMd),
+            ),
+            padding: isHighlighted
+                ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+                : EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Verse number badge
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(theme.radiusLg),
+                    ),
+                    child: Text(
+                      verse.verseKey,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: theme.accentColor,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            // Arabic text
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: Text(
-                verseText,
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  fontFamily: 'Amiri Quran',
-                  fontSize: theme.quranFontSize,
-                  height: theme.quranLineHeight,
-                  color: theme.quranText,
+                // Arabic text — uses same font as ReadingCanvas
+                Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Text(
+                    verseText,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.amiriQuran(
+                      fontSize: theme.quranFontSize,
+                      height: theme.quranLineHeight,
+                      fontWeight: FontWeight.w400,
+                      color: theme.quranText,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Translation (from batch cache)
-            if (translation != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(theme.radiusLg),
-                  border: Border.all(
+                const SizedBox(height: 8),
+                // Translation (from batch cache)
+                if (translation != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(theme.radiusLg),
+                      border: Border.all(
+                        color: theme.dividerColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      translation.text,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 14,
+                        height: 1.6,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(theme.radiusLg),
+                    ),
+                    child: Text(
+                      l.translationLoading,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                        color: theme.mutedText,
+                      ),
+                    ),
+                  ),
+                // Asbab al-nuzul card (if verse has revelation context)
+                if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey))
+                  _buildAsbabCard(
+                    theme,
+                    verse.verseKey,
+                    contextProvider.asbabService.getOccasionsByKey(
+                          verse.verseKey,
+                        ) ??
+                        [],
+                  ),
+                if (index < _verses!.length - 1)
+                  Divider(
+                    height: 32,
                     color: theme.dividerColor.withValues(alpha: 0.3),
                   ),
-                ),
-                child: Text(
-                  translation.text,
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 14,
-                    height: 1.6,
-                    color: theme.secondaryText,
-                  ),
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.cardColor.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(theme.radiusLg),
-                ),
-                child: Text(
-                  'Translation loading...',
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                    color: theme.mutedText,
-                  ),
-                ),
-              ),
-            // Asbab al-nuzul card (if verse has revelation context)
-            if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey))
-              _buildAsbabCard(
-                theme,
-                verse.verseKey,
-                contextProvider.asbabService.getOccasionsByKey(
-                      verse.verseKey,
-                    ) ??
-                    [],
-              ),
-            if (index < _verses!.length - 1)
-              Divider(
-                height: 32,
-                color: theme.dividerColor.withValues(alpha: 0.3),
-              ),
-          ],
+              ],
+            ),
+          ),
         );
       },
     );
@@ -1189,7 +1273,7 @@ class _QuranPageState extends State<_QuranPage>
               Icon(Icons.history_edu, size: 16, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
-                'سبب النزول',
+                AppLocalizations.of(context)?.asbabNuzulTitle ?? 'سبب النزول',
                 style: TextStyle(
                   fontFamily: 'Amiri',
                   fontSize: 14,
@@ -1199,7 +1283,7 @@ class _QuranPageState extends State<_QuranPage>
               ),
               const Spacer(),
               Text(
-                'Occasion of Revelation',
+                AppLocalizations.of(context)?.asbabOccasion ?? 'Occasion of Revelation',
                 style: TextStyle(
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 10,
@@ -1249,7 +1333,7 @@ class _QuranPageState extends State<_QuranPage>
                   );
                 },
                 child: Text(
-                  'Read full narration →',
+                  AppLocalizations.of(context)?.asbabReadFull ?? 'Read full narration →',
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,

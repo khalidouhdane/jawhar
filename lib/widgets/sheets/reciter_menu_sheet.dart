@@ -441,16 +441,9 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                                 : theme.primaryText,
                           ),
                         ),
-                        subtitle: !reciter.hasTimingData
-                            ? Text(
-                                '⚠ No verse sync',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: theme.mutedText.withValues(alpha: 0.6),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )
-                            : null,
+                        subtitle: _buildSyncSubtitle(
+                          reciter, isActive, audioProvider, theme,
+                        ),
                         trailing: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -484,6 +477,64 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
         ],
       ),
     );
+  }
+
+  /// Build a sync quality subtitle for a reciter tile.
+  /// Shows nothing for perfect sync, a subtle indicator for corrected sync,
+  /// and a warning for reciters without timing data.
+  Widget? _buildSyncSubtitle(
+    dynamic reciter,
+    bool isActive,
+    AudioProvider audioProvider,
+    ThemeProvider theme,
+  ) {
+    // No timing data at all
+    if (!reciter.hasTimingData) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.wifiOff,
+            size: 10,
+            color: theme.mutedText.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'No verse sync',
+            style: TextStyle(
+              fontSize: 10,
+              color: theme.mutedText.withValues(alpha: 0.6),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // For the active reciter, show drift correction status
+    if (isActive && audioProvider.syncQuality == AudioSyncQuality.corrected) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.activity,
+            size: 10,
+            color: Colors.amber.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Verse sync adjusted',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.amber.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return null;
   }
 
   Widget _buildTab(

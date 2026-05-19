@@ -175,16 +175,27 @@ GET /verses/by_page/{page}?translations={translation_id}&per_page=50
 GET /verses/by_key/{verse_key}?tafsirs={tafsir_id}
 ```
 
+### Hybrid Tafsir Strategy
+
+The Quran Foundation API has **no concise English tafsir** — the smallest (Ibn Kathir Abridged, ID 169) returns ~14k chars/verse. For concise English tafsir, we use the QuranEnc API (see §8 below).
+
+| Tab | English Source | Arabic Source |
+|-----|---------------|--------------|
+| **Brief** | QuranEnc `english_mokhtasar` (~800 chars) | QF API ID=16 Al-Muyassar (~688 chars) |
+| **Detailed** | QF API ID=169 Ibn Kathir (~14k chars) | QF API ID=14 Ibn Kathir Arabic (~21k chars) |
+| **Occasion** | Asbab al-Nuzul dataset | Asbab al-Nuzul dataset |
+
 ### Verified Resource IDs
 
 | ID | Resource | Type | Language |
 |----|----------|------|----------|
 | 85 | Abdel Haleem | Translation | English |
 | 1014 | Tafsir Al-Muyasser | Translation | Arabic |
-| 169 | Ibn Kathir Abridged | Tafsir (Brief) | English |
-| 168 | Ma'arif al-Qur'an | Tafsir (Detailed) | English |
-| 16 | Muyassar | Tafsir (Brief) | Arabic |
-| 14 | Ibn Kathir | Tafsir (Detailed) | Arabic |
+| 169 | Ibn Kathir Abridged | Tafsir (Detailed EN) | English |
+| 168 | Ma'arif al-Qur'an | Tafsir (Detailed EN alt) | English |
+| 16 | Al-Muyassar | Tafsir (Brief AR) | Arabic |
+| 14 | Ibn Kathir | Tafsir (Detailed AR) | Arabic |
+| 926 | Jalalayn | Tafsir (Brief AR alt) | Arabic |
 
 ### Resource Discovery
 
@@ -194,4 +205,49 @@ GET /resources/tafsirs        — list all available tafsir resources
 ```
 
 > Resource IDs auto-switch by locale in `ContextProvider.setLocale()`.
+
+---
+
+## 8. QuranEnc API — Concise English Tafsir
+
+**Service**: `QuranEncService` (`quranenc_service.dart`)
+
+Used exclusively for the **English Brief Tafsir** tab, which the Quran Foundation API cannot serve.
+
+### Base URL
+```
+https://quranenc.com/api/v1
+```
+
+No authentication required — public API.
+
+### Key Endpoint
+```
+GET /translation/aya/{key}/{sura}/{aya}
+```
+
+### Available Keys
+
+| Key | Language | Content | Use Case |
+|-----|----------|---------|----------|
+| `english_mokhtasar` | English | Al-Mukhtasar fi Tafsir | EN Brief tab |
+| `arabic_moyassar` | Arabic | Al-Muyassar | Backup AR Brief |
+
+### Response Format
+```json
+{
+  "result": {
+    "id": "262",
+    "sura": "2",
+    "aya": "255",
+    "arabic_text": "...",
+    "translation": "255. Allah is the One Who alone deserves to be worshipped...",
+    "footnotes": null
+  }
+}
+```
+
+> **Note:** The `translation` field includes a leading verse number prefix (e.g. "255. ")
+> which `QuranEncService` strips automatically.
+
 

@@ -1258,5 +1258,30 @@
   },
   "topicShowVerses": "Show key verses",
   "topicHideVerses": "Hide key verses",
-  "topicOfflineVerse": "Translation unavailable offline"
+  "topicOfflineVerse": "Translation unavailable offline",
+  "readingTranslation": "Translation",
+  "translationLoading": "Loading translations...",
+  "contextTranslate": "Translate",
+  "contextTafsir": "Tafsir",
+  "asbabNuzulTitle": "سبب النزول",
+  "asbabOccasion": "Occasion of Revelation",
+  "asbabReadFull": "Read full narration →",
+  "pageLoadError": "Could not load page {pageNumber}",
+  "@pageLoadError": {
+    "placeholders": {
+      "pageNumber": { "type": "int" }
+    }
+  },
+  "verseCopied": "Verse {verseKey} copied",
+  "@verseCopied": {
+    "placeholders": {
+      "verseKey": { "type": "String" }
+    }
+  },
+  "verseCopiedForSharing": "Verse copied for sharing",
+  "tafsirSourceMukhtasar": "Al-Mukhtasar fi Tafsir",
+  "tafsirSourceIbnKathir": "Ibn Kathir",
+  "tafsirReadMore": "Read more",
+  "tafsirShowLess": "Show less",
+  "retry": "Retry"
 }

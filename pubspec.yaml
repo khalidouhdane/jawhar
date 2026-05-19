@@ -120,6 +120,7 @@ flutter:
     - assets/images/diamond_logo.png
     - assets/images/diamond_spritesheet.webp
     - assets/prompts/
+    - assets/data/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

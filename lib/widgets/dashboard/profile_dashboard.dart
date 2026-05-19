@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -70,7 +71,7 @@ class ProfileDashboard extends StatelessWidget {
                 _buildPlanLoadingSkeleton(theme),
                 const SizedBox(height: 16),
               ] else if (planProvider.isRestDay) ...[
-                _buildRestDayCard(context, theme),
+                _buildRestDayCard(context, theme, onStartSession),
                 const SizedBox(height: 16),
               ] else if (plan != null) ...[
                 PlanCard(
@@ -172,7 +173,8 @@ class ProfileDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildRestDayCard(BuildContext context, ThemeProvider theme) {
+  Widget _buildRestDayCard(BuildContext context, ThemeProvider theme, VoidCallback onStartSession) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -187,7 +189,7 @@ class ProfileDashboard extends StatelessWidget {
           Icon(LucideIcons.moonStar, size: 32, color: theme.mutedText),
           const SizedBox(height: 12),
           Text(
-            'Rest Day',
+            l10n.homeRestDayTitle,
             style: TextStyle(
               fontFamily: 'Geist',
               fontSize: 18,
@@ -197,7 +199,7 @@ class ProfileDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Today is your rest day. Recharge and come back stronger.',
+            l10n.homeRestDaySubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Geist',
@@ -212,7 +214,7 @@ class ProfileDashboard extends StatelessWidget {
               Expanded(
                 child: _RestDayAction(
                   icon: LucideIcons.bookOpen,
-                  label: 'Continue Reading',
+                  label: l10n.homeRestDayContinueReading,
                   theme: theme,
                   onTap: () {
                     final nav = Provider.of<NavigationProvider>(
@@ -240,7 +242,7 @@ class ProfileDashboard extends StatelessWidget {
               Expanded(
                 child: _RestDayAction(
                   icon: LucideIcons.play,
-                  label: 'Start Anyway',
+                  label: l10n.homeRestDayStartAnyway,
                   theme: theme,
                   onTap: onStartSession,
                 ),
@@ -418,3 +420,4 @@ class _RestDayAction extends StatelessWidget {
     );
   }
 }
+

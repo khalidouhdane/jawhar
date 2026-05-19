@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 
 // ─── Search Sheet ───
 
@@ -161,21 +162,36 @@ class _SearchSheetState extends State<SearchSheet> {
                         // This is approximate; a full solution would need a chapter->page map
                         widget.onPageSelected(_getFirstPage(surah.id));
                       },
-                      leading: Container(
+                      leading: SizedBox(
                         width: 40,
                         height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: theme.pillBackground,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          surah.id.toString(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: theme.accentColor,
-                          ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Transform.rotate(
+                              angle: 0.785398, // 45 degrees
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: theme.accentColor.withValues(alpha: 0.3),
+                                    width: 1.2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              surah.id.toString(),
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: theme.accentColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       title: Text(

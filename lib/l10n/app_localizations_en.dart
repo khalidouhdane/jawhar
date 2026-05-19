@@ -2486,4 +2486,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get topicOfflineVerse => 'Translation unavailable offline';
+
+  @override
+  String get readingTranslation => 'Translation';
+
+  @override
+  String get translationLoading => 'Loading translations...';
+
+  @override
+  String get contextTranslate => 'Translate';
+
+  @override
+  String get contextTafsir => 'Tafsir';
+
+  @override
+  String get asbabNuzulTitle => 'سبب النزول';
+
+  @override
+  String get asbabOccasion => 'Occasion of Revelation';
+
+  @override
+  String get asbabReadFull => 'Read full narration →';
+
+  @override
+  String pageLoadError(int pageNumber) {
+    return 'Could not load page $pageNumber';
+  }
+
+  @override
+  String verseCopied(String verseKey) {
+    return 'Verse $verseKey copied';
+  }
+
+  @override
+  String get verseCopiedForSharing => 'Verse copied for sharing';
+
+  @override
+  String get retry => 'Retry';
 }

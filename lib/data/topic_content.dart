@@ -65,6 +65,16 @@ const Map<String, TopicContent> topicContentRegistry = {
   'parables': _parablesContent,
   'family': _familyContent,
   'dua': _duaContent,
+  'muhammad': _muhammadContent,
+  'qisas': _qisasContent,
+  'nisa': _nisaContent,
+  'tawbah': _tawbahContent,
+  'ibtila': _ibtilaContent,
+  'ghayb': _ghaybContent,
+  'quran': _quranContent,
+  'taqwa': _taqwaContent,
+  'sadaqah': _sadaqahContent,
+  'nifaq': _nifaqContent,
 };
 
 // ── Stories ──
@@ -85,10 +95,22 @@ const _musaContent = TopicContent(
       keyVerseKeys: ['2:60', '2:67'],
     ),
     TopicSection(
+      surahId: 5, startVerse: 20, endVerse: 26,
+      perspective: 'The refusal of Bani Isra\'il to enter the Holy Land, leading to their wandering in the desert.',
+      perspectiveAr: 'رفض بني إسرائيل دخول الأرض المقدسة، مما أدى إلى تيههم في الصحراء.',
+      keyVerseKeys: ['5:24', '5:26'],
+    ),
+    TopicSection(
       surahId: 7, startVerse: 103, endVerse: 162,
       perspective: 'The most detailed account of the confrontation with Pharaoh — the signs, the sorcerers\' conversion, and Pharaoh\'s arrogance.',
       perspectiveAr: 'أكثر الروايات تفصيلاً للمواجهة مع فرعون — الآيات، إيمان السحرة، وعناد فرعون.',
       keyVerseKeys: ['7:116', '7:120', '7:143'],
+    ),
+    TopicSection(
+      surahId: 17, startVerse: 101, endVerse: 104,
+      perspective: 'The nine clear signs given to Musa and the inevitable drowning of Pharaoh.',
+      perspectiveAr: 'الآيات التسع البينات التي أوتيها موسى والغرق الحتمي لفرعون.',
+      keyVerseKeys: ['17:101', '17:104'],
     ),
     TopicSection(
       surahId: 20, startVerse: 9, endVerse: 98,
@@ -97,10 +119,28 @@ const _musaContent = TopicContent(
       keyVerseKeys: ['20:12', '20:25', '20:39'],
     ),
     TopicSection(
+      surahId: 26, startVerse: 10, endVerse: 68,
+      perspective: 'The tense dialogue with Pharaoh, the dramatic escape by night, and the miraculous parting of the sea.',
+      perspectiveAr: 'الحوار المتوتر مع فرعون، والهروب الدرامي ليلاً، والمعجزة العظيمة بانفلاق البحر.',
+      keyVerseKeys: ['26:16', '26:63'],
+    ),
+    TopicSection(
       surahId: 28, startVerse: 3, endVerse: 42,
       perspective: 'The origin story — Musa\'s birth, his mother\'s faith, growing up in Pharaoh\'s palace, the accidental killing, and flight to Midian.',
       perspectiveAr: 'قصة البداية — ولادة موسى، إيمان أمه، نشأته في قصر فرعون، القتل الخطأ، والهجرة إلى مدين.',
       keyVerseKeys: ['28:7', '28:15', '28:30'],
+    ),
+    TopicSection(
+      surahId: 40, startVerse: 23, endVerse: 46,
+      perspective: 'The courageous Believer in Pharaoh\'s court who secretly defended Musa and reasoned with his people.',
+      perspectiveAr: 'المؤمن الشجاع من آل فرعون الذي دافع عن موسى سراً وحاجج قومه.',
+      keyVerseKeys: ['40:28', '40:44'],
+    ),
+    TopicSection(
+      surahId: 79, startVerse: 15, endVerse: 26,
+      perspective: 'A stark, rapid summary of the calling in the holy valley of Tuwa and Pharaoh\'s tragic end as a lesson.',
+      perspectiveAr: 'ملخص موجز وقوي للنداء في الوادي المقدس طوى ونهاية فرعون المأساوية كعبرة.',
+      keyVerseKeys: ['79:16', '79:24'],
     ),
   ],
 );
@@ -138,6 +178,18 @@ const _yusufContent = TopicContent(
       perspectiveAr: 'اللقاء — المغفرة تنتصر على الانتقام، وتتحقق رؤيا الطفولة.',
       keyVerseKeys: ['12:64', '12:90', '12:100'],
     ),
+    TopicSection(
+      surahId: 6, startVerse: 84, endVerse: 84,
+      perspective: 'Mentioned among the noble lineage of righteous prophets guided by God.',
+      perspectiveAr: 'ذُكر ضمن السلالة النبيلة للأنبياء الصالحين الذين هداهم الله.',
+      keyVerseKeys: ['6:84'],
+    ),
+    TopicSection(
+      surahId: 40, startVerse: 34, endVerse: 34,
+      perspective: 'The Believer in Pharaoh\'s court reminds the Egyptians of Yusuf\'s previous clear signs to them.',
+      perspectiveAr: 'مؤمن آل فرعون يذكر المصريين بآيات يوسف البينات السابقة لهم.',
+      keyVerseKeys: ['40:34'],
+    ),
   ],
 );
 
@@ -174,6 +226,30 @@ const _ibrahimContent = TopicContent(
       perspectiveAr: 'الامتحان الأعظم — رؤيا ذبح إسماعيل، والفداء من الله.',
       keyVerseKeys: ['37:102', '37:107'],
     ),
+    TopicSection(
+      surahId: 11, startVerse: 69, endVerse: 76,
+      perspective: 'The angels visit Ibrahim with glad tidings of a son, and his dispute with them to save the people of Lut.',
+      perspectiveAr: 'الملائكة تبشر إبراهيم بغلام، ومجادلته لهم لإنقاذ قوم لوط.',
+      keyVerseKeys: ['11:69', '11:74'],
+    ),
+    TopicSection(
+      surahId: 26, startVerse: 69, endVerse: 89,
+      perspective: 'Ibrahim\'s powerful reasoning against idolatry, culminating in a profound supplication for a sound heart.',
+      perspectiveAr: 'حجة إبراهيم القوية ضد الأصنام، والتي تتوج بدعاء عميق بقلب سليم.',
+      keyVerseKeys: ['26:77', '26:89'],
+    ),
+    TopicSection(
+      surahId: 29, startVerse: 16, endVerse: 27,
+      perspective: 'His early preaching, the community\'s plot to burn him, and his subsequent migration for the sake of God.',
+      perspectiveAr: 'دعوته المبكرة، ومؤامرة قومه لحرقه، وهجرته اللاحقة في سبيل الله.',
+      keyVerseKeys: ['29:24', '29:26'],
+    ),
+    TopicSection(
+      surahId: 60, startVerse: 4, endVerse: 6,
+      perspective: 'Ibrahim is presented as the ultimate excellent example (uswah hasanah) in disavowing falsehood.',
+      perspectiveAr: 'إبراهيم يُقدم باعتباره الأسوة الحسنة في البراءة من الباطل.',
+      keyVerseKeys: ['60:4'],
+    ),
   ],
 );
 
@@ -203,6 +279,36 @@ const _nuhContent = TopicContent(
       perspective: 'A deeply personal surah entirely dedicated to Nuh\'s exhaustive pleas to his people, night and day, in public and in private.',
       perspectiveAr: 'سورة شخصية عميقة مكرسة بالكامل لنداءات نوح المستميتة لقومه، ليلاً ونهاراً، سراً وجهاراً.',
       keyVerseKeys: ['71:5', '71:10'],
+    ),
+    TopicSection(
+      surahId: 10, startVerse: 71, endVerse: 73,
+      perspective: 'Nuh\'s fearless challenge to his people, daring them to execute their plot while he places his trust entirely in God.',
+      perspectiveAr: 'تحدي نوح الشجاع لقومه، داعياً إياهم لتنفيذ مكرهم بينما يتوكل هو كلياً على الله.',
+      keyVerseKeys: ['10:71'],
+    ),
+    TopicSection(
+      surahId: 23, startVerse: 23, endVerse: 30,
+      perspective: 'The detailed command to build the ark and the specific prayer Nuh was taught to say upon boarding.',
+      perspectiveAr: 'الأمر التفصيلي بصنع الفلك والدعاء المحدد الذي عُلم نوح أن يقوله عند الركوب.',
+      keyVerseKeys: ['23:27', '23:29'],
+    ),
+    TopicSection(
+      surahId: 26, startVerse: 105, endVerse: 122,
+      perspective: 'The dialogue with the elite who rejected him because only the lowest classes followed him.',
+      perspectiveAr: 'الحوار مع الملأ الذين رفضوه لأن أراذل القوم فقط هم من اتبعوه.',
+      keyVerseKeys: ['26:111', '26:114'],
+    ),
+    TopicSection(
+      surahId: 29, startVerse: 14, endVerse: 15,
+      perspective: 'A succinct summary explicitly stating the immense duration of his preaching: 950 years.',
+      perspectiveAr: 'ملخص موجز يذكر صراحة المدة الهائلة لدعوته: 950 عاماً.',
+      keyVerseKeys: ['29:14'],
+    ),
+    TopicSection(
+      surahId: 37, startVerse: 75, endVerse: 82,
+      perspective: 'His desperate call answered by God, making his descendants the sole survivors of humanity.',
+      perspectiveAr: 'نداؤه اليائس الذي استجابه الله، جاعلاً ذريته هم الباقين من البشرية.',
+      keyVerseKeys: ['37:75', '37:77'],
     ),
   ],
 );
@@ -234,6 +340,24 @@ const _isaMaryamContent = TopicContent(
       perspectiveAr: 'السرد العاطفي الرقيق لعزلة مريم، والولادة تحت النخلة، وتكلم الرضيع في المهد.',
       keyVerseKeys: ['19:23', '19:30', '19:33'],
     ),
+    TopicSection(
+      surahId: 4, startVerse: 156, endVerse: 159,
+      perspective: 'The definitive Quranic statement refuting the crucifixion of Isa, asserting his elevation to God.',
+      perspectiveAr: 'البيان القرآني القاطع في نفي صلب عيسى، والتأكيد على رفعه إلى الله.',
+      keyVerseKeys: ['4:157'],
+    ),
+    TopicSection(
+      surahId: 43, startVerse: 57, endVerse: 65,
+      perspective: 'The dispute of the polytheists regarding Isa, clarifying his true status as a servant who was given favor.',
+      perspectiveAr: 'جدال المشركين حول عيسى، وتوضيح مكانته الحقيقية كعبد أُنعم عليه.',
+      keyVerseKeys: ['43:59', '43:63'],
+    ),
+    TopicSection(
+      surahId: 66, startVerse: 12, endVerse: 12,
+      perspective: 'Maryam is praised as the ultimate example of chastity and faith for all believers.',
+      perspectiveAr: 'الثناء على مريم كأعظم نموذج للعفة والإيمان لجميع المؤمنين.',
+      keyVerseKeys: ['66:12'],
+    ),
   ],
 );
 
@@ -264,6 +388,30 @@ const _adamContent = TopicContent(
       perspectiveAr: 'التركيز على النسيان والضعف البشري، متوجاً بمغفرة الله التامة وهدايته.',
       keyVerseKeys: ['20:115', '20:120', '20:122'],
     ),
+    TopicSection(
+      surahId: 15, startVerse: 26, endVerse: 43,
+      perspective: 'The creation from altered black mud, and Iblis\'s threat to make disobedience attractive to humanity on earth.',
+      perspectiveAr: 'الخلق من صلصال من حمأ مسنون، وتهديد إبليس بتزيين المعصية للبشرية في الأرض.',
+      keyVerseKeys: ['15:28', '15:39'],
+    ),
+    TopicSection(
+      surahId: 17, startVerse: 61, endVerse: 65,
+      perspective: 'Iblis\'s terrifying promise to "bridle" and lead astray the descendants of Adam by their wealth and children.',
+      perspectiveAr: 'وعد إبليس المرعب بـ "الاحتناك" وإضلال ذرية آدم بأموالهم وأولادهم.',
+      keyVerseKeys: ['17:62', '17:64'],
+    ),
+    TopicSection(
+      surahId: 18, startVerse: 50, endVerse: 50,
+      perspective: 'The explicit declaration that Iblis was of the Jinn, serving as a stark warning against taking him as an ally.',
+      perspectiveAr: 'التصريح الواضح بأن إبليس كان من الجن، كتحذير صارخ من اتخاذه ولياً.',
+      keyVerseKeys: ['18:50'],
+    ),
+    TopicSection(
+      surahId: 38, startVerse: 71, endVerse: 85,
+      perspective: 'The scene in the High Assembly, the arrogance of Iblis, and his expulsion until the Day of Recompense.',
+      perspectiveAr: 'المشهد في الملأ الأعلى، وتكبر إبليس، وطرده إلى يوم الدين.',
+      keyVerseKeys: ['38:71', '38:76', '38:82'],
+    ),
   ],
 );
 
@@ -293,6 +441,18 @@ const _dawudSulaymanContent = TopicContent(
       perspective: 'Dawud\'s repentance, his beautiful recitation of the Psalms (Zabur), and Sulayman\'s legendary horses.',
       perspectiveAr: 'توبة داود، وترتيله الجميل للزبور، وخيل سليمان الصافنات الجياد.',
       keyVerseKeys: ['38:17', '38:24', '38:30'],
+    ),
+    TopicSection(
+      surahId: 2, startVerse: 249, endVerse: 251,
+      perspective: 'The young Dawud courageously slaying the tyrant Jalut (Goliath), marking the beginning of his kingdom.',
+      perspectiveAr: 'داود الشاب يقتل الطاغية جالوت بشجاعة، إيذاناً ببداية مُلكه.',
+      keyVerseKeys: ['2:251'],
+    ),
+    TopicSection(
+      surahId: 34, startVerse: 10, endVerse: 14,
+      perspective: 'The mountains echoing Dawud\'s praise, the softening of iron, and the Jinn laboring for Sulayman.',
+      perspectiveAr: 'الجبال تردد تسبيح داود، وإلانة الحديد، وعمل الجن لسليمان.',
+      keyVerseKeys: ['34:10', '34:12'],
     ),
   ],
 );
@@ -386,6 +546,24 @@ const _patienceContent = TopicContent(
       perspectiveAr: '"إن مع العسر يسراً" — مكررة مرتين للتأكيد. وعد بأن الفرج أكيد.',
       keyVerseKeys: ['94:5', '94:6'],
     ),
+    TopicSection(
+      surahId: 8, startVerse: 46, endVerse: 46,
+      perspective: 'Patience as the critical anchor during conflict and adversity — "Indeed, Allah is with the patient."',
+      perspectiveAr: 'الصبر كمرساة حاسمة أثناء الصراع والشدائد — "إن الله مع الصابرين."',
+      keyVerseKeys: ['8:46'],
+    ),
+    TopicSection(
+      surahId: 39, startVerse: 10, endVerse: 10,
+      perspective: 'The boundless reward — the patient will be given their reward without account or limit.',
+      perspectiveAr: 'الأجر الذي لا يحد — يوفى الصابرون أجرهم بغير حساب.',
+      keyVerseKeys: ['39:10'],
+    ),
+    TopicSection(
+      surahId: 70, startVerse: 5, endVerse: 5,
+      perspective: 'The command to embody "Sabran Jameela" (a beautiful, dignified patience) in the face of mockery.',
+      perspectiveAr: 'الأمر بالتحلي بـ "صبر جميل" (صبر كريم وراقٍ) في مواجهة السخرية.',
+      keyVerseKeys: ['70:5'],
+    ),
   ],
 );
 
@@ -421,6 +599,18 @@ const _akhirahContent = TopicContent(
       perspective: 'The earth reveals everything — "Whoever does an atom\'s weight of good will see it."',
       perspectiveAr: 'الأرض تكشف كل شيء — "فمن يعمل مثقال ذرة خيراً يره."',
       keyVerseKeys: ['99:1', '99:7', '99:8'],
+    ),
+    TopicSection(
+      surahId: 23, startVerse: 99, endVerse: 115,
+      perspective: 'The barrier of Barzakh, the blowing of the Horn, and the bitter regret of those who squandered their time.',
+      perspectiveAr: 'حاجز البرزخ، ونفخ الصور، والندم المرير لمن أضاعوا أوقاتهم.',
+      keyVerseKeys: ['23:100', '23:115'],
+    ),
+    TopicSection(
+      surahId: 39, startVerse: 68, endVerse: 75,
+      perspective: 'The grand conclusion — the earth shining with God\'s light, and souls being driven to their final abodes.',
+      perspectiveAr: 'الخاتمة العظيمة — إشراق الأرض بنور الله، وسوق النفوس إلى مثواها الأخير.',
+      keyVerseKeys: ['39:68', '39:73'],
     ),
   ],
 );
@@ -458,6 +648,24 @@ const _tawhidContent = TopicContent(
       perspectiveAr: 'أنقى إعلان للتوحيد — أربع آيات تعرّف وحدانية الله المطلقة.',
       keyVerseKeys: ['112:1', '112:2', '112:3'],
     ),
+    TopicSection(
+      surahId: 20, startVerse: 14, endVerse: 14,
+      perspective: 'The direct, personal revelation to Musa in the valley of Tuwa — the core command to worship God alone.',
+      perspectiveAr: 'الوحي المباشر والشخصي لموسى في وادي طوى — الأمر الأساسي بعبادة الله وحده.',
+      keyVerseKeys: ['20:14'],
+    ),
+    TopicSection(
+      surahId: 21, startVerse: 22, endVerse: 22,
+      perspective: 'The logical argument for Tawhid: the impossibility of multiple gods maintaining the universe without chaos.',
+      perspectiveAr: 'الحجة المنطقية للتوحيد: استحالة وجود آلهة متعددة تدير الكون دون فوضى.',
+      keyVerseKeys: ['21:22'],
+    ),
+    TopicSection(
+      surahId: 59, startVerse: 22, endVerse: 24,
+      perspective: 'A majestic enumeration of God\'s beautiful names and attributes, concluding the surah with awe.',
+      perspectiveAr: 'تعداد مهيب لأسماء الله الحسنى وصفاته، ليختتم السورة برهبة وإجلال.',
+      keyVerseKeys: ['59:23', '59:24'],
+    ),
   ],
 );
 
@@ -487,6 +695,24 @@ const _justiceContent = TopicContent(
       perspective: 'Economic justice — a severe warning to those who cheat in measure and weight.',
       perspectiveAr: 'العدالة الاقتصادية — وعيد شديد للمطففين الذين يغشون في المكيال والميزان.',
       keyVerseKeys: ['83:1', '83:2', '83:3'],
+    ),
+    TopicSection(
+      surahId: 6, startVerse: 152, endVerse: 152,
+      perspective: 'The commandment to speak the truth and establish justice, even if it goes against a close relative.',
+      perspectiveAr: 'الأمر بقول الحق وإقامة العدل، ولو كان على حساب القربى.',
+      keyVerseKeys: ['6:152'],
+    ),
+    TopicSection(
+      surahId: 11, startVerse: 84, endVerse: 85,
+      perspective: 'Prophet Shu\'ayb\'s mandate linking theological faith directly to fair business practices and honest weights.',
+      perspectiveAr: 'رسالة النبي شعيب التي تربط الإيمان العقائدي مباشرة بالممارسات التجارية العادلة والموازين الصادقة.',
+      keyVerseKeys: ['11:84', '11:85'],
+    ),
+    TopicSection(
+      surahId: 57, startVerse: 25, endVerse: 25,
+      perspective: 'The revelation of the Book and the Balance so that humanity may maintain society in justice.',
+      perspectiveAr: 'إنزال الكتاب والميزان ليقوم الناس بالقسط في المجتمع.',
+      keyVerseKeys: ['57:25'],
     ),
   ],
 );
@@ -518,6 +744,24 @@ const _natureContent = TopicContent(
       perspectiveAr: 'احتفاء إيقاعي بالكون — الشمس، والقمر، والشجر، ومرج البحرين.',
       keyVerseKeys: ['55:5', '55:6', '55:19', '55:20'],
     ),
+    TopicSection(
+      surahId: 21, startVerse: 30, endVerse: 33,
+      perspective: 'The creation of the universe from a single entity, water as the source of life, and the celestial orbits.',
+      perspectiveAr: 'خلق الكون من كيان واحد، والماء كمصدر للحياة، والمدارات السماوية.',
+      keyVerseKeys: ['21:30', '21:33'],
+    ),
+    TopicSection(
+      surahId: 24, startVerse: 41, endVerse: 45,
+      perspective: 'The prayer of all creation, the formation of clouds, and the creation of every living creature from water.',
+      perspectiveAr: 'تسبيح كل الخلائق، وتكوين السحاب، وخلق كل دابة من ماء.',
+      keyVerseKeys: ['24:41', '24:43', '24:45'],
+    ),
+    TopicSection(
+      surahId: 67, startVerse: 1, endVerse: 5,
+      perspective: 'An invitation to look at the flawless, layered heavens — a challenge to find a single defect in God\'s creation.',
+      perspectiveAr: 'دعوة للنظر إلى السماوات الطباق الخالية من العيوب — تحدٍ لإيجاد خلل واحد في خلق الله.',
+      keyVerseKeys: ['67:3', '67:4'],
+    ),
   ],
 );
 
@@ -547,6 +791,24 @@ const _mercyContent = TopicContent(
       perspective: 'A deeply comforting reassurance to the Prophet ﷺ during a time of silence and doubt.',
       perspectiveAr: 'طمأنة عميقة ومريحة للنبي ﷺ في وقت انقطاع الوحي والشك.',
       keyVerseKeys: ['93:3', '93:5'],
+    ),
+    TopicSection(
+      surahId: 7, startVerse: 156, endVerse: 156,
+      perspective: 'God\'s absolute declaration: "My mercy encompasses all things."',
+      perspectiveAr: 'الإعلان الإلهي المطلق: "ورحمتي وسعت كل شيء."',
+      keyVerseKeys: ['7:156'],
+    ),
+    TopicSection(
+      surahId: 21, startVerse: 107, endVerse: 107,
+      perspective: 'The Prophet Muhammad ﷺ described as a mercy to the worlds.',
+      perspectiveAr: 'وصف النبي محمد ﷺ بأنه رحمة للعالمين.',
+      keyVerseKeys: ['21:107'],
+    ),
+    TopicSection(
+      surahId: 40, startVerse: 7, endVerse: 7,
+      perspective: 'The angels who carry the Throne praying for the believers, invoking God\'s encompassing mercy and knowledge.',
+      perspectiveAr: 'الملائكة حملة العرش يستغفرون للمؤمنين، متوسلين برحمة الله وعلمه الواسع.',
+      keyVerseKeys: ['40:7'],
     ),
   ],
 );
@@ -578,6 +840,18 @@ const _gratitudeContent = TopicContent(
       perspectiveAr: 'اللازمة الإيقاعية القوية التي تطالب بالاعتراف: "فبأي آلاء ربكما تكذبان؟"',
       keyVerseKeys: ['55:13'],
     ),
+    TopicSection(
+      surahId: 27, startVerse: 19, endVerse: 19,
+      perspective: 'Prophet Sulayman\'s profound prayer asking God for the ability and inspiration to be grateful for his blessings.',
+      perspectiveAr: 'دعاء النبي سليمان العميق سائلاً الله القدرة والإلهام لشكر نعمه.',
+      keyVerseKeys: ['27:19'],
+    ),
+    TopicSection(
+      surahId: 34, startVerse: 13, endVerse: 13,
+      perspective: 'The command to the family of David to work in gratitude, with the stark reminder that few servants are truly grateful.',
+      perspectiveAr: 'الأمر لآل داود بالعمل شكراً، مع التذكير الصريح بأن قليل من العباد شكور.',
+      keyVerseKeys: ['34:13'],
+    ),
   ],
 );
 
@@ -607,6 +881,18 @@ const _parablesContent = TopicContent(
       perspective: 'The spider\'s web — exposing the ultimate fragility of relying on protectors other than God.',
       perspectiveAr: 'بيت العنكبوت — كشف الهشاشة المطلقة للاعتماد على أولياء من دون الله.',
       keyVerseKeys: ['29:41', '29:43'],
+    ),
+    TopicSection(
+      surahId: 7, startVerse: 176, endVerse: 176,
+      perspective: 'The parable of the dog that pants regardless of whether it is chased — depicting one who clings to the earth over divine signs.',
+      perspectiveAr: 'مثل الكلب الذي يلهث سواء طُرد أو تُرك — يصور من يخلد إلى الأرض تاركاً آيات الله.',
+      keyVerseKeys: ['7:176'],
+    ),
+    TopicSection(
+      surahId: 62, startVerse: 5, endVerse: 5,
+      perspective: 'The parable of a donkey carrying books — illustrating those who hold divine knowledge but fail to understand or act upon it.',
+      perspectiveAr: 'مثل الحمار يحمل أسفاراً — يوضح حال من يحمل العلم الإلهي ولكنه يفشل في فهمه أو العمل به.',
+      keyVerseKeys: ['62:5'],
     ),
   ],
 );
@@ -638,6 +924,24 @@ const _familyContent = TopicContent(
       perspectiveAr: 'أخوة المؤمنين، والنهي عن سوء الظن والغيبة والعنصرية التي تمزق المجتمعات.',
       keyVerseKeys: ['49:10', '49:12', '49:13'],
     ),
+    TopicSection(
+      surahId: 17, startVerse: 23, endVerse: 24,
+      perspective: 'The ultimate decree linking the worship of God with excellence toward parents, commanding the "wing of humility."',
+      perspectiveAr: 'المرسوم المطلق الذي يربط عبادة الله بالإحسان للوالدين، والأمر بخفض "جناح الذل من الرحمة."',
+      keyVerseKeys: ['17:23', '17:24'],
+    ),
+    TopicSection(
+      surahId: 31, startVerse: 14, endVerse: 15,
+      perspective: 'The recognition of a mother\'s profound struggle, and the command to accompany parents kindly even if they differ in faith.',
+      perspectiveAr: 'الاعتراف بمعاناة الأم العظيمة، والأمر بمصاحبة الوالدين بالمعروف حتى لو اختلفا في العقيدة.',
+      keyVerseKeys: ['31:14', '31:15'],
+    ),
+    TopicSection(
+      surahId: 46, startVerse: 15, endVerse: 16,
+      perspective: 'The mature prayer of a believer at age forty, expressing gratitude to parents and asking for righteous offspring.',
+      perspectiveAr: 'دعاء المؤمن الناضج عند بلوغ الأربعين، معبراً عن شكره لوالديه وسائلًا الذرية الصالحة.',
+      keyVerseKeys: ['46:15'],
+    ),
   ],
 );
 
@@ -667,6 +971,384 @@ const _duaContent = TopicContent(
       perspective: 'The divine command to invoke Him, coupled with the absolute promise of His response.',
       perspectiveAr: 'الأمر الإلهي بالدعاء، مقترناً بالوعد القاطع بالاستجابة.',
       keyVerseKeys: ['40:60'],
+    ),
+    TopicSection(
+      surahId: 21, startVerse: 83, endVerse: 90,
+      perspective: 'The intense, universally answered prayers of Prophets Ayyub (Job), Yunus (Jonah), and Zakariyyah (Zechariah) in moments of profound distress.',
+      perspectiveAr: 'الأدعية العظيمة والمستجابة عالمياً للأنبياء أيوب ويونس وزكريا في لحظات الكرب الشديد.',
+      keyVerseKeys: ['21:83', '21:87', '21:89'],
+    ),
+    TopicSection(
+      surahId: 27, startVerse: 62, endVerse: 62,
+      perspective: 'A rhetorical question that strikes the core: "Is He [not best] who responds to the desperate one when he calls upon Him?"',
+      perspectiveAr: 'سؤال بلاغي يمس الصميم: "أمن يجيب المضطر إذا دعاه ويكشف السوء؟"',
+      keyVerseKeys: ['27:62'],
+    ),
+  ],
+);
+
+const _muhammadContent = TopicContent(
+  topicId: 'muhammad',
+  narrative:
+      'Unlike past prophets whose stories are told historically, the Quran addresses Prophet Muhammad ﷺ in real-time. It comforts him in moments of deep sorrow, corrects him gently when needed, and defends him against his detractors.\n\n'
+      'The Quran paints a portrait of a man carrying the heaviest of burdens — the final revelation. From the intimate reassurance of Ad-Duha to the social etiquette established for his community in Al-Hujurat, we see not just the Messenger, but the human being whose character was the Quran itself.',
+  narrativeAr:
+      'على عكس الأنبياء السابقين الذين تُروى قصصهم تاريخياً، يخاطب القرآن النبي محمد ﷺ في الوقت الفعلي. فيواسيه في لحظات الحزن العميق، ويوجهه بلطف عند الحاجة، ويدافع عنه ضد منتقديه.\n\n'
+      'يرسم القرآن صورة لرجل يحمل أثقل الأعباء — الوحي الخاتم. من الطمأنينة الحميمة في سورة الضحى إلى الآداب الاجتماعية التي أُسست لمجتمعه في سورة الحجرات، لا نرى الرسول فحسب، بل الإنسان الذي كان خلقه القرآن.',
+  sections: [
+    TopicSection(
+      surahId: 33, startVerse: 21, endVerse: 21,
+      perspective: 'The declaration that the Messenger is the ultimate "excellent pattern" (uswah hasanah) for the believers.',
+      perspectiveAr: 'الإعلان بأن الرسول هو "الأسوة الحسنة" المطلقة للمؤمنين.',
+      keyVerseKeys: ['33:21'],
+    ),
+    TopicSection(
+      surahId: 49, startVerse: 1, endVerse: 5,
+      perspective: 'The etiquette of interacting with the Prophet — lowering voices and showing profound respect in his presence.',
+      perspectiveAr: 'آداب التعامل مع النبي — غض الأصوات وإظهار الاحترام العميق في حضرته.',
+      keyVerseKeys: ['49:2', '49:3'],
+    ),
+    TopicSection(
+      surahId: 93, startVerse: 1, endVerse: 11,
+      perspective: 'A profoundly personal reassurance after a period of delayed revelation: "Your Lord has not abandoned you, nor is He displeased."',
+      perspectiveAr: 'طمأنة شخصية عميقة بعد فترة من انقطاع الوحي: "ما ودعك ربك وما قلى."',
+      keyVerseKeys: ['93:3', '93:5'],
+    ),
+    TopicSection(
+      surahId: 94, startVerse: 1, endVerse: 8,
+      perspective: 'The expansion of his chest and the lifting of his burden — a testament to God\'s intimate care for His final messenger.',
+      perspectiveAr: 'شرح صدره ووضع وزره — شهادة على رعاية الله الحميمة لرسوله الخاتم.',
+      keyVerseKeys: ['94:1', '94:2', '94:5'],
+    ),
+  ],
+);
+
+const _qisasContent = TopicContent(
+  topicId: 'qisas',
+  narrative:
+      'The Quran frequently recounts the histories of past nations (Qisas) — \'Aad, Thamud, Madyan, and the people of Lut — not merely as historical records, but as stark archetypes of human behavior. These communities reached peaks of civilization and power, yet were destroyed because of arrogance, economic corruption, or moral decay.\n\n'
+      'By walking the reader through the ruins of these ancient cities, the Quran challenges the illusion of permanent power, reminding every civilization that true endurance is only found in justice and submission to God.',
+  narrativeAr:
+      'يسرد القرآن مراراً وتكراراً تواريخ الأمم السابقة (القصص) — عاد، وثمود، ومدين، وقوم لوط — ليس كسجلات تاريخية فحسب، بل كنماذج صارخة للسلوك البشري. بلغت هذه المجتمعات ذروة الحضارة والقوة، ومع ذلك دُمرت بسبب الغطرسة، أو الفساد الاقتصادي، أو الانحلال الأخلاقي.\n\n'
+      'من خلال السير بالقارئ عبر أطلال هذه المدن القديمة، يتحدى القرآن وهم القوة الدائمة، مذكراً كل حضارة بأن البقاء الحقيقي لا يُوجد إلا في العدل والخضوع لله.',
+  sections: [
+    TopicSection(
+      surahId: 7, startVerse: 65, endVerse: 79,
+      perspective: 'The sequential stories of \'Aad and Thamud — their immense physical strength, their architectural marvels, and their ultimate refusal of the truth.',
+      perspectiveAr: 'القصص المتتالية لعاد وثمود — قوتهم الجسدية الهائلة، وروائعهم المعمارية، ورفضهم النهائي للحق.',
+      keyVerseKeys: ['7:69', '7:73', '7:78'],
+    ),
+    TopicSection(
+      surahId: 11, startVerse: 84, endVerse: 95,
+      perspective: 'The people of Madyan and Prophet Shu\'ayb — a nation destroyed not for theology alone, but for rampant economic injustice and fraud.',
+      perspectiveAr: 'قوم مدين والنبي شعيب — أمة دُمرت ليس بسبب العقيدة وحدها، بل للظلم الاقتصادي والغش المتفشي.',
+      keyVerseKeys: ['11:84', '11:85', '11:94'],
+    ),
+    TopicSection(
+      surahId: 89, startVerse: 6, endVerse: 14,
+      perspective: 'The swift recounting of Iram, Thamud, and Pharaoh — the inevitable fall of the most powerful ancient empires.',
+      perspectiveAr: 'السرد السريع لإرم، وثمود، وفرعون — السقوط الحتمي لأقوى الإمبراطوريات القديمة.',
+      keyVerseKeys: ['89:6', '89:9', '89:14'],
+    ),
+  ],
+);
+
+const _nisaContent = TopicContent(
+  topicId: 'nisa',
+  narrative:
+      'The Quran elevates the stories of several extraordinary women, presenting them not merely as secondary figures, but as ultimate examples of faith for *all* believers, both men and women.\n\n'
+      'From Asiya (the wife of Pharaoh) who chose God over the greatest empire on earth, to the Queen of Sheba whose intellect led her nation to surrender to God, to the mother of Musa whose profound trust allowed her to cast her baby into the river — these narratives highlight fierce independence, unshakable conviction, and divine reliance.',
+  narrativeAr:
+      'يُعلي القرآن من شأن قصص العديد من النساء الاستثنائيات، ويقدمهن ليس كشخصيات ثانوية، بل كأمثلة عليا للإيمان لـ *جميع* المؤمنين، رجالاً ونساءً.\n\n'
+      'من آسية (امرأة فرعون) التي اختارت الله على أعظم إمبراطورية في الأرض، إلى ملكة سبأ التي قادها ذكاؤها إلى استسلام أمتها لله، إلى أم موسى التي سمح لها توكلها العميق بإلقاء رضيعها في النهر — تبرز هذه الروايات الاستقلال الشرس، واليقين الراسخ، والاعتماد على الله.',
+  sections: [
+    TopicSection(
+      surahId: 27, startVerse: 22, endVerse: 44,
+      perspective: 'The Queen of Sheba (Bilqis) — a wise, diplomatic leader who possessed a mighty kingdom but ultimately submitted to God with Sulayman.',
+      perspectiveAr: 'ملكة سبأ (بلقيس) — قائدة حكيمة ودبلوماسية امتلكت ملكاً عظيماً لكنها استسلمت في النهاية لله مع سليمان.',
+      keyVerseKeys: ['27:32', '27:44'],
+    ),
+    TopicSection(
+      surahId: 28, startVerse: 7, endVerse: 13,
+      perspective: 'The mother of Musa — her heart-wrenching trial, the divine inspiration to cast him into the river, and God\'s promise to return him.',
+      perspectiveAr: 'أم موسى — محنتها المفجعة للقلب، والإلهام الإلهي بإلقائه في النهر، ووعد الله برده إليها.',
+      keyVerseKeys: ['28:7', '28:10', '28:13'],
+    ),
+    TopicSection(
+      surahId: 66, startVerse: 11, endVerse: 12,
+      perspective: 'Asiya (Pharaoh\'s wife) and Maryam (daughter of \'Imran) presented as the ultimate archetypes of faith for the entire believing world.',
+      perspectiveAr: 'آسية (امرأة فرعون) ومريم (ابنة عمران) قُدمتا كالنماذج العليا للإيمان للعالم المؤمن بأسره.',
+      keyVerseKeys: ['66:11', '66:12'],
+    ),
+  ],
+);
+
+const _tawbahContent = TopicContent(
+  topicId: 'tawbah',
+  narrative:
+      'Tawbah (repentance) in the Quran is not merely feeling guilty; it is the active, continuous process of "returning" to God. The Quran portrays a God whose mercy vastly outpaces His wrath, calling even those who have severely wronged themselves not to despair.\n\n'
+      'From the story of Adam\'s first mistake and subsequent forgiveness, to the profound narrative of the three companions who were left behind during the Tabuk expedition, the Quran makes it clear that the door of return is never closed as long as there is breath in the lungs.',
+  narrativeAr:
+      'التوبة في القرآن ليست مجرد شعور بالذنب؛ بل هي عملية تفاعلية ومستمرة من "العودة" إلى الله. يصور القرآن إلهاً تسبق رحمته غضبه، ويدعو حتى أولئك الذين أسرفوا على أنفسهم ألا يقنطوا.\n\n'
+      'من قصة خطيئة آدم الأولى والمغفرة التي تلتها، إلى الرواية العميقة للصحابة الثلاثة الذين خُلفوا في غزوة تبوك، يوضح القرآن بجلاء أن باب العودة لا يُغلق أبداً طالما كان هناك نفس يتردد في الصدور.',
+  sections: [
+    TopicSection(
+      surahId: 9, startVerse: 117, endVerse: 119,
+      perspective: 'The intense psychological trial of the three who were left behind, and how God "turned to them so they could repent" — showing that even the desire to repent is a divine gift.',
+      perspectiveAr: 'المحنة النفسية الشديدة للثلاثة الذين خُلفوا، وكيف أن الله "تاب عليهم ليتوبوا" — مما يدل على أن الرغبة في التوبة بحد ذاتها هي هبة إلهية.',
+      keyVerseKeys: ['9:118', '9:119'],
+    ),
+    TopicSection(
+      surahId: 20, startVerse: 120, endVerse: 122,
+      perspective: 'Adam\'s slip in paradise, followed immediately by his repentance and God\'s choice of him — demonstrating that making mistakes is human, but repentance elevates.',
+      perspectiveAr: 'زلة آدم في الجنة، والتي تلتها توبته الفورية واجتباء الله له — مما يثبت أن الخطأ بشري، لكن التوبة ترفع درجات الإنسان.',
+      keyVerseKeys: ['20:121', '20:122'],
+    ),
+    TopicSection(
+      surahId: 25, startVerse: 68, endVerse: 71,
+      perspective: 'The transformative power of Tawbah: not only are major sins forgiven, but God actually replaces the evil deeds with good ones for the sincere.',
+      perspectiveAr: 'القوة التحويلية للتوبة: ليس فقط غفران الكبائر، بل إن الله يبدل السيئات حسنات للمخلصين.',
+      keyVerseKeys: ['25:70'],
+    ),
+    TopicSection(
+      surahId: 39, startVerse: 53, endVerse: 54,
+      perspective: 'The most hopeful verse in the Quran: a direct call to those who have transgressed against themselves never to despair of God\'s comprehensive mercy.',
+      perspectiveAr: 'أكثر آية تبعث على الأمل في القرآن: نداء مباشر للذين أسرفوا على أنفسهم ألا يقنطوا أبداً من رحمة الله الشاملة.',
+      keyVerseKeys: ['39:53'],
+    ),
+    TopicSection(
+      surahId: 66, startVerse: 8, endVerse: 8,
+      perspective: 'The concept of "Tawbah Nasuha" (sincere, unadulterated repentance) and its reward of wiped sins and gardens of paradise.',
+      perspectiveAr: 'مفهوم "التوبة النصوح" (الصادقة والخالصة) وجزاؤها من تكفير السيئات وجنات الخلد.',
+      keyVerseKeys: ['66:8'],
+    ),
+  ],
+);
+
+const _ibtilaContent = TopicContent(
+  topicId: 'ibtila',
+  narrative:
+      'The Quran establishes a fundamental worldview: this life is a temporary testing ground. Ibtila (trials and tests) are not necessarily signs of divine anger; often, they are tools of purification and elevation.\n\n'
+      'Through fear, hunger, loss of wealth, and loss of life, believers are tested to reveal the truth of their faith. But alongside this challenging reality, the Quran guarantees that no soul is burdened beyond its capacity, and that with every hardship comes ease.',
+  narrativeAr:
+      'يؤسس القرآن لرؤية كونية أساسية: هذه الحياة هي ميدان اختبار مؤقت. الابتلاء ليس بالضرورة علامة على الغضب الإلهي؛ بل غالباً ما يكون أداة للتطهير والرفعة.\n\n'
+      'من خلال الخوف، والجوع، ونقص الأموال والأنفس، يُمتحن المؤمنون لتُكشف حقيقة إيمانهم. ولكن إلى جانب هذا الواقع الصعب، يضمن القرآن ألا تُكلف نفس إلا وسعها، وأن مع كل عسر يسراً.',
+  sections: [
+    TopicSection(
+      surahId: 2, startVerse: 155, endVerse: 157,
+      perspective: 'The guarantee of tests through fear, hunger, and loss, paired with the ultimate glad tidings for the patient (As-Sabirin).',
+      perspectiveAr: 'ضمان وقوع الابتلاء بالخوف والجوع والفقد، مقترناً بالبشارة العظمى للصابرين.',
+      keyVerseKeys: ['2:155', '2:156'],
+    ),
+    TopicSection(
+      surahId: 3, startVerse: 140, endVerse: 142,
+      perspective: 'The explanation after the battle of Uhud: days of victory and defeat alternate among people to distinguish true believers and take martyrs.',
+      perspectiveAr: 'الشرح بعد غزوة أحد: الأيام (الانتصار والهزيمة) نداولها بين الناس ليميز الله المؤمنين الصادقين ويتخذ الشهداء.',
+      keyVerseKeys: ['3:140', '3:142'],
+    ),
+    TopicSection(
+      surahId: 21, startVerse: 35, endVerse: 35,
+      perspective: 'The stark reality that every soul will taste death, and that life is a test of both good and evil before the inevitable return.',
+      perspectiveAr: 'الحقيقة الصارخة بأن كل نفس ذائقة الموت، وأن الحياة ابتلاء بالخير والشر قبل العودة الحتمية.',
+      keyVerseKeys: ['21:35'],
+    ),
+    TopicSection(
+      surahId: 29, startVerse: 2, endVerse: 3,
+      perspective: 'The foundational question: Did people think they would be left alone simply by saying "we believe" without being tested?',
+      perspectiveAr: 'السؤال التأسيسي: أحسب الناس أن يُتركوا لمجرد قولهم "آمنا" وهم لا يُفتنون؟',
+      keyVerseKeys: ['29:2'],
+    ),
+    TopicSection(
+      surahId: 67, startVerse: 1, endVerse: 2,
+      perspective: 'The ultimate purpose of the creation of life and death: to test humanity and reveal who is best in deeds.',
+      perspectiveAr: 'الغاية القصوى من خلق الحياة والموت: ليبلو الإنسانية ويظهر أيهم أحسن عملاً.',
+      keyVerseKeys: ['67:2'],
+    ),
+  ],
+);
+
+const _ghaybContent = TopicContent(
+  topicId: 'ghayb',
+  narrative:
+      'A core pillar of Quranic faith is belief in Al-Ghayb (the Unseen). The Quran constantly reminds humans that their sensory perception is severely limited. There are entire worlds, forces, and realities functioning beyond human sight.\n\n'
+      'This includes the angels who execute divine commands, the Jinn who coexist in a parallel dimension, and the ultimate realities of the soul and the afterlife. Acknowledging the Unseen is the first step toward intellectual humility and true spiritual consciousness.',
+  narrativeAr:
+      'أحد الأركان الأساسية للإيمان القرآني هو الإيمان بالغيب. يذكّر القرآن البشر باستمرار بأن إدراكهم الحسي محدود للغاية. هناك عوالم، وقوى، وحقائق كاملة تعمل خارج نطاق الرؤية البشرية.\n\n'
+      'يشمل ذلك الملائكة الذين ينفذون الأوامر الإلهية، والجن الذين يتعايشون في بُعد موازٍ، والحقائق المطلقة للروح والحياة الآخرة. الاعتراف بالغيب هو الخطوة الأولى نحو التواضع الفكري والوعي الروحي الحقيقي.',
+  sections: [
+    TopicSection(
+      surahId: 35, startVerse: 1, endVerse: 1,
+      perspective: 'The description of angels as messengers with wings — executing divine will across the cosmos.',
+      perspectiveAr: 'وصف الملائكة كرسل أولي أجنحة — ينفذون الإرادة الإلهية عبر الكون.',
+      keyVerseKeys: ['35:1'],
+    ),
+    TopicSection(
+      surahId: 72, startVerse: 1, endVerse: 15,
+      perspective: 'The unseen realm of the Jinn, revealing that they too listen to the Quran, possess free will, and have diverse moral standings.',
+      perspectiveAr: 'عالم الجن الخفي، والكشف عن أنهم أيضاً يستمعون للقرآن، ويمتلكون إرادة حرة، وتتنوع مواقفهم الأخلاقية.',
+      keyVerseKeys: ['72:1', '72:14'],
+    ),
+    TopicSection(
+      surahId: 77, startVerse: 1, endVerse: 7,
+      perspective: 'Oaths sworn by unseen, elemental forces (winds or angels) that carry out God\'s commands with absolute precision.',
+      perspectiveAr: 'أقسام بقوى خفية وعناصرية (الرياح أو الملائكة) تنفذ أوامر الله بدقة متناهية.',
+      keyVerseKeys: ['77:1', '77:5'],
+    ),
+  ],
+);
+
+const _quranContent = TopicContent(
+  topicId: 'quran',
+  narrative:
+      'How does the Quran describe itself? Throughout its pages, the Book is self-aware. It refers to itself not just as text, but as a "light" (Nur), a "healing" (Shifa\'), a "criterion" (Furqan), and a "heavy word" (Qawlan Thaqila).\n\n'
+      'The Quran speaks of its own immense spiritual gravity — stating that if it had been revealed upon a mountain, the mountain would have humbled itself and split apart out of reverence for God. It is a living, active force meant to awaken dead hearts.',
+  narrativeAr:
+      'كيف يصف القرآن نفسه؟ بين دفتيه، يبدو الكتاب واعياً بذاته. فهو لا يشير إلى نفسه كنص فحسب، بل كـ "نور"، و"شفاء"، و"فرقان"، و"قول ثقيل".\n\n'
+      'يتحدث القرآن عن ثقله الروحي الهائل — مؤكداً أنه لو أُنزل على جبل، لرأيته خاشعاً متصدعاً من خشية الله. إنه قوة حية وفاعلة تهدف إلى إيقاظ القلوب الميتة.',
+  sections: [
+    TopicSection(
+      surahId: 17, startVerse: 82, endVerse: 82,
+      perspective: 'The dual nature of the Quran: it is a profound healing and mercy for the believers, but increases the unjust only in loss.',
+      perspectiveAr: 'الطبيعة المزدوجة للقرآن: فهو شفاء ورحمة عميقة للمؤمنين، ولكنه لا يزيد الظالمين إلا خساراً.',
+      keyVerseKeys: ['17:82'],
+    ),
+    TopicSection(
+      surahId: 56, startVerse: 77, endVerse: 80,
+      perspective: 'The protected, noble status of the Quran in a hidden record, touched only by the purified (the angels).',
+      perspectiveAr: 'المكانة النبيلة والمحفوظة للقرآن في كتاب مكنون، لا يمسه إلا المطهرون (الملائكة).',
+      keyVerseKeys: ['56:77', '56:79'],
+    ),
+    TopicSection(
+      surahId: 59, startVerse: 21, endVerse: 21,
+      perspective: 'The breathtaking imagery of the Quran\'s spiritual weight — capable of shattering a mountain out of awe.',
+      perspectiveAr: 'التصوير المذهل للثقل الروحي للقرآن — القادر على صدع جبل من الخشية.',
+      keyVerseKeys: ['59:21'],
+    ),
+    TopicSection(
+      surahId: 73, startVerse: 1, endVerse: 5,
+      perspective: 'The command to rise in the night to prepare for the reception of a "heavy word" — highlighting the spiritual endurance required to carry the message.',
+      perspectiveAr: 'الأمر بقيام الليل استعداداً لتلقي "القول الثقيل" — مما يبرز التحمل الروحي المطلوب لحمل الرسالة.',
+      keyVerseKeys: ['73:4', '73:5'],
+    ),
+    TopicSection(
+      surahId: 97, startVerse: 1, endVerse: 5,
+      perspective: 'The night of its initial descent — the Night of Decree, a night of peace that is better than a thousand months.',
+      perspectiveAr: 'ليلة نزوله الأولى — ليلة القدر، ليلة السلام التي هي خير من ألف شهر.',
+      keyVerseKeys: ['97:1', '97:3'],
+    ),
+  ],
+);
+
+const _taqwaContent = TopicContent(
+  topicId: 'taqwa',
+  narrative:
+      'Taqwa is often translated as "fearing God," but a more accurate translation is "God-consciousness" or "mindful reverence." It is the protective shield a believer builds through being acutely aware of God\'s presence and the accountability of the Hereafter.\n\n'
+      'The Quran positions Taqwa as the ultimate metric of human worth. It transcends race, gender, and social status. It is the primary goal of fasting, the best provision for the journey of life, and the only garment that truly covers our spiritual nakedness.',
+  narrativeAr:
+      'غالباً ما تُترجم التقوى على أنها "الخوف من الله"، لكن الترجمة الأدق هي "الوعي بالله" أو "التبجيل الواعي". إنها الدرع الواقي الذي يبنيه المؤمن من خلال وعيه الشديد بحضور الله والمساءلة في الآخرة.\n\n'
+      'يضع القرآن التقوى كالمقياس المطلق لقيمة الإنسان. فهي تتجاوز العرق والجنس والمكانة الاجتماعية. إنها الهدف الأساسي من الصيام، وأفضل زاد لرحلة الحياة، واللباس الوحيد الذي يستر عرينا الروحي حقاً.',
+  sections: [
+    TopicSection(
+      surahId: 49, startVerse: 13, endVerse: 13,
+      perspective: 'The definitive Quranic statement on equality: humanity was created diverse to know one another, but the most honored in the sight of God is the most mindful (Muttaqi).',
+      perspectiveAr: 'البيان القرآني القاطع حول المساواة: خُلقت البشرية متنوعة ليتعارفوا، لكن أكرمهم عند الله أتقاهم.',
+      keyVerseKeys: ['49:13'],
+    ),
+    TopicSection(
+      surahId: 2, startVerse: 183, endVerse: 183,
+      perspective: 'The prescription of fasting — not for physical starvation, but specifically to cultivate Taqwa.',
+      perspectiveAr: 'تشريع الصيام — ليس من أجل التجويع الجسدي، بل خصيصاً لتنمية التقوى.',
+      keyVerseKeys: ['2:183'],
+    ),
+    TopicSection(
+      surahId: 2, startVerse: 197, endVerse: 197,
+      perspective: 'The command to take provisions for the journey of Hajj (and life), concluding that the absolute best provision is Taqwa.',
+      perspectiveAr: 'الأمر بالتزود لرحلة الحج (والحياة)، مع الاستنتاج بأن خير الزاد هو التقوى.',
+      keyVerseKeys: ['2:197'],
+    ),
+    TopicSection(
+      surahId: 3, startVerse: 133, endVerse: 135,
+      perspective: 'A race towards forgiveness and a garden prepared for the Muttaqin, detailing their specific actions: spending in hardship, restraining anger, and seeking immediate forgiveness when they slip.',
+      perspectiveAr: 'مسارعة نحو المغفرة وجنة أُعدت للمتقين، مع تفصيل أفعالهم المحددة: الإنفاق في السراء والضراء، وكظم الغيظ، وطلب المغفرة الفورية عند الزلل.',
+      keyVerseKeys: ['3:133', '3:134'],
+    ),
+    TopicSection(
+      surahId: 59, startVerse: 18, endVerse: 18,
+      perspective: 'The dual command to have Taqwa, framing it as the process of actively looking at what one has put forth for tomorrow.',
+      perspectiveAr: 'الأمر المزدوج بالتقوى، وصياغته كعملية نظر تفاعلية فيما قدمته النفس لغد.',
+      keyVerseKeys: ['59:18'],
+    ),
+  ],
+);
+
+const _sadaqahContent = TopicContent(
+  topicId: 'sadaqah',
+  narrative:
+      'In the Quranic worldview, wealth is not owned, it is stewarded. Sadaqah (charity) is not merely a good deed; it is a fundamental purification of wealth and a proof of faith (the root of Sadaqah means "truth" or "sincerity").\n\n'
+      'The Quran fiercely attacks the hoarding of wealth and predatory economic practices like Riba (usury). It promises that while charity appears to decrease wealth mathematically, it actually guarantees exponential growth, comparing it to a single grain that yields seven hundred.',
+  narrativeAr:
+      'في الرؤية الكونية القرآنية، الثروة لا تُمتلك، بل تُستأمن. الصدقة ليست مجرد عمل صالح؛ بل هي تطهير أساسي للمال ودليل على الإيمان (جذر كلمة صدقة يعني "الصدق" أو "الإخلاص").\n\n'
+      'يهاجم القرآن بشراسة اكتناز الثروات والممارسات الاقتصادية الاستغلالية كالربا. ويعد بأنه بينما تبدو الصدقة وكأنها تنقص المال رياضياً، إلا أنها تضمن نمواً مضاعفاً، مشبهاً إياها بحبة واحدة تنبت سبعمائة حبة.',
+  sections: [
+    TopicSection(
+      surahId: 2, startVerse: 261, endVerse: 265,
+      perspective: 'The breathtaking parable of the grain of wheat — demonstrating the exponential, limitless returns of spending purely for God\'s sake, free from reminders of generosity.',
+      perspectiveAr: 'المثل المذهل لحبة القمح — يوضح العوائد المضاعفة واللامحدودة للإنفاق الخالص لوجه الله، الخالي من المن والأذى.',
+      keyVerseKeys: ['2:261', '2:264'],
+    ),
+    TopicSection(
+      surahId: 92, startVerse: 5, endVerse: 11,
+      perspective: 'The stark contrast between the one who gives, fears God, and believes in the best, versus the one who hoards, considers himself self-sufficient, and denies the truth.',
+      perspectiveAr: 'التناقض الصارخ بين من أعطى واتقى وصدق بالحسنى، وبين من بخل واستغنى وكذب بالحسنى.',
+      keyVerseKeys: ['92:5', '92:8'],
+    ),
+    TopicSection(
+      surahId: 104, startVerse: 1, endVerse: 9,
+      perspective: 'A severe warning to the "Humazah Lumazah" — the slanderer who obsessively hoards and counts wealth, believing it will grant him immortality.',
+      perspectiveAr: 'تحذير شديد لـ "الهمزة اللمزة" — الطعان الذي يجمع المال ويعدده بهوس، معتقداً أنه سيخلده.',
+      keyVerseKeys: ['104:1', '104:2'],
+    ),
+    TopicSection(
+      surahId: 107, startVerse: 1, endVerse: 7,
+      perspective: 'Defining the true denial of faith (Deen) not as a theological error, but as the mistreatment of the orphan and the refusal to feed the poor.',
+      perspectiveAr: 'تعريف التكذيب الحقيقي بالدين ليس كخطأ عقائدي، بل كإساءة معاملة اليتيم ورفض إطعام المسكين.',
+      keyVerseKeys: ['107:1', '107:2', '107:3'],
+    ),
+  ],
+);
+
+const _nifaqContent = TopicContent(
+  topicId: 'nifaq',
+  narrative:
+      'Nifaq (hypocrisy) is described in the Quran as a "disease in the heart." It is the state of proclaiming faith outwardly while harboring disbelief or self-serving agendas inwardly.\n\n'
+      'The Quran considers hypocrisy to be more dangerous than open disbelief, as it undermines the community from within. The Munafiqun (hypocrites) are characterized by laziness in prayer, extreme cowardice, broken promises, and sowing discord among believers.',
+  narrativeAr:
+      'يُوصف النفاق في القرآن بأنه "مرض في القلب". وهو حالة إعلان الإيمان ظاهرياً مع إضمار الكفر أو الأجندات الأنانية باطنياً.\n\n'
+      'يعتبر القرآن النفاق أخطر من الكفر الصريح، لأنه يقوض المجتمع من الداخل. يتميز المنافقون بالكسل في الصلاة، والجبن الشديد، ونقض العهود، وزرع الفتنة بين المؤمنين.',
+  sections: [
+    TopicSection(
+      surahId: 2, startVerse: 8, endVerse: 20,
+      perspective: 'The early profiling of the hypocrites: they claim to be peacemakers while causing corruption, and two powerful parables illustrating their internal darkness and confusion.',
+      perspectiveAr: 'التوصيف المبكر للمنافقين: يدّعون أنهم مصلحون بينما يفسدون، ومثلان قويان يوضحان ظلامهم الداخلي وتخبطهم.',
+      keyVerseKeys: ['2:8', '2:11', '2:17', '2:19'],
+    ),
+    TopicSection(
+      surahId: 63, startVerse: 1, endVerse: 4,
+      perspective: 'The surah dedicated to unmasking them: they use their oaths as a shield, their outward appearance is pleasing, but internally they are like "propped-up pieces of wood."',
+      perspectiveAr: 'السورة المخصصة لكشف قناعهم: يتخذون أيمانهم جُنة، تعجبك أجسامهم، لكنهم من الداخل كـ "خشب مسندة".',
+      keyVerseKeys: ['63:1', '63:4'],
+    ),
+    TopicSection(
+      surahId: 9, startVerse: 64, endVerse: 68,
+      perspective: 'Their mockery of the revelation and the believers, their enjoyment of the worldly life, and the ultimate promise of the fire of Hell for their deceit.',
+      perspectiveAr: 'استهزاؤهم بالوحي والمؤمنين، واستمتاعهم بالحياة الدنيا، والوعد النهائي بنار جهنم لجزاء خداعهم.',
+      keyVerseKeys: ['9:64', '9:67'],
+    ),
+    TopicSection(
+      surahId: 4, startVerse: 142, endVerse: 145,
+      perspective: 'Their physical manifestation of faith: standing for prayer lazily, purely to be seen by people, resulting in them being placed in the absolute lowest depths of the Fire.',
+      perspectiveAr: 'التجلي الجسدي لإيمانهم: يقفون للصلاة كسالى، فقط ليراهم الناس، مما يؤدي إلى وضعهم في الدرك الأسفل من النار.',
+      keyVerseKeys: ['4:142', '4:145'],
     ),
   ],
 );

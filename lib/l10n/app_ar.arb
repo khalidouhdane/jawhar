@@ -1188,5 +1188,30 @@
   },
   "topicShowVerses": "عرض الآيات المفتاحية",
   "topicHideVerses": "إخفاء الآيات المفتاحية",
-  "topicOfflineVerse": "الترجمة غير متوفرة بدون اتصال"
+  "topicOfflineVerse": "الترجمة غير متوفرة بدون اتصال",
+  "readingTranslation": "الترجمة",
+  "translationLoading": "جارٍ تحميل الترجمات...",
+  "contextTranslate": "ترجمة",
+  "contextTafsir": "تفسير",
+  "asbabNuzulTitle": "سبب النزول",
+  "asbabOccasion": "سبب النزول",
+  "asbabReadFull": "قراءة الرواية كاملة ←",
+  "pageLoadError": "تعذّر تحميل الصفحة {pageNumber}",
+  "@pageLoadError": {
+    "placeholders": {
+      "pageNumber": { "type": "int" }
+    }
+  },
+  "verseCopied": "تم نسخ الآية {verseKey}",
+  "@verseCopied": {
+    "placeholders": {
+      "verseKey": { "type": "String" }
+    }
+  },
+  "verseCopiedForSharing": "تم نسخ الآية للمشاركة",
+  "tafsirSourceMukhtasar": "التفسير المختصر",
+  "tafsirSourceIbnKathir": "تفسير ابن كثير",
+  "tafsirReadMore": "قراءة المزيد",
+  "tafsirShowLess": "عرض أقل",
+  "retry": "إعادة المحاولة"
 }

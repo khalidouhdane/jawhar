@@ -41,6 +41,16 @@ const List<String> _surahNames = [
 /// Repeat mode for audio playback
 enum AudioRepeatMode { none, repeatVerse, repeatRange }
 
+/// Quality of audio-verse synchronization for the current reciter.
+enum AudioSyncQuality {
+  /// Full timing data with accurate position reporting
+  perfect,
+  /// Timing data available but drift correction is active
+  corrected,
+  /// No timing data — verse highlighting disabled
+  unavailable,
+}
+
 /// Audio playback using full chapter audio with verse timing data.
 /// Plays the complete chapter mp3 and seeks to exact verse positions
 /// using timestamp data from the API. This gives truly gapless playback
@@ -112,6 +122,17 @@ class AudioProvider extends ChangeNotifier {
   String? get repeatRangeEnd => _repeatRangeEnd;
   int get repeatCount => _repeatCount;
 
+  /// Whether verse-level timing data is available for the current chapter/reciter.
+  /// When false, audio plays but verse highlighting cannot track position.
+  bool get hasVerseTimings => _verseTimings.isNotEmpty;
+
+  /// Current sync quality based on timing availability and drift state.
+  AudioSyncQuality get syncQuality {
+    if (_verseTimings.isEmpty) return AudioSyncQuality.unavailable;
+    if (_driftCorrectionMs > _driftThresholdMs) return AudioSyncQuality.corrected;
+    return AudioSyncQuality.perfect;
+  }
+
   // Chapter audio data
 
   int? _currentChapter;
@@ -123,12 +144,52 @@ class AudioProvider extends ChangeNotifier {
   // Cache: "reciterId:chapter" -> { audioUrl, timings }
   final Map<String, _ChapterAudioData> _chapterCache = {};
 
+  // ── Wall-clock drift correction ──────────────────────────────
+  // The system clock is always accurate. By recording when playback
+  // started and at what seek position, we can compute the EXPECTED
+  // audio position independently of the player's reporting.
+  // If the player reports positions behind the wall clock expectation,
+  // we use the wall clock value for verse detection instead.
+
+  /// When playback last started/resumed. Null when paused.
+  DateTime? _wallClockPlayStart;
+
+  /// The audio position (ms) at the moment _wallClockPlayStart was set.
+  int _wallClockPosRefMs = 0;
+
+  /// Current drift correction (ms). Positive = player reports behind.
+  int _driftCorrectionMs = 0;
+
+  /// Minimum absolute drift (ms) before applying correction.
+  static const int _driftThresholdMs = 80;
+
+  /// Maximum drift (ms) before assuming a buffering stall.
+  /// Beyond this, the wall clock is racing ahead of stalled audio.
+  static const int _maxDriftMs = 2000;
+
+  /// Last reported position for stall detection.
+  int _lastReportedPosMs = -1;
+
   AudioProvider() {
     _player.onPlayerStateChanged.listen((state) {
       if (_isSeeking) return;
       final playing = state == PlayerState.playing;
       if (_isPlaying != playing) {
+        final wasPaused = !_isPlaying && playing;
+        final nowPaused = _isPlaying && !playing;
         _isPlaying = playing;
+
+        // Wall clock: sync on play/pause transitions
+        if (wasPaused) {
+          // Resuming: set wall clock to NOW at current position
+          _wallClockPlayStart = DateTime.now();
+          _wallClockPosRefMs = _currentPosition.inMilliseconds;
+        } else if (nowPaused) {
+          // Pausing: freeze wall clock reference at current position
+          _wallClockPosRefMs = _currentPosition.inMilliseconds;
+          _wallClockPlayStart = null;
+        }
+
         _syncNotificationState();
         notifyListeners();
       }
@@ -146,13 +207,17 @@ class AudioProvider extends ChangeNotifier {
 
       // Update active verse based on current position using timing data
       if (_verseTimings.isNotEmpty) {
-        final posMs = position.inMilliseconds;
+        final reportedMs = position.inMilliseconds;
+
+        // ── Wall-clock drift correction ──
+        // Compute expected position from the system clock, which is
+        // always accurate. If the player is behind, use the wall clock.
+        final posMs = _wallClockCorrectedPosition(reportedMs);
+
         String? newKey;
 
-        // Find the most recent verse whose start has been reached.
-        // Search in REVERSE so that when timing ranges overlap (verse N's
-        // firstSegmentMs < verse N-1's timestampTo), we pick the newer verse
-        // instead of the older one — eliminating the previous-verse flash.
+        // Standard reverse scan — no look-ahead needed since
+        // drift correction already accounts for the offset.
         for (int i = _verseTimings.length - 1; i >= 0; i--) {
           final t = _verseTimings[i];
           if (posMs >= t.firstSegmentMs) {
@@ -164,6 +229,20 @@ class AudioProvider extends ChangeNotifier {
         if (newKey != null && newKey != _activeVerseKey) {
           final oldKey = _activeVerseKey;
           _activeVerseKey = newKey;
+
+          // ── Diagnostic: Log verse transition timing ──
+          final matchedTiming = _findTiming(newKey);
+          if (matchedTiming != null) {
+            final latencyMs = posMs - matchedTiming.firstSegmentMs;
+            AppLogger.info('AudioSync',
+                'VERSE CHANGE: $oldKey → $newKey  '
+                'reported=${reportedMs}ms  '
+                'corrected=${posMs}ms  '
+                'threshold=${matchedTiming.firstSegmentMs}ms  '
+                'latency=${latencyMs}ms  '
+                'drift=${_driftCorrectionMs}ms');
+          }
+
           _syncNotificationMetadata();
 
           // Handle repeat mode when verse changes
@@ -252,6 +331,10 @@ class AudioProvider extends ChangeNotifier {
 
     // Clear cache for MP3Quran when switching source type
     _chapterCache.clear();
+
+    // Reset drift when switching reciters
+    _driftCorrectionMs = 0;
+    _resetWallClock();
 
     // If playing, restart with new reciter from current verse
     if (_activeVerseKey != null && _currentChapter != null) {
@@ -499,6 +582,30 @@ class AudioProvider extends ChangeNotifier {
           );
         }).toList();
 
+        // ── Diagnostic: Log timing accuracy for first 10 verses ──
+        AppLogger.info('AudioSync', '┌─── TIMING DIAGNOSTIC for chapter $chapterNumber, reciter $_reciterId ($_reciterName) ───');
+        AppLogger.info('AudioSync', '│ Total verses with timing: ${timings.length}');
+        for (int i = 0; i < timings.length && i < 10; i++) {
+          final t = timings[i];
+          final delta = t.timestampFrom - t.firstSegmentMs;
+          final gap = i > 0 ? t.firstSegmentMs - timings[i - 1].timestampTo : 0;
+          // Also check raw segment data
+          final rawT = timestamps[i];
+          final segs = rawT['segments'] as List?;
+          final segCount = segs?.length ?? 0;
+          final seg0 = segs != null && segs.isNotEmpty ? segs[0].toString() : 'none';
+          AppLogger.info('AudioSync',
+              '│ ${t.verseKey.padRight(8)} '
+              'tsFrom=${t.timestampFrom}ms  '
+              'firstSeg=${t.firstSegmentMs}ms  '
+              'delta=${delta}ms  '
+              'tsTo=${t.timestampTo}ms  '
+              'gap=${gap}ms  '
+              'segs=$segCount  '
+              'seg0=$seg0');
+        }
+        AppLogger.info('AudioSync', '└─── END TIMING DIAGNOSTIC ───');
+
         final data = _ChapterAudioData(audioUrl: audioUrl, timings: timings);
 
         _chapterCache[cacheKey] = data;
@@ -516,6 +623,62 @@ class AudioProvider extends ChangeNotifier {
       if (t.verseKey == verseKey) return t;
     }
     return null;
+  }
+
+  /// Compute the drift-corrected position for verse detection.
+  /// Uses the system clock as an independent time reference.
+  ///
+  /// If the wall clock says we should be at 10,500ms but the player
+  /// reports 10,000ms, the drift is 500ms and we return 10,500ms.
+  /// This fixes reciters with poorly-encoded MP3s (missing Xing headers)
+  /// where the player's position reporting drifts behind the actual audio.
+  int _wallClockCorrectedPosition(int reportedMs) {
+    if (_wallClockPlayStart == null) {
+      // Paused or not started — can't compute wall clock
+      return reportedMs;
+    }
+
+    final elapsed = DateTime.now().difference(_wallClockPlayStart!).inMilliseconds;
+    final expectedMs = _wallClockPosRefMs + (elapsed * _playbackSpeed).round();
+
+    // Drift = how far behind the player is vs wall clock expectation
+    final drift = expectedMs - reportedMs;
+
+    // Stall detection: if position hasn't changed, audio may be buffering.
+    // In that case, trust the player (it knows it's stalled).
+    if (reportedMs == _lastReportedPosMs && drift > _maxDriftMs) {
+      // Audio is stalled — reset wall clock to player position
+      _wallClockPlayStart = DateTime.now();
+      _wallClockPosRefMs = reportedMs;
+      _driftCorrectionMs = 0;
+      _lastReportedPosMs = reportedMs;
+      AppLogger.info('AudioSync',
+          'Stall detected — wall clock reset at ${reportedMs}ms');
+      return reportedMs;
+    }
+    _lastReportedPosMs = reportedMs;
+
+    if (drift > _driftThresholdMs && drift < _maxDriftMs) {
+      // Significant drift within reasonable bounds — apply correction
+      _driftCorrectionMs = drift;
+      return expectedMs;
+    } else if (drift <= _driftThresholdMs) {
+      // Within normal jitter — no correction needed
+      _driftCorrectionMs = 0;
+      return reportedMs;
+    } else {
+      // Drift exceeds max — likely buffering, trust player
+      _driftCorrectionMs = 0;
+      return reportedMs;
+    }
+  }
+
+  /// Reset wall clock reference (call on seek, new chapter, reciter switch)
+  void _resetWallClock() {
+    _wallClockPlayStart = null;
+    _wallClockPosRefMs = 0;
+    _driftCorrectionMs = 0;
+    _lastReportedPosMs = -1;
   }
 
   /// Play a list of verses starting from the given index.
@@ -553,6 +716,10 @@ class AudioProvider extends ChangeNotifier {
 
       _currentChapter = chapterNumber;
       _verseTimings = data.timings;
+
+      // Reset drift correction for new chapter/reciter
+      _driftCorrectionMs = 0;
+      _resetWallClock();
 
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
@@ -600,6 +767,25 @@ class AudioProvider extends ChangeNotifier {
       // Only NOW release the seeking guard — audio is actually playing
       _isSeeking = false;
       _isLoading = false;
+
+      // Initialize wall clock reference for drift detection.
+      // The seek position is the audio position at this instant.
+      final seekMs = timing?.firstSegmentMs ?? 0;
+      _wallClockPlayStart = DateTime.now();
+      _wallClockPosRefMs = seekMs;
+      _lastReportedPosMs = -1;
+
+      // If no timing data is available for this reciter, clear the
+      // active verse so the UI doesn't freeze on the initial verse.
+      // The audio still plays normally — just without verse highlighting.
+      if (_verseTimings.isEmpty) {
+        _activeVerseKey = null;
+        AppLogger.warn(
+          'Audio',
+          'No timing data for reciter $_reciterId — verse highlighting disabled',
+        );
+      }
+
       _syncNotificationMetadata();
       _syncNotificationState();
       notifyListeners();

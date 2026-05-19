@@ -245,23 +245,41 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                 onTap: () {
                   widget.onPageSelected(surahPage);
                 },
-                leading: Container(
+                leading: SizedBox(
                   width: 40,
                   height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isCurrent ? theme.accentColor : theme.pillBackground,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    surah.id.toString(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isCurrent
-                          ? Colors.white
-                          : theme.chipUnselectedText,
-                    ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Transform.rotate(
+                        angle: 0.785398, // 45 degrees
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: isCurrent ? theme.accentColor : null,
+                            border: Border.all(
+                              color: isCurrent
+                                  ? theme.accentColor
+                                  : theme.accentColor.withValues(alpha: 0.3),
+                              width: 1.2,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        surah.id.toString(),
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isCurrent
+                              ? Colors.white
+                              : theme.accentColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 title: Text(

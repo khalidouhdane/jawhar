@@ -462,26 +462,36 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
             padding: const EdgeInsets.symmetric(vertical: 14),
             child: Row(
               children: [
-                Container(
+                SizedBox(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.accentColor.withValues(alpha: 0.2),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$hizbNumber',
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: theme.accentColor,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Transform.rotate(
+                        angle: 0.785398, // 45 degrees
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: theme.accentColor.withValues(alpha: 0.3),
+                              width: 1.2,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                       ),
-                    ),
+                      Text(
+                        '$hizbNumber',
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: theme.accentColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 16),

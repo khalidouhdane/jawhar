@@ -24,9 +24,12 @@ class ContextProvider extends ChangeNotifier {
   List<String>? _activeAsbabNuzul;
   AsbabNuzulEntry? _activeAsbabEntry;
 
-  // ── Page-level translation cache ──
-  Map<String, VerseText> _pageTranslations = {};
-  int? _cachedPageNumber;
+  // ── Page-level translation cache (LRU, max 5 pages) ──
+  final Map<int, Map<String, VerseText>> _pageTranslationCache = {};
+  static const int _maxCachedPages = 5;
+
+  // ── Verse highlighting for mode switch ──
+  String? _highlightVerseKey;
 
   // ── Loading States ──
   bool _isLoadingTranslation = false;
@@ -55,7 +58,12 @@ class ContextProvider extends ChangeNotifier {
   VerseText? get activeDetailedTafsir => _activeDetailedTafsir;
   List<String>? get activeAsbabNuzul => _activeAsbabNuzul;
   AsbabNuzulEntry? get activeAsbabEntry => _activeAsbabEntry;
-  Map<String, VerseText> get pageTranslations => _pageTranslations;
+  /// Get translations for a specific page from cache.
+  Map<String, VerseText> getPageTranslations(int pageNumber) {
+    return _pageTranslationCache[pageNumber] ?? {};
+  }
+
+  String? get highlightVerseKey => _highlightVerseKey;
 
   bool get isLoadingTranslation => _isLoadingTranslation;
   bool get isLoadingBriefTafsir => _isLoadingBriefTafsir;
@@ -74,7 +82,8 @@ class ContextProvider extends ChangeNotifier {
 
   /// Set the locale and auto-switch all resource IDs accordingly.
   ///
-  /// English: translation=85, briefTafsir=169, detailedTafsir=168
+  /// English: translation=85, detailedTafsir=168
+  ///          (brief tafsir is handled by hybrid routing in TafsirService)
   /// Arabic:  translation=1014, briefTafsir=16, detailedTafsir=14
   void setLocale(String locale) {
     final lang = locale.startsWith('ar') ? 'ar' : 'en';
@@ -87,13 +96,14 @@ class ContextProvider extends ChangeNotifier {
       _selectedDetailedTafsirId = 14; // Ibn Kathir Arabic
     } else {
       _selectedTranslationId = 85; // Abdel Haleem (English)
-      _selectedBriefTafsirId = 169; // Ibn Kathir Abridged (English)
+      // Brief tafsir for EN is routed through QuranEnc (Al-Mukhtasar)
+      // by TafsirService.getBriefTafsir() — ID is not used.
+      _selectedBriefTafsirId = TafsirService.defaultBriefTafsirId;
       _selectedDetailedTafsirId = 168; // Ma'arif al-Qur'an (English)
     }
 
     // Clear caches since resource IDs changed
-    _pageTranslations.clear();
-    _cachedPageNumber = null;
+    _pageTranslationCache.clear();
     _activeTranslation = null;
     _activeBriefTafsir = null;
     _activeDetailedTafsir = null;
@@ -132,8 +142,7 @@ class ContextProvider extends ChangeNotifier {
     if (_selectedTranslationId == id) return;
     _selectedTranslationId = id;
     // Clear cached page translations since the resource changed
-    _pageTranslations.clear();
-    _cachedPageNumber = null;
+    _pageTranslationCache.clear();
     _activeTranslation = null;
     notifyListeners();
   }
@@ -158,12 +167,14 @@ class ContextProvider extends ChangeNotifier {
 
   /// Load translation for a specific verse.
   Future<void> loadTranslation(String verseKey) async {
-    // Check page cache first
-    if (_pageTranslations.containsKey(verseKey)) {
-      _activeVerseKey = verseKey;
-      _activeTranslation = _pageTranslations[verseKey];
-      notifyListeners();
-      return;
+    // Check all page caches
+    for (final pageCache in _pageTranslationCache.values) {
+      if (pageCache.containsKey(verseKey)) {
+        _activeVerseKey = verseKey;
+        _activeTranslation = pageCache[verseKey];
+        notifyListeners();
+        return;
+      }
     }
 
     _isLoadingTranslation = true;
@@ -193,8 +204,8 @@ class ContextProvider extends ChangeNotifier {
 
   /// Load translations for all verses on a page (batch).
   Future<void> loadPageTranslations(int pageNumber) async {
-    // Skip if already cached for this page with same translation ID
-    if (_cachedPageNumber == pageNumber && _pageTranslations.isNotEmpty) {
+    // Skip if already cached for this page
+    if (_pageTranslationCache.containsKey(pageNumber)) {
       return;
     }
 
@@ -203,11 +214,17 @@ class ContextProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _pageTranslations = await _tafsirService.getTranslationsForPage(
+      final results = await _tafsirService.getTranslationsForPage(
         pageNumber,
         translationId: _selectedTranslationId,
       );
-      _cachedPageNumber = pageNumber;
+
+      // LRU eviction: remove oldest entry if at capacity
+      if (_pageTranslationCache.length >= _maxCachedPages) {
+        _pageTranslationCache.remove(_pageTranslationCache.keys.first);
+      }
+      _pageTranslationCache[pageNumber] = results;
+
       _isLoadingTranslation = false;
       notifyListeners();
     } catch (e) {
@@ -217,7 +234,41 @@ class ContextProvider extends ChangeNotifier {
     }
   }
 
-  /// Load brief tafsir (Tafsir al-Muyassar) for a verse.
+  /// Proactively load adjacent pages into the LRU cache without changing loading UI state.
+  /// Triggered silently in the background on page change.
+  Future<void> prefetchAdjacentPages(int currentPage) async {
+    final pagesToPrefetch = [
+      currentPage + 1,
+      currentPage - 1,
+      currentPage + 2,
+    ].where((p) => p >= 1 && p <= 604).toList();
+
+    for (final page in pagesToPrefetch) {
+      if (!_pageTranslationCache.containsKey(page)) {
+        try {
+          final results = await _tafsirService.getTranslationsForPage(
+            page,
+            translationId: _selectedTranslationId,
+          );
+          if (results.isNotEmpty) {
+            // Keep cache within limit
+            if (_pageTranslationCache.length >= _maxCachedPages) {
+              _pageTranslationCache.remove(_pageTranslationCache.keys.first);
+            }
+            _pageTranslationCache[page] = results;
+          }
+        } catch (_) {
+          // Silent fail for background prefetch
+        }
+      }
+    }
+  }
+
+  /// Load brief tafsir for a verse.
+  ///
+  /// Uses the hybrid strategy:
+  /// - Arabic → Quran Foundation API (Al-Muyassar, ID 16)
+  /// - English → QuranEnc API (Al-Mukhtasar)
   Future<void> loadBriefTafsir(String verseKey) async {
     _isLoadingBriefTafsir = true;
     _activeVerseKey = verseKey;
@@ -225,9 +276,9 @@ class ContextProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _tafsirService.getTafsir(
+      final result = await _tafsirService.getBriefTafsir(
         verseKey,
-        tafsirId: _selectedBriefTafsirId,
+        locale: _locale,
       );
       if (_activeVerseKey == verseKey) {
         _activeBriefTafsir = result;
@@ -312,6 +363,19 @@ class ContextProvider extends ChangeNotifier {
     if (_translationEnabled) {
       await loadTranslation(verseKey);
     }
+  }
+
+  /// Set a verse to highlight and scroll to in translation view.
+  void setHighlightVerse(String verseKey) {
+    _highlightVerseKey = verseKey;
+    notifyListeners();
+  }
+
+  /// Clear the highlight after scroll animation completes.
+  void clearHighlightVerse() {
+    if (_highlightVerseKey == null) return;
+    _highlightVerseKey = null;
+    notifyListeners();
   }
 
   /// Clear all active content state.

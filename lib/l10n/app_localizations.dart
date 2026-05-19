@@ -4585,6 +4585,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Translation unavailable offline'**
   String get topicOfflineVerse;
+
+  /// No description provided for @readingTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation'**
+  String get readingTranslation;
+
+  /// No description provided for @translationLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading translations...'**
+  String get translationLoading;
+
+  /// No description provided for @contextTranslate.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get contextTranslate;
+
+  /// No description provided for @contextTafsir.
+  ///
+  /// In en, this message translates to:
+  /// **'Tafsir'**
+  String get contextTafsir;
+
+  /// No description provided for @asbabNuzulTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'سبب النزول'**
+  String get asbabNuzulTitle;
+
+  /// No description provided for @asbabOccasion.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasion of Revelation'**
+  String get asbabOccasion;
+
+  /// No description provided for @asbabReadFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Read full narration →'**
+  String get asbabReadFull;
+
+  /// No description provided for @pageLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load page {pageNumber}'**
+  String pageLoadError(int pageNumber);
+
+  /// No description provided for @verseCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse {verseKey} copied'**
+  String verseCopied(String verseKey);
+
+  /// No description provided for @verseCopiedForSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse copied for sharing'**
+  String get verseCopiedForSharing;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

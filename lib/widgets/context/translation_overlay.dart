@@ -55,12 +55,6 @@ class TranslationOverlay extends StatelessWidget {
   Widget _buildFromProvider(BuildContext context, ThemeProvider theme) {
     final ctx = context.watch<ContextProvider>();
 
-    // Check page-level cache first
-    final pageTranslation = ctx.pageTranslations[verseKey];
-    if (pageTranslation != null) {
-      return _buildContent(theme, pageTranslation.text);
-    }
-
     // Check active translation
     if (ctx.activeVerseKey == verseKey && ctx.activeTranslation != null) {
       return _buildContent(theme, ctx.activeTranslation!.text);

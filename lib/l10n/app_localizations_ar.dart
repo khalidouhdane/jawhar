@@ -2293,13 +2293,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planPhaseManzil => 'منزل';
 
   @override
-  String get tafsirReadMore => 'اقرأ المزيد';
+  String get tafsirReadMore => 'قراءة المزيد';
 
   @override
-  String get tafsirShowLess => 'إظهار أقل';
+  String get tafsirShowLess => 'عرض أقل';
 
   @override
-  String get tafsirSourceMukhtasar => 'التفسير الميسر';
+  String get tafsirSourceMukhtasar => 'التفسير المختصر';
 
   @override
   String get tafsirSourceIbnKathir => 'تفسير ابن كثير';
@@ -2465,4 +2465,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get topicOfflineVerse => 'الترجمة غير متوفرة بدون اتصال';
+
+  @override
+  String get readingTranslation => 'الترجمة';
+
+  @override
+  String get translationLoading => 'جارٍ تحميل الترجمات...';
+
+  @override
+  String get contextTranslate => 'ترجمة';
+
+  @override
+  String get contextTafsir => 'تفسير';
+
+  @override
+  String get asbabNuzulTitle => 'سبب النزول';
+
+  @override
+  String get asbabOccasion => 'سبب النزول';
+
+  @override
+  String get asbabReadFull => 'قراءة الرواية كاملة ←';
+
+  @override
+  String pageLoadError(int pageNumber) {
+    return 'تعذّر تحميل الصفحة $pageNumber';
+  }
+
+  @override
+  String verseCopied(String verseKey) {
+    return 'تم نسخ الآية $verseKey';
+  }
+
+  @override
+  String get verseCopiedForSharing => 'تم نسخ الآية للمشاركة';
+
+  @override
+  String get retry => 'إعادة المحاولة';
 }

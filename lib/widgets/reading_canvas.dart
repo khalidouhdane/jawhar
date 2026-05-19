@@ -8,10 +8,10 @@ import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
-import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/context/tafsir_sheet.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 class ReadingCanvas extends StatefulWidget {
   final List<Verse> verses;
@@ -19,6 +19,7 @@ class ReadingCanvas extends StatefulWidget {
   final int? selectedVerseId;
   final ValueChanged<int?> onVerseSelected;
   final VoidCallback onCanvasTapped;
+  final ValueChanged<String>? onTranslateVerse;
 
   const ReadingCanvas({
     super.key,
@@ -27,6 +28,7 @@ class ReadingCanvas extends StatefulWidget {
     required this.selectedVerseId,
     required this.onVerseSelected,
     required this.onCanvasTapped,
+    this.onTranslateVerse,
   });
 
   @override
@@ -115,6 +117,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
                 onDismiss: () {
                   widget.onVerseSelected(null);
                 },
+                onTranslateVerse: widget.onTranslateVerse,
               ),
             ),
           ),
@@ -207,6 +210,11 @@ class ReadingCanvasState extends State<ReadingCanvas> {
         if (isSelected || isPlaying) {
           marker = KeyedSubtree(key: _getKeyForVerse(verse.id), child: marker);
         }
+        // Word Joiner (U+2060) prevents the text engine from breaking the
+        // line between the last word of the verse and its end marker. Without
+        // this, RTL layout can wrap the marker to a new line where it visually
+        // appears at the start of the next verse.
+        spans.add(const TextSpan(text: '\u2060'));
         spans.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -237,6 +245,9 @@ class ReadingCanvasState extends State<ReadingCanvas> {
                 child: marker,
               );
             }
+            // Word Joiner (U+2060) prevents the text engine from breaking
+            // the line between the last word and its end marker in RTL.
+            spans.add(const TextSpan(text: '\u2060'));
             spans.add(
               WidgetSpan(
                 alignment: PlaceholderAlignment.middle,
@@ -275,6 +286,8 @@ class ReadingCanvasState extends State<ReadingCanvas> {
           }
         }
       }
+      // Restore regular space between verses — this IS where line breaks should
+      // happen: between two different verses, not between a verse and its marker.
       spans.add(const TextSpan(text: ' '));
     }
     return spans;
@@ -530,7 +543,9 @@ class ReadingCanvasState extends State<ReadingCanvas> {
   }
 }
 
-/// Styled verse number marker with Latin numerals
+/// Diamond-shaped verse number marker with Latin numerals.
+/// Uses the brand diamond shape (45° rotated square) for visual consistency
+/// with the surah list tiles and other index markers throughout the app.
 class _VerseMarker extends StatelessWidget {
   final int verseNumber;
   final bool isHighlighted;
@@ -540,33 +555,56 @@ class _VerseMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
-    const size = 22.0;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isHighlighted
-            ? theme.verseMarkerHighlight
-            : theme.verseMarkerColor,
-        border: Border.all(
-          color: isHighlighted
-              ? theme.verseMarkerHighlightBorder
-              : theme.verseMarkerBorder,
-          width: 1.2,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          '$verseNumber',
-          style: TextStyle(
-            fontFamily: GeistTypography.primaryFontFamily,
-            fontSize: size * 0.42,
-            fontWeight: FontWeight.w700,
-            color: isHighlighted ? theme.scaffoldBackground : theme.primaryText,
-            height: 1.0,
+    const outerSize = 22.0;
+    const innerSize = 16.0;
+    const fontSize = 8.5;
+
+    Color borderColor;
+    Color? fillColor;
+    Color textColor;
+
+    if (isHighlighted) {
+      borderColor = theme.verseMarkerHighlightBorder;
+      fillColor = theme.verseMarkerHighlight;
+      textColor = theme.scaffoldBackground;
+    } else {
+      borderColor = theme.verseMarkerBorder;
+      fillColor = theme.verseMarkerColor;
+      textColor = theme.primaryText;
+    }
+
+    return SizedBox(
+      width: outerSize,
+      height: outerSize,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Transform.rotate(
+            angle: 0.785398, // 45 degrees
+            child: Container(
+              width: innerSize,
+              height: innerSize,
+              decoration: BoxDecoration(
+                color: fillColor,
+                border: Border.all(
+                  color: borderColor,
+                  width: 1.0,
+                ),
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
           ),
-        ),
+          Text(
+            '$verseNumber',
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+              height: 1.0,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -577,12 +615,14 @@ class _ContextualMenu extends StatelessWidget {
   final List<Verse> verses;
   final int pageNumber;
   final VoidCallback onDismiss;
+  final ValueChanged<String>? onTranslateVerse;
 
   const _ContextualMenu({
     required this.verse,
     required this.verses,
     required this.pageNumber,
     required this.onDismiss,
+    this.onTranslateVerse,
   });
 
   String get _verseText {
@@ -627,10 +667,11 @@ class _ContextualMenu extends StatelessWidget {
                 Clipboard.setData(
                   ClipboardData(text: '$_verseText\n[${verse.verseKey}]'),
                 );
+                final l = AppLocalizations.of(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Verse ${verse.verseKey} copied',
+                      l?.verseCopied(verse.verseKey) ?? 'Verse ${verse.verseKey} copied',
                       style: TextStyle(fontFamily: 'Inter'),
                     ),
                     behavior: SnackBarBehavior.floating,
@@ -681,10 +722,11 @@ class _ContextualMenu extends StatelessWidget {
                 Clipboard.setData(
                   ClipboardData(text: '$_verseText\n\n— ${verse.verseKey}'),
                 );
+                final l = AppLocalizations.of(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text(
-                      'Verse copied for sharing',
+                    content: Text(
+                      l?.verseCopiedForSharing ?? 'Verse copied for sharing',
                       style: TextStyle(fontFamily: 'Inter'),
                     ),
                     behavior: SnackBarBehavior.floating,
@@ -704,17 +746,17 @@ class _ContextualMenu extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.2),
             ),
             const SizedBox(width: 12),
-            // Translate — toggles inline translation for the verse
+            // Translate — switches to translation view with this verse highlighted
             GestureDetector(
               onTap: () {
-                final ctx = context.read<ContextProvider>();
-                ctx.loadTranslation(verse.verseKey);
-                ctx.enableTranslation();
                 onDismiss();
+                if (onTranslateVerse != null) {
+                  onTranslateVerse!(verse.verseKey);
+                }
               },
-              child: const Text(
-                'Translate',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)?.contextTranslate ?? 'Translate',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -748,9 +790,9 @@ class _ContextualMenu extends StatelessWidget {
                   surahName: surahName,
                 );
               },
-              child: const Text(
-                'Tafsir',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)?.contextTafsir ?? 'Tafsir',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
