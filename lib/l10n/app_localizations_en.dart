@@ -2455,4 +2455,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String undSurahVersesRange(int start, int end) {
     return 'Verses $start–$end';
   }
+
+  @override
+  String get topicOverview => 'Overview';
+
+  @override
+  String get topicKeyVerses => 'Key Verses';
+
+  @override
+  String get topicReadInMushaf => 'Read in Mushaf';
+
+  @override
+  String topicVerseRange(int start, int end) {
+    return 'Verses $start–$end';
+  }
+
+  @override
+  String get topicComingSoon => 'Detailed exploration coming soon.';
+
+  @override
+  String topicMentionedIn(int count) {
+    return 'Mentioned in $count surahs';
+  }
+
+  @override
+  String get topicShowVerses => 'Show key verses';
+
+  @override
+  String get topicHideVerses => 'Hide key verses';
+
+  @override
+  String get topicOfflineVerse => 'Translation unavailable offline';
 }

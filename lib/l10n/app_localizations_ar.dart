@@ -2434,4 +2434,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String undSurahVersesRange(int start, int end) {
     return 'الآيات $start–$end';
   }
+
+  @override
+  String get topicOverview => 'نظرة عامة';
+
+  @override
+  String get topicKeyVerses => 'آيات مفتاحية';
+
+  @override
+  String get topicReadInMushaf => 'اقرأ في المصحف';
+
+  @override
+  String topicVerseRange(int start, int end) {
+    return 'الآيات $start–$end';
+  }
+
+  @override
+  String get topicComingSoon => 'استكشاف مفصل قريباً.';
+
+  @override
+  String topicMentionedIn(int count) {
+    return 'مذكور في $count سور';
+  }
+
+  @override
+  String get topicShowVerses => 'عرض الآيات المفتاحية';
+
+  @override
+  String get topicHideVerses => 'إخفاء الآيات المفتاحية';
+
+  @override
+  String get topicOfflineVerse => 'الترجمة غير متوفرة بدون اتصال';
 }

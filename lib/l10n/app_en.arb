@@ -1238,5 +1238,25 @@
         "type": "int"
       }
     }
-  }
+  },
+  "topicOverview": "Overview",
+  "topicKeyVerses": "Key Verses",
+  "topicReadInMushaf": "Read in Mushaf",
+  "topicVerseRange": "Verses {start}–{end}",
+  "@topicVerseRange": {
+    "placeholders": {
+      "start": { "type": "int" },
+      "end": { "type": "int" }
+    }
+  },
+  "topicComingSoon": "Detailed exploration coming soon.",
+  "topicMentionedIn": "Mentioned in {count} surahs",
+  "@topicMentionedIn": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "topicShowVerses": "Show key verses",
+  "topicHideVerses": "Hide key verses",
+  "topicOfflineVerse": "Translation unavailable offline"
 }

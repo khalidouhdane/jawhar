@@ -1168,5 +1168,25 @@
         "type": "int"
       }
     }
-  }
+  },
+  "topicOverview": "نظرة عامة",
+  "topicKeyVerses": "آيات مفتاحية",
+  "topicReadInMushaf": "اقرأ في المصحف",
+  "topicVerseRange": "الآيات {start}–{end}",
+  "@topicVerseRange": {
+    "placeholders": {
+      "start": { "type": "int" },
+      "end": { "type": "int" }
+    }
+  },
+  "topicComingSoon": "استكشاف مفصل قريباً.",
+  "topicMentionedIn": "مذكور في {count} سور",
+  "@topicMentionedIn": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "topicShowVerses": "عرض الآيات المفتاحية",
+  "topicHideVerses": "إخفاء الآيات المفتاحية",
+  "topicOfflineVerse": "الترجمة غير متوفرة بدون اتصال"
 }

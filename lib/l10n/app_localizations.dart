@@ -4531,6 +4531,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verses {start}–{end}'**
   String undSurahVersesRange(int start, int end);
+
+  /// No description provided for @topicOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get topicOverview;
+
+  /// No description provided for @topicKeyVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Verses'**
+  String get topicKeyVerses;
+
+  /// No description provided for @topicReadInMushaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Read in Mushaf'**
+  String get topicReadInMushaf;
+
+  /// No description provided for @topicVerseRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Verses {start}–{end}'**
+  String topicVerseRange(int start, int end);
+
+  /// No description provided for @topicComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed exploration coming soon.'**
+  String get topicComingSoon;
+
+  /// No description provided for @topicMentionedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Mentioned in {count} surahs'**
+  String topicMentionedIn(int count);
+
+  /// No description provided for @topicShowVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'Show key verses'**
+  String get topicShowVerses;
+
+  /// No description provided for @topicHideVerses.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide key verses'**
+  String get topicHideVerses;
+
+  /// No description provided for @topicOfflineVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation unavailable offline'**
+  String get topicOfflineVerse;
 }
 
 class _AppLocalizationsDelegate
