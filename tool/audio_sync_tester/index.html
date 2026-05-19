@@ -73,6 +73,26 @@
                 </select>
             </div>
 
+            <div class="border-t border-neutral-850 pt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 font-mono">3. Global Calibration</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="global-offset-input" value="0" class="w-24 bg-neutral-900 border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-center text-white font-mono focus:outline-none focus:border-emerald-600" placeholder="0">
+                        <span class="text-xs text-neutral-500 font-mono mr-1">ms</span>
+                        <button id="btn-apply-global-offset" class="flex-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-xs font-medium py-1.5 px-3 rounded-lg transition font-mono whitespace-nowrap">Apply</button>
+                    </div>
+                </div>
+                <button id="btn-auto-detect-bismillah" class="w-full bg-emerald-650/10 hover:bg-emerald-650/20 border border-emerald-900/30 text-emerald-350 font-medium py-2 px-3 rounded-lg text-xs transition flex items-center justify-center space-x-1.5 font-mono">
+                    <span>✨ Auto-Detect Bismillah Gap</span>
+                </button>
+            </div>
+
+            <div class="bg-neutral-900/40 p-3 rounded-lg border border-neutral-850/60 text-[11px] text-neutral-400 space-y-1.5 leading-relaxed font-mono">
+                <span class="text-neutral-300 font-semibold block">💡 Calibration Guide:</span>
+                <p>• Highlight lags voice: use <strong>negative offset</strong> (e.g. -3080ms shifts timeline earlier).</p>
+                <p>• Highlight leads voice: use <strong>positive offset</strong> (e.g. +500ms shifts timeline later).</p>
+            </div>
+
             <div class="border-t border-neutral-850 pt-4">
                 <h3 class="text-xs font-semibold text-neutral-450 uppercase tracking-wider mb-3 font-mono">Live Analysis Stats</h3>
                 <div class="space-y-3 text-xs">
@@ -92,7 +112,7 @@
             </div>
 
             <!-- Export Panel -->
-            <div class="flex-1 flex flex-col justify-end min-h-[150px]">
+            <div class="flex-1 flex flex-col justify-end min-h-[100px]">
                 <button id="btn-export" class="w-full bg-emerald-650/10 hover:bg-emerald-650/20 border border-emerald-900/40 text-emerald-350 font-medium py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center space-x-2">
                     <span class="font-title">Export Calibration JSON</span>
                 </button>
@@ -180,6 +200,7 @@
 
         let timings = []; // Current surah timing entries
         let userOffsets = {}; // format: { verseKey: offset_ms }
+        let globalOffset = 0; // global offset for the entire Surah
         let lastActiveVerseKey = null;
 
         // Load Surah names
@@ -255,6 +276,10 @@
                     nativeAudio.src = audioFile.audio_url;
                     nativeAudio.load();
                     
+                    userOffsets = {};
+                    globalOffset = 0;
+                    document.getElementById('global-offset-input').value = 0;
+                    
                     timings = (audioFile.timestamps || []).map(t => {
                         const from = parseInt(t.timestamp_from);
                         const to = parseInt(t.timestamp_to);
@@ -269,10 +294,12 @@
                             timestampTo: to,
                             firstSegmentMs: firstSeg,
                             originalFrom: from,
-                            originalTo: to
+                            originalTo: to,
+                            originalFirstSegment: firstSeg
                         };
                     });
                     
+                    applyOffsets();
                     renderVerseList();
                 })
                 .catch(err => {
@@ -281,7 +308,19 @@
                         <span class="text-sm font-mono text-center max-w-lg break-words">${err.message}</span>
                     </div>`;
                 });
-        }        function renderVerseList() {
+        }
+
+        function applyOffsets() {
+            timings.forEach(t => {
+                const userOffset = userOffsets[t.verseKey] || 0;
+                const totalOffset = globalOffset + userOffset;
+                t.timestampFrom = t.originalFrom + totalOffset;
+                t.timestampTo = t.originalTo + totalOffset;
+                t.firstSegmentMs = t.originalFirstSegment + totalOffset;
+            });
+        }
+
+        function renderVerseList() {
             if (timings.length === 0) {
                 verseListContainer.innerHTML = `<div class="flex items-center justify-center h-full text-neutral-500 font-mono">No verses found</div>`;
                 return;
@@ -291,17 +330,18 @@
             timings.forEach(t => {
                 const card = document.createElement('div');
                 card.id = `verse-card-${t.verseKey.replace(':', '-')}`;
-                // Load user offset if previously configured
+                // Load user offset + global offset
                 const userOffset = userOffsets[t.verseKey] || 0;
-                const isCalibrated = userOffset !== 0;
+                const totalOffset = globalOffset + userOffset;
+                const isCalibrated = totalOffset !== 0;
                 
                 card.className = "p-4 rounded-xl border border-neutral-850 bg-neutral-950/40 hover:bg-neutral-950/80 transition flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer";
                 card.innerHTML = `
                     <div class="flex-1 space-y-1">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="px-2.5 py-1 text-xs font-bold rounded bg-neutral-900 border border-neutral-800 font-mono text-emerald-450">${t.verseKey}</span>
-                            <span class="text-xs text-neutral-500 font-mono">Original: ${t.originalFrom}ms - ${t.originalTo}ms <span class="text-neutral-700">(Word0: ${t.firstSegmentMs}ms)</span></span>
-                            ${isCalibrated ? `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono">Calibrated (${userOffset >= 0 ? '+' : ''}${userOffset}ms)</span>` : ''}
+                            <span class="px-2.5 py-1 text-xs font-bold rounded bg-neutral-900 border border-neutral-800 font-mono text-emerald-455">${t.verseKey}</span>
+                            <span class="text-xs text-neutral-500 font-mono">Original: ${t.originalFrom}ms - ${t.originalTo}ms <span class="text-neutral-700">(Word0: ${t.originalFirstSegment}ms)</span></span>
+                            ${isCalibrated ? `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono">Calibrated (${totalOffset >= 0 ? '+' : ''}${totalOffset}ms)</span>` : ''}
                         </div>
                         <div class="text-sm flex items-center space-x-2">
                             <span class="text-neutral-400">Playhead Start: </span>
@@ -311,7 +351,7 @@
                     
                     <!-- Adjustment Controls -->
                     <div class="flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
-                        <span class="text-[10px] text-neutral-500 font-mono">Offset:</span>
+                        <span class="text-[10px] text-neutral-500 font-mono">Verse Offset:</span>
                         <input type="number" value="${userOffset}" onchange="setOffset('${t.verseKey}', this.value)" class="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-0.5 text-xs text-center text-white font-mono focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" placeholder="0">
                         <span class="text-[10px] text-neutral-500 font-mono mr-2">ms</span>
                         <button onclick="adjustOffset('${t.verseKey}', -500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-500</button>
@@ -320,7 +360,7 @@
                         <button onclick="adjustOffset('${t.verseKey}', 50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+50</button>
                         <button onclick="adjustOffset('${t.verseKey}', 100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+100</button>
                         <button onclick="adjustOffset('${t.verseKey}', 500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+500</button>
-                        ${isCalibrated ? `<button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono whitespace-nowrap transition">Reset</button>` : ''}
+                        ${userOffset !== 0 ? `<button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono whitespace-nowrap transition">Reset</button>` : ''}
                     </div>
                 `;
                 
@@ -340,43 +380,49 @@
         window.adjustOffset = function(verseKey, delta) {
             if (!userOffsets[verseKey]) userOffsets[verseKey] = 0;
             userOffsets[verseKey] += delta;
-            
-            // Apply to timing struct
-            const entry = timings.find(t => t.verseKey === verseKey);
-            if (entry) {
-                entry.timestampFrom = entry.originalFrom + userOffsets[verseKey];
-                entry.timestampTo = entry.originalTo + userOffsets[verseKey];
-                renderVerseList();
-            }
+            applyOffsets();
+            renderVerseList();
         };
 
         window.setOffset = function(verseKey, value) {
             const offset = parseInt(value) || 0;
             userOffsets[verseKey] = offset;
-            
-            // Apply to timing struct
-            const entry = timings.find(t => t.verseKey === verseKey);
-            if (entry) {
-                entry.timestampFrom = entry.originalFrom + offset;
-                entry.timestampTo = entry.originalTo + offset;
-                renderVerseList();
-            }
+            applyOffsets();
+            renderVerseList();
         };
 
         window.resetOffset = function(verseKey) {
             userOffsets[verseKey] = 0;
-            
-            const entry = timings.find(t => t.verseKey === verseKey);
-            if (entry) {
-                entry.timestampFrom = entry.originalFrom;
-                entry.timestampTo = entry.originalTo;
-                renderVerseList();
-            }
+            applyOffsets();
+            renderVerseList();
         };
 
         // Listeners
         reciterSelect.onchange = loadTimings;
         surahSelect.onchange = loadTimings;
+
+        // Global Offset Apply
+        document.getElementById('btn-apply-global-offset').onclick = () => {
+            const val = parseInt(document.getElementById('global-offset-input').value) || 0;
+            globalOffset = val;
+            applyOffsets();
+            renderVerseList();
+        };
+
+        // Auto-Detect Bismillah Gap
+        document.getElementById('btn-auto-detect-bismillah').onclick = () => {
+            if (timings.length === 0) return;
+            const firstVerse = timings[0];
+            const firstStart = firstVerse.originalFrom;
+            if (firstStart > 2000) {
+                globalOffset = -firstStart;
+                document.getElementById('global-offset-input').value = globalOffset;
+                applyOffsets();
+                renderVerseList();
+            } else {
+                alert(`No significant Bismillah gap detected (first verse starts at ${firstStart}ms).`);
+            }
+        };
         
         btnPlayPause.onclick = () => {
             if (nativeAudio.paused) {

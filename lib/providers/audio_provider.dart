@@ -306,14 +306,21 @@ class AudioProvider extends ChangeNotifier {
         return;
       }
 
-      _verseTimings = data.timings;
+      _verseTimings = List<_VerseTiming>.from(data.timings);
+
+      await _player.setSourceUrl(data.audioUrl);
+      if (gen != _generation) return; // cancelled
+
+      final duration = await _getOrWaitForDuration();
+      if (duration != null && gen == _generation) {
+        _totalDuration = duration;
+        _applyBismillahCorrectionIfNeeded(duration);
+      }
 
       // Find timing for current verse and seek
       final timing = _findTiming(savedKey);
       if (timing != null) {
         _activeVerseKey = savedKey;
-        await _player.setSourceUrl(data.audioUrl);
-        if (gen != _generation) return; // cancelled
         await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
         if (gen != _generation) return; // cancelled
         await _player.setPlaybackRate(_playbackSpeed);
@@ -595,23 +602,27 @@ class AudioProvider extends ChangeNotifier {
       }
 
       _currentChapter = chapterNumber;
-      _verseTimings = data.timings;
+      _verseTimings = List<_VerseTiming>.from(data.timings);
 
+      await _player.setSourceUrl(data.audioUrl);
+      if (gen != _generation) return; // cancelled
 
+      final duration = await _getOrWaitForDuration();
+      if (duration != null && gen == _generation) {
+        _totalDuration = duration;
+        _applyBismillahCorrectionIfNeeded(duration);
+      }
 
       // Find the timing for the start verse
       final timing = _findTiming(startVerse.verseKey);
       AppLogger.info(
         'Audio',
         '[AudioProvider] verse=${startVerse.verseKey}, '
-            'timings=${data.timings.length}, '
+            'timings=${_verseTimings.length}, '
             'timing found=${timing != null}, '
             'seekMs=${timing?.firstSegmentMs}, '
             'audioUrl=${data.audioUrl.substring(0, data.audioUrl.length.clamp(0, 80))}',
       );
-
-      await _player.setSourceUrl(data.audioUrl);
-      if (gen != _generation) return; // cancelled
 
       await _player.setPlaybackRate(_playbackSpeed);
 
@@ -758,6 +769,57 @@ class AudioProvider extends ChangeNotifier {
     } catch (_) {
       // Asset not bundled for this reciter ID, or temp dir unavailable.
       return null;
+    }
+  }
+
+  Future<Duration?> _getOrWaitForDuration() async {
+    Duration? duration = await _player.getDuration();
+    if (duration != null && duration.inMilliseconds > 0) {
+      return duration;
+    }
+    for (int i = 0; i < 20; i++) {
+      await Future.delayed(const Duration(milliseconds: 50));
+      duration = await _player.getDuration();
+      if (duration != null && duration.inMilliseconds > 0) {
+        return duration;
+      }
+    }
+    return null;
+  }
+
+  void _applyBismillahCorrectionIfNeeded(Duration audioDuration) {
+    if (_verseTimings.isEmpty) return;
+
+    final lastVerse = _verseTimings.last;
+    final expectedEndTime = lastVerse.timestampTo;
+    final actualDurationMs = audioDuration.inMilliseconds;
+
+    // Rule: If actual duration is shorter than expected end time by at least 1500ms
+    if (actualDurationMs < (expectedEndTime - 1500)) {
+      final firstVerse = _verseTimings.first;
+      final bismillahGap = firstVerse.timestampFrom;
+
+      final discrepancy = expectedEndTime - actualDurationMs;
+      // Verification: discrepancy should be close to the first verse start (Bismillah gap)
+      if ((discrepancy - bismillahGap).abs() < 1500) {
+        final shift = -bismillahGap;
+        AppLogger.info(
+          'AudioSync',
+          'Bismillah discrepancy detected: actualDuration=$actualDurationMs ms, '
+          'expectedEnd=$expectedEndTime ms, discrepancy=$discrepancy ms, '
+          'firstVerseStart=$bismillahGap ms. Shifting all timings by $shift ms.',
+        );
+
+        _verseTimings = _verseTimings.map((t) {
+          return _VerseTiming(
+            verseKey: t.verseKey,
+            timestampFrom: (t.timestampFrom + shift).clamp(0, actualDurationMs),
+            timestampTo: (t.timestampTo + shift).clamp(0, actualDurationMs),
+            duration: t.duration,
+            firstSegmentMs: (t.firstSegmentMs + shift).clamp(0, actualDurationMs),
+          );
+        }).toList();
+      }
     }
   }
 
