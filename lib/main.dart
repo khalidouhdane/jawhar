@@ -168,9 +168,14 @@ void main() async {
           (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
       // Save screenshots to a 'screenshots' folder in the project directory
-      final screenshotDir = Directory('${Directory.current.path}/screenshots');
-      if (!screenshotDir.existsSync()) {
-        screenshotDir.createSync();
+      // Only create on desktop debug builds — on Android, Directory.current
+      // is '/' which is not writable and would crash the app.
+      Directory? screenshotDir;
+      if (enablePreview) {
+        screenshotDir = Directory('${Directory.current.path}/screenshots');
+        if (!screenshotDir.existsSync()) {
+          screenshotDir.createSync();
+        }
       }
 
       runApp(
@@ -178,9 +183,10 @@ void main() async {
           enabled: enablePreview,
           tools: [
             ...DevicePreview.defaultTools,
-            DevicePreviewScreenshot(
-              onScreenshot: screenshotAsFiles(screenshotDir),
-            ),
+            if (screenshotDir != null)
+              DevicePreviewScreenshot(
+                onScreenshot: screenshotAsFiles(screenshotDir),
+              ),
           ],
           builder: (context) => MultiProvider(
             providers: [
