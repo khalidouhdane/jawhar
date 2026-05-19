@@ -85,7 +85,7 @@ class _TopicCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
         initialChildSize: 0.55,
-        maxChildSize: 0.85,
+        maxChildSize: 1.0,
         minChildSize: 0.3,
         builder: (ctx, scrollController) {
           final l10n = AppLocalizations.of(ctx)!;
@@ -219,10 +219,10 @@ class _TopicCard extends StatelessWidget {
                               backgroundColor: Colors.transparent,
                               builder: (_) => DraggableScrollableSheet(
                                 initialChildSize: 0.65,
-                                maxChildSize: 0.95,
+                                maxChildSize: 1.0,
                                 minChildSize: 0.3,
                                 builder: (sheetCtx, sheetController) =>
-                                    SurahDetailSheet(surah: surah),
+                                    SurahDetailSheet(surah: surah, scrollController: sheetController),
                               ),
                             );
                           },

@@ -68,9 +68,9 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
         initialChildSize: 0.65,
-        maxChildSize: 0.95,
+        maxChildSize: 1.0,
         minChildSize: 0.3,
-        builder: (_, controller) => SurahDetailSheet(surah: surah),
+        builder: (_, controller) => SurahDetailSheet(surah: surah, scrollController: controller),
       ),
     );
   }

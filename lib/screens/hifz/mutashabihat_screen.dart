@@ -99,7 +99,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
         actions: [
           IconButton(
             icon: Icon(LucideIcons.play, color: theme.accentColor, size: 18),
-            tooltip: 'Practice',
+            tooltip: AppLocalizations.of(context)!.pracPractice,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const MutashabihatPracticeScreen(),
@@ -112,7 +112,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               color: theme.secondaryText,
               size: 18,
             ),
-            tooltip: 'Re-import dataset',
+            tooltip: AppLocalizations.of(context)!.pracReimport,
             onPressed: () => _reimportDataset(theme),
           ),
         ],
@@ -383,7 +383,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
             )
           else
             Text(
-              'Verse text not available',
+              AppLocalizations.of(context)!.pracVerseNotAvailable,
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 12,
@@ -454,8 +454,8 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           const SizedBox(height: 12),
           Text(
             _filter != null
-                ? 'No groups with this status'
-                : 'Mutashabihat data not imported yet',
+                ? AppLocalizations.of(context)!.pracNoGroupsStatus
+                : AppLocalizations.of(context)!.pracNotImported,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 14,
@@ -465,8 +465,8 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
           const SizedBox(height: 4),
           Text(
             _filter != null
-                ? 'Try changing the filter'
-                : 'Tap below to download the dataset',
+                ? AppLocalizations.of(context)!.pracChangeFilter
+                : AppLocalizations.of(context)!.pracTapToDownload,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 12,
@@ -480,7 +480,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                 : GeistButton(
                     onPressed: () => _importDataset(theme),
                     prefix: const Icon(Icons.download, size: 16),
-                    label: 'Download Dataset',
+                    label: AppLocalizations.of(context)!.pracDownloadDataset,
                     type: GeistButtonType.primary,
                   ),
           ],
@@ -501,7 +501,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
             content: Text(
               count > 0
                   ? 'Imported $count mutashabihat groups!'
-                  : 'Dataset already imported',
+                  : AppLocalizations.of(context)!.pracAlreadyImported,
               style: TextStyle(fontFamily: 'Inter'),
             ),
             behavior: SnackBarBehavior.floating,
@@ -568,3 +568,6 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
     }
   }
 }
+
+
+

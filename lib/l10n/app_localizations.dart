@@ -4105,6 +4105,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Practicing'**
   String get pracPracticing;
+
+  /// No description provided for @appTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorize with Meaning'**
+  String get appTagline;
+
+  /// No description provided for @onboardingBrandStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'We believe memorization without\nunderstanding is incomplete.'**
+  String get onboardingBrandStatement;
+
+  /// No description provided for @onboardingBegin.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin'**
+  String get onboardingBegin;
+
+  /// No description provided for @onboardingChooseLang.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get onboardingChooseLang;
+
+  /// No description provided for @onboardingChangeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this later in settings'**
+  String get onboardingChangeLater;
+
+  /// No description provided for @onboardingEnglishSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue in English'**
+  String get onboardingEnglishSub;
+
+  /// No description provided for @onboardingArabicSub.
+  ///
+  /// In en, this message translates to:
+  /// **'المتابعة بالعربية'**
+  String get onboardingArabicSub;
+
+  /// No description provided for @onboardingChooseRecitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your Quranic recitation'**
+  String get onboardingChooseRecitation;
+
+  /// No description provided for @onboardingChooseRecitationAr.
+  ///
+  /// In en, this message translates to:
+  /// **'اختر القراءة'**
+  String get onboardingChooseRecitationAr;
+
+  /// No description provided for @onboardingHafsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Hafs · Most widely used'**
+  String get onboardingHafsSub;
+
+  /// No description provided for @onboardingWarshSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Warsh · North & West Africa'**
+  String get onboardingWarshSub;
+
+  /// No description provided for @onboardingSyncProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync your progress'**
+  String get onboardingSyncProgress;
+
+  /// No description provided for @onboardingSyncDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to sync across devices.\nYour data stays on your device otherwise.'**
+  String get onboardingSyncDesc;
+
+  /// No description provided for @onboardingSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Quran.com'**
+  String get onboardingSignIn;
+
+  /// No description provided for @onboardingSignInCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in was cancelled'**
+  String get onboardingSignInCancelled;
+
+  /// No description provided for @onboardingSignInError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect. Try again later.'**
+  String get onboardingSignInError;
+
+  /// No description provided for @actionTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get actionTryAgain;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get onboardingSkip;
+
+  /// No description provided for @setupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s set things up.'**
+  String get setupSubtitle;
+
+  /// No description provided for @setupMatchedSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Matched to your system preference'**
+  String get setupMatchedSystem;
+
+  /// No description provided for @pracDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pracDone;
+
+  /// No description provided for @sessionPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'PAUSED'**
+  String get sessionPaused;
+
+  /// No description provided for @sessionSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get sessionSkip;
+
+  /// No description provided for @sessionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get sessionDone;
+
+  /// No description provided for @sessionMin.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get sessionMin;
+
+  /// No description provided for @sessionTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'×'**
+  String get sessionTimes;
+
+  /// No description provided for @coverageVerseX.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse {verse}'**
+  String coverageVerseX(int verse);
+
+  /// No description provided for @coverageFullPageCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Full page covered'**
+  String get coverageFullPageCovered;
+
+  /// No description provided for @coverageNextTimeStartsFromVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Next time starts from verse {verse}'**
+  String coverageNextTimeStartsFromVerse(int verse);
+
+  /// No description provided for @coverageConfirmVersesXtoY.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Verses {start} to {end}'**
+  String coverageConfirmVersesXtoY(int start, int end);
+
+  /// No description provided for @coverageConfirmVerseXtoY.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Verse 1 to {end}'**
+  String coverageConfirmVerseXtoY(int end);
+
+  /// No description provided for @planPhaseSabaq.
+  ///
+  /// In en, this message translates to:
+  /// **'Sabaq'**
+  String get planPhaseSabaq;
+
+  /// No description provided for @planPhaseSabqi.
+  ///
+  /// In en, this message translates to:
+  /// **'Sabqi'**
+  String get planPhaseSabqi;
+
+  /// No description provided for @planPhaseManzil.
+  ///
+  /// In en, this message translates to:
+  /// **'Manzil'**
+  String get planPhaseManzil;
+
+  /// No description provided for @tafsirReadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more'**
+  String get tafsirReadMore;
+
+  /// No description provided for @tafsirShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get tafsirShowLess;
+
+  /// No description provided for @tafsirSourceMukhtasar.
+  ///
+  /// In en, this message translates to:
+  /// **'Al-Mukhtasar fi Tafsir'**
+  String get tafsirSourceMukhtasar;
+
+  /// No description provided for @tafsirSourceIbnKathir.
+  ///
+  /// In en, this message translates to:
+  /// **'Ibn Kathir'**
+  String get tafsirSourceIbnKathir;
+
+  /// No description provided for @sessionReviewCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Cards'**
+  String get sessionReviewCards;
+
+  /// No description provided for @coveragePagesCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages covered'**
+  String get coveragePagesCovered;
+
+  /// No description provided for @coveragePageXtoY.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {start} to {end}'**
+  String coveragePageXtoY(int start, int end, int count);
+
+  /// No description provided for @coveragePageX.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page}'**
+  String coveragePageX(int page);
+
+  /// No description provided for @coverageConfirmPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm {count} Pages'**
+  String coverageConfirmPages(int count);
+
+  /// No description provided for @coverageVersesCoveredOnPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Verses covered on page {page}'**
+  String coverageVersesCoveredOnPage(int page);
+
+  /// No description provided for @coverageVersesOnPageStartFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} verses on page, starting from {start}'**
+  String coverageVersesOnPageStartFrom(int total, int start);
+
+  /// No description provided for @coverageVersesOnPage.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} verses on page'**
+  String coverageVersesOnPage(int total);
+
+  /// No description provided for @sessionPagesToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pages to review'**
+  String sessionPagesToReview(int count);
+
+  /// No description provided for @sessionJuzAndPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz {juz} · {count} pages'**
+  String sessionJuzAndPages(String juz, int count);
+
+  /// No description provided for @pracChangeFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Filter'**
+  String get pracChangeFilter;
+
+  /// No description provided for @pracTapToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to download dataset'**
+  String get pracTapToDownload;
+
+  /// No description provided for @pracDownloadDataset.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Dataset'**
+  String get pracDownloadDataset;
+
+  /// No description provided for @pracAlreadyImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Already imported'**
+  String get pracAlreadyImported;
+
+  /// No description provided for @sessionOpenDigitalQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Digital Quran'**
+  String get sessionOpenDigitalQuran;
+
+  /// No description provided for @sessionFromVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'From verse {verse}'**
+  String sessionFromVerse(int verse);
+
+  /// No description provided for @sessionPageAndInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} · {info}'**
+  String sessionPageAndInfo(String page, String info);
+
+  /// No description provided for @pracReimport.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-import'**
+  String get pracReimport;
+
+  /// No description provided for @pracVerseNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse text not available'**
+  String get pracVerseNotAvailable;
+
+  /// No description provided for @pracNoGroupsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'No groups for this status.'**
+  String get pracNoGroupsStatus;
+
+  /// No description provided for @pracNotImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Dataset not imported yet.'**
+  String get pracNotImported;
+
+  /// No description provided for @undSurahOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get undSurahOverview;
+
+  /// No description provided for @undSurahKeyThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Themes'**
+  String get undSurahKeyThemes;
+
+  /// No description provided for @undSurahReasonsOfRevelation.
+  ///
+  /// In en, this message translates to:
+  /// **'Reasons of Revelation'**
+  String get undSurahReasonsOfRevelation;
+
+  /// No description provided for @undSurahEntriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} entries'**
+  String undSurahEntriesCount(int count);
+
+  /// No description provided for @undSurahMoreEntriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {count} more entries'**
+  String undSurahMoreEntriesCount(int count);
+
+  /// No description provided for @undSurahBegin.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin'**
+  String get undSurahBegin;
+
+  /// No description provided for @undSurahVersesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} verses'**
+  String undSurahVersesCount(int count);
+
+  /// No description provided for @undSurahPageX.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page}'**
+  String undSurahPageX(int page);
+
+  /// No description provided for @undSurahMeccan.
+  ///
+  /// In en, this message translates to:
+  /// **'Meccan'**
+  String get undSurahMeccan;
+
+  /// No description provided for @undSurahMedinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Medinan'**
+  String get undSurahMedinan;
+
+  /// No description provided for @undSurahVerse.
+  ///
+  /// In en, this message translates to:
+  /// **'Verse {verse}'**
+  String undSurahVerse(int verse);
+
+  /// No description provided for @undSurahVersesRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Verses {start}–{end}'**
+  String undSurahVersesRange(int start, int end);
 }
 
 class _AppLocalizationsDelegate

@@ -378,8 +378,9 @@ class _SessionOverlayState extends State<SessionOverlay> {
   Widget _buildRecipeStepBanner(ThemeProvider theme, SessionProvider session) {
     final step = session.currentStep!;
     final recipe = session.currentRecipe!;
+    final l10n = AppLocalizations.of(context)!;
     final totalSteps = recipe.steps.length;
-    final unitLabel = step.unit == StepUnit.minutes ? 'min' : '×';
+    final unitLabel = step.unit == StepUnit.minutes ? l10n.sessionMin : l10n.sessionTimes;
 
     return Container(
       width: double.infinity,
@@ -728,3 +729,4 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
+

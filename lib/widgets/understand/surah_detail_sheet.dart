@@ -17,10 +17,13 @@ import 'package:quran_app/theme/semantic_colors.dart';
 ///
 /// Uses curated [SurahIntroData] when available (24 surahs),
 /// otherwise shows basic info + asbab entries from the dataset.
+import 'package:quran_app/l10n/app_localizations.dart';
+
 class SurahDetailSheet extends StatelessWidget {
   final SurahInfo surah;
+  final ScrollController? scrollController;
 
-  const SurahDetailSheet({super.key, required this.surah});
+  const SurahDetailSheet({super.key, required this.surah, this.scrollController});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +31,9 @@ class SurahDetailSheet extends StatelessWidget {
     final contextProvider = context.watch<ContextProvider>();
     final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
     final asbabService = contextProvider.asbabService;
-    final intro = surahIntroductions[surah.id];
+    final l10n = AppLocalizations.of(context)!;
+    final isArabic = AppLocalizations.of(context)!.localeName == 'ar';
+    final intro = isArabic ? surahIntroductionsAr[surah.id] : surahIntroductions[surah.id];
     final asbabEntries = asbabService.isLoaded
         ? asbabService.getEntriesForSurah(surah.id)
         : <AsbabNuzulEntry>[];
@@ -59,6 +64,7 @@ class SurahDetailSheet extends StatelessWidget {
 
           Flexible(
             child: SingleChildScrollView(
+              controller: scrollController,
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +110,7 @@ class SurahDetailSheet extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _Badge(
-                              label: surah.revelationType,
+                              label: isMeccan ? l10n.undSurahMeccan : l10n.undSurahMedinan,
                               icon: isMeccan
                                   ? Icons.mosque_outlined
                                   : Icons.location_city_outlined,
@@ -119,14 +125,14 @@ class SurahDetailSheet extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             _Badge(
-                              label: '$displayVersesCount verses',
+                              label: l10n.undSurahVersesCount(displayVersesCount),
                               icon: Icons.format_list_numbered,
                               color: theme.accentColor,
                               theme: theme,
                             ),
                             const SizedBox(width: 8),
                             _Badge(
-                              label: 'Page ${surah.startPage}',
+                              label: l10n.undSurahPageX(surah.startPage),
                               icon: LucideIcons.bookOpen,
                               color: theme.secondaryText,
                               theme: theme,
@@ -141,7 +147,7 @@ class SurahDetailSheet extends StatelessWidget {
 
                   // ── Summary ──
                   if (intro != null) ...[
-                    _SectionTitle(title: 'Overview', theme: theme),
+                    _SectionTitle(title: l10n.undSurahOverview, theme: theme),
                     const SizedBox(height: 8),
                     Text(
                       intro.summary,
@@ -157,7 +163,7 @@ class SurahDetailSheet extends StatelessWidget {
 
                   // ── Key Themes ──
                   if (intro != null && intro.keyThemes.isNotEmpty) ...[
-                    _SectionTitle(title: 'Key Themes', theme: theme),
+                    _SectionTitle(title: l10n.undSurahKeyThemes, theme: theme),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
@@ -190,15 +196,15 @@ class SurahDetailSheet extends StatelessWidget {
                   // ── Asbab al-Nuzul ──
                   if (asbabEntries.isNotEmpty) ...[
                     _SectionTitle(
-                      title: 'Reasons of Revelation',
-                      subtitle: '${asbabEntries.length} entries',
+                      title: l10n.undSurahReasonsOfRevelation,
+                      subtitle: l10n.undSurahEntriesCount(asbabEntries.length),
                       theme: theme,
                     ),
                     const SizedBox(height: 8),
                     ...asbabEntries.take(5).map((entry) {
                       final verseRef = entry.ayahs.length == 1
-                          ? 'Verse ${entry.ayahs.first}'
-                          : 'Verses ${entry.ayahs.first}–${entry.ayahs.last}';
+                          ? l10n.undSurahVerse(entry.ayahs.first)
+                          : l10n.undSurahVersesRange(entry.ayahs.first, entry.ayahs.last);
                       return Container(
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 8),
@@ -246,7 +252,7 @@ class SurahDetailSheet extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          '+ ${asbabEntries.length - 5} more entries',
+                          l10n.undSurahMoreEntriesCount(asbabEntries.length - 5),
                           style: TextStyle(
                             fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,

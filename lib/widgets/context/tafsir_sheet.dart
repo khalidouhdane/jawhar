@@ -241,6 +241,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                       isArabic: _isArabic,
                       emptyMessage: l.tafsirEmptyBrief,
                       theme: theme,
+                      sourceName: l.tafsirSourceMukhtasar,
                     ),
                     _TafsirTextView(
                       text: _detailedTafsir?.text,
@@ -248,6 +249,7 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                       isArabic: _isArabic,
                       emptyMessage: l.tafsirEmptyDetailed,
                       theme: theme,
+                      sourceName: l.tafsirSourceIbnKathir,
                     ),
                     _OccasionView(occasions: _occasions, theme: theme),
                   ],
@@ -262,12 +264,13 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
 }
 
 /// Reusable tafsir text view — NO context.watch, all data via constructor.
-class _TafsirTextView extends StatelessWidget {
+class _TafsirTextView extends StatefulWidget {
   final String? text;
   final bool isLoading;
   final bool isArabic;
   final String emptyMessage;
   final ThemeProvider theme;
+  final String? sourceName;
 
   const _TafsirTextView({
     required this.text,
@@ -275,39 +278,109 @@ class _TafsirTextView extends StatelessWidget {
     required this.isArabic,
     required this.emptyMessage,
     required this.theme,
+    this.sourceName,
   });
 
   @override
+  State<_TafsirTextView> createState() => _TafsirTextViewState();
+}
+
+class _TafsirTextViewState extends State<_TafsirTextView> {
+  bool _isExpanded = false;
+
+  /// Threshold for showing "Read More" toggle (chars).
+  static const int _truncateThreshold = 1500;
+
+  @override
+  void didUpdateWidget(covariant _TafsirTextView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset expansion when text changes (different verse)
+    if (oldWidget.text != widget.text) {
+      _isExpanded = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) return _buildLoading();
-    if (text == null || text!.isEmpty) return _buildEmpty();
+    if (widget.isLoading) return _buildLoading();
+    if (widget.text == null || widget.text!.isEmpty) return _buildEmpty();
     return _buildText();
   }
 
   Widget _buildText() {
+    final theme = widget.theme;
+    final fullText = widget.text!;
+    final needsTruncation = fullText.length > _truncateThreshold;
+    final displayText = (!_isExpanded && needsTruncation)
+        ? '${fullText.substring(0, _truncateThreshold)}…'
+        : fullText;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      child: ExcludeSemantics(
-        child: Text(
-          text!,
-          style: isArabic
-              ? GoogleFonts.amiri(
-                  fontSize: 18,
-                  height: 2.0,
-                  color: theme.primaryText,
-                )
-              : GoogleFonts.ibmPlexSansArabic(
-                  fontSize: 15,
-                  height: 1.8,
-                  color: theme.primaryText,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ExcludeSemantics(
+            child: Text(
+              displayText,
+              style: widget.isArabic
+                  ? GoogleFonts.amiri(
+                      fontSize: 18,
+                      height: 2.0,
+                      color: theme.primaryText,
+                    )
+                  : GoogleFonts.ibmPlexSansArabic(
+                      fontSize: 15,
+                      height: 1.8,
+                      color: theme.primaryText,
+                    ),
+              textDirection:
+                  widget.isArabic ? TextDirection.rtl : TextDirection.ltr,
+            ),
+          ),
+          // Expand/collapse toggle for long text
+          if (needsTruncation)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: GestureDetector(
+                onTap: () => setState(() => _isExpanded = !_isExpanded),
+                child: Text(
+                  _isExpanded ? AppLocalizations.of(context)!.tafsirShowLess : AppLocalizations.of(context)!.tafsirReadMore,
+                  style: GoogleFonts.ibmPlexSansArabic(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: theme.accentColor,
+                  ),
                 ),
-          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-        ),
+              ),
+            ),
+          // Source attribution
+          if (widget.sourceName != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_stories_outlined,
+                      size: 13, color: theme.mutedText),
+                  const SizedBox(width: 6),
+                  Text(
+                    widget.sourceName!,
+                    style: GoogleFonts.ibmPlexSansArabic(
+                      fontSize: 11,
+                      color: theme.mutedText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildLoading() {
+    final theme = widget.theme;
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -330,6 +403,7 @@ class _TafsirTextView extends StatelessWidget {
   }
 
   Widget _buildEmpty() {
+    final theme = widget.theme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -339,7 +413,7 @@ class _TafsirTextView extends StatelessWidget {
             Icon(Icons.info_outline, size: 40, color: theme.mutedText),
             const SizedBox(height: 12),
             Text(
-              emptyMessage,
+              widget.emptyMessage,
               style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 14,
                 color: theme.secondaryText,

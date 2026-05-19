@@ -859,7 +859,7 @@ class _MutashabihatPracticeScreenState
           const SizedBox(height: 24),
           GeistButton(
             onPressed: () => Navigator.of(context).pop(),
-            label: 'Done',
+            label: AppLocalizations.of(context)!.pracDone,
             type: GeistButtonType.primary,
             size: GeistButtonSize.large,
           ),
@@ -898,3 +898,5 @@ class _MutashabihatPracticeScreenState
     );
   }
 }
+
+

@@ -5,6 +5,7 @@ import 'package:quran_app/widgets/geist_button.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 
 /// Data model for a surah introduction.
 class SurahIntroData {
@@ -60,7 +61,9 @@ class SurahIntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
-    final intro = data ?? surahIntroductions[surahId];
+    final isArabic = AppLocalizations.of(context)!.localeName == 'ar';
+    final l10n = AppLocalizations.of(context)!;
+    final intro = data ?? (isArabic ? surahIntroductionsAr[surahId] : surahIntroductions[surahId]);
 
     if (intro == null) {
       return const SizedBox.shrink();
@@ -126,7 +129,7 @@ class SurahIntroCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _Badge(
-                      label: intro.revelationType,
+                      label: isMeccan ? l10n.undSurahMeccan : l10n.undSurahMedinan,
                       icon: isMeccan
                           ? Icons.mosque_outlined
                           : Icons.location_city_outlined,
@@ -137,7 +140,7 @@ class SurahIntroCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     _Badge(
-                      label: '$displayVersesCount verses',
+                      label: l10n.undSurahVersesCount(displayVersesCount),
                       icon: Icons.format_list_numbered,
                       color: theme.accentColor,
                       theme: theme,
@@ -166,7 +169,7 @@ class SurahIntroCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
               child: Text(
-                'Key Themes',
+                l10n.undSurahKeyThemes,
                 style: GoogleFonts.ibmPlexSansArabic(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -211,7 +214,7 @@ class SurahIntroCard extends StatelessWidget {
                 width: double.infinity,
                 child: GeistButton(
                   onPressed: onDismiss,
-                  label: 'Begin',
+                  label: l10n.undSurahBegin,
                   type: GeistButtonType.primary,
                   size: GeistButtonSize.large,
                 ),
@@ -662,6 +665,404 @@ const Map<int, SurahIntroData> surahIntroductions = {
       'Seeking refuge',
       'Whisperings of Satan',
       'Spiritual protection',
+    ],
+  ),
+};
+
+
+const Map<int, SurahIntroData> surahIntroductionsAr = {
+  1: SurahIntroData(
+    id: 1,
+    nameArabic: 'الفاتحة',
+    nameEnglish: 'Al-Fatihah',
+    meaningOfName: 'الفاتحة',
+    revelationType: 'مكية',
+    versesCount: 7,
+    summary:
+        'السورة الافتتاحية للقرآن الكريم. دعاء شامل يختزل جوهر القرآن بأكمله: من حمد الله، والاعتراف بسيادته، وطلب الهداية إلى الصراط المستقيم.',
+    keyThemes: ['حمد الله', 'طلب الهداية', 'الصراط المستقيم'],
+  ),
+  2: SurahIntroData(
+    id: 2,
+    nameArabic: 'البقرة',
+    nameEnglish: 'Al-Baqarah',
+    meaningOfName: 'البقرة',
+    revelationType: 'مدنية',
+    versesCount: 286,
+    summary:
+        'أطول سورة في القرآن. تؤسس القوانين والمبادئ والتوجيهات المجتمعية للمجتمع المسلم الجديد في المدينة. سميت نسبة إلى قصة البقرة التي أُمر بنو إسرائيل بذبحها.',
+    keyThemes: [
+      'التوجيه الإلهي',
+      'الأحكام الشرعية',
+      'قصص الأمم السابقة',
+      'آية الكرسي',
+    ],
+  ),
+  3: SurahIntroData(
+    id: 3,
+    nameArabic: 'آل عمران',
+    nameEnglish: 'Ali \'Imran',
+    meaningOfName: 'عائلة عمران',
+    revelationType: 'مدنية',
+    versesCount: 200,
+    summary:
+        'تناقش قصة آل عمران (والد مريم)، وميلاد عيسى، وغزوة أحد. تتناول العقيدة المسيحية وتؤكد على وحدة الرسالة الإلهية.',
+    keyThemes: [
+      'حوار الأديان',
+      'غزوة أحد',
+      'الثبات',
+      'عائلة مريم',
+    ],
+  ),
+  4: SurahIntroData(
+    id: 4,
+    nameArabic: 'النساء',
+    nameEnglish: 'An-Nisa',
+    meaningOfName: 'النساء',
+    revelationType: 'مدنية',
+    versesCount: 176,
+    summary:
+        'تتناول حقوق النساء، والأيتام، وقانون الأسرة. تؤسس قوانين الميراث، وأحكام الزواج، ومبادئ العدالة الاجتماعية.',
+    keyThemes: [
+      'حقوق المرأة',
+      'قانون الميراث',
+      'العدالة الاجتماعية',
+      'بناء الأسرة',
+    ],
+  ),
+  5: SurahIntroData(
+    id: 5,
+    nameArabic: 'المائدة',
+    nameEnglish: 'Al-Ma\'idah',
+    meaningOfName: 'المائدة',
+    revelationType: 'مدنية',
+    versesCount: 120,
+    summary:
+        'من أواخر السور نزولاً. سميت نسبة إلى المائدة التي طلبها حواريو عيسى. تؤكد على الوفاء بالعهود واكتمال رسالة الإسلام.',
+    keyThemes: [
+      'الوفاء بالعهود',
+      'أحكام الطعام',
+      'اكتمال الدين',
+      'العدل',
+    ],
+  ),
+  6: SurahIntroData(
+    id: 6,
+    nameArabic: 'الأنعام',
+    nameEnglish: 'Al-An\'am',
+    meaningOfName: 'الأنعام',
+    revelationType: 'مكية',
+    versesCount: 165,
+    summary:
+        'سورة مكية عظيمة نزلت جملة واحدة. تؤسس للتوحيد، وتدحض الشرك، وتقدم أدلة على وجود الله ووحدانيته من خلال الآيات في الطبيعة.',
+    keyThemes: [
+      'التوحيد',
+      'آيات الله في الخلق',
+      'دحض الشرك',
+      'النبوة',
+    ],
+  ),
+  7: SurahIntroData(
+    id: 7,
+    nameArabic: 'الأعراف',
+    nameEnglish: 'Al-A\'raf',
+    meaningOfName: 'الأعراف',
+    revelationType: 'مكية',
+    versesCount: 206,
+    summary:
+        'تروي قصص الأنبياء السابقين — آدم، نوح، هود، صالح، لوط، شعيب، وموسى. سميت نسبة إلى الحاجز المرتفع بين الجنة والنار يوم القيامة.',
+    keyThemes: [
+      'قصص الأنبياء',
+      'عواقب التكذيب',
+      'يوم القيامة',
+      'قصة آدم',
+    ],
+  ),
+  8: SurahIntroData(
+    id: 8,
+    nameArabic: 'الأنفال',
+    nameEnglish: 'Al-Anfal',
+    meaningOfName: 'الأنفال',
+    revelationType: 'مدنية',
+    versesCount: 75,
+    summary:
+        'نزلت بعد غزوة بدر، أول انتصار عسكري كبير للإسلام. تتناول توزيع غنائم الحرب، وأخلاقيات الحرب، والدروس المستفادة من المعركة.',
+    keyThemes: [
+      'غزوة بدر',
+      'أخلاقيات الحرب',
+      'التوكل على الله',
+      'وحدة المؤمنين',
+    ],
+  ),
+  9: SurahIntroData(
+    id: 9,
+    nameArabic: 'التوبة',
+    nameEnglish: 'At-Tawbah',
+    meaningOfName: 'التوبة',
+    revelationType: 'مدنية',
+    versesCount: 129,
+    summary:
+        'السورة الوحيدة التي لا تبدأ بالبسملة. تتناول المعاهدات مع المشركين، والمنافقين في المدينة، وغزوة تبوك. تؤكد على التوبة الصادقة.',
+    keyThemes: [
+      'التوبة',
+      'المنافقون',
+      'غزوة تبوك',
+      'نقض العهود',
+    ],
+  ),
+  10: SurahIntroData(
+    id: 10,
+    nameArabic: 'يونس',
+    nameEnglish: 'Yunus',
+    meaningOfName: 'يونس',
+    revelationType: 'مكية',
+    versesCount: 109,
+    summary:
+        'سميت باسم النبي يونس الذي تاب قومه بشكل استثنائي فنجوا من العذاب. تناقش طبيعة الوحي، وحرية الإرادة، وعواقب قبول الحق أو رفضه.',
+    keyThemes: [
+      'الوحي',
+      'النبي يونس',
+      'حرية الإرادة',
+      'رحمة التوبة',
+    ],
+  ),
+  11: SurahIntroData(
+    id: 11,
+    nameArabic: 'هود',
+    nameEnglish: 'Hud',
+    meaningOfName: 'هود',
+    revelationType: 'مكية',
+    versesCount: 123,
+    summary:
+        'سميت باسم النبي هود المبعوث إلى قوم عاد. تعرض سلسلة من قصص الأنبياء كتحذير، وتبلغ ذروتها في قصة طوفان نوح بتفاصيل درامية حية.',
+    keyThemes: [
+      'قصص الأنبياء',
+      'طوفان نوح',
+      'الصبر عند الشدائد',
+      'العدل الإلهي',
+    ],
+  ),
+  12: SurahIntroData(
+    id: 12,
+    nameArabic: 'يوسف',
+    nameEnglish: 'Yusuf',
+    meaningOfName: 'يوسف',
+    revelationType: 'مكية',
+    versesCount: 111,
+    summary:
+        'القصة الأكثر ترابطاً في القرآن، تحكي قصة النبي يوسف كاملة — من رؤياه كطفل إلى لم شمله مع أسرته كوزير لمصر. سُميت "أحسن القصص".',
+    keyThemes: [
+      'الصبر والتوكل',
+      'الرؤى وتفسيرها',
+      'الفتنة والعفة',
+      'المصالحة العائلية',
+    ],
+  ),
+  13: SurahIntroData(
+    id: 13,
+    nameArabic: 'الرعد',
+    nameEnglish: 'Ar-Ra\'d',
+    meaningOfName: 'الرعد',
+    revelationType: 'مدنية',
+    versesCount: 43,
+    summary:
+        'سميت باسم الرعد الذي يسبح بحمد الله. تعرض آيات قوية في الطبيعة كدليل على وجود الله وصدق الوحي.',
+    keyThemes: ['آيات الطبيعة', 'التوحيد', 'الهدى والضلال'],
+  ),
+  14: SurahIntroData(
+    id: 14,
+    nameArabic: 'إبراهيم',
+    nameEnglish: 'Ibrahim',
+    meaningOfName: 'إبراهيم',
+    revelationType: 'مكية',
+    versesCount: 52,
+    summary:
+        'سميت باسم النبي إبراهيم ودعائه عندما أسكن عائلته في مكة. تقارن بين الشكر والجحود، والنور والظلمات.',
+    keyThemes: [
+      'دعاء إبراهيم',
+      'الشكر',
+      'النور والظلمات',
+      'النبوة',
+    ],
+  ),
+  15: SurahIntroData(
+    id: 15,
+    nameArabic: 'الحجر',
+    nameEnglish: 'Al-Hijr',
+    meaningOfName: 'الحجر',
+    revelationType: 'مكية',
+    versesCount: 99,
+    summary:
+        'سميت باسم المنطقة الصخرية التي سكنها قوم ثمود. تناقش خلق الإنسان والجن، وقصة إبليس، وهلاك الأمم السابقة.',
+    keyThemes: [
+      'خلق آدم',
+      'قصة إبليس',
+      'الأمم المهلكة',
+      'حفظ القرآن',
+    ],
+  ),
+  16: SurahIntroData(
+    id: 16,
+    nameArabic: 'النحل',
+    nameEnglish: 'An-Nahl',
+    meaningOfName: 'النحل',
+    revelationType: 'مكية',
+    versesCount: 128,
+    summary:
+        'سميت باسم النحل، الذي يُعرض كآية من آيات حكمة الله الإبداعية. تسرد النعم والآيات في الطبيعة — من المطر والمحاصيل إلى الحيوانات والبحر.',
+    keyThemes: [
+      'نعم الله',
+      'آيات الطبيعة',
+      'النحل',
+      'الشكر',
+    ],
+  ),
+  17: SurahIntroData(
+    id: 17,
+    nameArabic: 'الإسراء',
+    nameEnglish: 'Al-Isra',
+    meaningOfName: 'الإسراء',
+    revelationType: 'مكية',
+    versesCount: 111,
+    summary:
+        'تفتتح بمعجزة الإسراء من مكة إلى القدس. تحتوي على "دستور أخلاقي مصغر" يضم الوصايا الأخلاقية، وتناقش تاريخ بني إسرائيل.',
+    keyThemes: [
+      'رحلة الإسراء',
+      'الوصايا الأخلاقية',
+      'بنو إسرائيل',
+      'إعجاز القرآن',
+    ],
+  ),
+  18: SurahIntroData(
+    id: 18,
+    nameArabic: 'الكهف',
+    nameEnglish: 'Al-Kahf',
+    meaningOfName: 'الكهف',
+    revelationType: 'مكية',
+    versesCount: 110,
+    summary:
+        'تحتوي على أربع قصص عظيمة: أصحاب الكهف، وصاحب الجنتين، وموسى والخضر، وذي القرنين. يُستحب قراءتها كل يوم جمعة.',
+    keyThemes: [
+      'فتنة الدين',
+      'فتنة المال',
+      'فتنة العلم',
+      'فتنة السلطة',
+    ],
+  ),
+  19: SurahIntroData(
+    id: 19,
+    nameArabic: 'مريم',
+    nameEnglish: 'Maryam',
+    meaningOfName: 'مريم',
+    revelationType: 'مكية',
+    versesCount: 98,
+    summary:
+        'سميت باسم مريم، والدة عيسى. تروي قصص زكريا، ويحيى، ومريم، وعيسى — مع التركيز على الطبيعة المعجزية لولادتهم.',
+    keyThemes: [
+      'مريم وعيسى',
+      'الرحمة والمعجزات',
+      'إبراهيم وأبوه',
+      'نسب الأنبياء',
+    ],
+  ),
+  20: SurahIntroData(
+    id: 20,
+    nameArabic: 'طه',
+    nameEnglish: 'Ta-Ha',
+    meaningOfName: 'طه',
+    revelationType: 'مكية',
+    versesCount: 135,
+    summary:
+        'تبدأ بحروف مقطعة. تحتوي على التفصيل الأوفى لقصة النبي موسى — من ندائه عند الشجرة المباركة إلى مواجهة فرعون والسامري.',
+    keyThemes: [
+      'قصة موسى',
+      'فرعون',
+      'الشجرة المباركة',
+      'آدم في الجنة',
+    ],
+  ),
+  36: SurahIntroData(
+    id: 36,
+    nameArabic: 'يس',
+    nameEnglish: 'Ya-Sin',
+    meaningOfName: 'يس',
+    revelationType: 'مكية',
+    versesCount: 83,
+    summary:
+        'تُسمى "قلب القرآن". تتناول القضايا الأساسية للتوحيد، والنبوة، والبعث من خلال أمثال قوية وآيات في الطبيعة.',
+    keyThemes: [
+      'البعث',
+      'آيات الخلق',
+      'قصة أصحاب القرية',
+      'قلب القرآن',
+    ],
+  ),
+  55: SurahIntroData(
+    id: 55,
+    nameArabic: 'الرحمن',
+    nameEnglish: 'Ar-Rahman',
+    meaningOfName: 'الرحمن',
+    revelationType: 'مدنية',
+    versesCount: 78,
+    summary:
+        'سورة الجمال. تسرد نعم الله مع التكرار المستمر لآية "فبأي آلاء ربكما تكذبان" — موجهة للإنس والجن معاً.',
+    keyThemes: [
+      'نعم الله',
+      'الآية المكررة',
+      'وصف الجنة',
+      'التوازن في الخلق',
+    ],
+  ),
+  67: SurahIntroData(
+    id: 67,
+    nameArabic: 'الملك',
+    nameEnglish: 'Al-Mulk',
+    meaningOfName: 'الملك',
+    revelationType: 'مكية',
+    versesCount: 30,
+    summary:
+        'تُسمى أيضاً "المنجية". أوصى النبي ﷺ بقراءتها كل ليلة. تتناول قدرة الله في خلق السماوات والأرض، ومصير المنكرين.',
+    keyThemes: [
+      'سيادة الله',
+      'خلق السماوات',
+      'النجاة من العذاب',
+    ],
+  ),
+  112: SurahIntroData(
+    id: 112,
+    nameArabic: 'الإخلاص',
+    nameEnglish: 'Al-Ikhlas',
+    meaningOfName: 'الإخلاص',
+    revelationType: 'مكية',
+    versesCount: 4,
+    summary:
+        'تعدل ثلث القرآن في المعنى. إعلان موجز للتوحيد الخالص يحدد صفات الله في أربع آيات.',
+    keyThemes: ['التوحيد الخالص', 'وحدانية الله', 'جوهر الإيمان'],
+  ),
+  113: SurahIntroData(
+    id: 113,
+    nameArabic: 'الفلق',
+    nameEnglish: 'Al-Falaq',
+    meaningOfName: 'الفلق',
+    revelationType: 'مكية',
+    versesCount: 5,
+    summary:
+        'إحدى المعوذتين. الاستعاذة بالله من الشرور الخارجية — الغسق، والسحر، والحسد.',
+    keyThemes: ['الاستعاذة', 'الحماية من الشر', 'الفلق'],
+  ),
+  114: SurahIntroData(
+    id: 114,
+    nameArabic: 'الناس',
+    nameEnglish: 'An-Nas',
+    meaningOfName: 'الناس',
+    revelationType: 'مكية',
+    versesCount: 6,
+    summary:
+        'آخر سورة في القرآن. الاستعاذة بالله من وساوس الشيطان — التهديد الروحي الداخلي. تقترن مع الفلق للحماية الشاملة.',
+    keyThemes: [
+      'الاستعاذة',
+      'وساوس الشيطان',
+      'الحماية الروحية',
     ],
   ),
 };

@@ -301,7 +301,7 @@
   "homeAiPreparing": "الذكاء الاصطناعي يجهز خطتك",
   "homeWelcomeBack": "مرحباً بعودتك!",
   "homeLetsGo": "هيا بنا! ✨",
-  "pracMutashabihat": "تدريب المتشابهات",
+  "pracMutashabihat": "المتشابهات",
   "pracSpotDiff": "اكتشف الفرق",
   "pracTapReveal": "اضغط للكشف عن الآية المشابهة",
   "pracReadContext": "اقرأ الآيات في سياقها",
@@ -917,12 +917,11 @@
   "undVersesCount": "{count} آيات",
   "undPagePrefix": "الصفحة {page}",
   "pracContextNeeded": "بحاجة لسياق",
-  "pracNotStudied": "لم تدرس بعد",
+  "pracNotStudied": "لم يُدرس",
   "pracSource": "المصدر",
   "pracSimilar": "مشابهة",
   "pracMastered": "متقن",
-  "pracMarkForPractice": "علم للمراجعة",
-  "pracMutashabihat": "المتشابهات",
+  "pracMarkForPractice": "تحديد للمراجعة",
   "pracAll": "الكل",
   "pracNeedsPractice": "يحتاج مراجعة",
   "pracTapToReveal": "انقر للإظهار",
@@ -938,11 +937,6 @@
   "pracContext": "السياق",
   "pracQuiz": "اختبار",
   "pracPracticing": "قيد المراجعة",
-  "pracMarkForPractice": "تحديد للمراجعة",
-  "pracMastered": "متقن",
-  "pracNeedsPractice": "يحتاج مراجعة",
-  "pracNotStudied": "لم يُدرس",
-  "appName": "جوهر",
   "appTagline": "احفظ القرآن بفهم",
   "onboardingBrandStatement": "نؤمن بأن الحفظ بدون فهم\nغير مكتمل.",
   "onboardingBegin": "ابدأ",
@@ -962,5 +956,217 @@
   "actionTryAgain": "حاول مرة أخرى",
   "onboardingSkip": "تخطي الآن",
   "setupSubtitle": "لنقم بإعداد التطبيق.",
-  "setupMatchedSystem": "مطابق لتفضيلات النظام الخاصة بك"
+  "setupMatchedSystem": "مطابق لتفضيلات النظام الخاصة بك",
+  "pracDone": "تم",
+  "sessionPaused": "متوقف",
+  "sessionSkip": "تخطي",
+  "sessionDone": "تم",
+  "sessionMin": "د",
+  "sessionTimes": "×",
+  "coverageVerseX": "الآية {verse}",
+  "@coverageVerseX": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageFullPageCovered": "تم تغطية الصفحة كاملة",
+  "coverageNextTimeStartsFromVerse": "المرة القادمة تبدأ من الآية {verse}",
+  "@coverageNextTimeStartsFromVerse": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageConfirmVersesXtoY": "تأكيد الآيات من {start} إلى {end}",
+  "@coverageConfirmVersesXtoY": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageConfirmVerseXtoY": "تأكيد الآية من 1 إلى {end}",
+  "@coverageConfirmVerseXtoY": {
+    "placeholders": {
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "planPhaseSabaq": "سبق",
+  "planPhaseSabqi": "سبقي",
+  "planPhaseManzil": "منزل",
+  "tafsirReadMore": "اقرأ المزيد",
+  "tafsirShowLess": "إظهار أقل",
+  "tafsirSourceMukhtasar": "التفسير الميسر",
+  "tafsirSourceIbnKathir": "تفسير ابن كثير",
+  "sessionReviewCards": "مراجعة البطاقات",
+  "coveragePagesCovered": "الصفحات المغطاة",
+  "coveragePageXtoY": "الصفحة {start} إلى {end}",
+  "@coveragePageXtoY": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coveragePageX": "الصفحة {page}",
+  "@coveragePageX": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageConfirmPages": "تأكيد {count} صفحات",
+  "coverageVersesCoveredOnPage": "الآيات المغطاة في الصفحة {page}",
+  "coverageVersesOnPageStartFrom": "{total} آية في الصفحة، تبدأ من {start}",
+  "coverageVersesOnPage": "{total} آية في الصفحة",
+  "@coverageConfirmPages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@coverageVersesCoveredOnPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "@coverageVersesOnPageStartFrom": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      }
+    }
+  },
+  "@coverageVersesOnPage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionPagesToReview": "{count} صفحات للمراجعة",
+  "@sessionPagesToReview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionJuzAndPages": "الجزء {juz} · {count} صفحات",
+  "@sessionJuzAndPages": {
+    "placeholders": {
+      "juz": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pracChangeFilter": "تغيير التصفية",
+  "pracTapToDownload": "اضغط لتحميل البيانات",
+  "pracDownloadDataset": "تحميل البيانات",
+  "pracAlreadyImported": "تم الاستيراد مسبقاً",
+  "sessionOpenDigitalQuran": "فتح المصحف الرقمي",
+  "sessionFromVerse": "من الآية {verse}",
+  "@sessionFromVerse": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionPageAndInfo": "الصفحة {page} · {info}",
+  "@sessionPageAndInfo": {
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "pracReimport": "إعادة الاستيراد",
+  "pracVerseNotAvailable": "نص الآية غير متاح",
+  "pracNoGroupsStatus": "لا توجد مجموعات بهذه الحالة.",
+  "pracNotImported": "لم يتم استيراد البيانات بعد.",
+  "undSurahOverview": "نظرة عامة",
+  "undSurahKeyThemes": "المواضيع الرئيسية",
+  "undSurahReasonsOfRevelation": "أسباب النزول",
+  "undSurahEntriesCount": "{count} مواقف",
+  "@undSurahEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahMoreEntriesCount": "+ {count} مواقف أخرى",
+  "@undSurahMoreEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahBegin": "ابدأ",
+  "undSurahVersesCount": "{count} آية",
+  "@undSurahVersesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahPageX": "الصفحة {page}",
+  "@undSurahPageX": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahMeccan": "مكية",
+  "undSurahMedinan": "مدنية",
+  "undSurahVerse": "الآية {verse}",
+  "@undSurahVerse": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahVersesRange": "الآيات {start}–{end}",
+  "@undSurahVersesRange": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  }
 }

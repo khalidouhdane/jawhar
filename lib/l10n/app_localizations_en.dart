@@ -2200,4 +2200,259 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pracPracticing => 'Practicing';
+
+  @override
+  String get appTagline => 'Memorize with Meaning';
+
+  @override
+  String get onboardingBrandStatement =>
+      'We believe memorization without\nunderstanding is incomplete.';
+
+  @override
+  String get onboardingBegin => 'Begin';
+
+  @override
+  String get onboardingChooseLang => 'Choose your language';
+
+  @override
+  String get onboardingChangeLater => 'You can change this later in settings';
+
+  @override
+  String get onboardingEnglishSub => 'Continue in English';
+
+  @override
+  String get onboardingArabicSub => 'المتابعة بالعربية';
+
+  @override
+  String get onboardingChooseRecitation => 'Choose your Quranic recitation';
+
+  @override
+  String get onboardingChooseRecitationAr => 'اختر القراءة';
+
+  @override
+  String get onboardingHafsSub => 'Hafs · Most widely used';
+
+  @override
+  String get onboardingWarshSub => 'Warsh · North & West Africa';
+
+  @override
+  String get onboardingSyncProgress => 'Sync your progress';
+
+  @override
+  String get onboardingSyncDesc =>
+      'Sign in to sync across devices.\nYour data stays on your device otherwise.';
+
+  @override
+  String get onboardingSignIn => 'Sign in with Quran.com';
+
+  @override
+  String get onboardingSignInCancelled => 'Sign-in was cancelled';
+
+  @override
+  String get onboardingSignInError => 'Could not connect. Try again later.';
+
+  @override
+  String get actionTryAgain => 'Try again';
+
+  @override
+  String get onboardingSkip => 'Skip for now';
+
+  @override
+  String get setupSubtitle => 'Let\'s set things up.';
+
+  @override
+  String get setupMatchedSystem => 'Matched to your system preference';
+
+  @override
+  String get pracDone => 'Done';
+
+  @override
+  String get sessionPaused => 'PAUSED';
+
+  @override
+  String get sessionSkip => 'Skip';
+
+  @override
+  String get sessionDone => 'Done';
+
+  @override
+  String get sessionMin => 'min';
+
+  @override
+  String get sessionTimes => '×';
+
+  @override
+  String coverageVerseX(int verse) {
+    return 'Verse $verse';
+  }
+
+  @override
+  String get coverageFullPageCovered => 'Full page covered';
+
+  @override
+  String coverageNextTimeStartsFromVerse(int verse) {
+    return 'Next time starts from verse $verse';
+  }
+
+  @override
+  String coverageConfirmVersesXtoY(int start, int end) {
+    return 'Confirm Verses $start to $end';
+  }
+
+  @override
+  String coverageConfirmVerseXtoY(int end) {
+    return 'Confirm Verse 1 to $end';
+  }
+
+  @override
+  String get planPhaseSabaq => 'Sabaq';
+
+  @override
+  String get planPhaseSabqi => 'Sabqi';
+
+  @override
+  String get planPhaseManzil => 'Manzil';
+
+  @override
+  String get tafsirReadMore => 'Read more';
+
+  @override
+  String get tafsirShowLess => 'Show less';
+
+  @override
+  String get tafsirSourceMukhtasar => 'Al-Mukhtasar fi Tafsir';
+
+  @override
+  String get tafsirSourceIbnKathir => 'Ibn Kathir';
+
+  @override
+  String get sessionReviewCards => 'Review Cards';
+
+  @override
+  String get coveragePagesCovered => 'Pages covered';
+
+  @override
+  String coveragePageXtoY(int start, int end, int count) {
+    return 'Page $start to $end';
+  }
+
+  @override
+  String coveragePageX(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String coverageConfirmPages(int count) {
+    return 'Confirm $count Pages';
+  }
+
+  @override
+  String coverageVersesCoveredOnPage(int page) {
+    return 'Verses covered on page $page';
+  }
+
+  @override
+  String coverageVersesOnPageStartFrom(int total, int start) {
+    return '$total verses on page, starting from $start';
+  }
+
+  @override
+  String coverageVersesOnPage(int total) {
+    return '$total verses on page';
+  }
+
+  @override
+  String sessionPagesToReview(int count) {
+    return '$count pages to review';
+  }
+
+  @override
+  String sessionJuzAndPages(String juz, int count) {
+    return 'Juz $juz · $count pages';
+  }
+
+  @override
+  String get pracChangeFilter => 'Change Filter';
+
+  @override
+  String get pracTapToDownload => 'Tap to download dataset';
+
+  @override
+  String get pracDownloadDataset => 'Download Dataset';
+
+  @override
+  String get pracAlreadyImported => 'Already imported';
+
+  @override
+  String get sessionOpenDigitalQuran => 'Open Digital Quran';
+
+  @override
+  String sessionFromVerse(int verse) {
+    return 'From verse $verse';
+  }
+
+  @override
+  String sessionPageAndInfo(String page, String info) {
+    return 'Page $page · $info';
+  }
+
+  @override
+  String get pracReimport => 'Re-import';
+
+  @override
+  String get pracVerseNotAvailable => 'Verse text not available';
+
+  @override
+  String get pracNoGroupsStatus => 'No groups for this status.';
+
+  @override
+  String get pracNotImported => 'Dataset not imported yet.';
+
+  @override
+  String get undSurahOverview => 'Overview';
+
+  @override
+  String get undSurahKeyThemes => 'Key Themes';
+
+  @override
+  String get undSurahReasonsOfRevelation => 'Reasons of Revelation';
+
+  @override
+  String undSurahEntriesCount(int count) {
+    return '$count entries';
+  }
+
+  @override
+  String undSurahMoreEntriesCount(int count) {
+    return '+ $count more entries';
+  }
+
+  @override
+  String get undSurahBegin => 'Begin';
+
+  @override
+  String undSurahVersesCount(int count) {
+    return '$count verses';
+  }
+
+  @override
+  String undSurahPageX(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String get undSurahMeccan => 'Meccan';
+
+  @override
+  String get undSurahMedinan => 'Medinan';
+
+  @override
+  String undSurahVerse(int verse) {
+    return 'Verse $verse';
+  }
+
+  @override
+  String undSurahVersesRange(int start, int end) {
+    return 'Verses $start–$end';
+  }
 }

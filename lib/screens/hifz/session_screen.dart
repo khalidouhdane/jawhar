@@ -148,6 +148,7 @@ class _SessionScreenState extends State<SessionScreen> {
   // ════════════════════════════════
 
   Widget _buildActiveView(ThemeProvider theme, SessionProvider session) {
+    final l10n = AppLocalizations.of(context)!;
     final isCountdown = session.targetSeconds > 0;
     final isOvertime = session.isOvertime;
     final displaySeconds = isCountdown
@@ -295,7 +296,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'PAUSED',
+                        l10n.sessionPaused,
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
@@ -397,7 +398,7 @@ class _SessionScreenState extends State<SessionScreen> {
                           _controlButton(
                             theme,
                             icon: LucideIcons.skipForward,
-                            label: 'Skip',
+                            label: AppLocalizations.of(context)!.sessionSkip,
                             onTap: () => session.skipPhase(),
                           ),
                           GeistButton.icon(
@@ -409,7 +410,7 @@ class _SessionScreenState extends State<SessionScreen> {
                           _controlButton(
                             theme,
                             icon: LucideIcons.check,
-                            label: 'Done',
+                            label: AppLocalizations.of(context)!.sessionDone,
                             onTap: () => session.finishPhase(),
                           ),
                         ],
@@ -423,7 +424,7 @@ class _SessionScreenState extends State<SessionScreen> {
             width: double.infinity,
             child: GeistButton(
               onPressed: () => setState(() => _isDigitalMode = true),
-              label: 'Open Digital Quran',
+              label: AppLocalizations.of(context)!.sessionOpenDigitalQuran,
               prefix: const Icon(
                 LucideIcons.bookOpen,
                 size: 18,
@@ -474,19 +475,27 @@ class _SessionScreenState extends State<SessionScreen> {
       case SessionPhase.sabaq:
         final plan = session.plan;
         final lineInfo = plan?.sabaqStartVerse != null
-            ? 'from verse ${plan!.sabaqStartVerse}'
+            ? AppLocalizations.of(context)!.sessionFromVerse(plan!.sabaqStartVerse!)
             : AppLocalizations.of(context)!.planPageLines(
                 plan?.sabaqPage ?? 0,
                 plan?.sabaqLineStart ?? 1,
                 plan?.sabaqLineEnd ?? 15,
               );
-        return 'Page ${plan?.sabaqPage ?? "?"} · $lineInfo';
+        return AppLocalizations.of(context)!.sessionPageAndInfo(
+          plan?.sabaqPage?.toString() ?? "?",
+          lineInfo,
+        );
       case SessionPhase.sabqi:
-        return '${session.plan?.sabqiPages.length ?? 0} pages to review';
+        return AppLocalizations.of(context)!.sessionPagesToReview(
+          session.plan?.sabqiPages.length ?? 0,
+        );
       case SessionPhase.manzil:
-        return 'Juz ${session.plan?.manzilJuz ?? "?"} · ${session.plan?.manzilPages.length ?? 0} pages';
+        return AppLocalizations.of(context)!.sessionJuzAndPages(
+          session.plan?.manzilJuz?.toString() ?? "?",
+          session.plan?.manzilPages.length ?? 0,
+        );
       case SessionPhase.flashcards:
-        return 'Review your cards';
+        return AppLocalizations.of(context)!.sessionReviewCards;
     }
   }
 
@@ -727,7 +736,7 @@ class _SessionScreenState extends State<SessionScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Pages covered',
+                    AppLocalizations.of(context)!.coveragePagesCovered,
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
@@ -737,7 +746,11 @@ class _SessionScreenState extends State<SessionScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Page $sabaqPage to $_coverageEndPage ($pageCount pages)',
+                    AppLocalizations.of(context)!.coveragePageXtoY(
+                      sabaqPage,
+                      _coverageEndPage,
+                      pageCount,
+                    ),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
@@ -751,7 +764,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     max: (sabaqPage + 10).toDouble().clamp(1, 604),
                     divisions: 10,
                     activeColor: theme.accentColor,
-                    label: 'Page $_coverageEndPage',
+                    label: AppLocalizations.of(context)!.coveragePageX(_coverageEndPage),
                     onChanged: (v) => setSheetState(
                       () => _coverageEndPage = v.round().clamp(1, 604),
                     ),
@@ -768,8 +781,7 @@ class _SessionScreenState extends State<SessionScreen> {
                         Navigator.of(ctx).pop();
                         session.setActualCoverage(pages);
                       },
-                      label:
-                          'Confirm — $pageCount page${pageCount > 1 ? 's' : ''}',
+                      label: AppLocalizations.of(context)!.coverageConfirmPages(pageCount),
                       type: GeistButtonType.primary,
                       size: GeistButtonSize.large,
                     ),
@@ -816,7 +828,7 @@ class _SessionScreenState extends State<SessionScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Verses covered on Page $sabaqPage',
+                    AppLocalizations.of(context)!.coverageVersesCoveredOnPage(sabaqPage),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
@@ -826,8 +838,12 @@ class _SessionScreenState extends State<SessionScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$_totalVersesOnPage verses on this page'
-                    '${startVerse > 1 ? ' · starting from verse $startVerse' : ''}',
+                    startVerse > 1
+                        ? AppLocalizations.of(context)!.coverageVersesOnPageStartFrom(
+                            _totalVersesOnPage,
+                            startVerse,
+                          )
+                        : AppLocalizations.of(context)!.coverageVersesOnPage(_totalVersesOnPage),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
@@ -864,15 +880,15 @@ class _SessionScreenState extends State<SessionScreen> {
                     max: _totalVersesOnPage.toDouble(),
                     divisions: (_totalVersesOnPage - startVerse).clamp(1, 100),
                     activeColor: theme.accentColor,
-                    label: 'Verse $_lastVerseLearned',
+                    label: AppLocalizations.of(context)!.coverageVerseX(_lastVerseLearned),
                     onChanged: (v) =>
                         setSheetState(() => _lastVerseLearned = v.round()),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _lastVerseLearned >= _totalVersesOnPage
-                        ? 'Full page covered ✅'
-                        : 'Next time starts from verse ${_lastVerseLearned + 1}',
+                        ? AppLocalizations.of(context)!.coverageFullPageCovered
+                        : AppLocalizations.of(context)!.coverageNextTimeStartsFromVerse(_lastVerseLearned + 1),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
@@ -897,8 +913,9 @@ class _SessionScreenState extends State<SessionScreen> {
                           );
                         }
                       },
-                      label:
-                          'Confirm — verse${startVerse > 1 ? 's $startVerse' : ' 1'} to $_lastVerseLearned',
+                      label: startVerse > 1
+                          ? AppLocalizations.of(context)!.coverageConfirmVersesXtoY(startVerse, _lastVerseLearned)
+                          : AppLocalizations.of(context)!.coverageConfirmVerseXtoY(_lastVerseLearned),
                       type: GeistButtonType.primary,
                       size: GeistButtonSize.large,
                     ),
@@ -1026,7 +1043,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     child: _summaryRow(
                       theme,
                       LucideIcons.bookOpen,
-                      'Sabaq',
+                      AppLocalizations.of(context)!.planPhaseSabaq,
                       _assessmentLabel(session.sabaqAssessment!),
                     ),
                   ),
@@ -1036,7 +1053,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     child: _summaryRow(
                       theme,
                       LucideIcons.repeat,
-                      'Sabqi',
+                      AppLocalizations.of(context)!.planPhaseSabqi,
                       _assessmentLabel(session.sabqiAssessment!),
                     ),
                   ),
@@ -1046,7 +1063,7 @@ class _SessionScreenState extends State<SessionScreen> {
                     child: _summaryRow(
                       theme,
                       LucideIcons.library,
-                      'Manzil',
+                      AppLocalizations.of(context)!.planPhaseManzil,
                       _assessmentLabel(session.manzilAssessment!),
                     ),
                   ),
@@ -1325,3 +1342,5 @@ class _SessionScreenState extends State<SessionScreen> {
     }
   }
 }
+
+

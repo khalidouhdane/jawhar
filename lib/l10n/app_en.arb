@@ -301,7 +301,7 @@
   "homeAiPreparing": "AI is preparing your plan",
   "homeWelcomeBack": "Welcome back!",
   "homeLetsGo": "Let\\'s Go! ✨",
-  "pracMutashabihat": "Mutashabihat Practice",
+  "pracMutashabihat": "Mutashabihat",
   "pracSpotDiff": "Spot Diff",
   "pracTapReveal": "Tap to reveal similar verse",
   "pracReadContext": "اقرأ الآيات في سياقها",
@@ -980,12 +980,11 @@
     }
   },
   "pracContextNeeded": "Context needed",
-  "pracNotStudied": "Not studied",
+  "pracNotStudied": "Not Studied",
   "pracSource": "Source",
   "pracSimilar": "Similar",
   "pracMastered": "Mastered",
   "pracMarkForPractice": "Mark for Practice",
-  "pracMutashabihat": "Mutashabihat",
   "pracAll": "All",
   "pracNeedsPractice": "Needs Practice",
   "pracTapToReveal": "Tap to reveal",
@@ -1008,11 +1007,6 @@
   "pracContext": "Context",
   "pracQuiz": "Quiz",
   "pracPracticing": "Practicing",
-  "pracMarkForPractice": "Mark for Practice",
-  "pracMastered": "Mastered",
-  "pracNeedsPractice": "Needs Practice",
-  "pracNotStudied": "Not Studied",
-  "appName": "jawhar",
   "appTagline": "Memorize with Meaning",
   "onboardingBrandStatement": "We believe memorization without\nunderstanding is incomplete.",
   "onboardingBegin": "Begin",
@@ -1032,5 +1026,217 @@
   "actionTryAgain": "Try again",
   "onboardingSkip": "Skip for now",
   "setupSubtitle": "Let's set things up.",
-  "setupMatchedSystem": "Matched to your system preference"
+  "setupMatchedSystem": "Matched to your system preference",
+  "pracDone": "Done",
+  "sessionPaused": "PAUSED",
+  "sessionSkip": "Skip",
+  "sessionDone": "Done",
+  "sessionMin": "min",
+  "sessionTimes": "×",
+  "coverageVerseX": "Verse {verse}",
+  "@coverageVerseX": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageFullPageCovered": "Full page covered",
+  "coverageNextTimeStartsFromVerse": "Next time starts from verse {verse}",
+  "@coverageNextTimeStartsFromVerse": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageConfirmVersesXtoY": "Confirm Verses {start} to {end}",
+  "@coverageConfirmVersesXtoY": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageConfirmVerseXtoY": "Confirm Verse 1 to {end}",
+  "@coverageConfirmVerseXtoY": {
+    "placeholders": {
+      "end": {
+        "type": "int"
+      }
+    }
+  },
+  "planPhaseSabaq": "Sabaq",
+  "planPhaseSabqi": "Sabqi",
+  "planPhaseManzil": "Manzil",
+  "tafsirReadMore": "Read more",
+  "tafsirShowLess": "Show less",
+  "tafsirSourceMukhtasar": "Al-Mukhtasar fi Tafsir",
+  "tafsirSourceIbnKathir": "Ibn Kathir",
+  "sessionReviewCards": "Review Cards",
+  "coveragePagesCovered": "Pages covered",
+  "coveragePageXtoY": "Page {start} to {end}",
+  "@coveragePageXtoY": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coveragePageX": "Page {page}",
+  "@coveragePageX": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "coverageConfirmPages": "Confirm {count} Pages",
+  "coverageVersesCoveredOnPage": "Verses covered on page {page}",
+  "coverageVersesOnPageStartFrom": "{total} verses on page, starting from {start}",
+  "coverageVersesOnPage": "{total} verses on page",
+  "@coverageConfirmPages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@coverageVersesCoveredOnPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "@coverageVersesOnPageStartFrom": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      }
+    }
+  },
+  "@coverageVersesOnPage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionPagesToReview": "{count} pages to review",
+  "@sessionPagesToReview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionJuzAndPages": "Juz {juz} · {count} pages",
+  "@sessionJuzAndPages": {
+    "placeholders": {
+      "juz": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pracChangeFilter": "Change Filter",
+  "pracTapToDownload": "Tap to download dataset",
+  "pracDownloadDataset": "Download Dataset",
+  "pracAlreadyImported": "Already imported",
+  "sessionOpenDigitalQuran": "Open Digital Quran",
+  "sessionFromVerse": "From verse {verse}",
+  "@sessionFromVerse": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionPageAndInfo": "Page {page} · {info}",
+  "@sessionPageAndInfo": {
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "pracReimport": "Re-import",
+  "pracVerseNotAvailable": "Verse text not available",
+  "pracNoGroupsStatus": "No groups for this status.",
+  "pracNotImported": "Dataset not imported yet.",
+  "undSurahOverview": "Overview",
+  "undSurahKeyThemes": "Key Themes",
+  "undSurahReasonsOfRevelation": "Reasons of Revelation",
+  "undSurahEntriesCount": "{count} entries",
+  "@undSurahEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahMoreEntriesCount": "+ {count} more entries",
+  "@undSurahMoreEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahBegin": "Begin",
+  "undSurahVersesCount": "{count} verses",
+  "@undSurahVersesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahPageX": "Page {page}",
+  "@undSurahPageX": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahMeccan": "Meccan",
+  "undSurahMedinan": "Medinan",
+  "undSurahVerse": "Verse {verse}",
+  "@undSurahVerse": {
+    "placeholders": {
+      "verse": {
+        "type": "int"
+      }
+    }
+  },
+  "undSurahVersesRange": "Verses {start}–{end}",
+  "@undSurahVersesRange": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  }
 }
