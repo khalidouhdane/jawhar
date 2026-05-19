@@ -1,10 +1,14 @@
+/* ── Three Beats Section Layout ── */
+/* Dual-column: phone frames on one side, copy + stacked cards on the other */
+/* Alternates direction via .layoutLeft / .layoutRight */
+
 .section {
   min-height: 100vh;
   display: flex;
   align-items: center;
   position: relative;
   z-index: 10;
-  padding: 4rem 2rem;
+  padding: 6rem 2rem;
   overflow: hidden;
 }
 
@@ -14,6 +18,46 @@
   width: 100%;
   position: relative;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+}
+
+/* Alternating layout */
+.layoutLeft .content {
+  flex-direction: row;
+}
+
+.layoutRight .content {
+  flex-direction: row-reverse;
+}
+
+.layoutRight .copyGroup {
+  text-align: right;
+}
+
+.layoutRight .copyGroup .description {
+  margin-left: auto;
+}
+
+/* ── Phone group ── */
+.phoneGroup {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.phoneSecondary {
+  margin-top: 80px;
+}
+
+/* ── Copy group ── */
+.copyGroup {
+  flex: 1;
+  min-width: 0;
 }
 
 .title {
@@ -26,92 +70,111 @@
 }
 
 .description {
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
-  line-height: 1.5;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.6;
   color: var(--text-secondary);
-  max-width: 600px;
-  margin-bottom: 3rem;
+  max-width: 480px;
+  margin-bottom: 2.5rem;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 4rem;
+/* ── Feature cards — stacked ── */
+.featureStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .featureCard {
-  background: var(--bg-card);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--bg-card, var(--bg-elevated));
   box-shadow: var(--shadow-ring);
   border: none;
-  border-radius: 16px;
-  padding: 2rem;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .featureCard:hover {
   box-shadow: var(--shadow-card-hover);
-  background: var(--bg-hover);
+  background: var(--bg-hover, var(--bg-elevated));
 }
 
 .featureIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--accent-1);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent-1, rgba(255, 255, 255, 0.06));
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.featureBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .featureTitle {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
   color: var(--text-primary);
+  letter-spacing: -0.3px;
 }
 
 .featureText {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
-/* Specific Layout Adjustments */
-.readSection .content {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .content {
+    flex-direction: column !important;
+    gap: 3rem;
+  }
+
+  .layoutRight .copyGroup {
+    text-align: left;
+  }
+
+  .layoutRight .copyGroup .description {
+    margin-left: 0;
+  }
+
+  .phoneGroup {
+    justify-content: center;
+  }
+
+  /* Hide secondary phone on tablet */
+  .phoneSecondary {
+    display: none;
+  }
 }
 
-.understandSection .content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
-  text-align: right;
-}
+@media (max-width: 768px) {
+  .section {
+    padding: 4rem 1.5rem;
+    min-height: auto;
+  }
 
-.understandSection .description {
-  margin-left: auto;
-  margin-right: 0;
-}
+  .title {
+    font-size: 2rem;
+    letter-spacing: -1.6px;
+  }
 
-.memorizeSection .content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  .description {
+    font-size: 1rem;
+  }
 
-.memorizeSection .grid {
-  text-align: left;
-}
-
-/* Spacer for GSAP pinning */
-.spacer {
-  height: 50vh;
+  .phoneGroup {
+    justify-content: center;
+  }
 }

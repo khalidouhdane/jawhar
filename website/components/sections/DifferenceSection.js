@@ -33,10 +33,10 @@ export default function DifferenceSection() {
       <div className="container">
         <ScrollReveal>
           <p className="mono-label" style={{ textAlign: "center", marginBottom: 16 }}>
-            The Difference
+            How Jawhar compares
           </p>
           <h2 className="heading-sub" style={{ textAlign: "center" }}>
-            What makes Jawhar different
+            Built different, on purpose.
           </h2>
         </ScrollReveal>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { 
@@ -10,62 +10,50 @@ import {
 import styles from './WisprFlow.module.css';
 import DiamondSprite from './DiamondSprite';
 
-// ──────────────────────────────────────────────
-// Data — Left: Verse Cards (3 rows × 3 cards)
-// ──────────────────────────────────────────────
-const VERSE_ROWS = [
-  [
-    { surah: "Al-Fatiha", num: "1:1", text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ" },
-    { surah: "Al-Baqarah", num: "2:255", text: "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ" },
-    { surah: "Al-Ikhlas", num: "112:1", text: "قُلْ هُوَ اللَّهُ أَحَدٌ" },
-  ],
-  [
-    { surah: "Ya-Sin", num: "36:1", text: "يس" },
-    { surah: "Al-Rahman", num: "55:13", text: "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ" },
-    { surah: "Al-Mulk", num: "67:1", text: "تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ" },
-  ],
-  [
-    { surah: "Al-Kahf", num: "18:1", text: "الْحَمْدُ لِلَّهِ الَّذِي أَنزَلَ" },
-    { surah: "Al-Naba", num: "78:1", text: "عَمَّ يَتَسَاءَلُونَ" },
-    { surah: "Al-Falaq", num: "113:1", text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ" },
-  ],
-];
 
 // ──────────────────────────────────────────────
-// Data — Right: Feature Cards (3 rows × 3 cards)
+// Data — The 3 Spotlight Pairings
 // ──────────────────────────────────────────────
-const FEATURE_ROWS = [
-  [
-    { type: "translation", label: "Translation", text: "In the name of Allah, the Entirely Merciful" },
-    { type: "tafsir", label: "Brief Tafsir", text: "Mercy opens the recitation before command" },
-    { type: "asbab", label: "Context", text: "Theme, setting, and reason when available" },
-  ],
-  [
-    { type: "plan", label: "Daily Plan", text: "Sabaq today. Sabqi tomorrow. Manzil always." },
-    { type: "session", label: "Session", text: "15 min · 5 reps · Self-assessed: Strong" },
-    { type: "reciter", label: "Reciter", text: "Mishary al-Afasy", sub: "Verse-synced audio" },
-  ],
-  [
-    { type: "mutashabihat", label: "Mutashabihat", v1: "2:255 اللَّهُ", v2: "3:2 اللَّهُ" },
-    { type: "flashcard", label: "Flashcard", text: "Recall the next verse from memory" },
-    { type: "progress", label: "Progress", text: "Retention strengthens through review" },
-  ],
+const SPOTLIGHT_PAIRS = [
+  {
+    // Pair 1: Understand (Tafsir)
+    verse: { surah: "Al-Kawthar", num: "108:1", text: "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ" },
+    app: {
+      type: "tafsir",
+      translation: "Indeed, We have granted you al-Kawthar",
+      note: "Al-Kawthar refers to a river in Paradise, revealed as a profound comfort to the Prophet ﷺ during a time of immense grief and loss."
+    }
+  },
+  {
+    // Pair 2: Practice (Flashcard)
+    verse: { surah: "Al-Qadr", num: "97:1", text: "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ" },
+    app: {
+      type: "flashcard",
+      instruction: "Recall the next verse",
+      answer: "وَمَا أَدْرَاكَ مَا لَيْلَةُ الْقَدْرِ"
+    }
+  },
+  {
+    // Pair 3: Plan (Structured Hifz)
+    verse: { surah: "Al-Mulk", num: "67:1", text: "تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ" },
+    app: {
+      type: "plan",
+      title: "Today's Plan",
+      phase: "Sabaq",
+      desc: "Surah Al-Mulk (1-12)",
+      time: "15m"
+    }
+  }
 ];
-
-const FEATURE_ICONS = {
-  translation: <Globe size={14} />, reciter: <Mic size={14} />, tafsir: <BookOpen size={14} />,
-  mutashabihat: <ArrowRightLeft size={14} />, flashcard: <RefreshCcw size={14} />, plan: <ListTodo size={14} />,
-  asbab: <Moon size={14} />, progress: <PieChart size={14} />, session: <Timer size={14} />,
-};
 
 
 
 // ──────────────────────────────────────────────
 // Sub-components
 // ──────────────────────────────────────────────
-function VerseCard({ surah, num, text }) {
+function VerseCard({ surah, num, text, spotlightGroup, positionClass }) {
   return (
-    <div className={styles.verseCard}>
+    <div className={`${styles.verseCard} ${styles.absNode} ${positionClass}`} data-spotlight-group={spotlightGroup}>
       <div className={styles.verseBadge}>{num}</div>
       <div className={styles.verseBody}>
         <span className={styles.verseText}>{text}</span>
@@ -75,64 +63,71 @@ function VerseCard({ surah, num, text }) {
   );
 }
 
-function FeatureCard({ type, label, text, sub, v1, v2 }) {
-  if (type === "mutashabihat") {
+function AppCard({ data, spotlightGroup, positionClass }) {
+  const { type } = data;
+
+  if (type === "tafsir") {
     return (
-      <div className={styles.featureCard}>
-        <div className={styles.featureIcon}>{FEATURE_ICONS[type]}</div>
-        <div className={styles.featureBody}>
-          <span className={styles.featureLabel}>{label}</span>
-          <div className={styles.mutaPair}>
-            <span className={styles.mutaVerse}>{v1}</span>
-            <span className={styles.mutaDivider}>≈</span>
-            <span className={styles.mutaVerse}>{v2}</span>
+      <div className={`${styles.appCard} ${styles.absNode} ${positionClass}`} data-spotlight-group={spotlightGroup}>
+        <div className={styles.tafsirHeader}>
+          <BookOpen size={14} className={styles.tafsirIcon} />
+          <span>Brief Tafsir</span>
+        </div>
+        <div className={styles.tafsirTranslation}>{data.translation}</div>
+        <div className={styles.tafsirNote}>{data.note}</div>
+      </div>
+    );
+  }
+
+  if (type === "flashcard") {
+    return (
+      <div className={`${styles.appCard} ${styles.absNode} ${positionClass}`} data-spotlight-group={spotlightGroup}>
+        <div className={styles.fcBadge}>Flashcard</div>
+        <div className={styles.fcInstruction}>{data.instruction}</div>
+        <div className={styles.fcAnswer}>{data.answer}</div>
+        <div className={styles.fcRatings}>
+          <div className={styles.fcRatingBtn}>
+            <div className={styles.fcRatingBox}>1</div>
+            <span className={styles.fcRatingLabel}>Forgot</span>
+          </div>
+          <div className={styles.fcRatingBtn}>
+            <div className={styles.fcRatingBox}>2</div>
+            <span className={styles.fcRatingLabel}>Weak</span>
+          </div>
+          <div className={styles.fcRatingBtn}>
+            <div className={styles.fcRatingBox}>3</div>
+            <span className={styles.fcRatingLabel}>OK</span>
+          </div>
+          <div className={styles.fcRatingBtn}>
+            <div className={styles.fcRatingBox}>4</div>
+            <span className={styles.fcRatingLabel}>Strong</span>
           </div>
         </div>
       </div>
     );
   }
 
-  if (type === "reciter") {
+  if (type === "plan") {
     return (
-      <div className={styles.featureCard}>
-        <div className={styles.reciterAvatar}>MA</div>
-        <div className={styles.featureBody}>
-          <span className={styles.featureLabel}>{label}</span>
-          <span className={styles.featureText}>{text}</span>
-          {sub && <span className={styles.featureSub}>{sub}</span>}
+      <div className={`${styles.appCard} ${styles.absNode} ${positionClass}`} data-spotlight-group={spotlightGroup}>
+        <div className={styles.planHeader}>
+          <span className={styles.planTitle}>{data.title}</span>
+          <div className={styles.planTimePill}>
+            <Timer size={10} /> {data.time}
+          </div>
+        </div>
+        <div className={styles.planPhase}>
+          <div className={styles.planPhaseName}>{data.phase}</div>
+          <div className={styles.planPhaseDesc}>{data.desc}</div>
+        </div>
+        <div className={styles.planCta}>
+          Start Session
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={styles.featureCard}>
-      <div className={styles.featureIcon}>{FEATURE_ICONS[type]}</div>
-      <div className={styles.featureBody}>
-        <span className={styles.featureLabel}>{label}</span>
-        <span className={styles.featureText}>{text}</span>
-        {sub && <span className={styles.featureSub}>{sub}</span>}
-      </div>
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────
-// Conveyor Row — renders cards duplicated for seamless loop
-// ──────────────────────────────────────────────
-function ConveyorRow({ cards, side, trackClass, renderCard }) {
-  return (
-    <div className={styles.conveyorRow}>
-      <div className={`${styles.conveyorTrack} ${trackClass}`}>
-        {/* Original set */}
-        {cards.map((c, i) => renderCard(c, `a-${i}`))}
-        {/* Duplicate for seamless loop */}
-        {cards.map((c, i) => renderCard(c, `b-${i}`))}
-        {/* Triple for wide screens */}
-        {cards.map((c, i) => renderCard(c, `c-${i}`))}
-      </div>
-    </div>
-  );
+  return null;
 }
 
 // ──────────────────────────────────────────────
@@ -159,9 +154,9 @@ export default function WisprFlowHero() {
     if (footer) gsap.set(footer, { opacity: 0 });
     if (localDiamond) gsap.set(localDiamond, { scale: 0, opacity: 0 });
     
-    gsap.set(container.querySelectorAll(`.${styles.conveyorRow}`), { 
+    gsap.set(container.querySelectorAll(`.${styles.verseCard}, .${styles.appCard}`), { 
       opacity: 0, 
-      x: (i) => i < 3 ? -100 : 100 
+      scale: 0.8
     });
     gsap.set('.split-char', { y: 40, opacity: 0 });
     gsap.set(container.querySelectorAll(`.${styles.copy} > p`), { y: 15, opacity: 0 });
@@ -184,11 +179,11 @@ export default function WisprFlowHero() {
       duration: 0.8,
       ease: "power2.out"
     }, "-=0.6")
-    // 2. Conveyors slide in from sides
-    .to(container.querySelectorAll(`.${styles.conveyorRow}`), {
+    // 3. Cards pop in
+    .to(container.querySelectorAll(`.${styles.verseCard}, .${styles.appCard}`), {
       opacity: 1,
-      x: 0,
-      duration: 1.2,
+      scale: 1,
+      duration: 1.0,
       stagger: 0.1,
       ease: "power2.out"
     }, "-=0.4")
@@ -222,30 +217,92 @@ export default function WisprFlowHero() {
       ease: "power1.out"
     }, "-=0.3");
 
-    // --- Continuous Conveyor Animations ---
-    const leftSpeeds = [40, 60, 80];
-    const rightSpeeds = [35, 55, 70];
 
-    // Left side
-    container.querySelectorAll('.left-track').forEach((track, i) => {
-      const setWidth = track.scrollWidth / 3;
-      if (setWidth === 0) return;
-      gsap.fromTo(track,
-        { x: -setWidth },
-        { x: 0, duration: setWidth / leftSpeeds[i], ease: "none", repeat: -1 }
-      );
-    });
-
-    // Right side
-    container.querySelectorAll('.right-track').forEach((track, i) => {
-      const setWidth = track.scrollWidth / 3;
-      if (setWidth === 0) return;
-      gsap.fromTo(track,
-        { x: -setWidth },
-        { x: 0, duration: setWidth / rightSpeeds[i], ease: "none", repeat: -1 }
-      );
-    });
   }, { scope: containerRef });
+
+  // --- Spotlight Cycle ---
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let spotlightIndex = 0;
+    let isSpotlit = false;
+
+    function applySpotlight() {
+      const stage = container.querySelector(`.${styles.stage}`);
+      if (!stage) return;
+
+      // Add drifting class to dim all cards
+      stage.classList.add(styles.drifting);
+
+      // Spotlight matching group
+      const cards = container.querySelectorAll(`[data-spotlight-group="${spotlightIndex}"]`);
+      cards.forEach((card) => card.classList.add(styles.spotlit));
+
+      // Activate corresponding SVG path
+      const paths = container.querySelectorAll(`.${styles.beamLine}`);
+      paths.forEach((p, idx) => {
+        if (idx === spotlightIndex) {
+          p.classList.add(styles.activePath);
+        } else {
+          p.classList.remove(styles.activePath);
+        }
+      });
+
+      // Diamond pulse
+      const diamond = container.querySelector(`.${styles.diamond}`);
+      if (diamond) {
+        gsap.fromTo(diamond,
+          { scale: 1 },
+          { scale: 1.1, duration: 0.4, yoyo: true, repeat: 1, ease: "power2.inOut" }
+        );
+      }
+
+      isSpotlit = true;
+    }
+
+    function removeSpotlight() {
+      const stage = container.querySelector(`.${styles.stage}`);
+      if (!stage) return;
+
+      stage.classList.remove(styles.drifting);
+      container.querySelectorAll(`.${styles.spotlit}`).forEach((card) => {
+        card.classList.remove(styles.spotlit);
+      });
+      container.querySelectorAll(`.${styles.activePath}`).forEach((path) => {
+        path.classList.remove(styles.activePath);
+      });
+
+      isSpotlit = false;
+      spotlightIndex = (spotlightIndex + 1) % 3;
+    }
+
+    // Start cycle after entrance animation (~4s)
+    const startDelay = setTimeout(() => {
+      applySpotlight();
+    }, 4500);
+
+    // More precise timing: use alternating timeouts
+    let timeout;
+    function cycle() {
+      if (isSpotlit) {
+        removeSpotlight();
+        timeout = setTimeout(cycle, 4000); // drift for 4s
+      } else {
+        applySpotlight();
+        timeout = setTimeout(cycle, 3000); // hold for 3s
+      }
+    }
+    const cycleStart = setTimeout(() => {
+      cycle();
+    }, 4500);
+
+    return () => {
+      clearTimeout(startDelay);
+      clearTimeout(cycleStart);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   return (
     <section className={styles.section} ref={containerRef}>
@@ -254,17 +311,45 @@ export default function WisprFlowHero() {
         {/* Ambient glow */}
         <div className={styles.glow} />
 
-        {/* ── Left: Verse Conveyor ── */}
-        <div className={styles.conveyorLeft}>
-          {VERSE_ROWS.map((row, ri) => (
-            <ConveyorRow
-              key={`vr-${ri}`}
-              cards={row}
-              side="left"
-              trackClass={`left-track`}
-              renderCard={(c, key) => (
-                <VerseCard key={key} surah={c.surah} num={c.num} text={c.text} />
-              )}
+        {/* ── Background SVG Beams ── */}
+        <svg className={styles.beams} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="beamGradLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+              <stop offset="100%" stopColor="rgba(200,200,200,0.8)" />
+            </linearGradient>
+            <linearGradient id="beamGradRight" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(200,200,200,0.8)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+            </linearGradient>
+          </defs>
+          
+          <g className={styles.beamLine}>
+            <line x1="42%" y1="5%" x2="50%" y2="50%" stroke="url(#beamGradLeft)" />
+            <line x1="50%" y1="50%" x2="58%" y2="5%" stroke="url(#beamGradRight)" />
+          </g>
+          
+          <g className={styles.beamLine}>
+            <line x1="32%" y1="40%" x2="50%" y2="50%" stroke="url(#beamGradLeft)" />
+            <line x1="50%" y1="50%" x2="68%" y2="40%" stroke="url(#beamGradRight)" />
+          </g>
+          
+          <g className={styles.beamLine}>
+            <line x1="42%" y1="75%" x2="50%" y2="50%" stroke="url(#beamGradLeft)" />
+            <line x1="50%" y1="50%" x2="58%" y2="75%" stroke="url(#beamGradRight)" />
+          </g>
+        </svg>
+
+        {/* ── Left: Verse Constellation ── */}
+        <div className={styles.constellationLeft}>
+          {SPOTLIGHT_PAIRS.map((pair, idx) => (
+            <VerseCard 
+              key={`v-${idx}`} 
+              surah={pair.verse.surah} 
+              num={pair.verse.num} 
+              text={pair.verse.text} 
+              spotlightGroup={idx} 
+              positionClass={styles[`nodeL${idx}`]}
             />
           ))}
         </div>
@@ -274,17 +359,14 @@ export default function WisprFlowHero() {
           <DiamondSprite />
         </div>
 
-        {/* ── Right: Feature Conveyor ── */}
-        <div className={styles.conveyorRight}>
-          {FEATURE_ROWS.map((row, ri) => (
-            <ConveyorRow
-              key={`fr-${ri}`}
-              cards={row}
-              side="right"
-              trackClass={`right-track`}
-              renderCard={(c, key) => (
-                <FeatureCard key={key} {...c} />
-              )}
+        {/* ── Right: App Constellation ── */}
+        <div className={styles.constellationRight}>
+          {SPOTLIGHT_PAIRS.map((pair, idx) => (
+            <AppCard 
+              key={`a-${idx}`} 
+              data={pair.app} 
+              spotlightGroup={idx} 
+              positionClass={styles[`nodeR${idx}`]}
             />
           ))}
         </div>
@@ -315,7 +397,7 @@ export default function WisprFlowHero() {
           Read, understand, and review with one quiet system.
         </p>
         <div className={styles.ctas}>
-          <a href="#waitlist" className="btn btn-primary btn-large">
+          <a href="#closing" className="btn btn-primary btn-large">
             Join the Waitlist
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>

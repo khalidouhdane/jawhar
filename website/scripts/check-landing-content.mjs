@@ -16,20 +16,20 @@ const downloadLayout = read("app/download/layout.js");
 const hackathon = read("app/hackathon/page.js");
 
 assert(
-  existsSync(new URL("../components/sections/WaitlistSection.js", import.meta.url)),
-  "WaitlistSection.js should exist"
+  existsSync(new URL("../components/sections/ClosingSection.js", import.meta.url)),
+  "ClosingSection.js should exist"
 );
 assert(
-  scrollStory.includes("WaitlistSection") && scrollStory.includes("<WaitlistSection />"),
-  "Homepage should render the waitlist section"
+  scrollStory.includes("ClosingSection") && scrollStory.includes("<ClosingSection />"),
+  "Homepage should render the closing section"
 );
 assert(
   scrollStory.includes("ProblemSection") && scrollStory.includes("<ProblemSection />"),
   "Homepage should render the problem section before the feature tour"
 );
 assert(
-  hero.includes('href="#waitlist"'),
-  "Hero CTA should point to the waitlist section"
+  hero.includes('href="#closing"'),
+  "Hero CTA should point to the closing section"
 );
 assert(
   hero.includes("Verse in. Meaning out.") &&

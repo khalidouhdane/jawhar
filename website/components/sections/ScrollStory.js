@@ -5,13 +5,12 @@ import ProblemSection from './ProblemSection';
 import ReadSection from './ReadSection';
 import UnderstandSection from './UnderstandSection';
 import MemorizeSection from './MemorizeSection';
-import WaitlistSection from './WaitlistSection';
+import DifferenceSection from './DifferenceSection';
+import ClosingSection from './ClosingSection';
 
 export default function ScrollStory() {
   return (
     <div style={{ position: 'relative' }}>
-      
-      {/* Sections */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <WisprFlowHero />
         <div className="section-divider" />
@@ -23,9 +22,10 @@ export default function ScrollStory() {
         <div className="section-divider" />
         <MemorizeSection />
         <div className="section-divider" />
-        <WaitlistSection />
+        <DifferenceSection />
+        <div className="section-divider" />
+        <ClosingSection />
       </div>
-
     </div>
   );
 }

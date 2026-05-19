@@ -1,7 +1,6 @@
 .phone {
   display: flex;
   justify-content: center;
-  width: 100%;
 }
 
 .frame {
@@ -15,6 +14,10 @@
     rgba(255, 255, 255, 0.06) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.3) 0px 8px 24px,
     rgba(0, 0, 0, 0.15) 0px 2px 4px;
+}
+
+.frameSmall {
+  width: 250px;
 }
 
 /* Dynamic Island */
@@ -38,6 +41,36 @@
   color: #171717;
 }
 
+.frameSmall .screen {
+  min-height: 400px;
+}
+
+/* Video fills the screen area */
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Placeholder — subtle diamond icon */
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: inherit;
+  background: var(--bg-subtle, #fafafa);
+}
+
+.placeholderIcon {
+  color: var(--text-quaternary, #808080);
+  opacity: 0.12;
+}
+
 /* Home bar */
 .homeBar {
   width: 120px;
@@ -53,7 +86,15 @@
     width: 240px;
   }
 
+  .frameSmall {
+    width: 210px;
+  }
+
   .screen {
     min-height: 380px;
+  }
+
+  .frameSmall .screen {
+    min-height: 320px;
   }
 }

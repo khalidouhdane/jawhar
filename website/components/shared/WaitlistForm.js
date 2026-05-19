@@ -1,0 +1,58 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowRight, Check } from "lucide-react";
+import styles from "./WaitlistForm.module.css";
+
+export default function WaitlistForm() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
+
+    const saved = JSON.parse(
+      window.localStorage.getItem("jawhar-waitlist") || "[]"
+    );
+    const next = Array.from(new Set([...saved, normalizedEmail]));
+    window.localStorage.setItem("jawhar-waitlist", JSON.stringify(next));
+    setSubmitted(true);
+  }
+
+  return (
+    <form className={`card ${styles.form}`} onSubmit={handleSubmit}>
+      <label className={styles.label} htmlFor="waitlist-email">
+        Email address
+      </label>
+      <div className={styles.inputRow}>
+        <input
+          id="waitlist-email"
+          className={styles.input}
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="you@example.com"
+          autoComplete="email"
+          required
+        />
+        <button className="btn btn-primary" type="submit">
+          Join
+          <ArrowRight size={14} />
+        </button>
+      </div>
+
+      {submitted ? (
+        <p className={styles.status}>
+          <Check size={14} />
+          You are on the early access list.
+        </p>
+      ) : (
+        <p className={styles.note}>
+          No spam. No ads. Just meaningful product updates.
+        </p>
+      )}
+    </form>
+  );
+}

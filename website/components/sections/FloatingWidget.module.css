@@ -1,0 +1,148 @@
+/* FloatingWidget — Small UI fragments near phone frames */
+
+.widget {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+}
+
+/* Shared pill shape */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-family: var(--font-sans);
+}
+
+/* Audio pill — slightly larger */
+.audioPill {
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Verse badge — circle */
+.verseBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: -0.02em;
+}
+
+/* Bookmark dot */
+.bookmarkDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Switch styling within pills */
+.switchActive {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.switchDivider {
+  color: var(--text-quaternary);
+  font-size: 10px;
+}
+
+.switchInactive {
+  color: var(--text-quaternary);
+}
+
+/* Translation mini card */
+.translationCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+  max-width: 200px;
+}
+
+.translationKey {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-quaternary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.translationText {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Timer pill — recording dot */
+.timerPill {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.timerDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Progress ring widget */
+.progressWidget {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+.progressLabel {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+  .widget {
+    display: none;
+  }
+}

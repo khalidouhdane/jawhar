@@ -1,0 +1,129 @@
+/* DepthRings — Concentric circle animation */
+
+.container {
+  position: relative;
+  margin: 3rem auto;
+}
+
+/* ── Desktop: SVG rings ── */
+.desktop {
+  display: block;
+}
+
+.ringsWrap {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--text-tertiary);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+/* Diamond at center */
+.diamond {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ring labels */
+.label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transform: translateX(100%) translateX(16px);
+  white-space: nowrap;
+}
+
+.ringName {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-quaternary);
+}
+
+.ringFeatures {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+}
+
+/* ── Mobile: Vertical bars ── */
+.mobile {
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 0 1rem;
+}
+
+.mobileDiamond {
+  align-self: flex-start;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.bar {
+  height: 1px;
+  background: var(--text-tertiary);
+  border-radius: 1px;
+  width: 0; /* Animated by GSAP */
+}
+
+.barLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 2px;
+}
+
+/* ── Responsive swap ── */
+@media (max-width: 768px) {
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .ringsWrap {
+    max-width: 450px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  .ringFeatures {
+    font-size: 12px;
+  }
+}
