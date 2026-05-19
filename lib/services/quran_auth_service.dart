@@ -87,4 +87,10 @@ class QuranAuthService {
       rethrow;
     }
   }
+
+  /// Sets a token manually for testing purposes.
+  static void setTestToken(String token) {
+    _cachedToken = token;
+    _tokenExpiry = DateTime.now().add(const Duration(hours: 1));
+  }
 }

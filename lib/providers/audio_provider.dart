@@ -505,23 +505,8 @@ class AudioProvider extends ChangeNotifier {
           final timestampTo = (t['timestamp_to'] as num).toInt();
           final duration = (t['duration'] as num).toInt();
 
-          // Extract the true first-word start from the segments array.
-          // Each segment is [wordIndex, startMs, endMs]. The first segment's
-          // startMs is the genuine moment the reciter begins this verse —
-          // typically 75-100ms before timestampFrom.
+          // Use the official timestamp_from directly for timing and seeking.
           int firstSegmentMs = timestampFrom;
-          final segs = t['segments'] as List?;
-          if (segs != null && segs.isNotEmpty) {
-            final firstSeg = segs[0] as List;
-            if (firstSeg.length >= 2) {
-              final segStart = (firstSeg[1] as num).toInt();
-              // Only use segment start if it's sensibly close to timestampFrom
-              // (within 500ms) to guard against bad data.
-              if ((segStart - timestampFrom).abs() < 500) {
-                firstSegmentMs = segStart;
-              }
-            }
-          }
 
           return _VerseTiming(
             verseKey: verseKey,

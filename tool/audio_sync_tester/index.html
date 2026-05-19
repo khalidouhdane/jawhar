@@ -60,7 +60,6 @@
                 <label class="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 font-mono">1. Select Reciter</label>
                 <select id="reciter-select" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-emerald-600 transition font-title">
                     <option value="7">Mishary Rashid Alafasy (Murattal)</option>
-                    <option value="64">Yasser al-Dosari (Murattal - CDN 64)</option>
                     <option value="174">Yasser al-Dosari (Murattal - CDN 174)</option>
                     <option value="1">Abdul Basit Abdul Samad (Mujawwad)</option>
                     <option value="3">Abdur-Rahman as-Sudais (Murattal)</option>
@@ -313,13 +312,13 @@
                     
                     <!-- Adjustment Controls -->
                     <div class="flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
-                        <button onclick="adjustOffset('${t.verseKey}', -500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">-500</button>
-                        <button onclick="adjustOffset('${t.verseKey}', -100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">-100</button>
-                        <button onclick="adjustOffset('${t.verseKey}', -50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">-50</button>
-                        <button onclick="adjustOffset('${t.verseKey}', 50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">+50</button>
-                        <button onclick="adjustOffset('${t.verseKey}', 100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">+100</button>
-                        <button onclick="adjustOffset('${t.verseKey}', 500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono transition">+500</button>
-                        <button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono transition">Reset</button>
+                        <button onclick="adjustOffset('${t.verseKey}', -500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-500</button>
+                        <button onclick="adjustOffset('${t.verseKey}', -100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-100</button>
+                        <button onclick="adjustOffset('${t.verseKey}', -50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">-50</button>
+                        <button onclick="adjustOffset('${t.verseKey}', 50)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+50</button>
+                        <button onclick="adjustOffset('${t.verseKey}', 100)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+100</button>
+                        <button onclick="adjustOffset('${t.verseKey}', 500)" class="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-mono whitespace-nowrap transition">+500</button>
+                        <button onclick="resetOffset('${t.verseKey}')" class="px-2.5 py-1 rounded bg-red-950/20 hover:bg-red-900/30 border border-red-950/50 text-[10px] text-red-400 font-mono whitespace-nowrap transition">Reset</button>
                     </div>
                 `;
                 
