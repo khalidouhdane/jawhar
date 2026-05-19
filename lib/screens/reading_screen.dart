@@ -582,6 +582,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           reciterId: audioProvider.reciterId,
                           reciterName: audioProvider.reciterName,
                           repeatMode: audioProvider.repeatMode,
+                          repeatCount: audioProvider.repeatCount,
                           onJumpToPlayingVerse: targetPage != null
                               ? () => _goToPage(targetPage!)
                               : null,
@@ -1112,12 +1113,7 @@ class _QuranPageState extends State<_QuranPage>
 
         return GestureDetector(
           onTap: () {
-            // Tap to play audio from this verse
-            final audioProvider = context.read<AudioProvider>();
-            audioProvider.playSingleVerse(verse);
-          },
-          onLongPress: () {
-            // Open tafsir sheet for this verse
+            // Tap to open tafsir sheet for this verse
             final readingProv = context.read<QuranReadingProvider>();
             final chapterId =
                 int.tryParse(verse.verseKey.split(':').first) ?? 1;
@@ -1132,6 +1128,11 @@ class _QuranPageState extends State<_QuranPage>
               verseKey: verse.verseKey,
               surahName: surahName,
             );
+          },
+          onLongPress: () {
+            // Long-press to play audio from this verse
+            final audioProvider = context.read<AudioProvider>();
+            audioProvider.playSingleVerse(verse);
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 600),
@@ -1148,29 +1149,54 @@ class _QuranPageState extends State<_QuranPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Verse number badge
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: theme.accentColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(theme.radiusLg),
-                    ),
-                    child: Text(
-                      verse.verseKey,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: theme.accentColor,
+                // Verse number badge + play button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Play button — explicit audio trigger
+                    GestureDetector(
+                      onTap: () {
+                        final audioProvider = context.read<AudioProvider>();
+                        audioProvider.playVerseList(
+                          _verses!,
+                          startIndex: index,
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: theme.accentColor.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          LucideIcons.play,
+                          size: 14,
+                          color: theme.accentColor,
+                        ),
                       ),
                     ),
-                  ),
+                    // Verse key badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: theme.accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(theme.radiusLg),
+                      ),
+                      child: Text(
+                        verse.verseKey,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: theme.accentColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 // Arabic text — uses same font as ReadingCanvas
                 Directionality(
