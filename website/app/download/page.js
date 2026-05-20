@@ -9,15 +9,15 @@ const platforms = [
   {
     icon: Monitor,
     name: "Windows",
-    action: "Download .exe",
-    href: "https://github.com/khalidouhdane/jawhar/releases/latest",
+    action: "Download ZIP",
+    href: "https://github.com/khalidouhdane/jawhar/releases/latest/download/jawhar-windows.zip",
     available: true,
   },
   {
     icon: Smartphone,
     name: "Android",
     action: "Download APK",
-    href: "https://github.com/khalidouhdane/jawhar/releases/latest",
+    href: "https://github.com/khalidouhdane/jawhar/releases/latest/download/app-release.apk",
     available: true,
   },
   {
@@ -36,7 +36,7 @@ const platforms = [
     icon: Smartphone,
     name: "iOS",
     action: "Join TestFlight",
-    href: "https://testflight.apple.com/join/placeholder",
+    href: "https://testflight.apple.com/join/XYY6tqxC",
     available: true,
   },
   {
@@ -50,11 +50,11 @@ const platforms = [
 function detectOS() {
   if (typeof navigator === "undefined") return null;
   const ua = navigator.userAgent;
-  if (/Windows/.test(ua)) return "Windows";
+  if (/iPhone|iPad|iPod/.test(ua)) return "iOS";
   if (/Android/.test(ua)) return "Android";
+  if (/Windows/.test(ua)) return "Windows";
   if (/Mac/.test(ua)) return "macOS";
   if (/Linux/.test(ua)) return "Linux";
-  if (/iPhone|iPad/.test(ua)) return "iOS";
   return null;
 }
 
