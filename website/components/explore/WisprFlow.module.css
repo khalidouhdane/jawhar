@@ -106,216 +106,397 @@
   z-index: 0;
 }
 
-/* ── Verse Card (left side) ── */
-.verseCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--card-bg, rgba(0, 0, 0, 0.04));
-  box-shadow: 0 0 0 1px var(--card-border, rgba(0, 0, 0, 0.07));
-  border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
-  height: 56px;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.verseBadge {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--badge-bg-subtle, rgba(0, 0, 0, 0.06));
-  box-shadow: 0 0 0 1px var(--card-border, rgba(0, 0, 0, 0.07));
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.6rem;
-  color: var(--text-tertiary);
-  font-family: var(--font-mono, monospace);
-  flex-shrink: 0;
-  letter-spacing: -0.02em;
-}
-
-.verseBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.verseText {
-  font-family: var(--font-arabic, 'Amiri', serif);
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  direction: rtl;
-  line-height: 1.3;
-  opacity: 0.8;
-}
-
-.verseSurah {
-  font-size: 0.55rem;
-  color: var(--text-quaternary);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-family: var(--font-sans);
-}
-
-/* ── App Card Wrappers (Right side) ── */
-.appCard {
-  background: var(--bg-primary);
-  /* Full Geist Level 3 Shadow Stack */
-  box-shadow: 
-    rgba(0,0,0,0.08) 0px 0px 0px 1px, 
-    rgba(0,0,0,0.04) 0px 2px 2px, 
-    rgba(0,0,0,0.04) 0px 8px 8px -8px, 
-    #fafafa 0px 0px 0px 1px inset;
-  border-radius: 8px;
-  width: 240px; /* More compact */
+/* ── Unified Flow Card ── */
+.flowCard {
+  width: 270px;
+  height: 200px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  pointer-events: none;
+  justify-content: space-between;
+  transition: all var(--duration-slow) var(--ease);
+  border: none;
+  box-sizing: border-box;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  z-index: 2;
 }
 
-/* 1. Tafsir Card */
-.tafsirHeader {
+.flowCard.active {
+  opacity: 1 !important;
+  filter: brightness(1) !important;
+  transform: translate(-50%, -50%) scale(1.02);
+}
+
+.flowCard.dimmed {
+  opacity: 0.25;
+  filter: brightness(0.6);
+}
+
+.flowCard.leftCard {
+  cursor: pointer;
+}
+
+.flowCard.leftCard:hover {
+  transform: translate(-50%, -50%) scale(1.02);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Left card active border glow colors */
+.activeBlue {
+  box-shadow: 0 0 0 2px #0a72ef, 0 8px 30px rgba(10, 114, 239, 0.15);
+}
+.activePink {
+  box-shadow: 0 0 0 2px #de1d8d, 0 8px 30px rgba(222, 29, 141, 0.15);
+}
+.activeRed {
+  box-shadow: 0 0 0 2px #ff5b4f, 0 8px 30px rgba(255, 91, 79, 0.15);
+}
+
+/* Shared card components */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-quaternary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: 100%;
+}
+
+.cardFooter {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  width: 100%;
+}
+
+.arabicBody {
+  font-family: var(--font-arabic);
+  font-size: 20px;
+  text-align: center;
+  direction: rtl;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin: auto 0;
+}
+
+/* Mini-Mushaf mock */
+.miniMushaf {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-arabic);
+  font-size: 13px;
+  direction: rtl;
+  text-align: justify;
+  line-height: 1.5;
+  opacity: 0.85;
+  margin: auto 0;
+}
+
+.highlightWord {
+  color: #0a72ef;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(10, 114, 239, 0.2);
+}
+
+.mushafHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* Audio Scrubber & Player mock */
+.audioPlayer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: auto 0;
+  width: 100%;
+}
+
+.audioControls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-family: var(--font-mono, monospace);
-  letter-spacing: 0.05em;
+  gap: 12px;
 }
-.tafsirIcon { color: var(--text-secondary); }
-.tafsirTranslation {
-  font-size: 0.9rem;
-  line-height: 1.4;
+
+.playBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trackInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trackTitle {
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
 }
-.tafsirNote {
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  background: var(--bg-primary);
-  padding: 10px;
-  border-radius: 6px;
-  box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
+
+.trackMeta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
 }
 
-/* 2. Flashcard */
+.scrubberContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.scrubber {
+  height: 4px;
+  background: var(--gray-100);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.scrubberFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #0a72ef;
+  width: 45%;
+}
+
+/* Equalizer */
+.equalizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+  margin-left: auto;
+}
+
+.eqBar {
+  width: 2px;
+  height: 100%;
+  background: #0a72ef;
+  animation: bounceEq 1.2s ease-in-out infinite alternate;
+}
+.eqBar:nth-child(2) { animation-delay: 0.2s; }
+.eqBar:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounceEq {
+  0% { height: 20%; }
+  100% { height: 100%; }
+}
+
+/* Tafsir card content */
+.tafsirContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: auto 0;
+}
+
+.tafsirLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tafsirText {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  padding: 8px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-ring);
+}
+
+/* Flashcard */
 .fcBadge {
-  background: transparent;
+  background: var(--badge-bg-subtle, rgba(0, 0, 0, 0.04));
   color: var(--text-primary);
   box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
   padding: 4px 8px;
-  border-radius: 9999px; /* Pill */
-  font-size: 0.65rem;
+  border-radius: 9999px;
+  font-size: 9px;
   font-weight: 500;
   align-self: flex-start;
   font-family: var(--font-mono, monospace);
   text-transform: uppercase;
 }
+
 .fcInstruction {
-  font-size: 0.8rem;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
   text-align: center;
+  margin-top: 4px;
 }
+
 .fcAnswer {
   font-family: var(--font-arabic, 'Amiri', serif);
-  font-size: 1.3rem;
+  font-size: 18px;
   text-align: center;
   direction: rtl;
   color: var(--text-primary);
+  margin: auto 0;
 }
+
 .fcRatings {
   display: flex;
   justify-content: space-between;
-  margin-top: 4px;
+  margin-top: 8px;
+  width: 100%;
 }
+
 .fcRatingBtn {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  flex: 1;
 }
+
 .fcRatingBox {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: var(--bg-subtle);
   color: var(--text-primary);
   box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 600;
 }
-.fcRatingLabel { 
-  font-size: 0.55rem; 
-  font-weight: 500; 
+
+.fcRatingLabel {
+  font-size: 8px;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
-/* 3. Plan Card */
-.planHeader {
+/* Daily plan list */
+.planList {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: auto 0;
+  width: 100%;
+}
+
+.planItem {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  box-shadow: var(--shadow-ring);
 }
-.planTitle { font-size: 0.9rem; font-weight: 600; }
-.planTimePill {
+
+.planItemLeft {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
-  padding: 2px 6px;
-  border-radius: 9999px;
+  gap: 8px;
 }
-.planPhase {
-  background: var(--bg-primary);
-  box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
-  border-radius: 6px;
-  padding: 10px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-.planPhase::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 3px; height: 100%;
-  background: var(--text-primary); /* Monochrome indicator */
-}
-.planPhaseName { font-size: 0.8rem; font-weight: 600; margin-bottom: 2px; }
-.planPhaseDesc { font-size: 0.65rem; color: var(--text-secondary); }
-.planCta {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  padding: 8px 16px;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 0.8rem;
-  font-weight: 500;
+
+.planItemCheck {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--gray-400);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  font-size: 8px;
+  color: #ff5b4f;
 }
+
+.planItemCheck.completed {
+  background: #ff5b4f;
+  border-color: #ff5b4f;
+  color: var(--color-white);
+}
+
+.planItemName {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.planItemDesc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* Analytics */
+.analyticsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: auto 0;
+  width: 100%;
+}
+
+.streakNumber {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ff5b4f;
+  line-height: 1;
+}
+
+.streakLabel {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.miniChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 32px;
+  width: 100%;
+  border-bottom: 1px solid var(--gray-100);
+  padding-bottom: 2px;
+}
+
+.chartBar {
+  flex: 1;
+  background: #ff5b4f;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  opacity: 0.6;
+}
+
+.chartBar.activeBar {
+  opacity: 1;
+}
+
 
 
 
