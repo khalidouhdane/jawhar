@@ -83,28 +83,31 @@ export default function FeatureSlider({
   // Slide transition animation definitions
   const slideVariants = {
     enter: (dir) => ({
-      x: dir > 0 ? 120 : -120,
+      y: dir > 0 ? 40 : -40,
+      x: 0,
       opacity: 0,
-      scale: 0.95
+      scale: 0.98
     }),
     center: {
+      y: 0,
       x: 0,
       opacity: 1,
       scale: 1,
       transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.4 },
-        scale: { duration: 0.4 }
+        y: { type: "spring", stiffness: 200, damping: 25 },
+        opacity: { duration: 0.45 },
+        scale: { duration: 0.45 }
       }
     },
     exit: (dir) => ({
-      x: dir > 0 ? -120 : 120,
+      y: dir > 0 ? -40 : 40,
+      x: 0,
       opacity: 0,
-      scale: 0.95,
+      scale: 0.98,
       transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.3 },
-        scale: { duration: 0.3 }
+        y: { type: "spring", stiffness: 200, damping: 25 },
+        opacity: { duration: 0.35 },
+        scale: { duration: 0.35 }
       }
     })
   };
@@ -129,7 +132,7 @@ export default function FeatureSlider({
         <div className={`${styles.phoneSection} ${isLeftLayout ? styles.orderFirst : styles.orderLast}`}>
           
           <div className={styles.phoneGroup}>
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <AnimatePresence initial={false} custom={direction}>
               {/* Primary Phone Mockup (rotated clockwise) */}
               <motion.div
                 key={`left-phone-${activeIndex}`}
@@ -154,7 +157,7 @@ export default function FeatureSlider({
               </motion.div>
             </AnimatePresence>
  
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <AnimatePresence initial={false} custom={direction}>
               {/* Secondary Phone Mockup (rotated counterclockwise) */}
               <motion.div
                 key={`right-phone-${activeIndex}`}

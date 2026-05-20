@@ -51,28 +51,31 @@ export default function MemorizeSection() {
 
   const slideVariants = {
     enter: (dir) => ({
-      x: dir > 0 ? 100 : -100,
+      y: dir > 0 ? 40 : -40,
+      x: 0,
       opacity: 0,
-      scale: 0.96
+      scale: 0.98
     }),
     center: {
+      y: 0,
       x: 0,
       opacity: 1,
       scale: 1,
       transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.4 },
-        scale: { duration: 0.4 }
+        y: { type: "spring", stiffness: 200, damping: 25 },
+        opacity: { duration: 0.45 },
+        scale: { duration: 0.45 }
       }
     },
     exit: (dir) => ({
-      x: dir > 0 ? -100 : 100,
+      y: dir > 0 ? -40 : 40,
+      x: 0,
       opacity: 0,
-      scale: 0.96,
+      scale: 0.98,
       transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.3 },
-        scale: { duration: 0.3 }
+        y: { type: "spring", stiffness: 200, damping: 25 },
+        opacity: { duration: 0.35 },
+        scale: { duration: 0.35 }
       }
     })
   };
@@ -160,7 +163,7 @@ export default function MemorizeSection() {
           {/* Column 2: Center Phone Mockups */}
           <div className={styles.columnPhones}>
             <div className={styles.phoneGroup}>
-              <AnimatePresence initial={false} custom={direction} mode="popLayout">
+              <AnimatePresence initial={false} custom={direction}>
                 <motion.div
                   key={`mem-left-${activeIndex}`}
                   custom={direction}
@@ -184,7 +187,7 @@ export default function MemorizeSection() {
                 </motion.div>
               </AnimatePresence>
  
-              <AnimatePresence initial={false} custom={direction} mode="popLayout">
+              <AnimatePresence initial={false} custom={direction}>
                 <motion.div
                   key={`mem-right-${activeIndex}`}
                   custom={direction}
