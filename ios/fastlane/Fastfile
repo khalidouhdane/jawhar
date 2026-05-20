@@ -33,6 +33,25 @@ platform :ios do
       end
     end
 
+    # 2.5 Revoke existing active Distribution certificates to prevent hitting the limit
+    begin
+      UI.message("Checking existing distribution certificates on the Developer Portal to prevent hitting the 2-cert limit...")
+      Spaceship::ConnectAPI.token = api_key
+      certs = Spaceship::ConnectAPI::Certificate.all
+      UI.message("Found #{certs.count} total certificates on the portal.")
+      
+      certs.each do |c|
+        type = c.certificate_type
+        if type && (type.include?("DISTRIBUTION") || type.include?("Distribution"))
+          UI.message("Revoking certificate: #{c.name} (ID: #{c.id}, Type: #{type}, Expires: #{c.expiration_date})")
+          c.delete!
+        end
+      end
+      UI.message("Successfully cleared active Distribution certificates.")
+    rescue => e
+      UI.error("Error while cleaning up developer portal certificates: #{e.message}")
+    end
+
     get_certificates(
       api_key: api_key,
       development: false,
