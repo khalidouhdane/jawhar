@@ -13,7 +13,6 @@
 | [Competitor Analysis](https://notebooklm.google.com/notebook/43c26df0-0878-4678-8b71-da13b9d6600b) | 73 | Direct competitors, feature gaps, positioning | No competitor combines adaptive planning + understanding layer |
 | [App Naming & Brand](https://notebooklm.google.com/notebook/80c3ad20-23c2-43a7-aa2d-184044c50beb) | 82 | Naming conventions, linguistic analysis, brand identity | 239+ Islamic apps mapped; "linguistic bottleneck" in naming |
 | [Market Gaps & Positioning](https://notebooklm.google.com/notebook/36b07248-90ad-401e-b332-dd1909959420) | 75 | Market sizing, user pain points, EdTech trends | 56% post-Ramadan uninstall rate; understanding is the retention lever |
-| [Hackathon API Research](https://notebooklm.google.com/notebook/5be4ef03-eedd-4dde-a0d0-7610633d04a2) | 27 | Quran Foundation APIs, OAuth2 scopes, hackathon rules | User API requires OAuth2 PKCE; pre-prod keys for dev, production swap later |
 
 ---
 
@@ -77,26 +76,5 @@
 | B&W Quran-first design | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Quran Foundation API | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Free / No ads | ✅ | Freemium | Paid | Free | Ads |
-
----
-
-## Hackathon Context
-
-**Quran Foundation Hackathon** — Deadline: May 20, 2026 — $10K prize pool, 7 winners
-
-### API Access Status (as of May 13, 2026)
-- **Production Content API keys**: ✅ Active — used for all current features
-- **Pre-Production User API keys**: ✅ Active — for developing User API integration
-- **Production User API keys**: Pending — Quran Foundation confirmed "quick swap" once ready
-- **Hybrid approach confirmed**: Keep production keys for Content API, use pre-prod for User API development
-
-### Judging Criteria
-- Innovation
-- API Usage (Content + User APIs)
-- User Impact
-- Technical Excellence
-- Design
-
----
 
 *Last updated: May 13, 2026*

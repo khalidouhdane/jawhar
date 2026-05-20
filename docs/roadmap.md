@@ -78,20 +78,19 @@ See [hifz-roadmap.md](features/hifz/hifz-roadmap.md) for the detailed phase-by-p
 
 ---
 
-## 🏆 HACKATHON SPRINT (Deadline: May 20, 2026)
+## 🚀 Alpha Milestone (May 20, 2026)
 
-**Quran Foundation Hackathon** — $10K prize pool, 7 winners.
 **Brand:** Jawhar — *Memorize with Meaning*
 
-- [ ] Integrate **User APIs**: Bookmarks, Streaks, Goals, Reading Sessions
-- [ ] **OAuth2 PKCE** flow for user authentication
-- [ ] Geist Design System migration (B&W visual overhaul)
-- [ ] Polish UI/UX for 2-3 min demo video
-- [ ] All UI copy follows [brand-strategy.md](brand-strategy.md)
+- [x] Integrate **User APIs**: Bookmarks, Streaks, Goals, Reading Sessions
+- [x] **OAuth2 PKCE** flow for user authentication
+- [x] Geist Design System migration (B&W visual overhaul)
+- [x] Polish UI/UX and performance
+- [x] All UI copy follows [brand-strategy.md](brand-strategy.md)
 
 ---
 
-## 🔮 Phase 8: Post-Hackathon
+## 🔮 Phase 8: Next Milestones
 
 - [ ] AI-powered Hifz assessment
 - [ ] Ramadan mode

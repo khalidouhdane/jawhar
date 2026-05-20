@@ -1,9 +1,8 @@
 # Jawhar (جوهر) — Memorize with Meaning
 
-[![Quran Foundation Hackathon 2026 Submission](https://img.shields.io/badge/Quran_Foundation-Hackathon_2026-black)](https://hackathon.quran.com)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Website-000000)](https://website-lilac-phi-50.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Website-000000)](https://jawhar.alphafoundr.com/)
 
-The first Quran memorization companion built on understanding — where every verse you carry also carries its meaning. **Official submission for the 2026 Quran Foundation Hackathon.**
+The first Quran memorization companion built on understanding — where every verse you carry also carries its meaning.
 
 ## What is Jawhar?
 

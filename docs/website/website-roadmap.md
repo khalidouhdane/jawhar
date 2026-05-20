@@ -10,7 +10,7 @@
 **Jawhar** (جوهر) — "Essence, jewel, substance." The first Quran memorization companion built on understanding.
 
 - **Primary tagline:** "Memorize with Meaning" (accessible, for everyone)
-- **Technical tagline:** "Encode the Essence" (dev/hackathon audience)
+- **Technical tagline:** "Encode the Essence" (dev/technical audience)
 - **Descriptive:** "The Quran, understood and remembered"
 - **Challenger:** "Not just memorized. Internalized."
 
@@ -301,9 +301,9 @@ jawhar.app/
 
 ---
 
-## 📋 Priority Order for Hackathon (May 20)
+## 📋 Launch Priority Order
 
-Given the May 20 deadline, here's what to ship first:
+Here is the launch priority order:
 
 | Priority | What | Time Estimate |
 |---|---|---|
@@ -312,8 +312,8 @@ Given the May 20 deadline, here's what to ship first:
 | 🟡 P1 | Phase 5.1 — Download page | 0.5 days |
 | 🟢 P2 | Phase 2 — Features pages | 1-2 days |
 | 🟢 P2 | Phase 4 — Advanced animations | Ongoing polish |
-| ⚪ P3 | Phase 3.2 — Blog system | Post-hackathon |
-| ⚪ P3 | Phase 6 — Press kit | Post-hackathon |
+| ⚪ P3 | Phase 3.2 — Blog system | Post-launch |
+| ⚪ P3 | Phase 6 — Press kit | Post-launch |
 
 ---
 

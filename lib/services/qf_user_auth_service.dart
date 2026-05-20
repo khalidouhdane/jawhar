@@ -521,7 +521,7 @@ try {
   }
 
   /// Extracts the `sub` claim from a JWT id_token without full validation.
-  /// For hackathon speed — full JWKS validation would be added for production.
+  /// Note: JWT signature verification should be handled by a secure backend wrapper.
   String? _extractSub(String jwt) {
     try {
       final parts = jwt.split('.');

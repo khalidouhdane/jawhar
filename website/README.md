@@ -18,7 +18,6 @@ Opens at [http://localhost:3001](http://localhost:3001).
 
 - `/` — Landing page (Three Beats: Read, Understand, Memorize)
 - `/download` — Platform downloads
-- `/hackathon` — Quran Foundation Hackathon 2026 submission
 - `/explore` — Interactive feature exploration
 - `/privacy` — Privacy policy
 - `/terms` — Terms of service
