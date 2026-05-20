@@ -3,7 +3,7 @@ import styles from "../legal.module.css";
 export const metadata = {
   title: "Privacy Policy - Jawhar",
   description:
-    "How Jawhar handles waitlist, app, account, and usage data while the app is in private development.",
+    "How Jawhar handles app, account, and usage data while the app is in public testing.",
 };
 
 export default function PrivacyPage() {
@@ -36,11 +36,6 @@ export default function PrivacyPage() {
           <div className={`card ${styles.block}`}>
             <h2>Information you provide</h2>
             <ul>
-              <li>
-                Waitlist email: if you join the waitlist on this demo site, the
-                email is stored locally in your browser until a production
-                waitlist service is connected.
-              </li>
               <li>
                 Account data: if you sign in inside the app, authentication is
                 optional and used to sync your own settings and progress.
@@ -86,7 +81,6 @@ export default function PrivacyPage() {
             <h2>Your choices</h2>
             <ul>
               <li>You can use the app without signing in.</li>
-              <li>You can clear local browser waitlist data at any time.</li>
               <li>You can disable optional sync by staying signed out.</li>
               <li>
                 If you have an account, you may request deletion of synced data

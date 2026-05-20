@@ -27,9 +27,9 @@ export default function HackathonPage() {
               <Home className="w-5 h-5" />
               Use the homepage for the hackathon review
             </Link>
-            <Link href="/#waitlist" className="h-12 px-8 rounded-full border border-white/20 flex items-center gap-2 font-medium hover:bg-white/5 transition-colors">
+            <Link href="/download" className="h-12 px-8 rounded-full border border-white/20 flex items-center gap-2 font-medium hover:bg-white/5 transition-colors">
               <ArrowRight className="w-5 h-5" />
-              Join Early Access
+              Download App
             </Link>
           </div>
         </section>
