@@ -4,7 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import DepthRings from "./DepthRings";
-import WaitlistForm from "../shared/WaitlistForm";
+import Link from "next/link";
 import styles from "./ClosingSection.module.css";
 
 export default function ClosingSection() {
@@ -44,11 +44,17 @@ export default function ClosingSection() {
           </p>
 
           <div className={styles.formWrap}>
-            <WaitlistForm />
+            <Link href="/download" className="btn btn-primary btn-large">
+              Download Jawhar
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14"/>
+                <path d="m12 5 7 7-7 7"/>
+              </svg>
+            </Link>
           </div>
 
           <p className={styles.trust}>
-            Free forever · Privacy-first · Open roadmap
+            Windows · Android · iOS (TestFlight)
           </p>
         </div>
       </div>

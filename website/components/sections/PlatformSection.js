@@ -8,7 +8,7 @@ const platforms = [
   { icon: Smartphone, name: "Android", available: true },
   { icon: Laptop, name: "macOS", soon: true },
   { icon: Monitor, name: "Linux", soon: true },
-  { icon: Apple, name: "iOS", soon: true },
+  { icon: Apple, name: "iOS", available: true },
   { icon: Globe, name: "Web", soon: true },
 ];
 
