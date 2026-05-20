@@ -26,6 +26,7 @@ import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/widgets/app_header.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/widgets/geist_segmented_control.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 enum ProfileTab { settings, hifz, account }
 
@@ -38,6 +39,24 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   ProfileTab _activeTab = ProfileTab.settings;
+  String _appVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = info.version;
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +329,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           theme,
           icon: LucideIcons.info,
           title: 'Jawhar',
-          subtitle: l.profileVersion,
+          subtitle: _appVersion.isNotEmpty
+              ? l.profileVersion.replaceAll('1.0.0', _appVersion)
+              : l.profileVersion,
           showChevron: false,
         ),
         const SizedBox(height: 6),

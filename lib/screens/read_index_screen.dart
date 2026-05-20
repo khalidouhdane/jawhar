@@ -83,194 +83,199 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
     return Scaffold(
       backgroundColor: theme.canvasBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header & Reciter Shortcut ──
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 16,
-              ),
-              child: AppHeader(
-                title: l!.readTitle,
-                action: GestureDetector(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (ctx) => ExcludeSemantics(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: MediaQuery.of(ctx).size.height * 0.1,
-                          ),
-                          child: DefaultTextStyle(
-                            style: const TextStyle(fontFamily: 'Inter'),
-                            child: ReciterMenuSheet(
-                              onClose: () => Navigator.pop(ctx),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.accentColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.headphones,
-                          size: 14,
-                          color: theme.accentColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          audioProvider.reciterName.split(' ').first,
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: theme.accentColor,
-                          ),
-                        ),
-                      ],
-                    ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Column(
+              children: [
+                // ── Header & Reciter Shortcut ──
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 20,
+                    bottom: 16,
                   ),
-                ),
-              ),
-            ),
-
-            // ── Personalized Hub ──
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          const ContinueReadingCard(),
-                          const SizedBox(height: 16),
-                          const WerdCard(),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ── Search & Index Tabs ──
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Container(
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: theme.inputFill,
-                              borderRadius: BorderRadius.circular(
-                                theme.radiusLg,
+                  child: AppHeader(
+                    title: l!.readTitle,
+                    action: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (ctx) => ExcludeSemantics(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.of(ctx).size.height * 0.1,
+                              ),
+                              child: DefaultTextStyle(
+                                style: const TextStyle(fontFamily: 'Inter'),
+                                child: ReciterMenuSheet(
+                                  onClose: () => Navigator.pop(ctx),
+                                ),
                               ),
                             ),
-                            child: TextField(
-                              focusNode: _searchFocusNode,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.accentColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              LucideIcons.headphones,
+                              size: 14,
+                              color: theme.accentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              audioProvider.reciterName.split(' ').first,
                               style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 14,
-                                color: theme.primaryText,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: l.readSearchHint,
-                                hintStyle: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 14,
-                                  color: theme.mutedText,
-                                ),
-                                prefixIcon: Icon(
-                                  LucideIcons.search,
-                                  size: 18,
-                                  color: theme.mutedText,
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                              ),
-                              onChanged: (val) =>
-                                  setState(() => _searchQuery = val),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Container(
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: theme.inputFill,
-                              borderRadius: BorderRadius.circular(
-                                theme.radiusMd,
-                              ),
-                            ),
-                            child: TabBar(
-                              controller: _tabController,
-                              indicator: BoxDecoration(
-                                color: theme.accentColor,
-                                borderRadius: BorderRadius.circular(
-                                  theme.radiusMd,
-                                ),
-                              ),
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              dividerHeight: 0,
-                              labelColor: theme.scaffoldBackground,
-                              unselectedLabelColor: theme.mutedText,
-                              labelStyle: TextStyle(
                                 fontFamily: GeistTypography.primaryFontFamily,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
+                                color: theme.accentColor,
                               ),
-                              unselectedLabelStyle: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              tabs: [
-                                Tab(text: l.readTabSurah),
-                                Tab(text: l.readTabJuz),
-                                Tab(text: l.readTabHizb),
-                              ],
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ── Personalized Hub ──
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            children: [
+                              const ContinueReadingCard(),
+                              const SizedBox(height: 16),
+                              const WerdCard(),
+                              const SizedBox(height: 24),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  // ── Tab Content (Lists) ──
-                  SliverFillRemaining(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildSurahList(chapters, theme),
-                        _buildJuzList(chapters, theme),
-                        _buildHizbList(chapters, theme),
-                      ],
-                    ),
+                      // ── Search & Index Tabs ──
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: theme.inputFill,
+                                  borderRadius: BorderRadius.circular(
+                                    theme.radiusLg,
+                                  ),
+                                ),
+                                child: TextField(
+                                  focusNode: _searchFocusNode,
+                                  style: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 14,
+                                    color: theme.primaryText,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: l.readSearchHint,
+                                    hintStyle: TextStyle(
+                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontSize: 14,
+                                      color: theme.mutedText,
+                                    ),
+                                    prefixIcon: Icon(
+                                      LucideIcons.search,
+                                      size: 18,
+                                      color: theme.mutedText,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  onChanged: (val) =>
+                                      setState(() => _searchQuery = val),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Container(
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: theme.inputFill,
+                                  borderRadius: BorderRadius.circular(
+                                    theme.radiusMd,
+                                  ),
+                                ),
+                                child: TabBar(
+                                  controller: _tabController,
+                                  indicator: BoxDecoration(
+                                    color: theme.accentColor,
+                                    borderRadius: BorderRadius.circular(
+                                      theme.radiusMd,
+                                    ),
+                                  ),
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  dividerHeight: 0,
+                                  labelColor: theme.scaffoldBackground,
+                                  unselectedLabelColor: theme.mutedText,
+                                  labelStyle: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  unselectedLabelStyle: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  tabs: [
+                                    Tab(text: l.readTabSurah),
+                                    Tab(text: l.readTabJuz),
+                                    Tab(text: l.readTabHizb),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      ),
+
+                      // ── Tab Content (Lists) ──
+                      SliverFillRemaining(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildSurahList(chapters, theme),
+                            _buildJuzList(chapters, theme),
+                            _buildHizbList(chapters, theme),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
