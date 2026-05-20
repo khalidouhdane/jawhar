@@ -21,6 +21,11 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+        shell: bash
+
       - name: Enable Windows Build
         run: flutter config --enable-windows-desktop
 

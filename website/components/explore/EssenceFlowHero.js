@@ -19,16 +19,19 @@ const SPOTLIGHT_PAIRS = [
     verse: { surah: "Surah Al-Kawthar", num: "108:1", text: "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ" },
     translation: "Indeed, We have granted you Al-Kawthar.",
     accentColor: "#0a72ef", // Develop Blue
+    rgb: "10, 114, 239"
   },
   {
     verse: { surah: "Surah Al-Qadr", num: "97:1", text: "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ" },
     translation: "Indeed, We sent the Quran down during the Night of Decree.",
     accentColor: "#de1d8d", // Preview Pink
+    rgb: "222, 29, 141"
   },
   {
     verse: { surah: "Surah Al-Mulk", num: "67:1", text: "تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ" },
     translation: "Blessed is He in whose hand is the dominion.",
     accentColor: "#ff5b4f", // Ship Red
+    rgb: "255, 91, 79"
   }
 ];
 
@@ -579,6 +582,49 @@ export default function EssenceFlowHero() {
         </div>
       </div>
     </div>
+
+      {/* Mobile-optimized visual block (only visible on mobile screens) */}
+      <div className={styles.mobileVisual}>
+        <div 
+          className={styles.mobileDiamond}
+          style={{
+            filter: `drop-shadow(0 0 20px ${activeColor}30)`,
+            transition: 'filter 0.8s ease'
+          }}
+        >
+          <DiamondSprite />
+        </div>
+        
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`mobile-card-${activeIndex}`}
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className={`${styles.flowCard} ${styles.mobileActiveCard}`}
+            style={{
+              borderColor: activeColor,
+              boxShadow: `0 0 0 2.5px ${activeColor}, 0 8px 30px rgba(${SPOTLIGHT_PAIRS[activeIndex].rgb}, 0.15)`
+            }}
+            onClick={() => setActiveIndex((prev) => (prev + 1) % 3)}
+          >
+            <div className={styles.cardHeader}>
+              <span>{SPOTLIGHT_PAIRS[activeIndex].verse.surah}</span>
+              <span>{SPOTLIGHT_PAIRS[activeIndex].verse.num}</span>
+            </div>
+            <div className={styles.arabicBody}>
+              {SPOTLIGHT_PAIRS[activeIndex].verse.text}
+            </div>
+            <div className={styles.cardFooter}>
+              {SPOTLIGHT_PAIRS[activeIndex].translation}
+            </div>
+            <div style={{ position: 'absolute', bottom: '4px', right: '8px', fontSize: '8px', color: 'var(--text-tertiary)', opacity: 0.7, fontFamily: 'var(--font-mono)' }}>
+              Tap to Cycle
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* ── Hero copy ── */}
       <div className={styles.copy}>

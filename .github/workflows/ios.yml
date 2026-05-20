@@ -18,12 +18,12 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install CocoaPods and Dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Create .env file
         run: |
-          cd ios
-          pod install
-          cd ..
-          flutter pub get
+          echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Run Fastlane Beta
         env:
@@ -32,4 +32,4 @@ jobs:
           ASC_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
         run: |
           cd ios
-          bundle exec fastlane beta
+          fastlane beta
