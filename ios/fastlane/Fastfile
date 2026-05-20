@@ -74,8 +74,9 @@ platform :ios do
 
     # 5. Extract Team ID and profile name from the downloaded provisioning profile
     profile_name = lane_context[SharedValues::SIGH_NAME]
+    profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
     # Decode the provisioning profile plist to extract TeamIdentifier
-    sh("security cms -D -i profile.mobileprovision > /tmp/profile_decoded.plist")
+    sh("security cms -D -i '#{profile_path}' > /tmp/profile_decoded.plist")
     require 'plist'
     profile_plist = Plist.parse_xml("/tmp/profile_decoded.plist")
     team_id = profile_plist["TeamIdentifier"].first
