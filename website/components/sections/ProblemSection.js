@@ -51,7 +51,7 @@ export default function ProblemSection() {
 
         <ScrollReveal delay={0.5}>
           <p className={styles.source}>
-            Jawhar was built to solve all three.
+            Meaning is not extra. Jawhar was built to solve all three.
           </p>
         </ScrollReveal>
       </div>

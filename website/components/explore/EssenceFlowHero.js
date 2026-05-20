@@ -645,8 +645,8 @@ export default function EssenceFlowHero() {
           ))}
         </h1>
         <p className={styles.subtitle}>
-          The first Quran companion built on understanding.<br/>
-          Read beautifully. Understand deeply. Memorize permanently.
+          Verse in. Meaning out.<br/>
+          Meaning becomes the anchor. The plan follows.
         </p>
         <div className={styles.ctas}>
           <a href="#closing" className="btn btn-primary btn-large">
