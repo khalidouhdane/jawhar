@@ -93,6 +93,9 @@ platform :ios do
     )
 
     # 7. Dynamically generate ExportOptions.plist with manual signing and correct Team ID
+    profile_uuid = lane_context[SharedValues::SIGH_UUID]
+    # Write to ios/ directory (parent of fastlane/) since flutter expects ios/ExportOptions.plist from project root
+    export_plist_path = File.join(Dir.pwd, "..", "ExportOptions.plist")
     export_options_content = <<~XML
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -104,6 +107,8 @@ platform :ios do
       \t<string>manual</string>
       \t<key>teamID</key>
       \t<string>#{team_id}</string>
+      \t<key>signingCertificate</key>
+      \t<string>Apple Distribution</string>
       \t<key>provisioningProfiles</key>
       \t<dict>
       \t\t<key>com.memorize.quran.ai</key>
@@ -116,8 +121,9 @@ platform :ios do
       </dict>
       </plist>
     XML
-    File.write("ExportOptions.plist", export_options_content)
-    UI.message("Successfully generated ExportOptions.plist with manual signing!")
+    File.write(export_plist_path, export_options_content)
+    UI.message("Successfully generated ExportOptions.plist at #{export_plist_path} with manual signing!")
+    UI.message("Profile name: #{profile_name}, UUID: #{profile_uuid}, Team ID: #{team_id}")
 
     # 8. Build the signed IPA using Flutter
     sh("cd ../.. && flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.env")
@@ -125,7 +131,7 @@ platform :ios do
     # 9. Upload to App Store Connect / TestFlight
     upload_to_testflight(
       api_key: api_key,
-      ipa: "../../build/ios/ipa/*.ipa",
+      ipa: Dir["../../build/ios/ipa/*.ipa"].first,
       skip_waiting_for_build_processing: true
     )
   end
