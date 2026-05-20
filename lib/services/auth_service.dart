@@ -57,11 +57,14 @@ class AuthService extends ChangeNotifier {
     if (kIsWeb) {
       // Must call getRedirectResult on web to finalize the signInWithRedirect flow
       // when the user returns to the app from the Google login page.
-      _auth.getRedirectResult().catchError((e) {
-        AppLogger.info('Auth', '[AUTH] Redirect result error: $e');
-        // ignore: null_check_always_fails
-        return null; // Ignore errors, they just mean no sign-in happened
+      Future(() async {
+        try {
+          await _auth.getRedirectResult();
+        } catch (e) {
+          AppLogger.info('Auth', '[AUTH] Redirect result error: $e');
+        }
       });
+
     }
   }
 

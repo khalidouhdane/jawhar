@@ -48,10 +48,53 @@ platform :ios do
       filename: "profile.mobileprovision"
     )
 
-    # 5. Build the signed IPA using Flutter
+    # 5. Read the provisioning profile to extract Team ID and profile name
+    profile_data = read_provisioning_profile(path: "profile.mobileprovision")
+    team_id = profile_data["TeamIdentifier"].first
+    profile_name = profile_data["Name"]
+    UI.message("Successfully read provisioning profile: #{profile_name} (Team ID: #{team_id})")
+
+    # 6. Disable automatic signing and update project settings to use our profile
+    update_code_signing_settings(
+      path: "Runner.xcodeproj",
+      use_automatic_signing: false,
+      team_id: team_id,
+      bundle_identifier: "com.memorize.quran.ai",
+      profile_name: profile_name,
+      code_sign_identity: "iPhone Distribution"
+    )
+
+    # 7. Dynamically generate ExportOptions.plist with manual signing and correct Team ID
+    export_options_content = <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+      \t<key>method</key>
+      \t<string>app-store</string>
+      \t<key>signingStyle</key>
+      \t<string>manual</string>
+      \t<key>teamID</key>
+      \t<string>#{team_id}</string>
+      \t<key>provisioningProfiles</key>
+      \t<dict>
+      \t\t<key>com.memorize.quran.ai</key>
+      \t\t<string>#{profile_name}</string>
+      \t</dict>
+      \t<key>stripSwiftSymbols</key>
+      \t<true/>
+      \t<key>uploadSymbols</key>
+      \t<true/>
+      </dict>
+      </plist>
+    XML
+    File.write("ExportOptions.plist", export_options_content)
+    UI.message("Successfully generated ExportOptions.plist with manual signing!")
+
+    # 8. Build the signed IPA using Flutter
     sh("cd ../.. && flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.env")
 
-    # 6. Upload to App Store Connect / TestFlight
+    # 9. Upload to App Store Connect / TestFlight
     upload_to_testflight(
       api_key: api_key,
       ipa: "../../build/ios/ipa/*.ipa",
@@ -59,3 +102,4 @@ platform :ios do
     )
   end
 end
+

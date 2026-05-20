@@ -62,8 +62,8 @@ class CardGenerationService {
     if (verses.isEmpty) return 0;
 
     final random = Random();
-    int created = 0;
     final budget = _maxDueCards - dueCount;
+
 
     // Split budget across 6 types
     final perType = (budget / 6).ceil();
