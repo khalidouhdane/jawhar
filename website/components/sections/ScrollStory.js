@@ -6,7 +6,6 @@ import ReadSection from './ReadSection';
 import UnderstandSection from './UnderstandSection';
 import MemorizeSection from './MemorizeSection';
 import StrategySection from './StrategySection';
-import ClosingSection from './ClosingSection';
 
 export default function ScrollStory() {
   return (
@@ -18,7 +17,6 @@ export default function ScrollStory() {
         <UnderstandSection />
         <MemorizeSection />
         <StrategySection />
-        <ClosingSection />
       </div>
     </div>
   );

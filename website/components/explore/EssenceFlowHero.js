@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { 
@@ -649,10 +650,10 @@ export default function EssenceFlowHero() {
           Meaning becomes the anchor. The plan follows.
         </p>
         <div className={styles.ctas}>
-          <a href="#closing" className="btn btn-primary btn-large">
+          <Link href="/download" className="btn btn-primary btn-large">
             Download Jawhar
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
+          </Link>
         </div>
       </div>
     </section>
