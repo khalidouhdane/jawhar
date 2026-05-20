@@ -47,6 +47,11 @@ export default function EssenceFlowHero() {
   const [scale, setScale] = useState(1);
   const autoRotateTimerRef = useRef(null);
   const manualTimeoutRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Resize listener to scale the 1440x450 stage container dynamically
   useEffect(() => {
@@ -117,7 +122,8 @@ export default function EssenceFlowHero() {
     if (footer) gsap.set(footer, { opacity: 0 });
     if (localDiamond) gsap.set(localDiamond, { scale: 0, opacity: 0 });
     
-    gsap.set(container.querySelectorAll(`.${styles.flowCard}`), { 
+    // Target only left cards within the stage (Framer Motion handles right cards)
+    gsap.set(container.querySelectorAll(`.${styles.stage} .${styles.leftCard}`), { 
       opacity: 0, 
       scale: 0.8
     });
@@ -125,31 +131,34 @@ export default function EssenceFlowHero() {
     gsap.set(container.querySelectorAll(`.${styles.copy} > p`), { y: 15, opacity: 0 });
     gsap.set(container.querySelectorAll(`.${styles.ctas}`), { y: 10, opacity: 0 });
 
-    // 1. Diamond and active left card entrance animates simultaneously
+    // 1. Diamond entrance starts at 0
     if (localDiamond) {
       tl.to(localDiamond, {
         scale: 1,
         opacity: 1,
         duration: 1.2,
         ease: "power3.out"
-      });
+      }, 0);
     }
 
-    // 2. Navbar slides down
+    // 2. Navbar slides down shortly after
     tl.to(navbar, {
       y: 0,
       opacity: 1,
       duration: 0.8,
       ease: "power2.out"
-    }, "-=0.8")
-    // 3. Stagger-in all cards
-    .to(container.querySelectorAll(`.${styles.flowCard}`), {
-      opacity: 1,
+    }, 0.2);
+
+    // 3. Stagger-in left cards starting almost immediately (progressive with diamond)
+    tl.to(container.querySelectorAll(`.${styles.stage} .${styles.leftCard}`), {
+      opacity: (index, target) => {
+        return target.classList.contains(styles.active) ? 1 : 0.25;
+      },
       scale: 1,
       duration: 0.8,
       stagger: 0.08,
       ease: "power2.out"
-    }, "-=0.6")
+    }, 0.1)
     // 4. Hero headline split-character reveal
     .to('.split-char', {
       y: 0,
@@ -157,7 +166,7 @@ export default function EssenceFlowHero() {
       duration: 0.5,
       stagger: 0.03,
       ease: "power2.out"
-    }, "-=0.6")
+    }, "-=0.5")
     // 5. Hero Subtitle
     .to(container.querySelectorAll(`.${styles.copy} > p`), {
       y: 0,
@@ -189,7 +198,7 @@ export default function EssenceFlowHero() {
     <section className={styles.section} ref={containerRef}>
       <div className={styles.stageWrapper} style={{ height: `${450 * scale}px` }}>
         <div 
-          className={styles.stage} 
+          className={`${styles.stage} ${!mounted ? styles.notMounted : ''}`} 
           ref={stageRef}
           style={{ 
             transform: `scale(${scale})`,
@@ -585,7 +594,7 @@ export default function EssenceFlowHero() {
     </div>
 
       {/* Mobile-optimized visual block (only visible on mobile screens) */}
-      <div className={styles.mobileVisual}>
+      <div className={`${styles.mobileVisual} ${!mounted ? styles.notMounted : ''}`}>
         <div 
           className={styles.mobileDiamond}
           style={{

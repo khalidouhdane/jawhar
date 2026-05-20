@@ -46,6 +46,18 @@
   z-index: 2;
 }
 
+/* Prevent layout flash before hydration/mount */
+.stage.notMounted .flowCard,
+.stage.notMounted .diamond,
+.stage.notMounted .beams {
+  opacity: 0 !important;
+}
+
+.mobileVisual.notMounted .flowCard,
+.mobileVisual.notMounted .mobileDiamond {
+  opacity: 0 !important;
+}
+
 /* Specific node coordinates directly from Figma wireframe layout (relative to 1440x450 stage) */
 .nodeL0 { left: 91px; top: 57px; }
 .nodeL1 { left: 214px; top: 176px; }
@@ -130,8 +142,8 @@
 }
 
 .flowCard.active {
-  opacity: 1 !important;
-  filter: brightness(1) !important;
+  opacity: 1;
+  filter: brightness(1);
   transform: scale(1.02);
 }
 
