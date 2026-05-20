@@ -55,7 +55,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
       backgroundColor: theme.scaffoldBackground,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: const BoxConstraints(maxWidth: 900),
           child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

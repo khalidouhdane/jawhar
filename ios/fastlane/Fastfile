@@ -25,7 +25,7 @@ platform :ios do
       api_key: api_key,
       development: false,
       force: false,
-      keychain_path: ENV["FL_CREATE_KEYCHAIN_PATH"],
+      keychain_path: lane_context[SharedValues::KEYCHAIN_PATH],
       keychain_password: "temporary_password"
     )
 

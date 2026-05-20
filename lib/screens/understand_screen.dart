@@ -95,146 +95,151 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // ── Header ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  top: 20,
-                  bottom: 16,
-                ),
-                child: AppHeader(
-                  title: l10n.navUnderstand,
-                  subtitle: l10n.undExploreDeeper,
-                ),
-              ),
-            ),
-
-            // ── Contextual Header Card ──
-            if (showContextCard)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                  child: const TodayContextCard(),
-                ),
-              ),
-
-            // ── Stories Carousel ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: TopicCarousel(
-                  sectionTitle: l10n.undStories,
-                  topics: prophetStories,
-                ),
-              ),
-            ),
-
-            // ── Themes Carousel ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: TopicCarousel(
-                  sectionTitle: l10n.undThemes,
-                  topics: quranThemes,
-                ),
-              ),
-            ),
-
-            // ── Search Bar ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(theme.radiusXl),
-                    border: Border.all(color: theme.dividerColor, width: 1),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 14,
-                      color: theme.primaryText,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                // ── Header ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      top: 20,
+                      bottom: 16,
                     ),
-                    decoration: InputDecoration(
-                      hintText: l10n.undSearchSurahs,
-                      hintStyle: TextStyle(
+                    child: AppHeader(
+                      title: l10n.navUnderstand,
+                      subtitle: l10n.undExploreDeeper,
+                    ),
+                  ),
+                ),
+
+                // ── Contextual Header Card ──
+                if (showContextCard)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: const TodayContextCard(),
+                    ),
+                  ),
+
+                // ── Stories Carousel ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: TopicCarousel(
+                      sectionTitle: l10n.undStories,
+                      topics: prophetStories,
+                    ),
+                  ),
+                ),
+
+                // ── Themes Carousel ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: TopicCarousel(
+                      sectionTitle: l10n.undThemes,
+                      topics: quranThemes,
+                    ),
+                  ),
+                ),
+
+                // ── Search Bar ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(theme.radiusXl),
+                        border: Border.all(color: theme.dividerColor, width: 1),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 14,
+                          color: theme.primaryText,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: l10n.undSearchSurahs,
+                          hintStyle: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 14,
+                            color: theme.mutedText,
+                          ),
+                          prefixIcon: Icon(
+                            LucideIcons.search,
+                            size: 16,
+                            color: theme.mutedText,
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? GestureDetector(
+                                  onTap: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                    _searchFocusNode.unfocus();
+                                  },
+                                  child: Icon(
+                                    LucideIcons.x,
+                                    size: 16,
+                                    color: theme.mutedText,
+                                  ),
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ── Section Label ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                    child: Text(
+                      _searchQuery.isEmpty
+                          ? l10n.undAllSurahs
+                          : '${filtered.length} ${l10n.undResults}',
+                      style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 14,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                         color: theme.mutedText,
-                      ),
-                      prefixIcon: Icon(
-                        LucideIcons.search,
-                        size: 16,
-                        color: theme.mutedText,
-                      ),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? GestureDetector(
-                              onTap: () {
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                                _searchFocusNode.unfocus();
-                              },
-                              child: Icon(
-                                LucideIcons.x,
-                                size: 16,
-                                color: theme.mutedText,
-                              ),
-                            )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            // ── Section Label ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                child: Text(
-                  _searchQuery.isEmpty
-                      ? l10n.undAllSurahs
-                      : '${filtered.length} ${l10n.undResults}',
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: theme.mutedText,
+                // ── Surah List ──
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final surah = filtered[index];
+                      return _SurahTile(
+                        surah: surah,
+                        theme: theme,
+                        onTap: () => _openSurahDetail(surah),
+                      );
+                    }, childCount: filtered.length),
                   ),
                 ),
-              ),
+              ],
             ),
-
-            // ── Surah List ──
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final surah = filtered[index];
-                  return _SurahTile(
-                    surah: surah,
-                    theme: theme,
-                    onTap: () => _openSurahDetail(surah),
-                  );
-                }, childCount: filtered.length),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

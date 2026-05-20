@@ -312,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: theme.scaffoldBackground,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: const BoxConstraints(maxWidth: 900),
           child: Consumer<HifzProfileProvider>(
             builder: (context, profileProvider, _) {
               if (profileProvider.isLoading) {

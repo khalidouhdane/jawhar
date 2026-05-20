@@ -53,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: theme.scaffoldBackground,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: const BoxConstraints(maxWidth: 900),
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
