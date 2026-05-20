@@ -40,8 +40,7 @@ export default function ClosingSection() {
             The app disappears. The Quran appears.
           </h2>
           <p className={`body-large ${styles.subtitle}`}>
-            Jawhar is free, private, and built for one purpose: to help you
-            carry every verse with its meaning.
+            One companion for the entire journey — from your first page to your last.
           </p>
 
           <div className={styles.formWrap}>

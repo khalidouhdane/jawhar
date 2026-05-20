@@ -9,17 +9,17 @@ const steps = [
   {
     label: "Step 01 / Core",
     title: "Read & Listen",
-    desc: "A durable memorization starts with consistent sight reading. Jawhar provides a beautiful, distraction-free Madani layout with synchronized audio recitation and customizable daily page goals (Werd) to keep you grounded in the text.",
+    desc: "Every journey starts with the page. A clean Mushaf, synchronized audio, and a daily page goal keep you grounded in the text.",
   },
   {
     label: "Step 02 / Ring 1",
     title: "Understand with Depth",
-    desc: "Memorization without understanding is incomplete. Jawhar anchors every verse with contextual translations, tabbed brief and detailed Tafsir, and historical Reasons of Revelation (Asbab al-Nuzul) to make the text familiar and meaningful.",
+    desc: "Understanding is what turns repetition into memory. Translations, tafsir, and reasons of revelation give every verse its weight.",
   },
   {
     label: "Step 03 / Ring 2",
     title: "Memorize & Master",
-    desc: "Through adaptive daily plans (Sabaq, Sabqi, and Manzil) and automated spaced repetition flashcards, Jawhar guides you from initial memorization to permanent recall. Not just memorized—internalized.",
+    desc: "Adaptive daily plans decide what to learn and what to review. Spaced repetition handles the rest. Not just memorized — internalized.",
   },
 ];
 
@@ -73,7 +73,7 @@ export default function StrategySection() {
               <p className="mono-label">Pillars of Hifz</p>
               <h2 className={styles.sectionTitle}>The Strategy Behind It</h2>
               <p className={styles.sectionDesc}>
-                Jawhar is built as a depth-first Quran memorization companion. Every user begins at the core and progresses naturally from daily reading to deep understanding and permanent internalization.
+                Three layers. One path. Start with reading, add understanding, build toward permanent memory.
               </p>
             </div>
           </ScrollReveal>

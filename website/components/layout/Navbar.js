@@ -34,7 +34,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className={styles.links}>
-          <Link href="/#problem" className={styles.link}>Struggle</Link>
+          <Link href="/#problem" className={styles.link}>The Problem</Link>
           <Link href="/#read-section" className={styles.link}>Read & Listen</Link>
           <Link href="/#understand-section" className={styles.link}>Understand</Link>
           <Link href="/#memorize-section" className={styles.link}>Memorize</Link>
@@ -63,7 +63,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className={styles.mobileMenu}>
           <Link href="/#problem" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
-            Struggle
+            The Problem
           </Link>
           <Link href="/#read-section" className={styles.mobileLink} onClick={() => setMobileOpen(false)}>
             Read & Listen

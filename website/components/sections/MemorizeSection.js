@@ -101,7 +101,7 @@ export default function MemorizeSection() {
         <div className={styles.header}>
           <h2 className={styles.sectionTitle}>Memorize it, forever.</h2>
           <p className={styles.sectionDesc}>
-            Jawhar turns understanding into a daily rhythm: what to learn, what to review, and how to return to older pages before they fade.
+            A daily rhythm: what to learn, what to review, and how to return to older pages before they fade.
           </p>
         </div>
 
