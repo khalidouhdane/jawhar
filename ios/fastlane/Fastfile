@@ -21,11 +21,20 @@ platform :ios do
     )
 
     # 3. Download/Generate the signing certificates
+    keychain_path = lane_context[SharedValues::KEYCHAIN_PATH]
+    if keychain_path && !File.exist?(keychain_path)
+      if File.exist?("#{keychain_path}-db")
+        keychain_path = "#{keychain_path}-db"
+      elsif File.exist?("#{keychain_path}.keychain-db")
+        keychain_path = "#{keychain_path}.keychain-db"
+      end
+    end
+
     get_certificates(
       api_key: api_key,
       development: false,
       force: false,
-      keychain_path: lane_context[SharedValues::KEYCHAIN_PATH],
+      keychain_path: keychain_path,
       keychain_password: "temporary_password"
     )
 
