@@ -13,23 +13,14 @@ const footer = read("components/layout/Footer.js");
 const navbar = read("components/layout/Navbar.js");
 const download = read("app/download/page.js");
 const downloadLayout = read("app/download/layout.js");
-const hackathon = read("app/hackathon/page.js");
 
-assert(
-  existsSync(new URL("../components/sections/ClosingSection.js", import.meta.url)),
-  "ClosingSection.js should exist"
-);
-assert(
-  scrollStory.includes("ClosingSection") && scrollStory.includes("<ClosingSection />"),
-  "Homepage should render the closing section"
-);
 assert(
   scrollStory.includes("ProblemSection") && scrollStory.includes("<ProblemSection />"),
   "Homepage should render the problem section before the feature tour"
 );
 assert(
-  hero.includes('href="#closing"'),
-  "Hero CTA should point to the closing section"
+  hero.includes('href="/download"'),
+  "Hero CTA should point to the download page"
 );
 assert(
   hero.includes("Verse in. Meaning out.") &&
@@ -85,10 +76,4 @@ assert(
     existsSync(new URL("../app/terms/page.js", import.meta.url)),
   "Privacy and terms pages should exist"
 );
-assert(
-  !hackathon.includes("revolutionary") &&
-    !hackathon.includes("state-of-the-art") &&
-    !hackathon.includes("Demo Video Placeholder") &&
-    hackathon.includes("Use the homepage for the hackathon review"),
-  "Hackathon page should use calmer, concrete wording and point reviewers to the homepage"
-);
+
