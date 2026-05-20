@@ -23,14 +23,13 @@ assert(
   "Hero CTA should point to the download page"
 );
 assert(
-  hero.includes("Verse in. Meaning out.") &&
-    hero.includes("Meaning becomes the anchor. The plan follows."),
-  "Hero should frame the animation as a meaning lens, not a generic feature cloud"
+  hero.includes("The first Quran memorization companion built on understanding."),
+  "Hero subtitle should carry the meaning-first thesis"
 );
 assert(
-  !hero.includes("The first Quran companion built on understanding") &&
+  !hero.includes("Verse in. Meaning out.") &&
     !hero.includes("Free forever"),
-  "Hero copy should stay precise and avoid broad claims that are handled elsewhere"
+  "Hero copy should stay precise and avoid gimmicky taglines or broad claims"
 );
 assert(
   footer.includes("Closed source for now") &&
