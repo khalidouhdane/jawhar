@@ -72,10 +72,13 @@ platform :ios do
       filename: "profile.mobileprovision"
     )
 
-    # 5. Read the provisioning profile to extract Team ID and profile name
-    profile_data = read_provisioning_profile(path: "profile.mobileprovision")
-    team_id = profile_data["TeamIdentifier"].first
-    profile_name = profile_data["Name"]
+    # 5. Extract Team ID and profile name from the downloaded provisioning profile
+    profile_name = lane_context[SharedValues::SIGH_NAME]
+    # Decode the provisioning profile plist to extract TeamIdentifier
+    sh("security cms -D -i profile.mobileprovision > /tmp/profile_decoded.plist")
+    require 'plist'
+    profile_plist = Plist.parse_xml("/tmp/profile_decoded.plist")
+    team_id = profile_plist["TeamIdentifier"].first
     UI.message("Successfully read provisioning profile: #{profile_name} (Team ID: #{team_id})")
 
     # 6. Disable automatic signing and update project settings to use our profile
