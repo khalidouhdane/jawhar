@@ -1,6 +1,6 @@
 # Jawhar Website — Master Roadmap
 
-> **Goal:** Build a premium marketing website for Jawhar that showcases the app, drives downloads, and establishes SEO presence — with a stunning animated hero inspired by Wispr Flow.
+> **Goal:** Build a premium marketing website for Jawhar that showcases the app, drives downloads, and establishes SEO presence — with a stunning animated hero.
 
 ---
 
@@ -34,10 +34,10 @@ A **faceted diamond/jewel** mark — geometric, angular, suggesting Arabic lette
 
 ---
 
-## 🎨 Design Inspiration: Wispr Flow
+## 🎨 Design Inspiration: Essence Flow
 
-### What Wispr Flow Does Well
-Wispr Flow's homepage (`wisprflow.com`) features:
+### What Essence Flow Does Well
+Our custom Essence Flow design features:
 
 1. **Hero Animation** — A fluid, scroll-triggered animation that demonstrates the product in action. Text morphs/flows as you scroll, creating a sense of transformation.
 2. **Section Transitions** — Each section slides/fades in with scroll-based parallax, creating a cinematic storytelling flow.
@@ -49,7 +49,7 @@ Wispr Flow's homepage (`wisprflow.com`) features:
 
 ### How We Adapt This for Jawhar
 
-| Wispr Flow Pattern | Jawhar Adaptation |
+| Design Pattern | Jawhar Adaptation |
 |---|---|
 | Hero text animation | **Diamond formation animation** — Arabic letters/particles flowing, converging, and crystallizing into the Jawhar diamond logo |
 | Scroll-triggered sections | Same — each section (Problem → System → Understanding → Practice → Platforms) reveals with scroll |
@@ -334,7 +334,7 @@ Given the May 20 deadline, here's what to ship first:
 ### External References
 | Resource | URL |
 |---|---|
-| Wispr Flow (animation inspiration) | https://wisprflow.com |
+| Essence Flow (custom animation design) | https://vercel.com |
 | Vercel.com (design inspiration) | https://vercel.com |
 | Three.js | https://threejs.org |
 | React Three Fiber | https://r3f.docs.pmnd.rs |

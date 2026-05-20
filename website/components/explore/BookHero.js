@@ -8,7 +8,7 @@ export default function BookHero() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className={styles.wisprContainer} style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+    <div className={styles.essenceContainer} style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       
       <div style={{ textAlign: 'center', marginBottom: '4rem', zIndex: 10 }}>
         <h2 style={{ fontSize: '3rem', color: 'var(--color-white)', letterSpacing: '-0.04em' }}>The Opening</h2>

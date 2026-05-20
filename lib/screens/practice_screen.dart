@@ -53,20 +53,23 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.only(top: 4, bottom: 16),
-                child: AppHeader(
-                  title: AppLocalizations.of(context)!.pracPracticeTab,
-                  subtitle: AppLocalizations.of(context)!.pracStrengthen,
-                ),
-              ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, bottom: 16),
+                    child: AppHeader(
+                      title: AppLocalizations.of(context)!.pracPracticeTab,
+                      subtitle: AppLocalizations.of(context)!.pracStrengthen,
+                    ),
+                  ),
               const SizedBox(height: 24),
 
               if (profile.hasActiveProfile) ...[
@@ -114,7 +117,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   // ═══════════════════════════════════════

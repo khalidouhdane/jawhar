@@ -35,8 +35,9 @@ const platforms = [
   {
     icon: Smartphone,
     name: "iOS",
-    action: "Coming soon",
-    available: false,
+    action: "Join TestFlight",
+    href: "https://testflight.apple.com/join/placeholder",
+    available: true,
   },
   {
     icon: Globe,
@@ -143,27 +144,28 @@ export default function DownloadPage() {
 
       <div className="section-divider" />
 
-      {/* Private development card */}
+      {/* Release Channel card */}
       <section className="section">
         <div className="container" style={{ maxWidth: 600, textAlign: "center" }}>
           <ScrollReveal>
             <div className={`card ${styles.openSource}`}>
               <LockKeyhole size={24} strokeWidth={1.5} />
               <h3 className="heading-card" style={{ marginTop: 12 }}>
-                Private Development
+                Release Channel
               </h3>
               <p style={{ color: "var(--text-secondary)", fontSize: 15, marginTop: 8 }}>
-                Jawhar is closed source for now while the product is being shaped
-                for early learners, teachers, and hackathon review.
+                Every time we commit to main, GitHub Actions automatically builds and releases updates to the downloads above, keeping the app synced.
               </p>
-              <Link
-                href="/#waitlist"
+              <a
+                href="https://github.com/khalidouhdane/jawhar/releases"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn btn-ghost"
                 style={{ marginTop: 16 }}
               >
-                Join the Waitlist
+                View Changelog
                 <ArrowRight size={14} />
-              </Link>
+              </a>
             </div>
           </ScrollReveal>
         </div>

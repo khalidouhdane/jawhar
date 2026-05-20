@@ -22,7 +22,7 @@ const painPoints = [
 
 export default function ProblemSection() {
   return (
-    <section className="section section-alt" id="problem">
+    <section className="section" id="problem">
       <div className="container">
         <ScrollReveal>
           <p className="mono-label" style={{ textAlign: "center", marginBottom: 16 }}>

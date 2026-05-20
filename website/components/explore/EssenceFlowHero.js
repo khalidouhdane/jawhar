@@ -8,7 +8,7 @@ import {
   Play, Check, BookOpen, Timer, 
   Sparkles, Volume2, Calendar 
 } from 'lucide-react';
-import styles from './WisprFlow.module.css';
+import styles from './EssenceFlow.module.css';
 import DiamondSprite from './DiamondSprite';
 
 // ──────────────────────────────────────────────
@@ -35,12 +35,30 @@ const SPOTLIGHT_PAIRS = [
 // ──────────────────────────────────────────────
 // Main Component
 // ──────────────────────────────────────────────
-export default function WisprFlowHero() {
+export default function EssenceFlowHero() {
   const containerRef = useRef();
+  const stageRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [scale, setScale] = useState(1);
   const autoRotateTimerRef = useRef(null);
   const manualTimeoutRef = useRef(null);
+
+  // Resize listener to scale the 1440x450 stage container dynamically
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 1440) {
+        const newScale = Math.max(0.4, width / 1440);
+        setScale(newScale);
+      } else {
+        setScale(1);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Auto rotation loop
   useEffect(() => {
@@ -165,159 +183,136 @@ export default function WisprFlowHero() {
 
   return (
     <section className={styles.section} ref={containerRef}>
-      <div className={styles.stage}>
+      <div className={styles.stageWrapper} style={{ height: `${450 * scale}px` }}>
+        <div 
+          className={styles.stage} 
+          ref={stageRef}
+          style={{ 
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            width: '1440px',
+            height: '450px',
+            position: 'relative'
+          }}
+        >
 
-        {/* Ambient glow */}
-        <div className={styles.glow} style={{ 
-          background: `radial-gradient(circle, ${activeColor}15 0%, transparent 70%)`,
-          transition: 'background 0.8s ease'
-        }} />
+          {/* Ambient glow */}
+          <div className={styles.glow} style={{ 
+            background: `radial-gradient(circle, ${activeColor}15 0%, transparent 70%)`,
+            transition: 'background 0.8s ease'
+          }} />
 
-        {/* ── Background SVG Beams with glow pulses ── */}
-        <svg className={styles.beams} viewBox="0 0 1000 600" fill="none" preserveAspectRatio="none">
-          {/* Static gray line tracks underneath */}
-          <path d="M 210 90 Q 350 90 500 300" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M 160 270 Q 330 290 500 300" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M 210 450 Q 350 450 500 300" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.3" />
-          
-          <path d="M 500 300 Q 650 90 790 90" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M 500 300 Q 670 290 840 270" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M 500 300 Q 650 450 790 450" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.3" />
+          {/* ── Background SVG Beams with glow pulses ── */}
+          <svg className={styles.beams} viewBox="0 0 1440 450" fill="none">
+            {/* Static gray line tracks underneath */}
+            <path d="M 376 118 L 550 118 L 550 227 L 720 227" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.2" />
+            <path d="M 499 227 L 720 227" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.2" />
+            <path d="M 346 345 L 550 345 L 550 227 L 720 227" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.2" />
+            
+            <path d="M 720 227 L 890 227 L 890 118 L 1072 118" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.2" />
+            <path d="M 720 227 L 930 227" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.2" />
+            <path d="M 720 227 L 890 227 L 890 345 L 1115 345" stroke="var(--card-border)" strokeWidth="1" fill="none" opacity="0.2" />
 
-          {/* Left-to-Center active building drawing lines */}
-          <motion.path
-            d="M 210 90 Q 350 90 500 300"
-            stroke="#0a72ef"
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: activeIndex === 0 ? 1 : 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-          <motion.path
-            d="M 160 270 Q 330 290 500 300"
-            stroke="#de1d8d"
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: activeIndex === 1 ? 1 : 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-          <motion.path
-            d="M 210 450 Q 350 450 500 300"
-            stroke="#ff5b4f"
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: activeIndex === 2 ? 1 : 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-
-          {/* Left-to-Center moving light pulses */}
-          {activeIndex === 0 && (
+            {/* Left-to-Center active building drawing lines */}
             <motion.path
-              d="M 210 90 Q 350 90 500 300"
-              stroke="#0a72ef"
+              d={
+                activeIndex === 0 ? "M 376 118 L 550 118 L 550 227 L 720 227" :
+                activeIndex === 1 ? "M 499 227 L 720 227" :
+                "M 346 345 L 550 345 L 550 227 L 720 227"
+              }
+              stroke={activeColor}
+              strokeWidth="2"
+              fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              key={`l-line-${activeIndex}`}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+            />
+
+            {/* Left-to-Center moving light pulses */}
+            <motion.path
+              d={
+                activeIndex === 0 ? "M 376 118 L 550 118 L 550 227 L 720 227" :
+                activeIndex === 1 ? "M 499 227 L 720 227" :
+                "M 346 345 L 550 345 L 550 227 L 720 227"
+              }
+              stroke={activeColor}
               strokeWidth="4"
               fill="none"
               strokeDasharray="20 100"
-              animate={{ strokeDashoffset: [200, 0] }}
+              animate={{ strokeDashoffset: [-120, 0] }}
+              key={`l-pulse-${activeIndex}`}
               transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
               filter="blur(1px)"
             />
-          )}
-          {activeIndex === 1 && (
+
+            {/* Center-to-Right active lines drawing (all three animate when left is done, with a delay of 0.8s) */}
             <motion.path
-              d="M 160 270 Q 330 290 500 300"
-              stroke="#de1d8d"
+              d="M 720 227 L 890 227 L 890 118 L 1072 118"
+              stroke={activeColor}
+              strokeWidth="2"
+              fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              key={`r-line-0-${activeIndex}`}
+              transition={{ duration: 0.8, delay: 0.8, ease: "easeInOut" }}
+            />
+            <motion.path
+              d="M 720 227 L 930 227"
+              stroke={activeColor}
+              strokeWidth="2"
+              fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              key={`r-line-1-${activeIndex}`}
+              transition={{ duration: 0.8, delay: 0.8, ease: "easeInOut" }}
+            />
+            <motion.path
+              d="M 720 227 L 890 227 L 890 345 L 1115 345"
+              stroke={activeColor}
+              strokeWidth="2"
+              fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              key={`r-line-2-${activeIndex}`}
+              transition={{ duration: 0.8, delay: 0.8, ease: "easeInOut" }}
+            />
+
+            {/* Center-to-Right moving light pulses (active stage only) */}
+            <motion.path
+              d="M 720 227 L 890 227 L 890 118 L 1072 118"
+              stroke={activeColor}
               strokeWidth="4"
               fill="none"
               strokeDasharray="20 100"
-              animate={{ strokeDashoffset: [200, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              animate={{ strokeDashoffset: [-120, 0] }}
+              key={`r-pulse-0-${activeIndex}`}
+              transition={{ repeat: Infinity, duration: 1.5, delay: 1.0, ease: "linear" }}
               filter="blur(1px)"
             />
-          )}
-          {activeIndex === 2 && (
             <motion.path
-              d="M 210 450 Q 350 450 500 300"
-              stroke="#ff5b4f"
+              d="M 720 227 L 930 227"
+              stroke={activeColor}
               strokeWidth="4"
               fill="none"
               strokeDasharray="20 100"
-              animate={{ strokeDashoffset: [200, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              animate={{ strokeDashoffset: [-120, 0] }}
+              key={`r-pulse-1-${activeIndex}`}
+              transition={{ repeat: Infinity, duration: 1.5, delay: 1.0, ease: "linear" }}
               filter="blur(1px)"
             />
-          )}
-
-          {/* Center-to-Right active lines drawing */}
-          <motion.path
-            d="M 500 300 Q 650 90 790 90"
-            stroke={activeColor}
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            key={`r-line-0-${activeIndex}`}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeInOut" }}
-          />
-          <motion.path
-            d="M 500 300 Q 670 290 840 270"
-            stroke={activeColor}
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            key={`r-line-1-${activeIndex}`}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeInOut" }}
-          />
-          <motion.path
-            d="M 500 300 Q 650 450 790 450"
-            stroke={activeColor}
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            key={`r-line-2-${activeIndex}`}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeInOut" }}
-          />
-
-          {/* Center-to-Right moving light pulses (active stage only) */}
-          <motion.path
-            d="M 500 300 Q 650 90 790 90"
-            stroke={activeColor}
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray="20 100"
-            animate={{ strokeDashoffset: [200, 0] }}
-            key={`r-pulse-0-${activeIndex}`}
-            transition={{ repeat: Infinity, duration: 1.5, delay: 0.8, ease: "linear" }}
-            filter="blur(1px)"
-          />
-          <motion.path
-            d="M 500 300 Q 670 290 840 270"
-            stroke={activeColor}
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray="20 100"
-            animate={{ strokeDashoffset: [200, 0] }}
-            key={`r-pulse-1-${activeIndex}`}
-            transition={{ repeat: Infinity, duration: 1.5, delay: 0.8, ease: "linear" }}
-            filter="blur(1px)"
-          />
-          <motion.path
-            d="M 500 300 Q 650 450 790 450"
-            stroke={activeColor}
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray="20 100"
-            animate={{ strokeDashoffset: [200, 0] }}
-            key={`r-pulse-2-${activeIndex}`}
-            transition={{ repeat: Infinity, duration: 1.5, delay: 0.8, ease: "linear" }}
-            filter="blur(1px)"
-          />
-        </svg>
+            <motion.path
+              d="M 720 227 L 890 227 L 890 345 L 1115 345"
+              stroke={activeColor}
+              strokeWidth="4"
+              fill="none"
+              strokeDasharray="20 100"
+              animate={{ strokeDashoffset: [-120, 0] }}
+              key={`r-pulse-2-${activeIndex}`}
+              transition={{ repeat: Infinity, duration: 1.5, delay: 1.0, ease: "linear" }}
+              filter="blur(1px)"
+            />
+          </svg>
 
         {/* ── Left: Verse Constellation (Verse Cards) ── */}
         <div className={styles.constellationLeft}>
@@ -368,7 +363,7 @@ export default function WisprFlowHero() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, delay: 0.8 }}
+              transition={{ duration: 0.4, delay: 1.4 }}
               className={`${styles.flowCard} ${styles.nodeR0} ${styles.active}`}
             >
               {activeIndex === 0 && (
@@ -407,7 +402,7 @@ export default function WisprFlowHero() {
                     </div>
                   </div>
                   <div className={styles.cardFooter}>
-                    Word-by-word structural definitions map key roots.
+                    Word-by-word translation mapping root meanings.
                   </div>
                 </>
               )}
@@ -449,7 +444,7 @@ export default function WisprFlowHero() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, delay: 0.95 }}
+              transition={{ duration: 0.4, delay: 1.1 }}
               className={`${styles.flowCard} ${styles.nodeR1} ${styles.active}`}
             >
               {activeIndex === 0 && (
@@ -478,7 +473,7 @@ export default function WisprFlowHero() {
                 <div className={styles.tafsirContent}>
                   <span className={styles.tafsirLabel}>Brief Tafsir</span>
                   <p className={styles.tafsirText}>
-                    Laylat al-Qadr (Decree) is better than a thousand months. In it, the Quran began its descent to the earth.
+                    Laylat al-Qadr (Decree) is better than a thousand months. The Quran began its descent here.
                   </p>
                 </div>
               )}
@@ -518,7 +513,7 @@ export default function WisprFlowHero() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, delay: 1.1 }}
+              transition={{ duration: 0.4, delay: 1.5 }}
               className={`${styles.flowCard} ${styles.nodeR2} ${styles.active}`}
             >
               {activeIndex === 0 && (
@@ -527,7 +522,7 @@ export default function WisprFlowHero() {
                     <span>Audio Sync</span>
                     <span className={styles.fcBadge}>Reciter</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', width: '100%', margin: 'auto 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', width: '100%', flex: 1, marginTop: '4px' }}>
                     <div className={styles.trackInfo}>
                       <span style={{ fontSize: '11px', fontWeight: '500' }}>Verse-Synced Recitations</span>
                       <span style={{ fontSize: '9px', color: 'var(--text-tertiary)' }}>No-gap transitions</span>
@@ -539,7 +534,7 @@ export default function WisprFlowHero() {
                     </div>
                   </div>
                   <div className={styles.cardFooter}>
-                    High-fidelity background play using Hafs and Warsh segments.
+                    High-fidelity audio playback synced at the verse level.
                   </div>
                 </>
               )}
@@ -547,7 +542,7 @@ export default function WisprFlowHero() {
                 <div className={styles.tafsirContent}>
                   <span className={styles.tafsirLabel}>Occasion of Revelation</span>
                   <p className={styles.tafsirText}>
-                    Announcing laylat al-qadr to highlight the immense value of this night, exceeding entire lifetimes in blessing.
+                    Revealed to honor laylat al-qadr and highlight its immense blessing exceeding a lifetime.
                   </p>
                 </div>
               )}
@@ -582,13 +577,12 @@ export default function WisprFlowHero() {
           </AnimatePresence>
 
         </div>
-
       </div>
+    </div>
 
       {/* ── Hero copy ── */}
       <div className={styles.copy}>
         <p className={styles.wordmark}>jawhar</p>
-        <p className={styles.lensLine}>Memorize with Meaning.</p>
         <h1 className={styles.headline}>
           {"Memorize with Meaning.".split('').map((char, i) => (
             <span
@@ -605,6 +599,7 @@ export default function WisprFlowHero() {
           ))}
         </h1>
         <p className={styles.subtitle}>
+          Verse in. Meaning out.<br/>
           Meaning becomes the anchor. The plan follows.<br/>
           Read, understand, and review with one quiet system.
         </p>

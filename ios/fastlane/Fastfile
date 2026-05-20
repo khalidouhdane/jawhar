@@ -1,0 +1,49 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight using App Store Connect API Key"
+  lane :beta do
+    # 1. Authenticate with App Store Connect API
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_CONTENT"],
+      is_key_content_base64: true
+    )
+
+    # 2. Create a temporary keychain on the runner
+    create_keychain(
+      name: "temporary_keychain",
+      password: "temporary_password",
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600
+    )
+
+    # 3. Download/Generate the signing certificates
+    get_certificates(
+      api_key: api_key,
+      development: false,
+      force: false,
+      keychain_name: "temporary_keychain",
+      keychain_password: "temporary_password"
+    )
+
+    # 4. Download/Generate the provisioning profiles
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.memorize.quran.ai",
+      filename: "profile.mobileprovision"
+    )
+
+    # 5. Build the signed IPA using Flutter
+    sh("cd ../.. && flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --dart-define-from-file=.env")
+
+    # 6. Upload to App Store Connect / TestFlight
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: "../../build/ios/ipa/*.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+end

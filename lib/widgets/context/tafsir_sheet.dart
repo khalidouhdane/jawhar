@@ -26,6 +26,7 @@ void showTafsirSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
+    constraints: const BoxConstraints(maxWidth: 680),
     builder: (_) => _TafsirSheetContent(
       verseKey: verseKey,
       surahName: surahName,

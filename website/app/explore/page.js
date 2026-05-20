@@ -5,13 +5,13 @@ import styles from './explore.module.css';
 import dynamic from 'next/dynamic';
 
 // Dynamically import components to avoid SSR issues with Three.js/GSAP
-const WisprFlowHero = dynamic(() => import('../../components/explore/WisprFlowHero'), { ssr: false });
+const EssenceFlowHero = dynamic(() => import('../../components/explore/EssenceFlowHero'), { ssr: false });
 const BookHero = dynamic(() => import('../../components/explore/BookHero'), { ssr: false });
 const ThreeDiamondHero = dynamic(() => import('../../components/explore/ThreeDiamondHero'), { ssr: false });
 const GsapDiamondHero = dynamic(() => import('../../components/explore/GsapDiamondHero'), { ssr: false });
 
 const EXPLORATIONS = [
-  { id: 'wispr', label: 'Wispr Scroll Flow', component: WisprFlowHero },
+  { id: 'essence', label: 'Essence Scroll Flow', component: EssenceFlowHero },
   { id: 'threejs', label: '3D Diamond (Three.js)', component: ThreeDiamondHero },
   { id: 'book', label: 'SVG Book Pages', component: BookHero },
   { id: 'gsap', label: 'GSAP Diamond', component: GsapDiamondHero },

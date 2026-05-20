@@ -160,6 +160,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
       context: context,
       isScrollControlled: true, // Allow sheets to be taller if needed
       backgroundColor: Colors.transparent, // Required for custom sheet shapes
+      constraints: const BoxConstraints(maxWidth: 680),
       builder: (sheetContext) {
         return ExcludeSemantics(
           child: Padding(
@@ -402,65 +403,71 @@ class _ReadingScreenState extends State<ReadingScreen> {
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutCubic,
                 offset: isFullScreen ? const Offset(0, -1.2) : Offset.zero,
-                child: TopNavBar(
-                  readMode: readMode,
-                  onReadModeChanged: (mode) => setState(() => readMode = mode),
-                  onThemeTapped: _openThemePicker,
-                  onNavMenuTapped: _openNavMenu,
-                  isBookmarked: context
-                      .watch<BookmarkProvider>()
-                      .isPageBookmarked(
-                        context.watch<QuranReadingProvider>().activePage,
-                      ),
-                  onBookmarkTapped: () {
-                    final rp = context.read<QuranReadingProvider>();
-                    final l = AppLocalizations.of(context);
-                    String sName = '';
-                    if (rp.verses.isNotEmpty && rp.chapters.isNotEmpty) {
-                      final chId =
-                          int.tryParse(
-                            rp.verses.first.verseKey.split(':')[0],
-                          ) ??
-                          1;
-                      try {
-                        final ch = rp.chapters.firstWhere((c) => c.id == chId);
-                        sName = l!.localeName == 'ar'
-                            ? ch.nameArabic
-                            : ch.nameSimple;
-                      } catch (_) {
-                        sName = 'Surah $chId';
-                      }
-                    }
-                    final added = context
-                        .read<BookmarkProvider>()
-                        .togglePageBookmark(
-                          pageNumber: rp.activePage,
-                          surahName: sName,
-                        );
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          added
-                              ? '${l!.homePage} ${rp.activePage} bookmarked'
-                              : 'Bookmark removed',
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 13,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: TopNavBar(
+                      readMode: readMode,
+                      onReadModeChanged: (mode) => setState(() => readMode = mode),
+                      onThemeTapped: _openThemePicker,
+                      onNavMenuTapped: _openNavMenu,
+                      isBookmarked: context
+                          .watch<BookmarkProvider>()
+                          .isPageBookmarked(
+                            context.watch<QuranReadingProvider>().activePage,
                           ),
-                        ),
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(theme.radiusMd),
-                        ),
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                    );
-                  },
+                      onBookmarkTapped: () {
+                        final rp = context.read<QuranReadingProvider>();
+                        final l = AppLocalizations.of(context);
+                        String sName = '';
+                        if (rp.verses.isNotEmpty && rp.chapters.isNotEmpty) {
+                          final chId =
+                              int.tryParse(
+                                rp.verses.first.verseKey.split(':')[0],
+                              ) ??
+                              1;
+                          try {
+                            final ch = rp.chapters.firstWhere((c) => c.id == chId);
+                            sName = l!.localeName == 'ar'
+                                ? ch.nameArabic
+                                : ch.nameSimple;
+                          } catch (_) {
+                            sName = 'Surah $chId';
+                          }
+                        }
+                        final added = context
+                            .read<BookmarkProvider>()
+                            .togglePageBookmark(
+                              pageNumber: rp.activePage,
+                              surahName: sName,
+                            );
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              added
+                                  ? '${l!.homePage} ${rp.activePage} bookmarked'
+                                  : 'Bookmark removed',
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                              ),
+                            ),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(theme.radiusMd),
+                            ),
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -567,60 +574,66 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
                     offset: isFullScreen ? const Offset(0, 1.2) : Offset.zero,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AudioPlayerBridge(
-                          isExpanded: isAudioExpanded,
-                          isPlaying: audioProvider.isPlaying,
-                          isLoading: audioProvider.isLoading,
-                          currentPositionText: currentPosStr,
-                          totalDurationText: totalDurStr,
-                          progress: progress,
-                          isViewingPlayingPage: isViewingPlayingPage,
-                          playingTitle: playingVerseLabel,
-                          reciterId: audioProvider.reciterId,
-                          reciterName: audioProvider.reciterName,
-                          repeatMode: audioProvider.repeatMode,
-                          repeatCount: audioProvider.repeatCount,
-                          onJumpToPlayingVerse: targetPage != null
-                              ? () => _goToPage(targetPage!)
-                              : null,
-                          onToggleExpand: () => setState(
-                            () => isAudioExpanded = !isAudioExpanded,
-                          ),
-                          onTogglePlay: () {
-                            if (audioProvider.activeVerseKey == null &&
-                                readingProvider.verses.isNotEmpty) {
-                              audioProvider.playVerseList(
-                                readingProvider.verses,
-                              );
-                            } else {
-                              audioProvider.togglePlay();
-                            }
-                          },
-                          onReciterMenuTapped: _openReciterMenu,
-                          onSettingsTapped: _openAudioSettings,
-                          onSkipNext: () => audioProvider.skipToNextVerse(),
-                          onSkipPrevious: () =>
-                              audioProvider.skipToPreviousVerse(),
-                          onJumpForward: () => audioProvider.seekForward(10),
-                          onJumpBackward: () => audioProvider.seekBackward(10),
-                          onRepeatToggle: () =>
-                              audioProvider.toggleRepeatMode(),
-                          onSeek: (val) => audioProvider.seekToFraction(val),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 680),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AudioPlayerBridge(
+                              isExpanded: isAudioExpanded,
+                              isPlaying: audioProvider.isPlaying,
+                              isLoading: audioProvider.isLoading,
+                              currentPositionText: currentPosStr,
+                              totalDurationText: totalDurStr,
+                              progress: progress,
+                              isViewingPlayingPage: isViewingPlayingPage,
+                              playingTitle: playingVerseLabel,
+                              reciterId: audioProvider.reciterId,
+                              reciterName: audioProvider.reciterName,
+                              repeatMode: audioProvider.repeatMode,
+                              repeatCount: audioProvider.repeatCount,
+                              onJumpToPlayingVerse: targetPage != null
+                                  ? () => _goToPage(targetPage!)
+                                  : null,
+                              onToggleExpand: () => setState(
+                                () => isAudioExpanded = !isAudioExpanded,
+                              ),
+                              onTogglePlay: () {
+                                if (audioProvider.activeVerseKey == null &&
+                                    readingProvider.verses.isNotEmpty) {
+                                  audioProvider.playVerseList(
+                                    readingProvider.verses,
+                                  );
+                                } else {
+                                  audioProvider.togglePlay();
+                                }
+                              },
+                              onReciterMenuTapped: _openReciterMenu,
+                              onSettingsTapped: _openAudioSettings,
+                              onSkipNext: () => audioProvider.skipToNextVerse(),
+                              onSkipPrevious: () =>
+                                  audioProvider.skipToPreviousVerse(),
+                              onJumpForward: () => audioProvider.seekForward(10),
+                              onJumpBackward: () => audioProvider.seekBackward(10),
+                              onRepeatToggle: () =>
+                                  audioProvider.toggleRepeatMode(),
+                              onSeek: (val) => audioProvider.seekToFraction(val),
+                            ),
+                            BottomDock(
+                              activePage: readingProvider.activePage,
+                              paginationArray: List.generate(
+                                604,
+                                (index) => index + 1,
+                              ),
+                              surahName: surahName,
+                              hizbName: hizbName,
+                              onPageSelected: _goToPage,
+                            ),
+                          ],
                         ),
-                        BottomDock(
-                          activePage: readingProvider.activePage,
-                          paginationArray: List.generate(
-                            604,
-                            (index) => index + 1,
-                          ),
-                          surahName: surahName,
-                          hizbName: hizbName,
-                          onPageSelected: _goToPage,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -728,101 +741,107 @@ class _ReadingScreenState extends State<ReadingScreen> {
 
                   return Positioned.fill(
                     child: IgnorePointer(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // ── Top Row (2 Infos with Gradient) ──
-                          Container(
-                            padding: EdgeInsets.only(
-                              left: 26,
-                              right: 26,
-                              top: MediaQuery.paddingOf(context).top > 0
-                                  ? 20 // Smart padding: clears device corners but stays in 'ears'
-                                  : 8,
-                              bottom: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  theme.canvasBackground,
-                                  theme.canvasBackground,
-                                  theme.canvasBackground.withValues(alpha: 0.0),
-                                ],
-                                stops: const [0.0, 0.5, 1.0],
-                              ),
-                            ),
-                            child: SafeArea(
-                              bottom: false,
-                              top: false,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _OverlayText(text: surahName),
-                                  _OverlayText(text: hizbName),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          // ── Bottom Row (Dynamic with Gradient) ──
-                          Container(
-                            padding: EdgeInsets.only(
-                              left: 26,
-                              right: 26,
-                              top: 16,
-                              bottom: MediaQuery.paddingOf(context).bottom > 0
-                                  ? 20 // Clears bottom swipe bar corners but stays low
-                                  : 18,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [
-                                  theme.canvasBackground,
-                                  theme.canvasBackground,
-                                  theme.canvasBackground.withValues(alpha: 0.0),
-                                ],
-                                stops: const [0.0, 0.5, 1.0],
-                              ),
-                            ),
-                            child: SafeArea(
-                              top: false,
-                              bottom: false,
-                              child: SizedBox(
-                                height: 20,
-                                width: double.infinity,
-                                child: Stack(
-                                  children: [
-                                    Align(
-                                      alignment: pageNumberAlignment,
-                                      child: _OverlayText(
-                                        text: '${readingProvider.activePage}',
-                                      ),
-                                    ),
-                                    if (hizbAlignment != null)
-                                      Align(
-                                        alignment: hizbAlignment,
-                                        child: _OverlayText(text: juzName),
-                                      ),
-                                    if (indicatorAlignment != null &&
-                                        effectiveShowBookIcon)
-                                      Align(
-                                        alignment: indicatorAlignment,
-                                        child: _BookSideIndicator(
-                                          isRightPage: isOddPage,
-                                          theme: theme,
-                                        ),
-                                      ),
-                                  ],
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 680),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // ── Top Row (2 Infos with Gradient) ──
+                              Container(
+                                padding: EdgeInsets.only(
+                                  left: 26,
+                                  right: 26,
+                                  top: MediaQuery.paddingOf(context).top > 0
+                                      ? 20 // Smart padding: clears device corners but stays in 'ears'
+                                      : 8,
+                                  bottom: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      theme.canvasBackground,
+                                      theme.canvasBackground,
+                                      theme.canvasBackground.withValues(alpha: 0.0),
+                                    ],
+                                    stops: const [0.0, 0.5, 1.0],
+                                  ),
+                                ),
+                                child: SafeArea(
+                                  bottom: false,
+                                  top: false,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _OverlayText(text: surahName),
+                                      _OverlayText(text: hizbName),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
+
+                              // ── Bottom Row (Dynamic with Gradient) ──
+                              Container(
+                                padding: EdgeInsets.only(
+                                  left: 26,
+                                  right: 26,
+                                  top: 16,
+                                  bottom: MediaQuery.paddingOf(context).bottom > 0
+                                      ? 20 // Clears bottom swipe bar corners but stays low
+                                      : 18,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      theme.canvasBackground,
+                                      theme.canvasBackground,
+                                      theme.canvasBackground.withValues(alpha: 0.0),
+                                    ],
+                                    stops: const [0.0, 0.5, 1.0],
+                                  ),
+                                ),
+                                child: SafeArea(
+                                  top: false,
+                                  bottom: false,
+                                  child: SizedBox(
+                                    height: 20,
+                                    width: double.infinity,
+                                    child: Stack(
+                                      children: [
+                                        Align(
+                                          alignment: pageNumberAlignment,
+                                          child: _OverlayText(
+                                            text: '${readingProvider.activePage}',
+                                          ),
+                                        ),
+                                        if (hizbAlignment != null)
+                                          Align(
+                                            alignment: hizbAlignment,
+                                            child: _OverlayText(text: juzName),
+                                          ),
+                                        if (indicatorAlignment != null &&
+                                            effectiveShowBookIcon)
+                                          Align(
+                                            alignment: indicatorAlignment,
+                                            child: _BookSideIndicator(
+                                              isRightPage: isOddPage,
+                                              theme: theme,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   );
@@ -980,50 +999,59 @@ class _QuranPageState extends State<_QuranPage>
       );
     }
 
+    final Widget content;
     // In tafsir mode, show verse-by-verse with translations
     if (widget.readMode == 'tafsir') {
-      return _buildTafsirView(theme);
+      content = _buildTafsirView(theme);
+    } else {
+      content = Stack(
+        children: [
+          // The Quran page canvas
+          ReadingCanvas(
+            verses: _verses!,
+            pageNumber: widget.pageNumber,
+            selectedVerseId: _selectedVerseId,
+            onVerseSelected: (id) {
+              setState(() {
+                _selectedVerseId = id;
+              });
+              if (id == null) {
+                context.read<ContextProvider>().disableTranslation();
+              }
+            },
+            onCanvasTapped: widget.onCanvasTapped,
+            onTranslateVerse: widget.onTranslateVerse,
+          ),
+
+          // Inline translation overlay — floats at the bottom above the canvas
+          Builder(
+            builder: (ctx) {
+              final ctxProvider = ctx.watch<ContextProvider>();
+              if (!ctxProvider.translationEnabled || _selectedVerseKey == null) {
+                return const SizedBox.shrink();
+              }
+              return Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                child: TranslationOverlay(
+                  verseKey: _selectedVerseKey!,
+                  showDismiss: true,
+                  onDismiss: () => ctxProvider.disableTranslation(),
+                ),
+              );
+            },
+          ),
+        ],
+      );
     }
 
-    return Stack(
-      children: [
-        // The Quran page canvas
-        ReadingCanvas(
-          verses: _verses!,
-          pageNumber: widget.pageNumber,
-          selectedVerseId: _selectedVerseId,
-          onVerseSelected: (id) {
-            setState(() {
-              _selectedVerseId = id;
-            });
-            if (id == null) {
-              context.read<ContextProvider>().disableTranslation();
-            }
-          },
-          onCanvasTapped: widget.onCanvasTapped,
-          onTranslateVerse: widget.onTranslateVerse,
-        ),
-
-        // Inline translation overlay — floats at the bottom above the canvas
-        Builder(
-          builder: (ctx) {
-            final ctxProvider = ctx.watch<ContextProvider>();
-            if (!ctxProvider.translationEnabled || _selectedVerseKey == null) {
-              return const SizedBox.shrink();
-            }
-            return Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
-              child: TranslationOverlay(
-                verseKey: _selectedVerseKey!,
-                showDismiss: true,
-                onDismiss: () => ctxProvider.disableTranslation(),
-              ),
-            );
-          },
-        ),
-      ],
+    return Align(
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680),
+        child: content,
+      ),
     );
   }
 

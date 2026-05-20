@@ -295,7 +295,7 @@ img, video, svg {
 }
 
 .section-alt {
-  background: var(--bg-subtle);
+  background: transparent;
 }
 
 /* Section divider — shadow-border, NOT css border */

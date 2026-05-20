@@ -233,50 +233,55 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Widget _buildTopBar(ThemeProvider theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          if (_currentPage > 0)
-            GeistButton.icon(
-              onPressed: _prevPage,
-              icon: Icon(
-                LucideIcons.arrowLeft,
-                size: 18,
-                color: theme.primaryText,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 550),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              if (_currentPage > 0)
+                GeistButton.icon(
+                  onPressed: _prevPage,
+                  icon: Icon(
+                    LucideIcons.arrowLeft,
+                    size: 18,
+                    color: theme.primaryText,
+                  ),
+                  type: GeistButtonType.secondary,
+                )
+              else
+                GeistButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
+                  type: GeistButtonType.secondary,
+                ),
+              const SizedBox(width: 16),
+              // Progress bar
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: (_currentPage + 1) / _totalPages,
+                    backgroundColor: theme.dividerColor,
+                    color: theme.accentColor,
+                    minHeight: 4,
+                  ),
+                ),
               ),
-              type: GeistButtonType.secondary,
-            )
-          else
-            GeistButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: Icon(LucideIcons.x, size: 18, color: theme.primaryText),
-              type: GeistButtonType.secondary,
-            ),
-          const SizedBox(width: 16),
-          // Progress bar
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: (_currentPage + 1) / _totalPages,
-                backgroundColor: theme.dividerColor,
-                color: theme.accentColor,
-                minHeight: 4,
+              const SizedBox(width: 12),
+              Text(
+                '${_currentPage + 1}/$_totalPages',
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: theme.mutedText,
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Text(
-            '${_currentPage + 1}/$_totalPages',
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: theme.mutedText,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -382,13 +387,12 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            height: 56,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: IconResolver.avatarIcons.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 10),
-              itemBuilder: (context, i) {
+          Center(
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: List.generate(IconResolver.avatarIcons.length, (i) {
                 final isSelected = _avatarIndex == i;
                 return GestureDetector(
                   onTap: () => setState(() => _avatarIndex = i),
@@ -418,7 +422,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     ),
                   ),
                 );
-              },
+              }),
             ),
           ),
           const SizedBox(height: 20),
@@ -434,54 +438,59 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 8),
           // Birthday scroll wheels
-          Container(
-            height: 130,
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.primaryText.withValues(alpha: 0.08),
-                  blurRadius: 0,
-                  spreadRadius: 1,
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Container(
+                height: 130,
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.primaryText.withValues(alpha: 0.08),
+                      blurRadius: 0,
+                      spreadRadius: 1,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Day
-                Expanded(
-                  child: _scrollWheel(
-                    theme,
-                    controller: _dayController,
-                    itemCount: 31,
-                    labelBuilder: (i) => '${i + 1}',
-                    onChanged: (_) => _updateBirthday(),
-                  ),
+                child: Row(
+                  children: [
+                    // Day
+                    Expanded(
+                      child: _scrollWheel(
+                        theme,
+                        controller: _dayController,
+                        itemCount: 31,
+                        labelBuilder: (i) => '${i + 1}',
+                        onChanged: (_) => _updateBirthday(),
+                      ),
+                    ),
+                    Container(width: 1, color: theme.dividerColor),
+                    // Month
+                    Expanded(
+                      child: _scrollWheel(
+                        theme,
+                        controller: _monthController,
+                        itemCount: 12,
+                        labelBuilder: (i) => _monthNames[i],
+                        onChanged: (_) => _updateBirthday(),
+                      ),
+                    ),
+                    Container(width: 1, color: theme.dividerColor),
+                    // Year
+                    Expanded(
+                      child: _scrollWheel(
+                        theme,
+                        controller: _yearController,
+                        itemCount: DateTime.now().year - 1940 + 1,
+                        labelBuilder: (i) => '${1940 + i}',
+                        onChanged: (_) => _updateBirthday(),
+                      ),
+                    ),
+                  ],
                 ),
-                Container(width: 1, color: theme.dividerColor),
-                // Month
-                Expanded(
-                  child: _scrollWheel(
-                    theme,
-                    controller: _monthController,
-                    itemCount: 12,
-                    labelBuilder: (i) => _monthNames[i],
-                    onChanged: (_) => _updateBirthday(),
-                  ),
-                ),
-                Container(width: 1, color: theme.dividerColor),
-                // Year
-                Expanded(
-                  child: _scrollWheel(
-                    theme,
-                    controller: _yearController,
-                    itemCount: DateTime.now().year - 1940 + 1,
-                    labelBuilder: (i) => '${1940 + i}',
-                    onChanged: (_) => _updateBirthday(),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -903,63 +912,71 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             '',
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(7, (i) {
-              final isActive = _activeDays.contains(i);
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isActive) {
-                      if (_activeDays.length > 1) _activeDays.remove(i);
-                    } else {
-                      _activeDays.add(i);
-                      _activeDays.sort();
-                    }
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 42,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: isActive ? theme.primaryText : theme.cardColor,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.primaryText.withValues(alpha: 0.08),
-                        blurRadius: 0,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _dayIcons[i],
-                        size: 12,
-                        color: isActive
-                            ? theme.scaffoldBackground
-                            : theme.mutedText,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        _dayLabels[i],
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: isActive
-                              ? theme.scaffoldBackground
-                              : theme.mutedText,
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Row(
+                children: List.generate(7, (i) {
+                  final isActive = _activeDays.contains(i);
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isActive) {
+                              if (_activeDays.length > 1) _activeDays.remove(i);
+                            } else {
+                              _activeDays.add(i);
+                              _activeDays.sort();
+                            }
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: isActive ? theme.primaryText : theme.cardColor,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.primaryText.withValues(alpha: 0.08),
+                                blurRadius: 0,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _dayIcons[i],
+                                size: 12,
+                                color: isActive
+                                    ? theme.scaffoldBackground
+                                    : theme.mutedText,
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                _dayLabels[i],
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: isActive
+                                      ? theme.scaffoldBackground
+                                      : theme.mutedText,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+                    ),
+                  );
+                }),
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           Center(
@@ -1403,12 +1420,15 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     final timeSplit = _computeTimeSplit();
     final timeline = _computeTimeline(load);
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 550),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
           const SizedBox(height: 16),
           // Avatar + Name
           Container(
@@ -1578,6 +1598,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 32),
         ],
+      ),
+    ),
       ),
     );
   }
@@ -1936,12 +1958,15 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     required Widget child,
     bool canProceed = true,
   }) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 550),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           const SizedBox(height: 24),
           // Icon
           Container(
@@ -1993,6 +2018,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 16),
         ],
+      ),
+    ),
       ),
     );
   }

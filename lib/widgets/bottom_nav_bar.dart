@@ -54,6 +54,72 @@ class AppBottomNavBar extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 768;
+
+    Widget navContent = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: List.generate(_icons.length, (i) {
+        final isActive = nav.currentIndex == i;
+        final color = isActive ? theme.foregroundColor : theme.accent3;
+
+        return Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => nav.setTab(i),
+            child: SizedBox(
+              height: 70,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // ── Accent line (2px) ──
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutCubic,
+                    height: 2,
+                    width: isActive ? 19 : 24,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? theme.foregroundColor
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                  // ── Icon (22×22, stroke 2px) ──
+                  Icon(_icons[i], size: 22, color: color),
+                  const SizedBox(height: 10),
+                  // ── Label (Geist 12px Regular) ──
+                  Text(
+                    _label(l, i),
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: color,
+                      height: 1.33,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+
+    if (isWide) {
+      navContent = Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: navContent,
+        ),
+      );
+    }
+
     return Container(
       height: 70 + (bottomPadding > 0 ? bottomPadding : 0),
       padding: EdgeInsets.only(
@@ -65,59 +131,7 @@ class AppBottomNavBar extends StatelessWidget {
         color: theme.navBarBackground,
         border: Border(top: BorderSide(color: theme.dividerColor, width: 1)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(_icons.length, (i) {
-          final isActive = nav.currentIndex == i;
-          final color = isActive ? theme.foregroundColor : theme.accent3;
-
-          return Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => nav.setTab(i),
-              child: SizedBox(
-                height: 70,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    // ── Accent line (2px) ──
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      height: 2,
-                      width: isActive ? 19 : 24,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? theme.foregroundColor
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
-                    // ── Icon (22×22, stroke 2px) ──
-                    Icon(_icons[i], size: 22, color: color),
-                    const SizedBox(height: 10),
-                    // ── Label (Geist 12px Regular) ──
-                    Text(
-                      _label(l, i),
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: color,
-                        height: 1.33,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.visible,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-      ),
+      child: navContent,
     );
   }
 }

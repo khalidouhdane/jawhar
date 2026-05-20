@@ -1,7 +1,7 @@
 # Hero Spotlight Redesign Design Specification
 
 ## Overview
-Redesign the homepage hero section (`WisprFlowHero.js` and `WisprFlow.module.css`) to use perfectly consistent card sizes (`270px` by `200px`) on both the left and right sides. Implement an interactive spotlight animation where left-side "Verse Cards" are clickable, triggering SVG gradient line drawing animations through a central diamond to three dynamic "Feature Cards" on the right. 
+Redesign the homepage hero section (`EssenceFlowHero.js` and `EssenceFlow.module.css`) to use perfectly consistent card sizes (`270px` by `200px`) on both the left and right sides. Implement an interactive spotlight animation where left-side "Verse Cards" are clickable, triggering SVG gradient line drawing animations through a central diamond to three dynamic "Feature Cards" on the right. 
 
 During the page load entrance, the first left card and its connecting line will build simultaneously with the diamond's entrance, creating a seamless transition from load to the first active state.
 
@@ -10,7 +10,7 @@ During the page load entrance, the first left card and its connecting line will 
 ## Architectural Details
 
 ### 1. State Management
-We will manage the active spotlight state in `WisprFlowHero.js` using:
+We will manage the active spotlight state in `EssenceFlowHero.js` using:
 * `activeIndex` (0, 1, 2): index of the highlighted pair.
 * `isAutoRotating`: boolean to control whether the auto-rotation loop is active.
 * `manualOverrideTimeout`: ref for tracking the timer to resume auto-rotation after manual clicks.

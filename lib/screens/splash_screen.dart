@@ -17,7 +17,7 @@ const _kTotalFrames = 184;
 /// Cinematic splash screen — center-origin diamond scale-up.
 ///
 /// The diamond materializes small at dead center and smoothly scales up,
-/// inspired by the WisprFlowHero GSAP entrance animation.
+/// inspired by the EssenceFlowHero GSAP entrance animation.
 /// Then text fades in below. All one continuous, fluid sequence.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

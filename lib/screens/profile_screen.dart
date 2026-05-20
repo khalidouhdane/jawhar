@@ -51,11 +51,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header ──
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header ──
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
@@ -104,7 +107,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildActiveTabContent(
@@ -169,6 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onTap: () {
             showModalBottomSheet(
               context: context,
+              constraints: const BoxConstraints(maxWidth: 680),
               backgroundColor: Colors.transparent,
               builder: (_) => const NotificationSettingsSheet(),
             );
@@ -573,6 +579,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onTap: () {
         showModalBottomSheet(
           context: context,
+          constraints: const BoxConstraints(maxWidth: 680),
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (ctx) => FractionallySizedBox(

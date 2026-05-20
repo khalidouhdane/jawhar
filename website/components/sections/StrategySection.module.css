@@ -1,0 +1,277 @@
+.section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  position: relative;
+  overflow: visible;
+  padding: 100px 0;
+  width: 100%;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 80px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+  align-items: center;
+}
+
+/* Copy Column styling */
+.copyColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.sectionDesc {
+  font-size: 0.96rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #888888);
+  margin: 0;
+}
+
+/* Step Indicator (Diamonds) */
+.indicatorRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 48px;
+  margin-top: 8px;
+}
+
+.activeDiamondBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-primary, rgba(255, 255, 255, 0.4));
+  transform: rotate(45deg);
+  background: rgba(var(--color-primary-rgb, 255, 255, 255), 0.05);
+  box-shadow: 0 0 12px rgba(var(--color-primary-rgb, 255, 255, 255), 0.2);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.activeDiamondBox:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.activeDiamondText {
+  transform: rotate(-45deg); /* Keep text upright */
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+}
+
+/* Small Inactive Diamond Dot */
+.inactiveDiamond {
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.inactiveDiamond:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: rotate(45deg) scale(1.2);
+}
+
+/* Detail Card containing active step text */
+.detailCard {
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  position: relative;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.stepLabel {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-primary, #d4af37);
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+}
+
+.stepTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.stepDesc {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #888888);
+  margin: 0;
+}
+
+/* Visual funnel graphic column */
+.visualColumn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 520px;
+  overflow: visible;
+}
+
+.funnelContainer {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.funnelSvg {
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  overflow: visible;
+}
+
+/* Ellipse stroke transitions */
+.ellipsePath {
+  cursor: pointer;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  fill: rgba(255, 255, 255, 0.005);
+}
+
+.ellipseActive {
+  stroke: var(--color-primary, #ffffff) !important;
+  stroke-width: 1.5px !important;
+  fill: rgba(var(--color-primary-rgb, 255, 255, 255), 0.015) !important;
+  filter: drop-shadow(0 0 15px rgba(var(--color-primary-rgb, 255, 255, 255), 0.18));
+}
+
+.ellipseText {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-anchor: middle;
+  cursor: pointer;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.textActive {
+  fill: var(--color-primary, #ffffff) !important;
+  font-weight: 700;
+  filter: drop-shadow(0 0 8px rgba(var(--color-primary-rgb, 255, 255, 255), 0.3));
+}
+
+/* Logo placement at bottom of funnel */
+.logoGroup {
+  transition: all 0.5s ease;
+}
+
+.logoGroupActive {
+  color: var(--color-primary, #ffffff);
+  filter: drop-shadow(0 0 12px rgba(var(--color-primary-rgb, 255, 255, 255), 0.3));
+}
+
+/* Subtle background glows */
+.glowOrb {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--color-primary-rgb, 191, 155, 48), 0.06) 0%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(40px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Slow-rotating background wireframe diamond logo decoration */
+.bgDiamondWrapper {
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  z-index: 2;
+  opacity: 0.12;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rotatingDiamondSvg {
+  width: 100%;
+  height: 100%;
+  animation: slowSpin 35s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes slowSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsiveness */
+@media (max-width: 1024px) {
+  .container {
+    gap: 40px;
+    padding: 0 24px;
+  }
+  .sectionTitle {
+    font-size: 2rem;
+  }
+  .visualColumn {
+    height: 460px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .visualColumn {
+    height: 400px;
+    order: -1; /* Display graphic first on mobile */
+  }
+  .detailCard {
+    min-height: auto;
+  }
+}

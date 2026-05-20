@@ -127,18 +127,27 @@ class _SessionScreenState extends State<SessionScreen> {
       _timer = null;
     }
 
+    final body = session.isSessionComplete
+        ? _buildCompleteView(theme, session)
+        : session.showingCoverageDialog
+        ? _buildCoverageView(theme, session)
+        : session.showingAssessment
+        ? _buildAssessmentView(theme, session)
+        : _isDigitalMode
+        ? _buildDigitalView(theme, session)
+        : _buildActiveView(theme, session);
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
       body: SafeArea(
-        child: session.isSessionComplete
-            ? _buildCompleteView(theme, session)
-            : session.showingCoverageDialog
-            ? _buildCoverageView(theme, session)
-            : session.showingAssessment
-            ? _buildAssessmentView(theme, session)
-            : _isDigitalMode
-            ? _buildDigitalView(theme, session)
-            : _buildActiveView(theme, session),
+        child: _isDigitalMode
+            ? body
+            : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 550),
+                  child: body,
+                ),
+              ),
       ),
     );
   }
@@ -482,7 +491,7 @@ class _SessionScreenState extends State<SessionScreen> {
                 plan?.sabaqLineEnd ?? 15,
               );
         return AppLocalizations.of(context)!.sessionPageAndInfo(
-          plan?.sabaqPage?.toString() ?? "?",
+          plan?.sabaqPage.toString() ?? "?",
           lineInfo,
         );
       case SessionPhase.sabqi:
@@ -491,7 +500,7 @@ class _SessionScreenState extends State<SessionScreen> {
         );
       case SessionPhase.manzil:
         return AppLocalizations.of(context)!.sessionJuzAndPages(
-          session.plan?.manzilJuz?.toString() ?? "?",
+          session.plan?.manzilJuz.toString() ?? "?",
           session.plan?.manzilPages.length ?? 0,
         );
       case SessionPhase.flashcards:
@@ -530,11 +539,13 @@ class _SessionScreenState extends State<SessionScreen> {
   // ════════════════════════════════
 
   Widget _buildAssessmentView(ThemeProvider theme, SessionProvider session) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Text(
             AppLocalizations.of(context)!.sessionHowDidItGo,
             style: TextStyle(
@@ -581,6 +592,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -600,11 +612,13 @@ class _SessionScreenState extends State<SessionScreen> {
             plan?.sabaqLineEnd ?? 15,
           );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Text(
             AppLocalizations.of(context)!.coverageHowMuch,
             style: TextStyle(
@@ -659,6 +673,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -986,11 +1001,13 @@ class _SessionScreenState extends State<SessionScreen> {
   // ════════════════════════════════
 
   Widget _buildCompleteView(ThemeProvider theme, SessionProvider session) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Icon(LucideIcons.partyPopper, size: 64, color: theme.accentColor),
           const SizedBox(height: 16),
           Text(
@@ -1196,6 +1213,7 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 

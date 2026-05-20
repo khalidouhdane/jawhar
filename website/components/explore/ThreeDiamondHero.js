@@ -38,7 +38,7 @@ function DiamondModel() {
 
 export default function ThreeDiamondHero() {
   return (
-    <div className={styles.wisprContainer} style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+    <div className={styles.essenceContainer} style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ textAlign: 'center', paddingTop: '4rem', zIndex: 10, position: 'relative' }}>
         <h2 style={{ fontSize: '3rem', color: 'var(--color-white)', letterSpacing: '-0.04em' }}>The 3D Core</h2>
         <p style={{ color: 'var(--color-gray-500)', fontSize: '1.25rem', maxWidth: '600px', margin: '1rem auto' }}>

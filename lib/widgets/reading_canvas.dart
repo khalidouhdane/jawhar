@@ -353,8 +353,11 @@ class ReadingCanvasState extends State<ReadingCanvas> {
                           ? MediaQuery.paddingOf(context).bottom
                           : 32.0;
 
+                      // Constrain calculations to 680px width to scale correctly on wider tablets/web layouts
+                      final effectiveMaxWidth =
+                          constraints.maxWidth > 680.0 ? 680.0 : constraints.maxWidth;
                       final availableWidth =
-                          constraints.maxWidth - paddingLeft - paddingRight;
+                          effectiveMaxWidth - paddingLeft - paddingRight;
                       // Subtract a small safe zone margin (20px) to ensure text never touches the fade gradients
                       final availableHeight =
                           constraints.maxHeight -

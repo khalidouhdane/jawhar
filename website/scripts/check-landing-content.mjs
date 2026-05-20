@@ -8,7 +8,7 @@ const assert = (condition, message) => {
 };
 
 const scrollStory = read("components/sections/ScrollStory.js");
-const hero = read("components/explore/WisprFlowHero.js");
+const hero = read("components/explore/EssenceFlowHero.js");
 const footer = read("components/layout/Footer.js");
 const navbar = read("components/layout/Navbar.js");
 const download = read("app/download/page.js");

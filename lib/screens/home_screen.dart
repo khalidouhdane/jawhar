@@ -65,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         showModalBottomSheet(
           context: context,
+          constraints: const BoxConstraints(maxWidth: 680),
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => _MissedDaySheet(
@@ -103,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = context.read<ThemeProvider>();
     showModalBottomSheet(
       context: context,
+      constraints: const BoxConstraints(maxWidth: 680),
       backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -308,36 +310,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
-      body: Consumer<HifzProfileProvider>(
-        builder: (context, profileProvider, _) {
-          if (profileProvider.isLoading) {
-            return Container(color: theme.scaffoldBackground);
-          }
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: Consumer<HifzProfileProvider>(
+            builder: (context, profileProvider, _) {
+              if (profileProvider.isLoading) {
+                return Container(color: theme.scaffoldBackground);
+              }
 
-          if (!profileProvider.hasActiveProfile) {
-            _lastLoadedProfileId = null;
-            return NoProfileDashboard(
-              onAvatarTap: _showProfileSwitcher,
-              onStartJourney: _navigateToAssessment,
-              ayahCard: _buildAyahCard(theme),
-            );
-          }
+              if (!profileProvider.hasActiveProfile) {
+                _lastLoadedProfileId = null;
+                return NoProfileDashboard(
+                  onAvatarTap: _showProfileSwitcher,
+                  onStartJourney: _navigateToAssessment,
+                  ayahCard: _buildAyahCard(theme),
+                );
+              }
 
-          final activeId = profileProvider.activeProfile!.id;
-          if (_lastLoadedProfileId != activeId) {
-            _lastLoadedProfileId = activeId;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _loadPlanIfNeeded();
-            });
-          }
+              final activeId = profileProvider.activeProfile!.id;
+              if (_lastLoadedProfileId != activeId) {
+                _lastLoadedProfileId = activeId;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _loadPlanIfNeeded();
+                });
+              }
 
-          return ProfileDashboard(
-            onAvatarTap: _showProfileSwitcher,
-            onStartSession: _navigateToSession,
-            onProgressStripTap: _navigateToProgressDetail,
-            profile: profileProvider.activeProfile!,
-          );
-        },
+              return ProfileDashboard(
+                onAvatarTap: _showProfileSwitcher,
+                onStartSession: _navigateToSession,
+                onProgressStripTap: _navigateToProgressDetail,
+                profile: profileProvider.activeProfile!,
+              );
+            },
+          ),
+        ),
       ),
     );
   }

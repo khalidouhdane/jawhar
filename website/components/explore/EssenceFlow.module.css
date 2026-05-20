@@ -1,28 +1,37 @@
-/* Wispr Flow Hero — Conveyor Belt Redesign */
+/* Essence Flow Hero — Conveyor Belt Redesign */
 /* Theme-aware: adapts to dark/light mode via CSS variables */
 
 .section {
   position: relative;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
   background: transparent;
   color: var(--text-primary);
-  padding-top: 20px;
+  padding-top: 40px;
   box-sizing: border-box;
 }
 
-/* ── Animation stage ── */
-.stage {
+/* Stage wrapper and container for uniform responsive scaling */
+.stageWrapper {
+  width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
-  min-height: 0;
-  gap: 0;
+  align-items: flex-start;
+  position: relative;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.stage {
+  position: relative;
+  width: 1440px;
+  height: 450px;
+  flex-shrink: 0;
 }
 
 /* ── Constellation Layout ── */
@@ -30,29 +39,21 @@
 .constellationRight {
   position: absolute;
   top: 0;
-  bottom: 0;
-  width: 50%;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-}
-
-.constellationLeft { left: 0; }
-.constellationRight { right: 0; }
-
-.absNode {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
   z-index: 2;
 }
 
-/* Specific node positions (tightly clustered around the diamond top half) */
-.nodeL0 { top: 15%; left: 42%; }
-.nodeL1 { top: 45%; left: 32%; }
-.nodeL2 { top: 75%; left: 42%; }
+/* Specific node coordinates directly from Figma wireframe layout (relative to 1440x450 stage) */
+.nodeL0 { left: 91px; top: 57px; }
+.nodeL1 { left: 214px; top: 176px; }
+.nodeL2 { left: 61px; top: 295px; }
 
-.nodeR0 { top: 15%; left: 58%; }
-.nodeR1 { top: 45%; left: 68%; }
-.nodeR2 { top: 75%; left: 58%; }
+.nodeR0 { left: 1072px; top: 67px; }
+.nodeR1 { left: 930px; top: 182px; }
+.nodeR2 { left: 1115px; top: 298px; }
 
 /* SVG Beams */
 .beams {
@@ -86,17 +87,19 @@
 
 /* ── Center diamond ── */
 .diamond {
-  width: 260px;
-  height: 310px;
+  position: absolute;
+  left: 552px;
+  top: 76px;
+  width: 336px;
+  height: 296px;
   z-index: 5;
-  flex-shrink: 0;
-  transform-origin: center bottom;
+  transform-origin: center center;
 }
 
 /* ── Ambient glow ── */
 .glow {
   position: absolute;
-  top: 45%;
+  top: 50%;
   left: 50%;
   width: 400px;
   height: 400px;
@@ -108,12 +111,12 @@
 
 /* ── Unified Flow Card ── */
 .flowCard {
-  width: 270px;
-  height: 200px;
+  width: 285px;
+  height: 101px;
   background: var(--bg-elevated);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -121,15 +124,15 @@
   border: none;
   box-sizing: border-box;
   position: absolute;
-  transform: translate(-50%, -50%);
   pointer-events: auto;
   z-index: 2;
+  transform-origin: center center;
 }
 
 .flowCard.active {
   opacity: 1 !important;
   filter: brightness(1) !important;
-  transform: translate(-50%, -50%) scale(1.02);
+  transform: scale(1.02);
 }
 
 .flowCard.dimmed {
@@ -142,7 +145,7 @@
 }
 
 .flowCard.leftCard:hover {
-  transform: translate(-50%, -50%) scale(1.02);
+  transform: scale(1.02);
   box-shadow: var(--shadow-card-hover);
 }
 
@@ -163,7 +166,7 @@
   justify-content: space-between;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-quaternary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -171,18 +174,18 @@
 }
 
 .cardFooter {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  font-size: 9.5px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
   width: 100%;
 }
 
 .arabicBody {
   font-family: var(--font-arabic);
-  font-size: 20px;
+  font-size: 17px;
   text-align: center;
   direction: rtl;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--text-primary);
   margin: auto 0;
 }
@@ -191,12 +194,12 @@
 .miniMushaf {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   font-family: var(--font-arabic);
-  font-size: 13px;
+  font-size: 11px;
   direction: rtl;
   text-align: justify;
-  line-height: 1.5;
+  line-height: 1.35;
   opacity: 0.85;
   margin: auto 0;
 }
@@ -212,7 +215,7 @@
   justify-content: space-between;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 8px;
   color: var(--text-tertiary);
   margin-top: 4px;
 }
@@ -221,9 +224,9 @@
 .audioPlayer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: auto 0;
+  justify-content: space-between;
   width: 100%;
+  height: 100%;
 }
 
 .audioControls {
@@ -233,8 +236,8 @@
 }
 
 .playBtn {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--text-primary);
   color: var(--bg);
@@ -246,17 +249,17 @@
 .trackInfo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .trackTitle {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .trackMeta {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-tertiary);
   font-family: var(--font-mono);
 }
@@ -264,14 +267,14 @@
 .scrubberContainer {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
 .scrubber {
-  height: 4px;
+  height: 3px;
   background: var(--gray-100);
-  border-radius: 2px;
+  border-radius: 1.5px;
   position: relative;
   overflow: hidden;
 }
@@ -312,24 +315,23 @@
 .tafsirContent {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: auto 0;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
 }
 
 .tafsirLabel {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .tafsirText {
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.45;
   color: var(--text-secondary);
-  background: var(--bg-subtle);
-  padding: 8px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-ring);
 }
 
 /* Flashcard */
@@ -337,9 +339,9 @@
   background: var(--badge-bg-subtle, rgba(0, 0, 0, 0.04));
   color: var(--text-primary);
   box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: 9999px;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 500;
   align-self: flex-start;
   font-family: var(--font-mono, monospace);
@@ -347,16 +349,16 @@
 }
 
 .fcInstruction {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--text-secondary);
   text-align: center;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .fcAnswer {
   font-family: var(--font-arabic, 'Amiri', serif);
-  font-size: 18px;
+  font-size: 15px;
   text-align: center;
   direction: rtl;
   color: var(--text-primary);
@@ -366,29 +368,30 @@
 .fcRatings {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 4px;
   width: 100%;
+  gap: 4px;
 }
 
 .fcRatingBtn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .fcRatingBox {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-subtle);
   color: var(--text-primary);
   box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
 }
 
@@ -402,17 +405,18 @@
 .planList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: auto 0;
+  justify-content: space-between;
   width: 100%;
+  flex: 1;
+  margin-top: 4px;
 }
 
 .planItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
   background: var(--bg-subtle);
   box-shadow: var(--shadow-ring);
 }
@@ -420,12 +424,12 @@
 .planItemLeft {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .planItemCheck {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   border: 1px solid var(--gray-400);
   display: flex;
@@ -442,12 +446,12 @@
 }
 
 .planItemName {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 .planItemDesc {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-secondary);
   font-family: var(--font-mono);
 }
@@ -456,20 +460,21 @@
 .analyticsContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: auto 0;
+  justify-content: space-between;
   width: 100%;
+  flex: 1;
+  margin-top: 4px;
 }
 
 .streakNumber {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #ff5b4f;
   line-height: 1;
 }
 
 .streakLabel {
-  font-size: 10px;
+  font-size: 8px;
   color: var(--text-secondary);
   text-transform: uppercase;
   font-family: var(--font-mono);
@@ -479,7 +484,7 @@
   display: flex;
   align-items: flex-end;
   gap: 4px;
-  height: 32px;
+  height: 20px;
   width: 100%;
   border-bottom: 1px solid var(--gray-100);
   padding-bottom: 2px;
@@ -511,6 +516,7 @@
   gap: 8px;
   padding: 16px 2rem 24px;
   flex-shrink: 0;
+  margin-top: -75px;
 }
 
 .wordmark {
@@ -595,19 +601,8 @@
     #fafafa 0px 0px 0px 1px inset;
 }
 
-@media (max-width: 1024px) {
-  .constellationLeft { width: 45%; }
-  .constellationRight { width: 45%; }
-  .nodeL0 { left: 20%; }
-  .nodeL2 { left: 20%; }
-  .nodeR0 { left: 80%; }
-  .nodeR2 { left: 80%; }
-}
-
 @media (max-width: 768px) {
-  .constellationLeft,
-  .constellationRight,
-  .beams {
-    display: none; /* Hide complex hero on mobile */
+  .stageWrapper {
+    display: none;
   }
 }

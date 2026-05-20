@@ -1,0 +1,40 @@
+name: Build Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Enable Windows Build
+        run: flutter config --enable-windows-desktop
+
+      - name: Build Windows App
+        run: flutter build windows --release --dart-define-from-file=.env
+
+      - name: Package Windows Build
+        shell: powershell
+        run: |
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath build\windows\jawhar-windows.zip
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/windows/jawhar-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

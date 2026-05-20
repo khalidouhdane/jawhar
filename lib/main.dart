@@ -45,8 +45,8 @@ import 'package:quran_app/services/qf_user_api_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/screens/splash_screen.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:device_preview_screenshot/device_preview_screenshot.dart';
+import 'package:quran_app/widgets/responsive_wrapper.dart';
 
 // Conditional imports for native-only packages
 import 'package:quran_app/services/native_init.dart'
@@ -306,8 +306,10 @@ class QuranApp extends StatelessWidget {
         final readingProvider = context.read<QuranReadingProvider>();
         readingProvider.setLanguage(localeProvider.locale.languageCode);
         return MaterialApp(
-          useInheritedMediaQuery: true,
-          builder: DevicePreview.appBuilder,
+          builder: (context, child) {
+            final appChild = DevicePreview.appBuilder(context, child);
+            return ResponsiveWrapper(child: appChild);
+          },
           title: 'Jawhar',
           debugShowCheckedModeBanner: false,
           locale: localeProvider.locale,

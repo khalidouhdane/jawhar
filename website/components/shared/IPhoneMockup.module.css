@@ -1,0 +1,278 @@
+.container {
+  position: relative;
+  perspective: 1000px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  cursor: grab;
+}
+
+.container:active {
+  cursor: grabbing;
+}
+
+.phoneWrapper {
+  position: relative;
+  width: 290px;
+  height: 600px;
+  transition: transform 0.1s ease-out;
+}
+
+/* 3D Realistic Drop Shadow */
+.phoneShadow {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  right: 5%;
+  bottom: -4%;
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(28px);
+  border-radius: 48px;
+  transform: translateZ(-40px);
+  pointer-events: none;
+}
+
+/* Premium Stainless Steel iPhone chassis */
+.chassis {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 46px;
+  background: linear-gradient(135deg, #2e2f30 0%, #1e1e1f 25%, #2a2b2c 50%, #131415 75%, #222324 100%);
+  padding: 3px; /* Border outline width */
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.8),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+  transform: translateZ(0);
+}
+
+/* Hardware Buttons */
+.hardwareButton {
+  position: absolute;
+  background: #1c1d1e;
+  border-radius: 2px;
+  z-index: -1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.volumeUp {
+  width: 3px;
+  height: 50px;
+  left: -3px;
+  top: 130px;
+}
+
+.volumeDown {
+  width: 3px;
+  height: 50px;
+  left: -3px;
+  top: 190px;
+}
+
+.powerBtn {
+  width: 3px;
+  height: 70px;
+  right: -3px;
+  top: 160px;
+}
+
+/* Inner Screen Bezel */
+.bezel {
+  width: 100%;
+  height: 100%;
+  background: #000000;
+  border-radius: 43px;
+  padding: 10px; /* Bezel thickness */
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+/* Screen Area */
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #121212; /* Dark default background */
+  border-radius: 34px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Screenshot image formatting */
+.screenshot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Screen reflection overlay */
+.screenGlare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  mix-blend-mode: plus-lighter;
+  z-index: 10;
+  border-radius: 34px;
+}
+
+/* Status Bar components */
+.statusBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.time {
+  letter-spacing: -0.05px;
+  flex: 1;
+}
+
+/* Realistic Dynamic Island */
+.dynamicIsland {
+  width: 90px;
+  height: 25px;
+  background: #000000;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  box-shadow: inset 0 0.5px 1px rgba(255,255,255,0.08);
+}
+
+.cameraDot {
+  width: 5.5px;
+  height: 5.5px;
+  background: #090b2c;
+  border-radius: 50%;
+  opacity: 0.8;
+  box-shadow: inset 0 0 1px rgba(255,255,255,0.2);
+}
+
+.indicators {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+.signalIcon, .wifiIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Battery indicator */
+.batteryContainer {
+  display: flex;
+  align-items: center;
+  width: 22px;
+  height: 11px;
+}
+
+.batteryBody {
+  width: 20px;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+  padding: 1px;
+  display: flex;
+}
+
+.batteryFill {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+.batteryCap {
+  width: 1.5px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0 1px 1px 0;
+}
+
+/* Home Indicator Bar */
+.homeIndicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 4.5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Placeholders */
+.screenPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+}
+
+.logoMark {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  opacity: 0.15;
+}
+
+/* Responsiveness adjustments */
+@media (max-width: 768px) {
+  .phoneWrapper {
+    width: 230px;
+    height: 476px;
+  }
+  .bezel {
+    padding: 8px;
+    border-radius: 36px;
+  }
+  .chassis {
+    border-radius: 38px;
+  }
+  .screen {
+    border-radius: 28px;
+  }
+  .statusBar {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 9px;
+  }
+  .dynamicIsland {
+    width: 70px;
+    height: 20px;
+  }
+  .time {
+    display: none;
+  }
+  .homeIndicator {
+    width: 80px;
+    height: 3px;
+  }
+}
