@@ -76,59 +76,39 @@ export default function DownloadPage() {
     getOSSnapshot,
     getServerOSSnapshot
   );
-  const primary = platforms.find((p) => p.name === userOS && p.available);
 
   return (
     <main style={{ paddingTop: "var(--nav-height)" }}>
-      {/* Hero */}
+      {/* Hero & Grid */}
       <section className="section">
-        <div className="container" style={{ textAlign: "center" }}>
-          <ScrollReveal>
-            <p className="mono-label" style={{ marginBottom: 16 }}>Download</p>
-            <h1 className="display-hero">Get Jawhar</h1>
-            <p className="body-large" style={{ color: "var(--text-secondary)", marginTop: 16, maxWidth: 420, margin: "16px auto 0" }}>
-              Free to use. Closed source for now.
-              <br />
-              No ads. No tracking. No subscriptions.
-            </p>
-          </ScrollReveal>
-
-          {primary && (
-            <ScrollReveal delay={0.15}>
-              <div style={{ marginTop: 32 }}>
-                <a href={primary.href} className="btn btn-primary btn-large">
-                  Download for {primary.name}
-                  <ArrowRight size={16} />
-                </a>
-              </div>
-            </ScrollReveal>
-          )}
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* All platforms grid */}
-      <section className="section section-alt">
         <div className="container">
-          <ScrollReveal>
-            <h2 className="heading-card" style={{ textAlign: "center", marginBottom: 40 }}>
-              All Platforms
-            </h2>
-          </ScrollReveal>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <ScrollReveal>
+              <p className="mono-label" style={{ marginBottom: 16 }}>Download</p>
+              <h1 className="display-hero">Get Jawhar</h1>
+              <p className="body-large" style={{ color: "var(--text-secondary)", marginTop: 16, maxWidth: 420, margin: "16px auto 0" }}>
+                Free to use. Closed source for now.
+                <br />
+                No ads. No tracking. No subscriptions.
+              </p>
+            </ScrollReveal>
+          </div>
 
           <div className={styles.grid}>
             {platforms.map((platform, i) => {
               const Icon = platform.icon;
               const isDetected = platform.name === userOS;
+              const showHighlight = isDetected && platform.available;
               return (
                 <ScrollReveal key={i} delay={0.08 + i * 0.06} variant="scale">
-                  <div className={`card ${styles.item} ${!platform.available ? styles.unavailable : ""}`}>
-                    {isDetected && <span className={styles.badge}>Your OS</span>}
+                  <div className={`card ${styles.item} ${!platform.available ? styles.unavailable : ""} ${showHighlight ? styles.highlighted : ""}`}>
+                    {showHighlight && (
+                      <span className={styles.detectedBadge}>Recommended</span>
+                    )}
                     <Icon size={28} strokeWidth={1.5} />
                     <span className={styles.name}>{platform.name}</span>
                     {platform.available ? (
-                      <a href={platform.href} className="btn btn-primary" style={{ fontSize: 13 }}>
+                      <a href={platform.href} className={`btn ${showHighlight ? "btn-primary" : "btn-ghost"}`} style={{ fontSize: 13, width: "100%", justifyContent: "center" }}>
                         {platform.action}
                       </a>
                     ) : (

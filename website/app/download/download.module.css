@@ -67,3 +67,25 @@
     grid-template-columns: 1fr;
   }
 }
+
+.highlighted {
+  transform: scale(1.02);
+  z-index: 1;
+  box-shadow: 0 0 0 1px var(--color-black) !important;
+}
+
+.detectedBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-white);
+  background: var(--color-black);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-ring);
+}
