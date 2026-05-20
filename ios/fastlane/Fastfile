@@ -36,7 +36,12 @@ platform :ios do
     # 2.5 Revoke existing active Distribution certificates to prevent hitting the limit
     begin
       UI.message("Checking existing distribution certificates on the Developer Portal to prevent hitting the 2-cert limit...")
-      Spaceship::ConnectAPI.token = api_key
+      token = Spaceship::ConnectAPI::Token.create(
+        key_id: ENV["ASC_KEY_ID"],
+        issuer_id: ENV["ASC_ISSUER_ID"],
+        key: Base64.decode64(ENV["ASC_KEY_CONTENT"])
+      )
+      Spaceship::ConnectAPI.token = token
       certs = Spaceship::ConnectAPI::Certificate.all
       UI.message("Found #{certs.count} total certificates on the portal.")
       
