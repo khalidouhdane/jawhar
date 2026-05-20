@@ -11,6 +11,7 @@ import 'package:quran_app/screens/read_index_screen.dart';
 import 'package:quran_app/screens/profile_screen.dart';
 import 'package:quran_app/screens/understand_screen.dart';
 import 'package:quran_app/widgets/bottom_nav_bar.dart';
+import 'package:quran_app/widgets/web_app_sidebar.dart';
 import 'package:quran_app/widgets/update_dialog.dart';
 
 class AppShell extends StatefulWidget {
@@ -53,20 +54,35 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final nav = context.watch<NavigationProvider>();
     final theme = context.watch<ThemeProvider>();
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 768;
 
-    // Tab order: Home / Read / Understand / Practice / Profile
+    final Widget contentStack = IndexedStack(
+      index: nav.currentIndex,
+      children: const [
+        HomeScreen(),
+        ReadIndexScreen(),
+        UnderstandScreen(),
+        PracticeScreen(),
+        ProfileScreen(),
+      ],
+    );
+
+    if (isWide) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackground,
+        body: Row(
+          children: [
+            if (!nav.isInReadingView) const WebAppSidebar(),
+            Expanded(child: contentStack),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
-      body: IndexedStack(
-        index: nav.currentIndex,
-        children: [
-          const HomeScreen(), // 0: Home (Dashboard)
-          const ReadIndexScreen(), // 1: Read
-          const UnderstandScreen(), // 2: Understand
-          const PracticeScreen(), // 3: Practice
-          const ProfileScreen(), // 4: Profile
-        ],
-      ),
+      body: contentStack,
       bottomNavigationBar: nav.isInReadingView ? null : const AppBottomNavBar(),
     );
   }
