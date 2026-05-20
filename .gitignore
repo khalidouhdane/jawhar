@@ -85,7 +85,7 @@ docs/superpowers/
 Crashes/
 
 # Screenshots (device preview captures)
-screenshots/
+/screenshots/
 
 # One-off scripts
 *.py
@@ -103,3 +103,5 @@ reciters.json
 
 # Test scaffolding (not ready)
 test/
+
+.vercel
