@@ -193,7 +193,23 @@ body {
 }
 
 ::selection {
-  background: var(--selection-bg);
+  background: #ffffff;
+  color: #000000;
+}
+
+::-moz-selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+[data-theme="light"] ::selection {
+  background: #000000;
+  color: #ffffff;
+}
+
+[data-theme="light"] ::-moz-selection {
+  background: #000000;
+  color: #ffffff;
 }
 
 a {
