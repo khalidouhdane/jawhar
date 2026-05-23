@@ -42,6 +42,12 @@
   text-transform: lowercase;
 }
 
+.logo {
+  flex-shrink: 0;
+  color: var(--text-primary);
+  display: block;
+}
+
 .tagline {
   font-size: 14px;
   color: var(--text-tertiary);
