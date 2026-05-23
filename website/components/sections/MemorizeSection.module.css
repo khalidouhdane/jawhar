@@ -33,7 +33,7 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.2;
-  background: linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%);
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
@@ -172,7 +172,7 @@
 .cardTitle {
   font-size: 1.02rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -235,4 +235,47 @@
   .cardText {
     padding-left: 0;
   }
+}
+
+/* Light Mode Overrides */
+:global([data-theme="light"]) .card {
+  background: var(--gray-50, #fafafa);
+  border: 1px solid var(--gray-100, #ebebeb);
+  opacity: 0.55;
+}
+
+:global([data-theme="light"]) .card:hover {
+  background: var(--gray-100, #ebebeb);
+  opacity: 0.85;
+}
+
+:global([data-theme="light"]) .cardActive {
+  background: var(--color-white, #ffffff);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
+  box-shadow: 
+    0 10px 30px -15px rgba(var(--color-primary-rgb), 0.12),
+    0 0 0 1px rgba(var(--color-primary-rgb), 0.05);
+  opacity: 1;
+}
+
+:global([data-theme="light"]) .cardActive:hover {
+  background: var(--color-white, #ffffff);
+  opacity: 1;
+}
+
+:global([data-theme="light"]) .iconWrapper {
+  background: var(--gray-100, #ebebeb);
+  color: var(--text-secondary, #4d4d4d);
+  border-color: var(--gray-100, #ebebeb);
+}
+
+:global([data-theme="light"]) .iconActive {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.2);
+}
+
+:global([data-theme="light"]) .progressBarBg {
+  background: rgba(0, 0, 0, 0.05);
 }

@@ -681,3 +681,61 @@
     max-width: 320px !important;
   }
 }
+
+/* Light Mode Overrides */
+:global([data-theme="light"]) .flowCard {
+  background: var(--bg-elevated, #ffffff);
+  box-shadow: 
+    0 8px 30px -10px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .flowCard.dimmed {
+  filter: none;
+  opacity: 0.22;
+}
+
+:global([data-theme="light"]) .flowCard.active {
+  box-shadow: 
+    0 12px 30px -10px rgba(var(--color-primary-rgb, 0, 0, 0), 0.15),
+    0 0 0 1px rgba(var(--color-primary-rgb, 0, 0, 0), 0.15);
+  opacity: 1;
+}
+
+:global([data-theme="light"]) .flowCard.active.activeBlue {
+  box-shadow: 0 0 0 2.5px #0a72ef, 0 8px 30px rgba(10, 114, 239, 0.18);
+}
+
+:global([data-theme="light"]) .flowCard.active.activePink {
+  box-shadow: 0 0 0 2.5px #de1d8d, 0 8px 30px rgba(222, 29, 141, 0.18);
+}
+
+:global([data-theme="light"]) .flowCard.active.activeRed {
+  box-shadow: 0 0 0 2.5px #ff5b4f, 0 8px 30px rgba(255, 91, 79, 0.18);
+}
+
+:global([data-theme="light"]) .fcBadge {
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  box-shadow: none;
+}
+
+:global([data-theme="light"]) .planItem {
+  background: var(--gray-50, #fafafa);
+  box-shadow: 0 0 0 1px var(--gray-100, #ebebeb);
+}
+
+:global([data-theme="light"]) .planItemCheck {
+  border-color: var(--gray-400);
+}
+
+:global([data-theme="light"]) .planItemCheck.completed {
+  background: #ff5b4f;
+  border-color: #ff5b4f;
+  color: #ffffff;
+}
+
+:global([data-theme="light"]) .fcRatingBox {
+  background: var(--gray-50, #fafafa);
+  box-shadow: 0 0 0 1px var(--gray-100, #ebebeb);
+}

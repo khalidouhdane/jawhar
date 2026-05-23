@@ -38,7 +38,7 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.2;
-  background: linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%);
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
@@ -128,7 +128,7 @@
 .stepTitle {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -171,6 +171,7 @@
   cursor: pointer;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   fill: rgba(255, 255, 255, 0.005);
+  stroke: rgba(255, 255, 255, 0.12) !important;
 }
 
 .ellipseActive {
@@ -189,6 +190,7 @@
   cursor: pointer;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
+  fill: rgba(255, 255, 255, 0.3) !important;
 }
 
 .textActive {
@@ -274,4 +276,85 @@
   .detailCard {
     min-height: auto;
   }
+}
+
+/* Presentation defaults for other elements */
+.rotatingDiamondSvg path {
+  stroke: rgba(255, 255, 255, 0.05) !important;
+}
+
+.rotatingDiamondSvg line {
+  stroke: rgba(255, 255, 255, 0.03) !important;
+}
+
+.funnelSvg line {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+}
+
+.logoGroup {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Light Mode Overrides */
+:global([data-theme="light"]) .activeDiamondText {
+  color: var(--text-primary);
+}
+
+:global([data-theme="light"]) .activeDiamondBox {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb), 0.04);
+  box-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.1);
+}
+
+:global([data-theme="light"]) .activeDiamondBox:hover {
+  border-color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .inactiveDiamond {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+:global([data-theme="light"]) .inactiveDiamond:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme="light"]) .ellipsePath {
+  stroke: rgba(0, 0, 0, 0.08) !important;
+}
+
+:global([data-theme="light"]) .ellipseActive {
+  stroke: var(--color-primary) !important;
+  fill: rgba(var(--color-primary-rgb), 0.015) !important;
+  filter: drop-shadow(0 0 15px rgba(var(--color-primary-rgb), 0.08));
+}
+
+:global([data-theme="light"]) .ellipseText {
+  fill: rgba(0, 0, 0, 0.35) !important;
+}
+
+:global([data-theme="light"]) .textActive {
+  fill: var(--color-primary) !important;
+  filter: drop-shadow(0 0 8px rgba(var(--color-primary-rgb), 0.15));
+}
+
+:global([data-theme="light"]) .rotatingDiamondSvg path {
+  stroke: rgba(0, 0, 0, 0.02) !important;
+}
+
+:global([data-theme="light"]) .rotatingDiamondSvg line {
+  stroke: rgba(0, 0, 0, 0.015) !important;
+}
+
+:global([data-theme="light"]) .funnelSvg line {
+  stroke: rgba(0, 0, 0, 0.05) !important;
+}
+
+:global([data-theme="light"]) .logoGroup {
+  color: rgba(0, 0, 0, 0.15);
+}
+
+:global([data-theme="light"]) .logoGroupActive {
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 12px rgba(var(--color-primary-rgb), 0.15));
 }

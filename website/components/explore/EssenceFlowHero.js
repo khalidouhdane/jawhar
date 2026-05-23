@@ -196,7 +196,14 @@ export default function EssenceFlowHero() {
   const activeColor = SPOTLIGHT_PAIRS[activeIndex].accentColor;
 
   return (
-    <section className={styles.section} ref={containerRef}>
+    <section 
+      className={styles.section} 
+      ref={containerRef}
+      style={{
+        "--color-primary": activeColor,
+        "--color-primary-rgb": SPOTLIGHT_PAIRS[activeIndex].rgb
+      }}
+    >
       <div className={styles.stageWrapper} style={{ height: `${450 * scale}px` }}>
         <div 
           className={`${styles.stage} ${!mounted ? styles.notMounted : ''}`} 
