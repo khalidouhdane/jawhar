@@ -157,7 +157,8 @@ export default function EssenceFlowHero() {
       scale: 1,
       duration: 0.8,
       stagger: 0.08,
-      ease: "power2.out"
+      ease: "power2.out",
+      clearProps: "opacity,transform"
     }, 0.1)
     // 4. Hero headline split-character reveal
     .to('.split-char', {

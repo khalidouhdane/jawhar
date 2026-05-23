@@ -5,14 +5,16 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   background: transparent;
   color: var(--text-primary);
-  padding-top: 40px;
+  padding-top: var(--nav-height, 80px);
+  padding-bottom: 40px;
   box-sizing: border-box;
 }
 
