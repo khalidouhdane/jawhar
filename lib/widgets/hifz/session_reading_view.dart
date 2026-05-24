@@ -7,7 +7,9 @@ import 'package:quran_app/providers/session_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/widgets/hifz/session_overlay.dart';
+import 'package:quran_app/widgets/hifz/session_spotlight_mask.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/utils/tablet_layout_math.dart';
 
 /// Scoped reading canvas for Hifz sessions (Phase 4 — Digital Session Mode).
 ///
@@ -70,6 +72,9 @@ class SessionReadingView extends StatefulWidget {
 class _SessionReadingViewState extends State<SessionReadingView> {
   /// Verses for the assigned page, loaded once on init.
   List<Verse>? _verses;
+  List<Verse>? _leftPageVerses; // for tablet dual page layout
+  int? _leftPageNumber;
+  int? _rightPageNumber;
   bool _isLoading = true;
   String? _error;
   bool _isFullScreen = false;
@@ -80,6 +85,11 @@ class _SessionReadingViewState extends State<SessionReadingView> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadPageVerses();
   }
 
@@ -93,17 +103,140 @@ class _SessionReadingViewState extends State<SessionReadingView> {
 
   void _loadPageVerses() {
     final readingProvider = context.read<QuranReadingProvider>();
-    final verses = readingProvider.getPageVerses(widget.pageNumber);
-    setState(() {
-      _verses = verses;
-      _isLoading = false;
-      _error = null;
-    });
+    final isTablet = MediaQuery.sizeOf(context).width > 768;
+    
+    if (isTablet) {
+      final spread = TabletLayoutMath.pageToSpread(widget.pageNumber);
+      final rightPage = TabletLayoutMath.spreadToRightPage(spread);
+      final leftPage = TabletLayoutMath.spreadToLeftPage(spread);
+      
+      setState(() {
+        _rightPageNumber = rightPage;
+        _verses = readingProvider.getPageVerses(rightPage);
+        _leftPageNumber = leftPage;
+        _leftPageVerses = readingProvider.getPageVerses(leftPage);
+        _isLoading = false;
+        _error = null;
+      });
+    } else {
+      setState(() {
+        _rightPageNumber = null;
+        _verses = readingProvider.getPageVerses(widget.pageNumber);
+        _leftPageNumber = null;
+        _leftPageVerses = null;
+        _isLoading = false;
+        _error = null;
+      });
+    }
+  }
+
+  Widget _buildQuranContent(ThemeProvider theme) {
+    final isTablet = _leftPageVerses != null && _leftPageNumber != null;
+    
+    if (!isTablet) {
+      return ReadingCanvas(
+        verses: _verses!,
+        pageNumber: widget.pageNumber,
+        selectedVerseId: _selectedVerseId,
+        onVerseSelected: (id) => setState(() => _selectedVerseId = id),
+        onCanvasTapped: () {
+          if (_selectedVerseId != null) {
+            setState(() => _selectedVerseId = null);
+          } else {
+            setState(() => _isFullScreen = !_isFullScreen);
+          }
+        },
+      );
+    }
+    
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        children: [
+          // Left Page Canvas
+          Expanded(
+            child: ReadingCanvas(
+              verses: _leftPageVerses!,
+              pageNumber: _leftPageNumber!,
+              selectedVerseId: _selectedVerseId,
+              onVerseSelected: (id) => setState(() => _selectedVerseId = id),
+              onCanvasTapped: () {
+                if (_selectedVerseId != null) {
+                  setState(() => _selectedVerseId = null);
+                } else {
+                  setState(() => _isFullScreen = !_isFullScreen);
+                }
+              },
+            ),
+          ),
+          
+          // Spine Divider
+          _buildSpineDivider(theme),
+          
+          // Right Page Canvas
+          Expanded(
+            child: ReadingCanvas(
+              verses: _verses!,
+              pageNumber: _rightPageNumber ?? widget.pageNumber,
+              selectedVerseId: _selectedVerseId,
+              onVerseSelected: (id) => setState(() => _selectedVerseId = id),
+              onCanvasTapped: () {
+                if (_selectedVerseId != null) {
+                  setState(() => _selectedVerseId = null);
+                } else {
+                  setState(() => _isFullScreen = !_isFullScreen);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpineDivider(ThemeProvider theme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          width: 12,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerRight,
+              end: Alignment.centerLeft,
+              colors: [
+                Colors.black.withValues(alpha: theme.spineEffectIntensity * 0.15),
+                Colors.black.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+        Container(
+          width: 1.5,
+          color: theme.dividerColor.withValues(alpha: 0.5),
+        ),
+        Container(
+          width: 12,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Colors.black.withValues(alpha: theme.spineEffectIntensity * 0.15),
+                Colors.black.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final sessionActive = context.select<SessionProvider, bool>((s) => s.isSpotlightActive);
 
     if (_isLoading) {
       return _buildLoadingState(theme);
@@ -115,19 +248,10 @@ class _SessionReadingViewState extends State<SessionReadingView> {
 
     return Stack(
       children: [
-        // The Quran page — scoped to a single page, no PageView/swiping
-        ReadingCanvas(
-          verses: _verses!,
-          pageNumber: widget.pageNumber,
-          selectedVerseId: _selectedVerseId,
-          onVerseSelected: (id) => setState(() => _selectedVerseId = id),
-          onCanvasTapped: () {
-            if (_selectedVerseId != null) {
-              setState(() => _selectedVerseId = null);
-            } else {
-              setState(() => _isFullScreen = !_isFullScreen);
-            }
-          },
+        // Wrap quran canvas with spotlight mask
+        SessionSpotlightMask(
+          isActive: sessionActive,
+          child: _buildQuranContent(theme),
         ),
 
         // Floating session controls overlay

@@ -606,6 +606,38 @@ class _TopPhaseBar extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Spotlight mask toggle button
+                  GestureDetector(
+                    onTap: () => session.toggleSpotlightActive(),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      color: Colors.transparent,
+                      child: Center(
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: session.isSpotlightActive
+                                ? theme.accentColor.withValues(alpha: 0.15)
+                                : theme.scaffoldBackground.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: session.isSpotlightActive
+                                  ? theme.accentColor.withValues(alpha: 0.4)
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Icon(
+                            session.isSpotlightActive ? LucideIcons.eyeOff : LucideIcons.eye,
+                            size: 14,
+                            color: session.isSpotlightActive ? theme.accentColor : theme.secondaryText,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   // Theme picker button
                   GestureDetector(
                     onTap: onThemeTap,
