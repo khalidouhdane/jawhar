@@ -89,11 +89,9 @@ class UnderstandingSpotlight extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.08),
-                      border: Border.all(
-                        color: accentColor.withValues(alpha: 0.3),
-                      ),
-                      borderRadius: BorderRadius.circular(10),
+                      color: theme.buttonDefaultBg,
+                      borderRadius: BorderRadius.circular(theme.radiusPill),
+                      boxShadow: theme.shadowRing,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -101,7 +99,7 @@ class UnderstandingSpotlight extends StatelessWidget {
                         Icon(
                           LucideIcons.compass,
                           size: 14,
-                          color: accentColor,
+                          color: theme.buttonDefaultText,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -110,7 +108,7 @@ class UnderstandingSpotlight extends StatelessWidget {
                             fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: accentColor,
+                            color: theme.buttonDefaultText,
                           ),
                         ),
                       ],
