@@ -25,16 +25,31 @@ import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/screens/tablet_reading_view.dart';
 
-class ReadingScreen extends StatefulWidget {
+class ReadingScreen extends StatelessWidget {
   final int initialPage;
   const ReadingScreen({super.key, this.initialPage = 1});
 
   @override
-  State<ReadingScreen> createState() => _ReadingScreenState();
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width >= 900) {
+      return TabletReadingView(initialPage: initialPage);
+    }
+    return MobileReadingView(initialPage: initialPage);
+  }
 }
 
-class _ReadingScreenState extends State<ReadingScreen> {
+class MobileReadingView extends StatefulWidget {
+  final int initialPage;
+  const MobileReadingView({super.key, this.initialPage = 1});
+
+  @override
+  State<MobileReadingView> createState() => _MobileReadingViewState();
+}
+
+class _MobileReadingViewState extends State<MobileReadingView> {
   String readMode = 'read';
 
   bool isAudioExpanded = false;
@@ -866,6 +881,8 @@ class QuranPage extends StatefulWidget {
   final VoidCallback onCanvasTapped;
   final String readMode;
   final ValueChanged<String>? onTranslateVerse;
+  final int? selectedVerseId;
+  final ValueChanged<int?>? onVerseSelected;
 
   const QuranPage({
     super.key,
@@ -873,6 +890,8 @@ class QuranPage extends StatefulWidget {
     required this.onCanvasTapped,
     this.readMode = 'read',
     this.onTranslateVerse,
+    this.selectedVerseId,
+    this.onVerseSelected,
   });
 
   @override
@@ -883,7 +902,9 @@ class QuranPageState extends State<QuranPage>
     with AutomaticKeepAliveClientMixin {
   List<Verse>? _verses;
   bool _isLoading = true;
-  int? _selectedVerseId;
+  int? _localSelectedVerseId;
+
+  int? get _selectedVerseId => widget.selectedVerseId ?? _localSelectedVerseId;
 
   @override
   bool get wantKeepAlive => true;
@@ -998,9 +1019,13 @@ class QuranPageState extends State<QuranPage>
             pageNumber: widget.pageNumber,
             selectedVerseId: _selectedVerseId,
             onVerseSelected: (id) {
-              setState(() {
-                _selectedVerseId = id;
-              });
+              if (widget.onVerseSelected != null) {
+                widget.onVerseSelected!(id);
+              } else {
+                setState(() {
+                  _localSelectedVerseId = id;
+                });
+              }
               if (id == null) {
                 context.read<ContextProvider>().disableTranslation();
               }
