@@ -7,7 +7,7 @@ import 'package:quran_app/screens/setup_screen.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 
-/// Onboarding showcase — 3 swipeable slides with interactive screenshot mock-ups.
+/// Onboarding showcase — 3 swipeable slides with interactive realistic phone mock-ups.
 ///
 /// Shows the "Three Beats" of Jawhar:
 /// 1. Read & Listen
@@ -83,6 +83,37 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
     );
   }
 
+  Widget _getTopIcon(int page, ThemeProvider theme) {
+    IconData icon;
+    Color color;
+    switch (page) {
+      case 0:
+        icon = LucideIcons.bookOpen;
+        color = const Color(0xFF3B82F6);
+        break;
+      case 1:
+        icon = LucideIcons.lightbulb;
+        color = const Color(0xFFF59E0B);
+        break;
+      case 2:
+      default:
+        icon = LucideIcons.brain;
+        color = const Color(0xFF8B5CF6);
+        break;
+    }
+
+    return Container(
+      key: ValueKey(page),
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(GeistTokens.radiusLg),
+      ),
+      child: Icon(icon, size: 18, color: color),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
@@ -97,35 +128,41 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
             position: _entranceSlide,
             child: Column(
               children: [
-                // ── Skip button ──
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 8, right: 16),
-                    child: TextButton(
-                      onPressed: _navigateToSetup,
-                      child: Text(
-                        l10n.onboardingSkip,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: theme.mutedText,
+                // ── Top Bar (Icon Left + Skip Right) ──
+                Padding(
+                  padding: const EdgeInsets.only(left: 24, right: 16, top: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Top Left: Section Icon
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _getTopIcon(_currentPage, theme),
+                      ),
+                      // Top Right: Skip Button
+                      TextButton(
+                        onPressed: _navigateToSetup,
+                        child: Text(
+                          l10n.onboardingSkip,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: theme.mutedText,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
 
-                // ── Slides ──
+                // ── Main Page Content ──
                 Expanded(
                   child: PageView(
                     controller: _pageController,
                     onPageChanged: (i) => setState(() => _currentPage = i),
                     children: [
                       _ShowcaseSlide(
-                        icon: LucideIcons.bookOpen,
-                        iconColor: const Color(0xFF3B82F6),
                         title: l10n.onboardingReadTitle,
                         subtitle: l10n.onboardingReadDesc,
                         mockupStack: const ScreenshotMockupStack(
@@ -134,8 +171,6 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
                         ),
                       ),
                       _ShowcaseSlide(
-                        icon: LucideIcons.lightbulb,
-                        iconColor: const Color(0xFFF59E0B),
                         title: l10n.onboardingUnderstandTitle,
                         subtitle: l10n.onboardingUnderstandDesc,
                         mockupStack: const ScreenshotMockupStack(
@@ -144,8 +179,6 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
                         ),
                       ),
                       _ShowcaseSlide(
-                        icon: LucideIcons.brain,
-                        iconColor: const Color(0xFF8B5CF6),
                         title: l10n.onboardingMemorizeTitle,
                         subtitle: l10n.onboardingMemorizeDesc,
                         mockupStack: const ScreenshotMockupStack(
@@ -157,47 +190,42 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
                   ),
                 ),
 
-                // ── Page indicators + CTA ──
+                // ── Pinned Bottom Bar (Dots + Next) ──
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 24,
-                  ),
-                  child: Column(
+                  padding: const EdgeInsets.fromLTRB(28, 8, 28, 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Dots
+                      // Page Indicators
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(_totalPages, (i) {
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: i == _currentPage ? 24 : 8,
-                            height: 8,
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: i == _currentPage ? 18 : 6,
+                            height: 6,
                             decoration: BoxDecoration(
                               color: i == _currentPage
                                   ? theme.primaryText
                                   : theme.dividerColor,
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(3),
                             ),
                           );
                         }),
                       ),
 
-                      const SizedBox(height: 24),
-
-                      // CTA
+                      // Next Button
                       SizedBox(
-                        width: double.infinity,
-                        height: 52,
+                        height: 42,
                         child: FilledButton(
                           onPressed: _next,
                           style: FilledButton.styleFrom(
                             backgroundColor: theme.primaryText,
                             foregroundColor: theme.scaffoldBackground,
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
-                                GeistTokens.radiusXl,
+                                GeistTokens.radiusLg,
                               ),
                             ),
                           ),
@@ -207,7 +235,7 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
                                 : l10n.actionContinue,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -230,15 +258,11 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
 // ══════════════════════════════════════════════
 
 class _ShowcaseSlide extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
   final String title;
   final String subtitle;
   final Widget mockupStack;
 
   const _ShowcaseSlide({
-    required this.icon,
-    required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.mockupStack,
@@ -249,35 +273,25 @@ class _ShowcaseSlide extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
       child: Column(
         children: [
-          const Spacer(flex: 1),
-
-          // ── Overlapping mock-up stack ──
-          mockupStack,
-
-          const SizedBox(height: 32),
-
-          // ── Icon badge ──
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(GeistTokens.radiusLg),
+          // ── Responsive Mockup Area ──
+          Expanded(
+            child: Center(
+              child: mockupStack,
             ),
-            child: Icon(icon, size: 24, color: iconColor),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // ── Title ──
+          // ── Text Content ──
           Text(
             title,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               color: theme.primaryText,
               letterSpacing: -0.5,
@@ -286,23 +300,19 @@ class _ShowcaseSlide extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // ── Subtitle ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: GeistTypography.primaryFontFamily,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: theme.secondaryText,
-                height: 1.5,
-              ),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: theme.secondaryText,
+              height: 1.55,
             ),
           ),
 
-          const Spacer(flex: 1),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -310,7 +320,119 @@ class _ShowcaseSlide extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════
-// Screenshot Mockup Stack Widget
+// Programmatic Realistic Phone Bezel Frame
+// ══════════════════════════════════════════════
+
+class PhoneFrame extends StatelessWidget {
+  final Widget child;
+
+  const PhoneFrame({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    final isDark = theme.isDark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF2C2C2E),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: isDark ? const Color(0xFF333333) : const Color(0xFF48484A),
+          width: 3.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(4.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          color: theme.scaffoldBackground,
+          child: Column(
+            children: [
+              // ── Phone Notch & Status Bar ──
+              Container(
+                height: 18,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                color: theme.scaffoldBackground,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '19:27',
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                        color: theme.primaryText,
+                      ),
+                    ),
+                    // Notch
+                    Container(
+                      width: 36,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.black : const Color(0xFF1C1C1E),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.signal_cellular_4_bar, color: theme.primaryText, size: 8),
+                        const SizedBox(width: 2),
+                        Icon(Icons.wifi, color: theme.primaryText, size: 8),
+                        const SizedBox(width: 2),
+                        Container(
+                          width: 10,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: theme.primaryText, width: 0.6),
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                          padding: const EdgeInsets.all(0.4),
+                          child: Container(
+                            color: theme.primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Main Screen Viewport ──
+              Expanded(child: child),
+
+              // ── iOS Home Indicator ──
+              Container(
+                height: 10,
+                color: theme.scaffoldBackground,
+                alignment: Alignment.center,
+                child: Container(
+                  width: 36,
+                  height: 2.2,
+                  decoration: BoxDecoration(
+                    color: theme.mutedText.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════
+// Interactive Depth-Swapping Mockup Stack Widget
 // ══════════════════════════════════════════════
 
 class ScreenshotMockupStack extends StatefulWidget {
@@ -335,20 +457,33 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
     final size = MediaQuery.of(context).size;
     final theme = context.watch<ThemeProvider>();
     
-    // Calculate responsive stack dimensions to fit well inside the slide view
-    final stackWidth = size.width * 0.75;
-    final stackHeight = size.height * 0.40;
-    final cardWidth = stackWidth * 0.65;
-    final cardHeight = stackHeight * 0.85;
+    // Maximize height based on screen size while reserving spacing
+    final stackWidth = size.width * 0.8;
+    final stackHeight = size.height * 0.46;
+
+    // Standard phone screen has 9:19.5 aspect ratio. 
+    // Card height = screen + status bar (18) + home indicator (10) + border (7)
+    final cardHeight = stackHeight * 0.95;
+    final cardWidth = ((cardHeight - 35) * 0.47).clamp(80.0, stackWidth * 0.62);
+
+    // Calculate margins to center the offset stack within the container
+    final double stackSpan = cardWidth + stackWidth * 0.22;
+    final double horizontalPadding = ((stackWidth - stackSpan) / 2).clamp(0.0, stackWidth);
+
+    final leftOffsetForeground = horizontalPadding + (_isSwapped ? 0.0 : stackWidth * 0.22);
+    final leftOffsetBackground = horizontalPadding + (_isSwapped ? stackWidth * 0.22 : 0.0);
+
+    final topOffsetForeground = stackHeight * 0.02;
+    final topOffsetBackground = stackHeight * 0.12;
 
     final cardA = AnimatedPositioned(
       key: const ValueKey('cardA'),
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      left: _isSwapped ? stackWidth * 0.05 : stackWidth * 0.28,
-      top: _isSwapped ? stackHeight * 0.12 : stackHeight * 0.02,
+      left: leftOffsetForeground,
+      top: _isSwapped ? topOffsetBackground : topOffsetForeground,
       child: AnimatedScale(
-        scale: _isSwapped ? 0.85 : 1.0,
+        scale: _isSwapped ? 0.86 : 1.0,
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
         child: AnimatedOpacity(
@@ -364,10 +499,10 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
       key: const ValueKey('cardB'),
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      left: _isSwapped ? stackWidth * 0.28 : stackWidth * 0.05,
-      top: _isSwapped ? stackHeight * 0.02 : stackHeight * 0.12,
+      left: leftOffsetBackground,
+      top: _isSwapped ? topOffsetForeground : topOffsetBackground,
       child: AnimatedScale(
-        scale: _isSwapped ? 1.0 : 0.85,
+        scale: _isSwapped ? 1.0 : 0.86,
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
         child: AnimatedOpacity(
@@ -385,7 +520,8 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
           _isSwapped = !_isSwapped;
         });
       },
-      child: SizedBox(
+      child: Container(
+        color: Colors.transparent, // expand gesture area
         width: stackWidth,
         height: stackHeight,
         child: Stack(
@@ -397,27 +533,10 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
   }
 
   Widget _buildCard(String assetPath, double width, double height, {required bool isForeground, required ThemeProvider theme}) {
-    return Container(
+    return SizedBox(
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.isDark 
-              ? Colors.white.withValues(alpha: isForeground ? 0.15 : 0.08)
-              : Colors.black.withValues(alpha: isForeground ? 0.12 : 0.06),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isForeground ? 0.35 : 0.15),
-            blurRadius: isForeground ? 20 : 10,
-            offset: Offset(0, isForeground ? 10 : 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+      child: PhoneFrame(
         child: Image.asset(
           assetPath,
           fit: BoxFit.cover,
