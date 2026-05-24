@@ -934,13 +934,32 @@ class QuranPageState extends State<QuranPage>
     });
   }
 
-  void _scrollToVerse(int index) {
-    if (!_tafsirScrollController.hasClients) return;
+  void _scrollToVerse(int index, String verseKey) {
+    if (!mounted) return;
+
+    final activeVerseKey = context.read<AudioProvider>().activeVerseKey;
+    final highlightKey = context.read<ContextProvider>().highlightVerseKey;
+    final currentKey = activeVerseKey ?? highlightKey;
+    if (currentKey != verseKey) return; // Stale scroll target
+
+    if (!_tafsirScrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
+      return;
+    }
+
+    final maxScroll = _tafsirScrollController.position.maxScrollExtent;
+    if (index > 0 && maxScroll == 0) {
+      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
+      return;
+    }
+
+    _lastScrolledVerseKey = verseKey;
+
     const double estimatedItemHeight = 200.0;
     final double viewportHeight = _tafsirScrollController.position.viewportDimension;
     double targetOffset = (index * estimatedItemHeight) - (viewportHeight / 2) + (estimatedItemHeight / 2);
-    final double maxScroll = _tafsirScrollController.position.maxScrollExtent;
     targetOffset = targetOffset.clamp(0.0, maxScroll);
+
     _tafsirScrollController.animateTo(
       targetOffset,
       duration: const Duration(milliseconds: 600),
@@ -1138,7 +1157,7 @@ class QuranPageState extends State<QuranPage>
         _lastScrolledVerseKey = scrollKey;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          _scrollToVerse(index);
+          _scrollToVerse(index, scrollKey);
           if (scrollKey == highlightKey) {
             context.read<ContextProvider>().clearHighlightVerse();
           }

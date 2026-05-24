@@ -25,13 +25,10 @@ class AudioProxyServer {
       // Bind to loopback IPv4 with port 0 to allocate any free ephemeral port
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       _server!.listen(_handleRequest, onError: (e) {
-        print('[_server.listen] AudioProxy listener error: $e');
         AppLogger.error('AudioProxy', 'Error in proxy server listener', e);
       });
-      print('[AudioProxy] Started on port $port');
-      AppLogger.warn('AudioProxy', 'Audio proxy server started on port $port');
+      AppLogger.info('AudioProxy', 'Audio proxy server started on port $port');
     } catch (e) {
-      print('[AudioProxy] Failed to start: $e');
       AppLogger.error('AudioProxy', 'Failed to start proxy server', e);
     }
   }
@@ -42,10 +39,8 @@ class AudioProxyServer {
     try {
       await _server?.close(force: true);
       _server = null;
-      print('[AudioProxy] Stopped');
-      AppLogger.warn('AudioProxy', 'Audio proxy server stopped');
+      AppLogger.info('AudioProxy', 'Audio proxy server stopped');
     } catch (e) {
-      print('[AudioProxy] Error stopping: $e');
       AppLogger.error('AudioProxy', 'Error stopping proxy server', e);
     }
   }
@@ -53,7 +48,7 @@ class AudioProxyServer {
   /// Translates a remote URL to a proxy URL if the server is running.
   String proxyUrl(String originalUrl) {
     if (!isRunning) {
-      print('[AudioProxy] Warning: proxyUrl called but server is not running. Returning original: $originalUrl');
+      AppLogger.warn('AudioProxy', 'proxyUrl called but server is not running. Returning original: $originalUrl');
       return originalUrl;
     }
     // Don't proxy local files or already proxied/loopback URLs
@@ -64,8 +59,7 @@ class AudioProxyServer {
       return originalUrl;
     }
     final proxied = 'http://127.0.0.1:$port/proxy?url=${Uri.encodeComponent(originalUrl)}';
-    print('[AudioProxy] Translating URL: $originalUrl -> $proxied');
-    AppLogger.warn('AudioProxy', 'Translating URL: $originalUrl -> $proxied');
+    AppLogger.info('AudioProxy', 'Translating URL: $originalUrl -> $proxied');
     return proxied;
   }
 
@@ -73,15 +67,13 @@ class AudioProxyServer {
   Future<void> _handleRequest(HttpRequest request) async {
     final urlString = request.uri.queryParameters['url'];
     if (urlString == null) {
-      print('[AudioProxy] Missing URL parameter in request');
       AppLogger.warn('AudioProxy', 'Received proxy request with missing url parameter');
       request.response.statusCode = HttpStatus.badRequest;
       await request.response.close();
       return;
     }
 
-    print('[AudioProxy] Handling request: ${request.method} $urlString');
-    AppLogger.warn('AudioProxy', 'Proxying request: ${request.method} $urlString');
+    AppLogger.info('AudioProxy', 'Proxying request: ${request.method} $urlString');
 
     try {
       final targetUri = Uri.parse(urlString);
@@ -99,8 +91,7 @@ class AudioProxyServer {
 
       final clientResponse = await clientRequest.close();
 
-      print('[AudioProxy] Remote server responded with status: ${clientResponse.statusCode}');
-      AppLogger.warn('AudioProxy', 'Remote server responded with status: ${clientResponse.statusCode}');
+      AppLogger.info('AudioProxy', 'Remote server responded with status: ${clientResponse.statusCode}');
 
       // Copy response status and headers back to the player
       request.response.statusCode = clientResponse.statusCode;
@@ -116,10 +107,8 @@ class AudioProxyServer {
 
       // Stream the response body directly to the player
       await request.response.addStream(clientResponse);
-      print('[AudioProxy] Stream piping finished successfully for $urlString');
-      AppLogger.warn('AudioProxy', 'Stream piping finished successfully for $urlString');
+      AppLogger.info('AudioProxy', 'Stream piping finished successfully for $urlString');
     } catch (e) {
-      print('[AudioProxy] Proxy error requesting $urlString: $e');
       AppLogger.error('AudioProxy', 'Proxy error requesting $urlString', e);
       request.response.statusCode = HttpStatus.internalServerError;
     } finally {
