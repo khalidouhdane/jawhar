@@ -738,10 +738,6 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
                 return GestureDetector(
             onTap: _toggleFullScreen,
-            onLongPress: () {
-              final audioProvider = context.read<AudioProvider>();
-              audioProvider.playSingleVerse(verse);
-            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeOut,
@@ -769,15 +765,28 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                               );
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: theme.accentColor.withValues(alpha: 0.08),
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(100),
+                                border: Border.all(
+                                  color: theme.accentColor.withValues(alpha: 0.15),
+                                ),
                               ),
-                              child: Icon(
-                                LucideIcons.play,
-                                size: 14,
-                                color: theme.accentColor,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.play_arrow_rounded, size: 12, color: theme.accentColor),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    l.localeName == 'ar' ? 'تشغيل' : 'Play',
+                                    style: TextStyle(
+                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.accentColor,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -815,7 +824,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                     style: TextStyle(
                                       fontFamily: GeistTypography.primaryFontFamily,
                                       fontSize: 11,
-                                      fontWeight: FontWeight.w500,
+                                      fontWeight: FontWeight.w600,
                                       color: theme.primaryText,
                                     ),
                                   ),
@@ -862,7 +871,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                       style: TextStyle(
                                         fontFamily: GeistTypography.primaryFontFamily,
                                         fontSize: 11,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w600,
                                         color: theme.accentColor,
                                       ),
                                     ),
