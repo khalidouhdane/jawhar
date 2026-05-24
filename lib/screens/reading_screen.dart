@@ -16,6 +16,7 @@ import 'package:quran_app/widgets/context/translation_overlay.dart';
 import 'package:quran_app/widgets/overlays.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 import 'package:quran_app/widgets/top_nav_bar.dart';
 import 'package:quran_app/services/local_storage_service.dart';
@@ -382,7 +383,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     },
                     itemBuilder: (context, index) {
                       final page = _totalPages - index;
-                      return _QuranPage(
+                      return QuranPage(
                         pageNumber: page,
                         onCanvasTapped: _toggleFullScreen,
                         readMode: readMode,
@@ -433,7 +434,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                 ? ch.nameArabic
                                 : ch.nameSimple;
                           } catch (_) {
-                            sName = 'Surah $chId';
+                            sName = VerseRefFormatter.surahName(chId, l!.localeName);
                           }
                         }
                         final added = context
@@ -494,7 +495,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                         ? chapter.nameArabic
                         : chapter.nameSimple;
                   } catch (e) {
-                    surahName = '${l.readTabSurah} $chapterId';
+                    surahName = VerseRefFormatter.surahName(chapterId, l.localeName);
                   }
                 }
 
@@ -521,29 +522,13 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           .clamp(0.0, 1.0)
                     : 0.0;
 
-                // Build the playing title from the ACTUAL playing verse, not the viewed page
                 String playingVerseLabel = l.readingSelectVerse;
                 if (audioProvider.activeVerseKey != null) {
-                  final parts = audioProvider.activeVerseKey!.split(':');
-                  if (parts.length == 2) {
-                    // Look up the playing verse's chapter
-                    final playingChapterId = int.tryParse(parts[0]) ?? 0;
-                    String playingSurahName = surahName; // fallback
-                    if (readingProvider.chapters.isNotEmpty &&
-                        playingChapterId > 0) {
-                      try {
-                        final playingChapter = readingProvider.chapters
-                            .firstWhere((c) => c.id == playingChapterId);
-                        playingSurahName = l.localeName == 'ar'
-                            ? playingChapter.nameArabic
-                            : playingChapter.nameSimple;
-                      } catch (_) {}
-                    }
-                    playingVerseLabel =
-                        '$playingSurahName - ${l.readingVerse} ${parts[1]}';
-                  } else {
-                    playingVerseLabel = '$surahName - ${l.readingPlaying}';
-                  }
+                  playingVerseLabel = VerseRefFormatter.format(
+                    audioProvider.activeVerseKey!,
+                    locale: l.localeName,
+                    tier: VerseRefFormat.standard,
+                  );
                 }
                 // Determine if we are currently viewing the page that is playing
                 bool isViewingPlayingPage = true;
@@ -666,7 +651,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                           ? chapter.nameArabic
                           : chapter.nameSimple;
                     } catch (e) {
-                      surahName = '${l.readTabSurah} $chapterId';
+                      surahName = VerseRefFormatter.surahName(chapterId, l.localeName);
                     }
                   }
 
@@ -777,8 +762,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      _OverlayText(text: surahName),
-                                      _OverlayText(text: hizbName),
+                                      OverlayText(text: surahName),
+                                      OverlayText(text: hizbName),
                                     ],
                                   ),
                                 ),
@@ -816,20 +801,20 @@ class _ReadingScreenState extends State<ReadingScreen> {
                                       children: [
                                         Align(
                                           alignment: pageNumberAlignment,
-                                          child: _OverlayText(
+                                          child: OverlayText(
                                             text: '${readingProvider.activePage}',
                                           ),
                                         ),
                                         if (hizbAlignment != null)
                                           Align(
                                             alignment: hizbAlignment,
-                                            child: _OverlayText(text: juzName),
+                                            child: OverlayText(text: juzName),
                                           ),
                                         if (indicatorAlignment != null &&
                                             effectiveShowBookIcon)
                                           Align(
                                             alignment: indicatorAlignment,
-                                            child: _BookSideIndicator(
+                                            child: BookSideIndicator(
                                               isRightPage: isOddPage,
                                               theme: theme,
                                             ),
@@ -854,10 +839,10 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 }
 
-class _OverlayText extends StatelessWidget {
+class OverlayText extends StatelessWidget {
   final String text;
 
-  const _OverlayText({required this.text});
+  const OverlayText({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -876,13 +861,14 @@ class _OverlayText extends StatelessWidget {
 }
 
 /// A single Quran page that loads its own data and manages its own selection
-class _QuranPage extends StatefulWidget {
+class QuranPage extends StatefulWidget {
   final int pageNumber;
   final VoidCallback onCanvasTapped;
   final String readMode;
   final ValueChanged<String>? onTranslateVerse;
 
-  const _QuranPage({
+  const QuranPage({
+    super.key,
     required this.pageNumber,
     required this.onCanvasTapped,
     this.readMode = 'read',
@@ -890,10 +876,10 @@ class _QuranPage extends StatefulWidget {
   });
 
   @override
-  State<_QuranPage> createState() => _QuranPageState();
+  State<QuranPage> createState() => QuranPageState();
 }
 
-class _QuranPageState extends State<_QuranPage>
+class QuranPageState extends State<QuranPage>
     with AutomaticKeepAliveClientMixin {
   List<Verse>? _verses;
   bool _isLoading = true;
@@ -1215,7 +1201,7 @@ class _QuranPageState extends State<_QuranPage>
                         borderRadius: BorderRadius.circular(theme.radiusLg),
                       ),
                       child: Text(
-                        verse.verseKey,
+                        VerseRefFormatter.format(verse.verseKey, locale: l.localeName, tier: VerseRefFormat.compact),
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 11,
@@ -1403,11 +1389,11 @@ class _QuranPageState extends State<_QuranPage>
   }
 }
 
-class _BookSideIndicator extends StatelessWidget {
+class BookSideIndicator extends StatelessWidget {
   final bool isRightPage;
   final ThemeProvider theme;
 
-  const _BookSideIndicator({required this.isRightPage, required this.theme});
+  const BookSideIndicator({super.key, required this.isRightPage, required this.theme});
 
   @override
   Widget build(BuildContext context) {
