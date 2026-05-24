@@ -16,6 +16,7 @@ import 'package:quran_app/providers/werd_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/utils/tablet_layout_math.dart';
 import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/bottom_dock.dart';
@@ -58,7 +59,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
     // Initialize PageController based on the default 'read' mode spreads or 'tafsir' mode pages.
     if (readMode == 'read') {
-      final startSpread = (startPage + 1) ~/ 2;
+      final startSpread = TabletLayoutMath.pageToSpread(startPage);
       _pageController = PageController(
         initialPage: 302 - startSpread,
         keepPage: false,
@@ -87,8 +88,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
     // Initial page Werd tracking
     if (readMode == 'read') {
-      final startSpread = (startPage + 1) ~/ 2;
-      _startPagesReadTimer({2 * startSpread - 1, 2 * startSpread});
+      final startSpread = TabletLayoutMath.pageToSpread(startPage);
+      _startPagesReadTimer({
+        TabletLayoutMath.spreadToRightPage(startSpread),
+        TabletLayoutMath.spreadToLeftPage(startSpread),
+      });
     } else {
       _startPagesReadTimer({startPage});
     }
@@ -125,9 +129,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     final playingPage = _getVersePage(verseKey);
 
     if (readMode == 'read') {
-      final currentS = (readingProvider.activePage + 1) ~/ 2;
-      final rightP = 2 * currentS - 1;
-      final leftP = 2 * currentS;
+      final currentS = TabletLayoutMath.pageToSpread(readingProvider.activePage);
+      final rightP = TabletLayoutMath.spreadToRightPage(currentS);
+      final leftP = TabletLayoutMath.spreadToLeftPage(currentS);
 
       // In read mode, only flip pages if playing verse page is outside visible spread
       if (playingPage == rightP || playingPage == leftP) {
@@ -137,7 +141,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
         return;
       }
 
-      final targetSpread = (playingPage + 1) ~/ 2;
+      final targetSpread = TabletLayoutMath.pageToSpread(playingPage);
       _goToSpread(targetSpread);
     } else {
       // In tafsir mode, flip pages immediately when the active verse crosses the page boundary
@@ -148,7 +152,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
   void _goToSpread(int spread) {
     final readingProvider = context.read<QuranReadingProvider>();
-    final rightPage = 2 * spread - 1;
+    final rightPage = TabletLayoutMath.spreadToRightPage(spread);
     readingProvider.loadPage(rightPage);
     if (_pageController.hasClients) {
       _pageController.jumpToPage(302 - spread);
@@ -172,7 +176,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     }
 
     if (readMode == 'read') {
-      final startSpread = (activePage + 1) ~/ 2;
+      final startSpread = TabletLayoutMath.pageToSpread(activePage);
       _pageController = PageController(
         initialPage: 302 - startSpread,
         keepPage: false,
@@ -194,8 +198,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
     final activePage = context.read<QuranReadingProvider>().activePage;
     if (readMode == 'read') {
-      final spread = (activePage + 1) ~/ 2;
-      _startPagesReadTimer({2 * spread - 1, 2 * spread});
+      final spread = TabletLayoutMath.pageToSpread(activePage);
+      _startPagesReadTimer({
+        TabletLayoutMath.spreadToRightPage(spread),
+        TabletLayoutMath.spreadToLeftPage(spread),
+      });
     } else {
       _startPagesReadTimer({activePage});
     }
@@ -205,7 +212,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     final readingProvider = context.read<QuranReadingProvider>();
     readingProvider.loadPage(page);
     if (readMode == 'read') {
-      final spread = (page + 1) ~/ 2;
+      final spread = TabletLayoutMath.pageToSpread(page);
       if (_pageController.hasClients) {
         _pageController.jumpToPage(302 - spread);
       }
@@ -218,8 +225,8 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
   void _onSpreadPageChanged(int index) {
     final S = 302 - index;
-    final rightPage = 2 * S - 1;
-    final leftPage = 2 * S;
+    final rightPage = TabletLayoutMath.spreadToRightPage(S);
+    final leftPage = TabletLayoutMath.spreadToLeftPage(S);
 
     final readingProvider = context.read<QuranReadingProvider>();
     final currentActive = readingProvider.activePage;
@@ -917,8 +924,8 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                           itemBuilder: (context, index) {
                             if (readMode == 'read') {
                               final S = 302 - index;
-                              final rightPage = 2 * S - 1;
-                              final leftPage = 2 * S;
+                              final rightPage = TabletLayoutMath.spreadToRightPage(S);
+                              final leftPage = TabletLayoutMath.spreadToLeftPage(S);
 
                               return Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1080,9 +1087,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                 if (audioProvider.activeVerseKey != null) {
                   final playingPage = _getVersePage(audioProvider.activeVerseKey!);
                   if (readMode == 'read') {
-                    final currentS = (readingProvider.activePage + 1) ~/ 2;
-                    final rightP = 2 * currentS - 1;
-                    final leftP = 2 * currentS;
+                    final currentS = TabletLayoutMath.pageToSpread(readingProvider.activePage);
+                    final rightP = TabletLayoutMath.spreadToRightPage(currentS);
+                    final leftP = TabletLayoutMath.spreadToLeftPage(currentS);
                     isViewingPlayingPage = (playingPage == rightP || playingPage == leftP);
                   } else {
                     isViewingPlayingPage = (playingPage == readingProvider.activePage);
