@@ -342,192 +342,42 @@ class _SessionOverlayState extends State<SessionOverlay> {
               slideOffset: const Offset(-1.2, 1.2),
               isFullScreen: widget.isFullScreen,
               maxWidth: 360,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: theme.pillBackground,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          LucideIcons.user,
-                          size: 18,
-                          color: theme.iconColor,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              audioProvider.reciterName,
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: theme.primaryText,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              playingVerseLabel,
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 10,
-                                color: theme.secondaryText,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _showReciterMenu,
-                        child: Icon(
-                          LucideIcons.globe,
-                          size: 18,
-                          color: theme.iconColor,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => setState(() => _isAudioExpanded = !_isAudioExpanded),
-                        child: Icon(
-                          _isAudioExpanded ? LucideIcons.chevronDown : LucideIcons.chevronUp,
-                          size: 18,
-                          color: theme.iconColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_isAudioExpanded) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Text(
-                          currentPosStr,
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 9,
-                            color: theme.mutedText,
-                          ),
-                        ),
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 3,
-                              activeTrackColor: theme.sliderActive,
-                              inactiveTrackColor: theme.sliderInactive,
-                              thumbColor: theme.sliderActive,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
-                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                            ),
-                            child: Slider(
-                              value: progress,
-                              onChanged: (val) => audioProvider.seekToFraction(val),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          totalDurStr,
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 9,
-                            color: theme.mutedText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () => audioProvider.toggleRepeatMode(),
-                          child: Icon(
-                            audioProvider.repeatMode == AudioRepeatMode.repeatVerse
-                                ? LucideIcons.repeat1
-                                : LucideIcons.repeat,
-                            size: 18,
-                            color: audioProvider.repeatMode != AudioRepeatMode.none
-                                ? theme.accentColor
-                                : theme.iconColor,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => audioProvider.skipToPreviousVerse(),
-                              child: Icon(
-                                LucideIcons.skipBack,
-                                size: 20,
-                                color: theme.iconColor,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            GestureDetector(
-                              onTap: () {
-                                if (audioProvider.activeVerseKey == null && widget.verses.isNotEmpty) {
-                                  SessionAudioHelper.playPageAudio(audioProvider, widget.verses);
-                                } else {
-                                  audioProvider.togglePlay();
-                                }
-                              },
-                              child: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: theme.accentColor,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: audioProvider.isLoading
-                                    ? Padding(
-                                        padding: const EdgeInsets.all(10),
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: theme.scaffoldBackground,
-                                        ),
-                                      )
-                                    : Icon(
-                                        audioProvider.isPlaying ? LucideIcons.pause : LucideIcons.play,
-                                        size: 16,
-                                        color: theme.scaffoldBackground,
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            GestureDetector(
-                              onTap: () => audioProvider.skipToNextVerse(),
-                              child: Icon(
-                                LucideIcons.skipForward,
-                                size: 20,
-                                color: theme.iconColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        GestureDetector(
-                          onTap: _showAudioSettings,
-                          child: Icon(
-                            LucideIcons.settings,
-                            size: 18,
-                            color: theme.iconColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
+              padding: EdgeInsets.zero,
+              child: AudioPlayerBridge(
+                margin: EdgeInsets.zero,
+                decoration: const BoxDecoration(color: Colors.transparent),
+                isExpanded: _isAudioExpanded,
+                isPlaying: audioProvider.isPlaying,
+                isLoading: audioProvider.isLoading,
+                currentPositionText: currentPosStr,
+                totalDurationText: totalDurStr,
+                progress: progress,
+                playingTitle: playingVerseLabel,
+                reciterId: audioProvider.reciterId,
+                reciterName: audioProvider.reciterName,
+                repeatMode: audioProvider.repeatMode,
+                repeatCount: audioProvider.repeatCount,
+                onToggleExpand: () =>
+                    setState(() => _isAudioExpanded = !_isAudioExpanded),
+                onTogglePlay: () {
+                  if (audioProvider.activeVerseKey == null &&
+                      widget.verses.isNotEmpty) {
+                    SessionAudioHelper.playPageAudio(
+                      audioProvider,
+                      widget.verses,
+                    );
+                  } else {
+                    audioProvider.togglePlay();
+                  }
+                },
+                onReciterMenuTapped: _showReciterMenu,
+                onSettingsTapped: _showAudioSettings,
+                onSkipNext: () => audioProvider.skipToNextVerse(),
+                onSkipPrevious: () => audioProvider.skipToPreviousVerse(),
+                onJumpForward: () => audioProvider.seekForward(10),
+                onJumpBackward: () => audioProvider.seekBackward(10),
+                onRepeatToggle: () => audioProvider.toggleRepeatMode(),
+                onSeek: (val) => audioProvider.seekToFraction(val),
               ),
             ),
 

@@ -8,6 +8,9 @@ class BottomDock extends StatefulWidget {
   final ValueChanged<int> onPageSelected;
   final String surahName;
   final String hizbName;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
+  final Decoration? decoration;
 
   const BottomDock({
     super.key,
@@ -16,6 +19,9 @@ class BottomDock extends StatefulWidget {
     required this.onPageSelected,
     required this.surahName,
     required this.hizbName,
+    this.margin,
+    this.padding,
+    this.decoration,
   });
   @override
   State<BottomDock> createState() => _BottomDockState();
@@ -32,12 +38,14 @@ class _BottomDockState extends State<BottomDock> {
         : 604;
 
     return Container(
-      decoration: BoxDecoration(
-        color: theme.dockBackground,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: theme.shadowRing,
-      ),
-      padding: const EdgeInsets.all(16),
+      margin: widget.margin,
+      decoration: widget.decoration ??
+          BoxDecoration(
+            color: theme.dockBackground,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            boxShadow: theme.shadowRing,
+          ),
+      padding: widget.padding ?? const EdgeInsets.all(16),
       child: SafeArea(
         top: false,
         child: Column(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/widgets/floating_corner_card.dart';
+import 'package:quran_app/widgets/top_nav_bar.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,8 +19,6 @@ class MockThemeProvider extends ThemeProvider {
 
 void main() {
   group('FloatingCornerCard Tests', () {
-    late Widget testWidget;
-
     setUp(() {
       SharedPreferences.setMockInitialValues({});
     });
@@ -107,6 +106,44 @@ void main() {
       final AnimatedSlide slideWidget = tester.widget(find.byType(AnimatedSlide));
       // -1.2 * -1.0 = 1.2
       expect(slideWidget.offset, const Offset(1.2, -1.2));
+    });
+
+    testWidgets('TopLeftNavBar should render read/tafsir options', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => MockThemeProvider(),
+          child: MaterialApp(
+            home: Scaffold(
+              body: TopLeftNavBar(
+                readMode: 'read',
+                onReadModeChanged: (v) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(TopLeftNavBar), findsOneWidget);
+    });
+
+    testWidgets('TopRightNavBar should render theme, search, bookmark buttons', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => MockThemeProvider(),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: TopRightNavBar(
+                isBookmarked: true,
+                onThemeTapped: null,
+                onNavMenuTapped: null,
+                onBookmarkTapped: null,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(TopRightNavBar), findsOneWidget);
     });
   });
 }

@@ -6,6 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/widgets/floating_corner_card.dart';
+import 'package:quran_app/widgets/top_nav_bar.dart';
+import 'package:quran_app/widgets/bottom_dock.dart';
+import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/audio_provider.dart';
@@ -1141,6 +1144,23 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                     ? (config.pagesReadToday / config.todayTarget).clamp(0.0, 1.0)
                     : 0.0;
 
+                bool isViewingPlayingPage = true;
+                int? targetPage;
+                if (audioProvider.activeVerseKey != null) {
+                  final playingPage = _getVersePage(audioProvider.activeVerseKey!);
+                  if (readMode == 'read') {
+                    final spread = TabletLayoutMath.pageToSpread(readingProvider.activePage);
+                    final rightPage = TabletLayoutMath.spreadToRightPage(spread);
+                    final leftPage = TabletLayoutMath.spreadToLeftPage(spread);
+                    isViewingPlayingPage = (playingPage == rightPage || playingPage == leftPage);
+                  } else {
+                    isViewingPlayingPage = (readingProvider.activePage == playingPage);
+                  }
+                  if (!isViewingPlayingPage) {
+                    targetPage = playingPage;
+                  }
+                }
+
                 return Stack(
                   children: [
                     // ── Card 1: Top-Start (Back & Mode Toggle) ──
@@ -1149,65 +1169,15 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                       slideOffset: const Offset(-1.2, -1.2),
                       isFullScreen: isFullScreen,
                       maxWidth: 320,
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.of(context).maybePop(),
-                            behavior: HitTestBehavior.opaque,
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: theme.pillBackground,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                LucideIcons.chevronLeft,
-                                size: 18,
-                                color: theme.iconColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CupertinoSlidingSegmentedControl<String>(
-                              groupValue: readMode,
-                              backgroundColor: theme.pillBackground,
-                              thumbColor: theme.canvasBackground,
-                              children: {
-                                'read': Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  child: Text(
-                                    l.readingRead,
-                                    style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
-                                      fontSize: 11,
-                                      fontWeight: readMode == 'read' ? FontWeight.w600 : FontWeight.w400,
-                                      color: theme.primaryText,
-                                    ),
-                                  ),
-                                ),
-                                'tafsir': Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  child: Text(
-                                    l.readingTranslation,
-                                    style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
-                                      fontSize: 11,
-                                      fontWeight: readMode == 'tafsir' ? FontWeight.w600 : FontWeight.w400,
-                                      color: theme.primaryText,
-                                    ),
-                                  ),
-                                ),
-                              },
-                              onValueChanged: (v) {
-                                if (v != null) {
-                                  _onReadModeChanged(v);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
+                      padding: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TopLeftNavBar(
+                          readMode: readMode,
+                          onReadModeChanged: (v) {
+                            _onReadModeChanged(v);
+                          },
+                        ),
                       ),
                     ),
 
@@ -1259,35 +1229,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                   color: theme.mutedText,
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: _openNavMenu,
-                                    child: Icon(
-                                      LucideIcons.search,
-                                      size: 20,
-                                      color: theme.iconColor,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  GestureDetector(
-                                    onTap: _togglePageBookmark,
-                                    child: Icon(
-                                      isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                      size: 20,
-                                      color: isBookmarked ? theme.accentColor : theme.iconColor,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  GestureDetector(
-                                    onTap: _openThemePicker,
-                                    child: Icon(
-                                      LucideIcons.slidersHorizontal,
-                                      size: 20,
-                                      color: theme.iconColor,
-                                    ),
-                                  ),
-                                ],
+                              TopRightNavBar(
+                                isBookmarked: isBookmarked,
+                                onThemeTapped: _openThemePicker,
+                                onNavMenuTapped: _openNavMenu,
+                                onBookmarkTapped: _togglePageBookmark,
                               ),
                             ],
                           ),
@@ -1301,195 +1247,48 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                       slideOffset: const Offset(-1.2, 1.2),
                       isFullScreen: isFullScreen,
                       maxWidth: 360,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: theme.pillBackground,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  LucideIcons.user,
-                                  size: 18,
-                                  color: theme.iconColor,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      audioProvider.reciterName,
-                                      style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.primaryText,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      playingVerseLabel,
-                                      style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
-                                        fontSize: 10,
-                                        color: theme.secondaryText,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: _openReciterMenu,
-                                child: Icon(
-                                  LucideIcons.globe,
-                                  size: 18,
-                                  color: theme.iconColor,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => setState(() => isAudioExpanded = !isAudioExpanded),
-                                child: Icon(
-                                  isAudioExpanded ? LucideIcons.chevronDown : LucideIcons.chevronUp,
-                                  size: 18,
-                                  color: theme.iconColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (isAudioExpanded) ...[
-                            const SizedBox(height: 12),
-                            // Mini Slider / Scrubber
-                            Row(
-                              children: [
-                                Text(
-                                  currentPosStr,
-                                  style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
-                                    fontSize: 9,
-                                    color: theme.mutedText,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 3,
-                                      activeTrackColor: theme.sliderActive,
-                                      inactiveTrackColor: theme.sliderInactive,
-                                      thumbColor: theme.sliderActive,
-                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
-                                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                                    ),
-                                    child: Slider(
-                                      value: progress,
-                                      onChanged: (val) => audioProvider.seekToFraction(val),
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  totalDurStr,
-                                  style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
-                                    fontSize: 9,
-                                    color: theme.mutedText,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            // Controls Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () => audioProvider.toggleRepeatMode(),
-                                  child: Icon(
-                                    audioProvider.repeatMode == AudioRepeatMode.repeatVerse
-                                        ? LucideIcons.repeat1
-                                        : LucideIcons.repeat,
-                                    size: 18,
-                                    color: audioProvider.repeatMode != AudioRepeatMode.none
-                                        ? theme.accentColor
-                                        : theme.iconColor,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => audioProvider.skipToPreviousVerse(),
-                                      child: Icon(
-                                        LucideIcons.skipBack,
-                                        size: 20,
-                                        color: theme.iconColor,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (audioProvider.activeVerseKey == null &&
-                                            readingProvider.verses.isNotEmpty) {
-                                          audioProvider.playVerseList(readingProvider.verses);
-                                        } else {
-                                          audioProvider.togglePlay();
-                                        }
-                                      },
-                                      child: Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                          color: theme.accentColor,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: audioProvider.isLoading
-                                            ? Padding(
-                                                padding: const EdgeInsets.all(10),
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: theme.scaffoldBackground,
-                                                ),
-                                              )
-                                            : Icon(
-                                                audioProvider.isPlaying ? LucideIcons.pause : LucideIcons.play,
-                                                size: 16,
-                                                color: theme.scaffoldBackground,
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    GestureDetector(
-                                      onTap: () => audioProvider.skipToNextVerse(),
-                                      child: Icon(
-                                        LucideIcons.skipForward,
-                                        size: 20,
-                                        color: theme.iconColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                GestureDetector(
-                                  onTap: _openAudioSettings,
-                                  child: Icon(
-                                    LucideIcons.settings,
-                                    size: 18,
-                                    color: theme.iconColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
+                      padding: EdgeInsets.zero,
+                      child: AudioPlayerBridge(
+                        margin: EdgeInsets.zero,
+                        decoration: const BoxDecoration(color: Colors.transparent),
+                        isExpanded: isAudioExpanded,
+                        isPlaying: audioProvider.isPlaying,
+                        isLoading: audioProvider.isLoading,
+                        isViewingPlayingPage: isViewingPlayingPage,
+                        currentPositionText: currentPosStr,
+                        totalDurationText: totalDurStr,
+                        progress: progress,
+                        playingTitle: playingVerseLabel,
+                        reciterId: audioProvider.reciterId,
+                        reciterName: audioProvider.reciterName,
+                        repeatMode: audioProvider.repeatMode,
+                        repeatCount: audioProvider.repeatCount,
+                        onToggleExpand: () => setState(
+                          () => isAudioExpanded = !isAudioExpanded,
+                        ),
+                        onTogglePlay: () {
+                          if (audioProvider.activeVerseKey == null &&
+                              readingProvider.verses.isNotEmpty) {
+                            audioProvider.playVerseList(
+                              readingProvider.verses,
+                            );
+                          } else {
+                            audioProvider.togglePlay();
+                          }
+                        },
+                        onReciterMenuTapped: _openReciterMenu,
+                        onSettingsTapped: _openAudioSettings,
+                        onSkipNext: () => audioProvider.skipToNextVerse(),
+                        onSkipPrevious: () =>
+                            audioProvider.skipToPreviousVerse(),
+                        onJumpForward: () => audioProvider.seekForward(10),
+                        onJumpBackward: () => audioProvider.seekBackward(10),
+                        onRepeatToggle: () =>
+                            audioProvider.toggleRepeatMode(),
+                        onSeek: (val) => audioProvider.seekToFraction(val),
+                        onJumpToPlayingVerse: targetPage != null
+                            ? () => _handlePageSelected(targetPage!)
+                            : null,
                       ),
                     ),
 
@@ -1499,200 +1298,64 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                       slideOffset: const Offset(1.2, 1.2),
                       isFullScreen: isFullScreen,
                       maxWidth: 360,
+                      padding: EdgeInsets.zero,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
+                          BottomDock(
+                            margin: EdgeInsets.zero,
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            decoration: const BoxDecoration(color: Colors.transparent),
+                            activePage: readingProvider.activePage,
+                            paginationArray: List.generate(
+                              604,
+                              (index) => index + 1,
+                            ),
+                            surahName: surahName,
+                            hizbName: hizbName,
+                            onPageSelected: _handlePageSelected,
+                          ),
+                          if (hasWerd && config != null) ...[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  GestureDetector(
-                                    onTap: _openNavMenu,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: theme.pillBackground,
-                                        borderRadius: BorderRadius.circular(30),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        l.localeName == 'ar' ? 'الورد اليومي' : 'Daily Werd',
+                                        style: TextStyle(
+                                          fontFamily: GeistTypography.primaryFontFamily,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                          color: theme.secondaryText,
+                                        ),
                                       ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            LucideIcons.bookOpen,
-                                            size: 12,
-                                            color: theme.iconColor,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            l.localeName == 'ar' ? 'الفهرس' : 'Surah Index',
-                                            style: TextStyle(
-                                              fontFamily: GeistTypography.primaryFontFamily,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: theme.primaryText,
-                                            ),
-                                          ),
-                                        ],
+                                      Text(
+                                        '${config.pagesReadToday} / ${config.todayTarget} ${l.localeName == 'ar' ? 'صفحة' : 'pages'}',
+                                        style: TextStyle(
+                                          fontFamily: GeistTypography.primaryFontFamily,
+                                          fontSize: 9,
+                                          color: theme.mutedText,
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: LinearProgressIndicator(
+                                      value: progressToday,
+                                      minHeight: 3,
+                                      backgroundColor: theme.sliderInactive,
+                                      valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
                                     ),
                                   ),
                                 ],
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (ctx) {
-                                      final controller = TextEditingController(text: '${readingProvider.activePage}');
-                                      return AlertDialog(
-                                        backgroundColor: theme.cardColor,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                        title: Text(
-                                          l.localeName == 'ar' ? 'اذهب إلى صفحة' : 'Go to Page',
-                                          style: TextStyle(color: theme.primaryText, fontSize: 16),
-                                        ),
-                                        content: TextField(
-                                          controller: controller,
-                                          keyboardType: TextInputType.number,
-                                          autofocus: true,
-                                          style: TextStyle(color: theme.primaryText),
-                                          decoration: InputDecoration(
-                                            hintText: '1 - 604',
-                                            hintStyle: TextStyle(color: theme.mutedText),
-                                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: theme.accentColor)),
-                                          ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(ctx),
-                                            child: Text(
-                                              l.localeName == 'ar' ? 'إلغاء' : 'Cancel',
-                                              style: TextStyle(color: theme.mutedText),
-                                            ),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              final page = int.tryParse(controller.text);
-                                              if (page != null && page >= 1 && page <= 604) {
-                                                _handlePageSelected(page);
-                                              }
-                                              Navigator.pop(ctx);
-                                            },
-                                            child: Text(
-                                              l.localeName == 'ar' ? 'ذهاب' : 'Go',
-                                              style: TextStyle(color: theme.accentColor),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: theme.pillBackground,
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: Text(
-                                    '${l.homePage} ${readingProvider.activePage} / 604',
-                                    style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: theme.primaryText,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (readingProvider.activePage > 1) {
-                                    _handlePageSelected(readingProvider.activePage - 1);
-                                  }
-                                },
-                                child: Icon(
-                                  LucideIcons.chevronLeft,
-                                  size: 18,
-                                  color: theme.iconColor,
-                                ),
-                              ),
-                              Expanded(
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 3,
-                                    activeTrackColor: theme.sliderActive,
-                                    inactiveTrackColor: theme.sliderInactive,
-                                    thumbColor: theme.sliderActive,
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                                  ),
-                                  child: Slider(
-                                    value: readingProvider.activePage.toDouble(),
-                                    min: 1,
-                                    max: 604,
-                                    onChanged: (val) => _handlePageSelected(val.round()),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  if (readingProvider.activePage < 604) {
-                                    _handlePageSelected(readingProvider.activePage + 1);
-                                  }
-                                },
-                                child: Icon(
-                                  LucideIcons.chevronRight,
-                                  size: 18,
-                                  color: theme.iconColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (hasWerd && config != null) ...[
-                            const SizedBox(height: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      l.localeName == 'ar' ? 'الورد اليومي' : 'Daily Werd',
-                                      style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.secondaryText,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${config.pagesReadToday} / ${config.todayTarget} ${l.localeName == 'ar' ? 'صفحة' : 'pages'}',
-                                      style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
-                                        fontSize: 9,
-                                        color: theme.mutedText,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: LinearProgressIndicator(
-                                    value: progressToday,
-                                    minHeight: 3,
-                                    backgroundColor: theme.sliderInactive,
-                                    valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ],

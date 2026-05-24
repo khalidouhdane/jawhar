@@ -30,6 +30,9 @@ class AudioPlayerBridge extends StatelessWidget {
   final VoidCallback? onJumpToPlayingVerse;
   final ValueChanged<double> onSeek;
 
+  final EdgeInsetsGeometry? margin;
+  final Decoration? decoration;
+
   const AudioPlayerBridge({
     super.key,
     required this.isExpanded,
@@ -55,6 +58,8 @@ class AudioPlayerBridge extends StatelessWidget {
     required this.onRepeatToggle,
     this.onJumpToPlayingVerse,
     required this.onSeek,
+    this.margin,
+    this.decoration,
   });
 
   @override
@@ -66,12 +71,12 @@ class AudioPlayerBridge extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
         curve: Curves.fastOutSlowIn,
-        margin: EdgeInsets.only(
+        margin: margin ?? EdgeInsets.only(
           bottom: isExpanded ? 24 : 16,
           left: isExpanded ? 16 : 24,
           right: isExpanded ? 16 : 24,
         ),
-        decoration: BoxDecoration(
+        decoration: decoration ?? BoxDecoration(
           color: theme.playerBackground,
           borderRadius: BorderRadius.circular(isExpanded ? 24 : 34),
           boxShadow: theme.shadowCardFull,
