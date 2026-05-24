@@ -618,275 +618,262 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       });
     }
 
-    return ListView.builder(
-      controller: scrollController,
-      padding: EdgeInsets.only(
-        top: MediaQuery.paddingOf(context).top > 0
-            ? MediaQuery.paddingOf(context).top + 60
-            : 60,
-        bottom: 120,
-        left: 20,
-        right: 20,
-      ),
-      itemCount: verses.length,
-      itemBuilder: (context, index) {
-        final verse = verses[index];
-        final verseText = verse.words
-            .where((w) => w.charTypeName != 'end')
-            .map((w) => w.textUthmani)
-            .join(' ');
-        final translation = translations[verse.verseKey];
-        final isHighlighted = verse.verseKey == highlightKey;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: _toggleFullScreen,
+      child: ListView.builder(
+        controller: scrollController,
+        padding: EdgeInsets.only(
+          top: MediaQuery.paddingOf(context).top > 0
+              ? MediaQuery.paddingOf(context).top + 60
+              : 60,
+          bottom: 120,
+          left: 20,
+          right: 20,
+        ),
+        itemCount: verses.length,
+        itemBuilder: (context, index) {
+          final verse = verses[index];
+          final verseText = verse.words
+              .where((w) => w.charTypeName != 'end')
+              .map((w) => w.textUthmani)
+              .join(' ');
+          final translation = translations[verse.verseKey];
+          final isHighlighted = verse.verseKey == highlightKey;
 
-        return GestureDetector(
-          onTap: () {
-            final readingProv = context.read<QuranReadingProvider>();
-            final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
-            String? surahName;
-            try {
-              surahName = readingProv.chapters
-                  .firstWhere((c) => c.id == chapterId)
-                  .nameSimple;
-            } catch (_) {}
-            showTafsirSheet(
-              context,
-              verseKey: verse.verseKey,
-              surahName: surahName,
-            );
-          },
-          onLongPress: () {
-            final audioProvider = context.read<AudioProvider>();
-            audioProvider.playSingleVerse(verse);
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeOut,
-            decoration: BoxDecoration(
-              color: isHighlighted
-                  ? theme.accentColor.withValues(alpha: 0.08)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(theme.radiusMd),
-            ),
-            padding: isHighlighted
-                ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                : EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        final audioProvider = context.read<AudioProvider>();
-                        audioProvider.playVerseList(
-                          verses,
-                          startIndex: index,
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
+          return GestureDetector(
+            onTap: _toggleFullScreen,
+            onLongPress: () {
+              final audioProvider = context.read<AudioProvider>();
+              audioProvider.playSingleVerse(verse);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                color: isHighlighted
+                    ? theme.accentColor.withValues(alpha: 0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(theme.radiusMd),
+              ),
+              padding: isHighlighted
+                  ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+                  : EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              final audioProvider = context.read<AudioProvider>();
+                              audioProvider.playVerseList(
+                                verses,
+                                startIndex: index,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: theme.accentColor.withValues(alpha: 0.08),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                LucideIcons.play,
+                                size: 14,
+                                color: theme.accentColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Tafsir button
+                          GestureDetector(
+                            onTap: () {
+                              final readingProv = context.read<QuranReadingProvider>();
+                              final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
+                              String? surahName;
+                              try {
+                                surahName = readingProv.chapters
+                                    .firstWhere((c) => c.id == chapterId)
+                                    .nameSimple;
+                              } catch (_) {}
+                              showTafsirSheet(
+                                context,
+                                verseKey: verse.verseKey,
+                                surahName: surahName,
+                                initialTabIndex: 0,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: theme.pillBackground,
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(LucideIcons.bookOpen, size: 12, color: theme.accentColor),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    l.contextTafsir,
+                                    style: TextStyle(
+                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: theme.primaryText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey)) ...[
+                            const SizedBox(width: 8),
+                            // Reason button
+                            GestureDetector(
+                              onTap: () {
+                                final readingProv = context.read<QuranReadingProvider>();
+                                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
+                                String? surahName;
+                                try {
+                                  surahName = readingProv.chapters
+                                      .firstWhere((c) => c.id == chapterId)
+                                      .nameSimple;
+                                } catch (_) {}
+                                context.read<ContextProvider>().loadAsbabNuzul(verse.verseKey);
+                                showTafsirSheet(
+                                  context,
+                                  verseKey: verse.verseKey,
+                                  surahName: surahName,
+                                  initialTabIndex: 2,
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: theme.accentColor.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(
+                                    color: theme.accentColor.withValues(alpha: 0.15),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.history_edu, size: 12, color: theme.accentColor),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      AppLocalizations.of(context)?.asbabNuzulTitle ?? 'Reason',
+                                      style: TextStyle(
+                                        fontFamily: GeistTypography.primaryFontFamily,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: theme.accentColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: theme.accentColor.withValues(alpha: 0.08),
-                          shape: BoxShape.circle,
+                          color: theme.accentColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(theme.radiusLg),
                         ),
-                        child: Icon(
-                          LucideIcons.play,
-                          size: 14,
-                          color: theme.accentColor,
+                        child: Text(
+                          VerseRefFormatter.format(
+                            verse.verseKey,
+                            locale: l.localeName,
+                            tier: VerseRefFormat.compact,
+                          ),
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: theme.accentColor,
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      verseText,
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.amiriQuran(
+                        fontSize: theme.quranFontSize,
+                        height: theme.quranLineHeight,
+                        fontWeight: FontWeight.w400,
+                        color: theme.quranText,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (translation != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
                       decoration: BoxDecoration(
-                        color: theme.accentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(theme.radiusLg),
-                      ),
-                      child: Text(
-                        VerseRefFormatter.format(
-                          verse.verseKey,
-                          locale: l.localeName,
-                          tier: VerseRefFormat.compact,
+                        border: Border(
+                          left: BorderSide(
+                            color: theme.accentColor.withValues(alpha: 0.5),
+                            width: 3,
+                          ),
                         ),
+                      ),
+                      margin: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        translation.text,
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: theme.accentColor,
+                          fontSize: 14,
+                          height: 1.6,
+                          color: theme.secondaryText,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color: theme.dividerColor.withValues(alpha: 0.3),
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      margin: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        l.translationLoading,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic,
+                          color: theme.mutedText,
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: Text(
-                    verseText,
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.amiriQuran(
-                      fontSize: theme.quranFontSize,
-                      height: theme.quranLineHeight,
-                      fontWeight: FontWeight.w400,
-                      color: theme.quranText,
+                  if (index < verses.length - 1)
+                    Divider(
+                      height: 32,
+                      color: theme.dividerColor.withValues(alpha: 0.3),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (translation != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(theme.radiusLg),
-                      border: Border.all(
-                        color: theme.dividerColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      translation.text,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 14,
-                        height: 1.6,
-                        color: theme.secondaryText,
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(theme.radiusLg),
-                    ),
-                    child: Text(
-                      l.translationLoading,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 13,
-                        fontStyle: FontStyle.italic,
-                        color: theme.mutedText,
-                      ),
-                    ),
-                  ),
-                if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey))
-                  _buildAsbabCard(
-                    theme,
-                    verse.verseKey,
-                    contextProvider.asbabService.getOccasionsByKey(
-                          verse.verseKey,
-                        ) ??
-                        [],
-                  ),
-                if (index < verses.length - 1)
-                  Divider(
-                    height: 32,
-                    color: theme.dividerColor.withValues(alpha: 0.3),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAsbabCard(
-    ThemeProvider theme,
-    String verseKey,
-    List<String> occasions,
-  ) {
-    if (occasions.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.accentColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(theme.radiusLg),
-        border: Border.all(color: theme.accentColor.withValues(alpha: 0.15)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.history_edu, size: 16, color: theme.accentColor),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.of(context)?.asbabNuzulTitle ?? 'سبب النزول',
-                style: TextStyle(
-                  fontFamily: 'Amiri',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: theme.accentColor,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                AppLocalizations.of(context)?.asbabOccasion ?? 'Occasion of Revelation',
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 10,
-                  color: theme.mutedText,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ExcludeSemantics(
-            child: Text(
-              occasions.first.length > 200
-                  ? '${occasions.first.substring(0, 200)}…'
-                  : occasions.first,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 15,
-                height: 1.8,
-                color: theme.primaryText,
-              ),
-              textDirection: TextDirection.rtl,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (occasions.first.length > 200 || occasions.length > 1)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: GestureDetector(
-                onTap: () {
-                  final readingProv = context.read<QuranReadingProvider>();
-                  final chapterId = int.tryParse(verseKey.split(':').first) ?? 1;
-                  String? surahName;
-                  try {
-                    surahName = readingProv.chapters
-                        .firstWhere((c) => c.id == chapterId)
-                        .nameSimple;
-                  } catch (_) {}
-                  context.read<ContextProvider>().loadAsbabNuzul(verseKey);
-                  showTafsirSheet(
-                    context,
-                    verseKey: verseKey,
-                    surahName: surahName,
-                  );
-                },
-                child: Text(
-                  AppLocalizations.of(context)?.asbabReadFull ?? 'Read full narration →',
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: theme.accentColor,
-                  ),
-                ),
+                ],
               ),
             ),
-        ],
+          );
+        },
       ),
     );
   }
