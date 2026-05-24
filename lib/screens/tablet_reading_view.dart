@@ -38,6 +38,8 @@ class _TabletReadingViewState extends State<TabletReadingView> {
   bool isFullScreen = false;
 
   late PageController _pageController;
+  late final ScrollController _tafsirScrollController;
+  String? _lastScrolledVerseKey;
 
   // Lifted selection state
   int? _selectedVerseId;
@@ -55,6 +57,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
   @override
   void initState() {
     super.initState();
+    _tafsirScrollController = ScrollController();
     final startPage = widget.initialPage;
 
     // Initialize PageController based on the default 'read' mode spreads or 'tafsir' mode pages.
@@ -103,6 +106,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     _pageReadTimer?.cancel();
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
+    _tafsirScrollController.dispose();
     super.dispose();
   }
 
@@ -145,9 +149,30 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       _goToSpread(targetSpread);
     } else {
       // In tafsir mode, flip pages immediately when the active verse crosses the page boundary
-      if (readingProvider.activePage == playingPage) return;
+      if (readingProvider.activePage == playingPage) {
+        final verses = readingProvider.getPageVerses(playingPage);
+        final index = verses.indexWhere((v) => v.verseKey == verseKey);
+        if (index >= 0) {
+          _scrollToVerse(index);
+        }
+        return;
+      }
       _goToPage(playingPage);
     }
+  }
+
+  void _scrollToVerse(int index) {
+    if (!_tafsirScrollController.hasClients) return;
+    const double estimatedItemHeight = 200.0;
+    final double viewportHeight = _tafsirScrollController.position.viewportDimension;
+    double targetOffset = (index * estimatedItemHeight) - (viewportHeight / 2) + (estimatedItemHeight / 2);
+    final double maxScroll = _tafsirScrollController.position.maxScrollExtent;
+    targetOffset = targetOffset.clamp(0.0, maxScroll);
+    _tafsirScrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _goToSpread(int spread) {
@@ -247,6 +272,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
   void _onTafsirPageChanged(int index) {
     final page = 604 - index;
+    _lastScrolledVerseKey = null;
     final readingProvider = context.read<QuranReadingProvider>();
     if (readingProvider.activePage != page) {
       readingProvider.setActivePage(page);
@@ -595,34 +621,28 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     }
 
     final highlightKey = contextProvider.highlightVerseKey;
-    int? highlightIndex;
-    if (highlightKey != null) {
-      highlightIndex = verses.indexWhere((v) => v.verseKey == highlightKey);
-      if (highlightIndex < 0) highlightIndex = null;
-    }
+    final activeVerseKey = context.select<AudioProvider, String?>((p) => p.activeVerseKey);
 
-    final scrollController = ScrollController();
-
-    if (highlightIndex != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final estimatedOffset = highlightIndex! * 180.0;
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            estimatedOffset,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutCubic,
-          );
-        }
-        context.read<ContextProvider>().clearHighlightVerse();
-      });
+    final scrollKey = activeVerseKey ?? highlightKey;
+    if (scrollKey != null && scrollKey != _lastScrolledVerseKey) {
+      final index = verses.indexWhere((v) => v.verseKey == scrollKey);
+      if (index >= 0) {
+        _lastScrolledVerseKey = scrollKey;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _scrollToVerse(index);
+          if (scrollKey == highlightKey) {
+            context.read<ContextProvider>().clearHighlightVerse();
+          }
+        });
+      }
     }
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: _toggleFullScreen,
       child: ListView.builder(
-        controller: scrollController,
+        controller: _tafsirScrollController,
         padding: EdgeInsets.only(
           top: MediaQuery.paddingOf(context).top > 0
               ? MediaQuery.paddingOf(context).top + 60
@@ -639,7 +659,8 @@ class _TabletReadingViewState extends State<TabletReadingView> {
               .map((w) => w.textUthmani)
               .join(' ');
           final translation = translations[verse.verseKey];
-          final isHighlighted = verse.verseKey == highlightKey;
+          final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
+                                (highlightKey != null && verse.verseKey == highlightKey);
 
           return GestureDetector(
             onTap: _toggleFullScreen,
@@ -652,13 +673,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
               curve: Curves.easeOut,
               decoration: BoxDecoration(
                 color: isHighlighted
-                    ? theme.accentColor.withValues(alpha: 0.08)
+                    ? theme.verseHighlight
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(theme.radiusMd),
               ),
-              padding: isHighlighted
-                  ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                  : EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
