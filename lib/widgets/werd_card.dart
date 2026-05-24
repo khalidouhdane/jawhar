@@ -45,62 +45,74 @@ class WerdCard extends StatelessWidget {
       onTap: () => _openSetupSheet(context),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(theme.radiusLg),
-          border: BorderDirectional(
-            start: BorderSide(
-              color: accentColor,
-              width: 4,
-            ),
-            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-            end: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-            bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: theme.dividerColor.withValues(alpha: 0.5),
           ),
           boxShadow: theme.shadowCard,
         ),
-        child: Column(
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                LucideIcons.calendarCheck,
-                size: 24,
+            // Start-edge accent spine
+            PositionedDirectional(
+              start: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              child: Container(
                 color: accentColor,
               ),
             ),
-            const SizedBox(height: 14),
-            Text(l.werdSetTitle, style: theme.textBodyStrong),
-            const SizedBox(height: 6),
-            Text(
-              l.werdSetDesc,
-              textAlign: TextAlign.center,
-              style: theme.textBodySmall,
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(theme.radiusMd),
-                border: Border.all(
-                  color: accentColor.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Text(
-                l.werdGetStarted,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: accentColor,
-                ),
+            // Main Content
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+              child: Column(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      LucideIcons.calendarCheck,
+                      size: 24,
+                      color: accentColor,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(l.werdSetTitle, style: theme.textBodyStrong),
+                  const SizedBox(height: 6),
+                  Text(
+                    l.werdSetDesc,
+                    textAlign: TextAlign.center,
+                    style: theme.textBodySmall,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(theme.radiusMd),
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      l.werdGetStarted,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: accentColor,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -128,19 +140,25 @@ class WerdCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
-        border: BorderDirectional(
-          start: BorderSide(
-            color: accentColor,
-            width: 4,
-          ),
-          top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-          end: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.dividerColor.withValues(alpha: 0.5),
         ),
         boxShadow: theme.shadowCard,
       ),
-      child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
+          // Start-edge accent spine
+          PositionedDirectional(
+            start: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            child: Container(
+              color: accentColor,
+            ),
+          ),
+          // Main Content
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Column(

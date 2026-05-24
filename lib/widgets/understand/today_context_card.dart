@@ -50,140 +50,152 @@ class TodayContextCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
-        border: BorderDirectional(
-          start: BorderSide(
-            color: accentColor,
-            width: 4,
-          ),
-          top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-          end: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.dividerColor.withValues(alpha: 0.5),
         ),
         boxShadow: theme.shadowCard,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          // Header row
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(theme.radiusLg),
-                ),
-                child: Center(
-                  child: Icon(LucideIcons.sparkles, size: 16, color: accentColor),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // Start-edge accent spine
+          PositionedDirectional(
+            start: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            child: Container(
+              color: accentColor,
+            ),
+          ),
+          // Main Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row
+                Row(
                   children: [
-                    Text(
-                      l10n.todaysStudyContext,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: theme.primaryText,
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(theme.radiusLg),
+                      ),
+                      child: Center(
+                        child: Icon(LucideIcons.sparkles, size: 16, color: accentColor),
                       ),
                     ),
-                    Text(
-                      l10n.yourSabaqIsOnPage(sabaqPage),
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 12,
-                        color: theme.secondaryText,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.todaysStudyContext,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                          Text(
+                            l10n.yourSabaqIsOnPage(sabaqPage),
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              color: theme.secondaryText,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
 
-          // Surah info
-          if (surah != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.dividerColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(theme.radiusLg),
-              ),
-              child: Row(
-                children: [
-                  ExcludeSemantics(
-                    child: Text(
-                      surah.nameArabic,
-                      style: GoogleFonts.amiri(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: theme.primaryText,
-                      ),
+                // Surah info
+                if (surah != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(theme.radiusLg),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.surahInfoLabel(
-                        surah.nameSimple,
-                        surah.isMeccan
-                            ? l10n.revelationMeccan
-                            : l10n.revelationMedinan,
-                        surah.versesCount,
-                      ),
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 12,
-                        color: theme.secondaryText,
-                      ),
+                    child: Row(
+                      children: [
+                        ExcludeSemantics(
+                          child: Text(
+                            surah.nameArabic,
+                            style: GoogleFonts.amiri(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            l10n.surahInfoLabel(
+                              surah.nameSimple,
+                              surah.isMeccan
+                                  ? l10n.revelationMeccan
+                                  : l10n.revelationMedinan,
+                              surah.versesCount,
+                            ),
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              color: theme.secondaryText,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
 
-          // Action chips
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _ActionChip(
-                  label: l10n.readingTafsir,
-                  icon: LucideIcons.bookMarked,
-                  onTap: () => _openTafsir(context, sabaqPage),
-                  theme: theme,
-                  accentColor: accentColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ActionChip(
-                  label: l10n.readingRead,
-                  icon: LucideIcons.bookOpen,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ReadingScreen(initialPage: sabaqPage),
+                // Action chips
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ActionChip(
+                        label: l10n.readingTafsir,
+                        icon: LucideIcons.bookMarked,
+                        onTap: () => _openTafsir(context, sabaqPage),
+                        theme: theme,
+                        accentColor: accentColor,
+                      ),
                     ),
-                  ),
-                  theme: theme,
-                  accentColor: accentColor,
-                  isPrimary: true,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ActionChip(
+                        label: l10n.readingRead,
+                        icon: LucideIcons.bookOpen,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReadingScreen(initialPage: sabaqPage),
+                          ),
+                        ),
+                        theme: theme,
+                        accentColor: accentColor,
+                        isPrimary: true,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
