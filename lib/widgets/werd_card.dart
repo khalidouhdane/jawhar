@@ -68,19 +68,25 @@ class WerdCard extends StatelessWidget {
             ),
             // Main Content
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+              padding: const EdgeInsetsDirectional.only(
+                start: 24,
+                end: 20,
+                top: 20,
+                bottom: 20,
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       LucideIcons.calendarCheck,
-                      size: 24,
+                      size: 18,
                       color: accentColor,
                     ),
                   ),
@@ -89,7 +95,7 @@ class WerdCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     l.werdSetDesc,
-                    textAlign: TextAlign.center,
+                    textAlign: TextAlign.start,
                     style: theme.textBodySmall,
                   ),
                   const SizedBox(height: 16),

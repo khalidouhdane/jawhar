@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:quran_app/providers/analytics_provider.dart';
 import 'package:quran_app/providers/flashcard_provider.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
@@ -17,6 +18,7 @@ import 'package:quran_app/widgets/dashboard/profile_dashboard.dart';
 import 'package:quran_app/screens/hifz/assessment_screen.dart';
 import 'package:quran_app/widgets/hifz/pre_session_sheet.dart';
 import 'package:quran_app/screens/hifz/progress_detail_screen.dart';
+import 'package:quran_app/widgets/sheets/profile_switcher_sheet.dart';
 
 /// Dashboard screen — the primary home of the app.
 class HomeScreen extends StatefulWidget {
@@ -100,173 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showProfileSwitcher() {
-    final profileProvider = context.read<HifzProfileProvider>();
-    final theme = context.read<ThemeProvider>();
-    showModalBottomSheet(
-      context: context,
-      constraints: const BoxConstraints(maxWidth: 680),
-      backgroundColor: theme.cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        final profiles = profileProvider.allProfiles;
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.dividerColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context)!.homeSwitchProfile,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: theme.primaryText,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ...profiles.map((p) {
-                        final isActive =
-                            p.id == profileProvider.activeProfile?.id;
-                        return GestureDetector(
-                          onTap: () async {
-                            if (!isActive) {
-                              final planProvider = context.read<PlanProvider>();
-                              await profileProvider.switchProfile(p.id);
-                              planProvider.clearPlan();
-                              await planProvider.loadOrGeneratePlan(p);
-                            }
-                            if (ctx.mounted) Navigator.of(ctx).pop();
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? theme.accentColor.withValues(alpha: 0.1)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(
-                                theme.radiusLg,
-                              ),
-                              border: Border.all(
-                                color: isActive
-                                    ? theme.accentColor.withValues(alpha: 0.3)
-                                    : theme.dividerColor,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  IconResolver.avatarIcons[p.avatarIndex.clamp(
-                                    0,
-                                    7,
-                                  )],
-                                  size: 24,
-                                  color: isActive
-                                      ? theme.accentColor
-                                      : theme.secondaryText,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    p.name,
-                                    style: TextStyle(
-                                      fontFamily:
-                                          GeistTypography.primaryFontFamily,
-                                      fontSize: 15,
-                                      fontWeight: isActive
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                      color: theme.primaryText,
-                                    ),
-                                  ),
-                                ),
-                                if (isActive)
-                                  Icon(
-                                    LucideIcons.check,
-                                    size: 18,
-                                    color: theme.accentColor,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 4),
-                      // Add new profile
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(ctx).pop();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AssessmentScreen(),
-                            ),
-                          ).then((_) {
-                            if (context.mounted) _loadPlanIfNeeded();
-                          });
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(theme.radiusLg),
-                            boxShadow: theme.shadowCard,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                LucideIcons.plus,
-                                size: 16,
-                                color: theme.secondaryText,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                AppLocalizations.of(context)!.homeCreateProfile,
-                                style: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.secondaryText,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
+    ProfileSwitcherSheet.show(context);
   }
 
   void _navigateToAssessment() {
@@ -405,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  '— ${_ayahRef!}',
+                  '— ${VerseRefFormatter.format(_ayahRef!, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.standard)}',
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 11,

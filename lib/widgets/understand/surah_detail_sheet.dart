@@ -2,21 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/screens/reading_screen.dart';
+import 'package:quran_app/screens/asbab_detail_screen.dart';
+import 'package:quran_app/screens/asbab_list_screen.dart';
 import 'package:quran_app/widgets/context/surah_intro_card.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
-
-/// Bottom sheet showing surah detail: intro, themes, asbab al-nuzul.
-///
-/// Uses curated [SurahIntroData] when available (24 surahs),
-/// otherwise shows basic info + asbab entries from the dataset.
 import 'package:quran_app/l10n/app_localizations.dart';
 
 class SurahDetailSheet extends StatelessWidget {
@@ -205,58 +203,157 @@ class SurahDetailSheet extends StatelessWidget {
                       final verseRef = entry.ayahs.length == 1
                           ? l10n.undSurahVerse(entry.ayahs.first)
                           : l10n.undSurahVersesRange(entry.ayahs.first, entry.ayahs.last);
+
+                      final versesArabic = entry.ayahs
+                          .map((a) => '${quran.getVerse(surah.id, a)} ﴿${quran.getVerseEndSymbol(a)}﴾')
+                          .join(' ');
+
                       return Container(
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: theme.cardColor,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: theme.dividerColor),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              verseRef,
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: theme.accentColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            ...entry.occasions.map(
-                              (o) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Text(
-                                  o,
-                                  style: TextStyle(
-                                    fontFamily:
-                                        GeistTypography.primaryFontFamily,
-                                    fontSize: 13,
-                                    height: 1.5,
-                                    color: theme.secondaryText,
-                                  ),
-                                  maxLines: 4,
-                                  overflow: TextOverflow.ellipsis,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AsbabDetailScreen(
+                                  entry: entry,
+                                  surah: surah,
                                 ),
                               ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  verseRef,
+                                  style: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.accentColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                // Arabic verses first
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: theme.isDark 
+                                        ? theme.accentColor.withValues(alpha: 0.02) 
+                                        : theme.accentColor.withValues(alpha: 0.01),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: theme.dividerColor.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: Text(
+                                      versesArabic,
+                                      style: GoogleFonts.amiri(
+                                        fontSize: 14,
+                                        height: 1.6,
+                                        color: theme.primaryText,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Occasion snippet preview
+                                if (entry.occasions.isNotEmpty)
+                                  Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: Text(
+                                      entry.occasions.first,
+                                      style: GoogleFonts.amiri(
+                                        fontSize: 13,
+                                        height: 1.5,
+                                        color: theme.secondaryText,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      l10n.asbabReadFull,
+                                      style: TextStyle(
+                                        fontFamily: GeistTypography.primaryFontFamily,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: theme.accentColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Icon(
+                                      isArabic ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                                      size: 12,
+                                      color: theme.accentColor,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       );
                     }),
                     if (asbabEntries.length > 5)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          l10n.undSurahMoreEntriesCount(asbabEntries.length - 5),
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 12,
-                            color: theme.mutedText,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AsbabListScreen(
+                                  surah: surah,
+                                  entries: asbabEntries,
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                            child: Row(
+                              children: [
+                                Text(
+                                  l10n.undSurahMoreEntriesCount(asbabEntries.length - 5),
+                                  style: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.accentColor,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  isArabic ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                                  size: 12,
+                                  color: theme.accentColor,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

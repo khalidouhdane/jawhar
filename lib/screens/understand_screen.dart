@@ -261,6 +261,9 @@ class _SurahTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isArabic = l10n.localeName == 'ar';
+    final surahName = isArabic ? surah.nameArabic : surah.nameSimple;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -279,28 +282,40 @@ class _SurahTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Surah number — shadow-as-border instead of Border.all
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(theme.radiusLg),
-                  border: Border.all(color: theme.dividerColor, width: 1),
-                ),
-                child: Center(
-                  child: Text(
-                    '${surah.id}',
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: theme.secondaryText,
+              // Surah number in decorative diamond (Jawhar Brand Shape)
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Transform.rotate(
+                      angle: 0.785398, // 45 degrees
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: theme.accentColor.withValues(alpha: 0.3),
+                            width: 1.2,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                     ),
-                  ),
+                    Text(
+                      '${surah.id}',
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: theme.accentColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
 
               // Name + info
               Expanded(
@@ -308,8 +323,8 @@ class _SurahTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.localeName == 'ar' ? surah.nameArabic : surah.nameSimple,
-                      style: AppLocalizations.of(context)!.localeName == 'ar'
+                      surahName,
+                      style: isArabic
                           ? GoogleFonts.amiri(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -339,21 +354,25 @@ class _SurahTile extends StatelessWidget {
                 ),
               ),
 
-              // Secondary name
-              if (AppLocalizations.of(context)!.localeName != 'ar')
+              // Secondary Arabic name
+              if (!isArabic)
                 ExcludeSemantics(
                   child: Text(
                     surah.nameArabic,
                     style: GoogleFonts.amiri(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: theme.secondaryText,
+                      color: theme.accentColor,
                     ),
                   ),
                 ),
 
               const SizedBox(width: 8),
-              Icon(LucideIcons.chevronRight, size: 16, color: theme.mutedText),
+              Icon(
+                LucideIcons.chevronRight, 
+                size: 16, 
+                color: theme.mutedText.withValues(alpha: 0.5),
+              ),
             ],
           ),
         ),

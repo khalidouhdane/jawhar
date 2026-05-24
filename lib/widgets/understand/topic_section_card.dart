@@ -5,6 +5,8 @@ import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/data/topic_content.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
+import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/services/tafsir_service.dart';
@@ -254,42 +256,6 @@ class _TopicSectionCardState extends State<TopicSectionCard>
                   // Key verses list
                   ...section.keyVerseKeys.map((key) => _buildVerseItem(
                         key, primaryColor, secondaryColor, borderColor, isArabic, l10n)),
-
-                  const SizedBox(height: 12),
-
-                  // Read in Mushaf CTA
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ReadingScreen(
-                              initialPage: section.startPage,
-                            ),
-                          ),
-                        );
-                      },
-                      icon: Icon(LucideIcons.bookOpen, size: 14, color: widget.accentColor),
-                      label: Text(
-                        l10n.topicReadInMushaf,
-                        style: TextStyle(
-                          fontFamily: 'Geist',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: widget.accentColor,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: borderColor),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(GeistTokens.radiusMd),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -318,6 +284,7 @@ class _TopicSectionCardState extends State<TopicSectionCard>
     // Translation (loaded async)
     final translation = _translations[verseKey];
     final isLoading = _isLoadingTranslations && !_translations.containsKey(verseKey);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -331,7 +298,7 @@ class _TopicSectionCardState extends State<TopicSectionCard>
         children: [
           // Verse key label
           Text(
-            verseKey,
+            VerseRefFormatter.format(verseKey, locale: l10n.localeName, tier: VerseRefFormat.compact),
             style: TextStyle(
               fontFamily: 'GeistMono',
               fontSize: 11,
@@ -382,6 +349,48 @@ class _TopicSectionCardState extends State<TopicSectionCard>
                 color: secondaryColor.withValues(alpha: 0.6),
               ),
             ),
+
+          const SizedBox(height: 12),
+
+          // Read in Mushaf Action (Verse level)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                final page = quran.getPageNumber(surahNum, verseNum);
+                context.read<BookmarkProvider>().setHighlight(verseKey);
+                context.read<ContextProvider>().setHighlightVerse(verseKey);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReadingScreen(
+                      initialPage: page,
+                    ),
+                  ),
+                );
+              },
+              icon: Icon(LucideIcons.bookOpen, size: 14, color: widget.accentColor),
+              label: Text(
+                l10n.topicReadInMushaf,
+                style: TextStyle(
+                  fontFamily: 'Geist',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: widget.accentColor,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: borderColor.withValues(alpha: 0.5)),
+                backgroundColor: isDark 
+                    ? widget.accentColor.withValues(alpha: 0.05) 
+                    : widget.accentColor.withValues(alpha: 0.03),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(GeistTokens.radiusMd),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+              ),
+            ),
+          ),
         ],
       ),
     );

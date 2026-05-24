@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
-import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/widgets/sheets/profile_switcher_sheet.dart';
 
 class AppHeader extends StatelessWidget {
   final String? title;
@@ -79,8 +79,7 @@ class AppHeader extends StatelessWidget {
               onTap:
                   onAvatarTap ??
                   () {
-                    // Default to navigating to the Profile tab (index 4)
-                    context.read<NavigationProvider>().setTab(4);
+                    ProfileSwitcherSheet.show(context);
                   },
               child: Container(
                 width: 36,

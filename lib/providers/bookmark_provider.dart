@@ -8,6 +8,7 @@ import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/services/qf_user_api_service.dart';
 import 'package:quran_app/utils/app_logger.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Predefined bookmark color palette (12 colors).
 class BookmarkColors {
@@ -304,9 +305,14 @@ class BookmarkProvider extends ChangeNotifier {
 
     for (final b in bks) {
       if (b.type == BookmarkType.verse) {
-        buffer.writeln(
-          '• ${b.verseKey} — ${b.surahName} (Page ${b.pageNumber})',
+        final isAr = b.surahName.codeUnits.any((char) => char >= 0x0600 && char <= 0x06FF);
+        final formattedRef = VerseRefFormatter.format(
+          b.verseKey ?? '',
+          locale: isAr ? 'ar' : 'en',
+          tier: VerseRefFormat.full,
+          page: b.pageNumber,
         );
+        buffer.writeln('• $formattedRef');
       } else {
         buffer.writeln('• Page ${b.pageNumber} — ${b.surahName}');
       }

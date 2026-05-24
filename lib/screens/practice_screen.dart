@@ -99,15 +99,27 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         );
                       }
                     },
-                    child: Text(
-                      AppLocalizations.of(context)!.pracRegenCards,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 12,
-                        color: theme.mutedText,
-                        decoration: TextDecoration.underline,
-                        decorationColor: theme.mutedText.withValues(alpha: 0.4),
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          LucideIcons.refreshCw,
+                          size: 12,
+                          color: theme.mutedText,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppLocalizations.of(context)!.pracRegenCards,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 12,
+                            color: theme.mutedText,
+                            decoration: TextDecoration.underline,
+                            decorationColor: theme.mutedText.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -419,7 +431,18 @@ class _PracticeScreenState extends State<PracticeScreen> {
               Text(
                 subtitle,
                 textDirection: Directionality.of(context),
-                style: GoogleFonts.amiri(fontSize: 12, color: theme.mutedText),
+                style: AppLocalizations.of(context)!.localeName == 'ar'
+                    ? GoogleFonts.amiri(
+                        fontSize: 12,
+                        color: theme.mutedText,
+                        height: 1.45,
+                      )
+                    : TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 11,
+                        color: theme.mutedText,
+                        height: 1.35,
+                      ),
               ),
             ],
           ),
@@ -508,16 +531,25 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         borderRadius: BorderRadius.circular(theme.radiusLg + 2),
                         border: Border.all(color: theme.dividerColor, width: 1),
                       ),
-                      child: Center(
-                        child: Text(
-                          AppLocalizations.of(context)!.pracBrowse,
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.bookOpen,
+                            size: 14,
                             color: theme.primaryText,
                           ),
-                        ),
+                          const SizedBox(width: 6),
+                          Text(
+                            AppLocalizations.of(context)!.pracBrowse,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -537,16 +569,25 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     borderRadius: BorderRadius.circular(theme.radiusLg + 2),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Center(
-                        child: Text(
-                          AppLocalizations.of(context)!.pracPractice,
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.play,
+                            size: 14,
                             color: theme.scaffoldBackground,
                           ),
-                        ),
+                          const SizedBox(width: 6),
+                          Text(
+                            AppLocalizations.of(context)!.pracPractice,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: theme.scaffoldBackground,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

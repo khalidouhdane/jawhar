@@ -1,5 +1,7 @@
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/flashcard_models.dart';
@@ -88,16 +90,45 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 type: GeistButtonType.secondary,
               ),
               const Spacer(),
-              Text(
-                fc.isSandbox
-                    ? '${fc.currentIndex + 1} / ${fc.dueCards.length}  |  Sandbox Mode 🎲'
-                    : '${fc.currentIndex + 1} / ${fc.dueCards.length}',
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: theme.secondaryText,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${fc.currentIndex + 1} / ${fc.dueCards.length}',
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.secondaryText,
+                    ),
+                  ),
+                  if (fc.isSandbox) ...[
+                    Text(
+                      '  |  ',
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.dices,
+                      size: 14,
+                      color: theme.secondaryText,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      AppLocalizations.of(context)!.fcSandboxMode,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const Spacer(),
               const SizedBox(width: 40),
@@ -135,7 +166,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   theme,
                   fc,
                   LucideIcons.x,
-                  'Forgot',
+                  AppLocalizations.of(context)!.ratingForgot,
                   FlashcardRating.forgot,
                   SemanticColors.ratingForgot,
                 ),
@@ -143,7 +174,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   theme,
                   fc,
                   LucideIcons.frown,
-                  'Weak',
+                  AppLocalizations.of(context)!.ratingWeak,
                   FlashcardRating.weak,
                   SemanticColors.ratingWeak,
                 ),
@@ -151,7 +182,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   theme,
                   fc,
                   LucideIcons.minus,
-                  'OK',
+                  AppLocalizations.of(context)!.ratingOk,
                   FlashcardRating.ok,
                   SemanticColors.ratingOk,
                 ),
@@ -159,7 +190,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   theme,
                   fc,
                   LucideIcons.check,
-                  'Strong',
+                  AppLocalizations.of(context)!.ratingStrong,
                   FlashcardRating.strong,
                   SemanticColors.ratingStrong,
                 ),
@@ -214,7 +245,6 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     Flashcard card,
   ) {
     final questionVerse = card.questionData['verseText'] as String? ?? '';
-    final surahName = card.questionData['surahName'] as String? ?? '';
     final surah = card.questionData['surah'];
     final verse = card.questionData['verse'];
     final page = card.questionData['page'];
@@ -231,8 +261,16 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Reference badge with page number
-            _referenceBadge(theme, '$surahName  ($surah:$verse) · p.$page'),
+            _referenceBadge(
+              theme,
+              VerseRefFormatter.formatParts(
+                surahId: int.tryParse(surah.toString()) ?? 1,
+                verse: int.tryParse(verse.toString()) ?? 1,
+                locale: AppLocalizations.of(context)!.localeName,
+                tier: VerseRefFormat.standard,
+                page: page != null ? int.tryParse(page.toString()) : null,
+              ),
+            ),
             const SizedBox(height: 16),
 
             // Question verse in Arabic
@@ -265,7 +303,15 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 children: [
                   Container(width: 60, height: 1, color: theme.dividerColor),
                   const SizedBox(height: 16),
-                  _referenceBadge(theme, '$surahName  ($surah:$answerVNum)'),
+                  _referenceBadge(
+                    theme,
+                    VerseRefFormatter.formatParts(
+                      surahId: int.tryParse(surah.toString()) ?? 1,
+                      verse: int.tryParse(answerVNum.toString()) ?? 1,
+                      locale: AppLocalizations.of(context)!.localeName,
+                      tier: VerseRefFormat.standard,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   _verseWithMarker(
                     theme,
@@ -289,8 +335,6 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     Flashcard card,
   ) {
     final verseText = card.questionData['verseText'] as String? ?? '';
-    final surahName = card.answerData['surahName'] as String? ?? '';
-    final surahNameEn = card.answerData['surahNameEn'] as String? ?? '';
     final surahNum = card.answerData['surahNumber'];
     final verseNum = card.questionData['verse'];
 
@@ -335,7 +379,12 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   Container(width: 60, height: 1, color: theme.dividerColor),
                   const SizedBox(height: 16),
                   Text(
-                    'سورة $surahName',
+                    VerseRefFormatter.formatParts(
+                      surahId: int.tryParse(surahNum.toString()) ?? 1,
+                      verse: int.tryParse(verseNum.toString()) ?? 1,
+                      locale: 'ar',
+                      tier: VerseRefFormat.full,
+                    ),
                     textDirection: TextDirection.rtl,
                     style: TextStyle(
                       fontSize: 20,
@@ -345,7 +394,12 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$surahNameEn · Verse $verseNum (Surah $surahNum)',
+                    VerseRefFormatter.formatParts(
+                      surahId: int.tryParse(surahNum.toString()) ?? 1,
+                      verse: int.tryParse(verseNum.toString()) ?? 1,
+                      locale: 'en',
+                      tier: VerseRefFormat.standard,
+                    ),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
@@ -461,7 +515,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            key,
+            VerseRefFormatter.format(key, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 10,
@@ -481,7 +535,6 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     Flashcard card,
   ) {
     final blankedText = card.questionData['blankedText'] as String? ?? '';
-    final surahName = card.questionData['surahName'] as String? ?? '';
     final surah = card.questionData['surah'];
     final verse = card.questionData['verse'];
     final page = card.questionData['page'];
@@ -497,7 +550,16 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _referenceBadge(theme, '$surahName  ($surah:$verse) · p.$page'),
+            _referenceBadge(
+              theme,
+              VerseRefFormatter.formatParts(
+                surahId: int.tryParse(surah.toString()) ?? 1,
+                verse: int.tryParse(verse.toString()) ?? 1,
+                locale: AppLocalizations.of(context)!.localeName,
+                tier: VerseRefFormat.standard,
+                page: page != null ? int.tryParse(page.toString()) : null,
+              ),
+            ),
             const SizedBox(height: 16),
 
             // Instruction
@@ -519,8 +581,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 blankedText,
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
-                style: TextStyle(
-                  fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+                style: GoogleFonts.amiriQuran(
                   fontSize: 22,
                   height: 2.0,
                   color: theme.primaryText,
@@ -558,7 +619,6 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     Flashcard card,
   ) {
     final questionVerse = card.questionData['verseText'] as String? ?? '';
-    final surahName = card.questionData['surahName'] as String? ?? '';
     final surah = card.questionData['surah'];
     final verse = card.questionData['verse'];
     final page = card.questionData['page'];
@@ -575,7 +635,16 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _referenceBadge(theme, '$surahName  ($surah:$verse) · p.$page'),
+            _referenceBadge(
+              theme,
+              VerseRefFormatter.formatParts(
+                surahId: int.tryParse(surah.toString()) ?? 1,
+                verse: int.tryParse(verse.toString()) ?? 1,
+                locale: AppLocalizations.of(context)!.localeName,
+                tier: VerseRefFormat.standard,
+                page: page != null ? int.tryParse(page.toString()) : null,
+              ),
+            ),
             const SizedBox(height: 16),
 
             // Question verse
@@ -607,7 +676,15 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 children: [
                   Container(width: 60, height: 1, color: theme.dividerColor),
                   const SizedBox(height: 16),
-                  _referenceBadge(theme, '$surahName  ($surah:$answerVNum)'),
+                  _referenceBadge(
+                    theme,
+                    VerseRefFormatter.formatParts(
+                      surahId: int.tryParse(surah.toString()) ?? 1,
+                      verse: int.tryParse(answerVNum.toString()) ?? 1,
+                      locale: AppLocalizations.of(context)!.localeName,
+                      tier: VerseRefFormat.standard,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   _verseWithMarker(
                     theme,
@@ -649,8 +726,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           children: [
             TextSpan(
               text: verseText,
-              style: TextStyle(
-                fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+              style: GoogleFonts.amiriQuran(
                 fontSize: fontSize,
                 height: 2.0,
                 color: textColor,
@@ -726,7 +802,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        'Tap to reveal',
+        AppLocalizations.of(context)!.pracTapToReveal,
         style: TextStyle(
           fontFamily: GeistTypography.primaryFontFamily,
           fontSize: 13,
@@ -786,7 +862,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           Icon(LucideIcons.target, size: 56, color: theme.accentColor),
           const SizedBox(height: 16),
           Text(
-            'Review Complete!',
+            AppLocalizations.of(context)!.fcReviewComplete,
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 24,
@@ -808,7 +884,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 _statRow(
                   theme,
                   LucideIcons.pencil,
-                  'Cards reviewed',
+                  AppLocalizations.of(context)!.fcCardsReviewed,
                   '${fc.reviewedCount}',
                 ),
                 if (fc.strongCount > 0)
@@ -817,7 +893,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                     child: _statRow(
                       theme,
                       LucideIcons.dumbbell,
-                      'Strong',
+                      AppLocalizations.of(context)!.ratingStrong,
                       '${fc.strongCount}',
                     ),
                   ),
@@ -827,7 +903,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                     child: _statRow(
                       theme,
                       LucideIcons.helpCircle,
-                      'OK',
+                      AppLocalizations.of(context)!.ratingOk,
                       '${fc.okCount}',
                     ),
                   ),
@@ -837,7 +913,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                     child: _statRow(
                       theme,
                       LucideIcons.alertCircle,
-                      'Weak',
+                      AppLocalizations.of(context)!.ratingWeak,
                       '${fc.weakCount}',
                     ),
                   ),
@@ -847,7 +923,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                     child: _statRow(
                       theme,
                       LucideIcons.xCircle,
-                      'Forgot',
+                      AppLocalizations.of(context)!.ratingForgot,
                       '${fc.forgotCount}',
                     ),
                   ),
@@ -859,7 +935,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
             width: double.infinity,
             child: GeistButton(
               onPressed: () => Navigator.of(context).pop(),
-              label: 'Done',
+              label: AppLocalizations.of(context)!.fcDone,
               type: GeistButtonType.primary,
               size: GeistButtonSize.large,
             ),
@@ -916,7 +992,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
             Icon(LucideIcons.sparkles, size: 56, color: theme.accentColor),
             const SizedBox(height: 16),
             Text(
-              'All caught up!',
+              AppLocalizations.of(context)!.fcAllCaughtUp,
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 22,
@@ -926,7 +1002,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No cards due right now.\nKeep memorizing and cards will appear!',
+              AppLocalizations.of(context)!.fcNoCardsDue,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
@@ -937,7 +1013,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
             const SizedBox(height: 32),
             GeistButton(
               onPressed: () => Navigator.of(context).pop(),
-              label: 'Back',
+              label: AppLocalizations.of(context)!.fcBack,
               type: GeistButtonType.primary,
             ),
           ],
@@ -953,35 +1029,37 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     String label;
     Color color;
 
+    final l10n = AppLocalizations.of(context)!;
+
     switch (type) {
       case FlashcardType.nextVerse:
         icon = LucideIcons.skipForward;
-        label = 'Next Verse';
+        label = l10n.fcNextVerse;
         color = SemanticColors.practiceBlue.fg(theme.isDark);
         break;
       case FlashcardType.surahDetective:
         icon = LucideIcons.search;
-        label = 'Surah Detective';
+        label = l10n.fcSurahDetective;
         color = SemanticColors.practicePurple.fg(theme.isDark);
         break;
       case FlashcardType.mutashabihatDuel:
         icon = LucideIcons.swords;
-        label = 'Mutashabihat Duel';
+        label = l10n.fcMutashabihat;
         color = SemanticColors.practiceRed.fg(theme.isDark);
         break;
       case FlashcardType.verseCompletion:
         icon = LucideIcons.pencil;
-        label = 'Verse Completion';
+        label = l10n.fcCompleteIt;
         color = SemanticColors.practiceEmerald.fg(theme.isDark);
         break;
       case FlashcardType.previousVerse:
         icon = LucideIcons.skipBack;
-        label = 'Previous Verse';
+        label = l10n.fcPreviousVerse;
         color = SemanticColors.practiceCyan.fg(theme.isDark);
         break;
       case FlashcardType.connectSequence:
         icon = LucideIcons.link;
-        label = 'Connect Sequence';
+        label = l10n.fcSequence;
         color = SemanticColors.practiceAmber.fg(theme.isDark);
         break;
     }
@@ -1090,7 +1168,7 @@ class _ConnectSequenceCardState extends State<_ConnectSequenceCard> {
         (card.questionData['shuffledIndices'] as List<dynamic>)
             .map((e) => (e as num).toInt())
             .toList();
-    final surahName = card.questionData['surahName'] as String? ?? '';
+    final surah = card.questionData['surah'];
     final page = card.questionData['page'];
 
     return Container(
@@ -1101,11 +1179,15 @@ class _ConnectSequenceCardState extends State<_ConnectSequenceCard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          widget.referenceBadge(theme, '$surahName · p.$page'),
+          widget.referenceBadge(
+            theme,
+            '${VerseRefFormatter.surahName(int.tryParse(surah.toString()) ?? 1, AppLocalizations.of(context)!.localeName)} · '
+            '${AppLocalizations.of(context)!.localeName.startsWith('ar') ? 'ص.${VerseRefFormatter.localizeNumbers(page.toString(), 'ar')}' : 'p.$page'}',
+          ),
           const SizedBox(height: 12),
           Text(
-            '\u0631\u062a\u0628 \u0627\u0644\u0622\u064a\u0627\u062a',
-            textDirection: TextDirection.rtl,
+            AppLocalizations.of(context)!.fcSequence,
+            textDirection: Directionality.of(context),
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 13,
@@ -1124,7 +1206,7 @@ class _ConnectSequenceCardState extends State<_ConnectSequenceCard> {
             Icon(Icons.check_circle, color: Colors.green.shade600, size: 28),
             const SizedBox(height: 4),
             Text(
-              'Correct order!',
+              AppLocalizations.of(context)!.fcCorrectOrder,
               style: TextStyle(
                 fontFamily: GeistTypography.primaryFontFamily,
                 fontSize: 13,
@@ -1215,8 +1297,7 @@ class _ConnectSequenceCardState extends State<_ConnectSequenceCard> {
                 child: Text(
                   text,
                   textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+                  style: GoogleFonts.amiriQuran(
                     fontSize: 16,
                     height: 1.8,
                     color: isSelected

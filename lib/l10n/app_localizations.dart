@@ -821,7 +821,7 @@ abstract class AppLocalizations {
   /// No description provided for @werdComplete.
   ///
   /// In en, this message translates to:
-  /// **'Masha\'Allah! 🎉'**
+  /// **'Masha\'Allah!'**
   String get werdComplete;
 
   /// No description provided for @werdCompleteDesc.
@@ -1823,7 +1823,7 @@ abstract class AppLocalizations {
   /// No description provided for @assessStartJourney.
   ///
   /// In en, this message translates to:
-  /// **'Start My Journey ✨'**
+  /// **'Start My Journey'**
   String get assessStartJourney;
 
   /// No description provided for @assessYourProfile.
@@ -1901,7 +1901,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeLetsGo.
   ///
   /// In en, this message translates to:
-  /// **'Let\\\'s Go! ✨'**
+  /// **'Let\\\'s Go!'**
   String get homeLetsGo;
 
   /// No description provided for @pracMutashabihat.
@@ -1943,13 +1943,13 @@ abstract class AppLocalizations {
   /// No description provided for @pracCorrect.
   ///
   /// In en, this message translates to:
-  /// **'✅ صحيح!'**
+  /// **'Correct!'**
   String get pracCorrect;
 
   /// No description provided for @pracWrong.
   ///
   /// In en, this message translates to:
-  /// **'❌ خطأ'**
+  /// **'Incorrect'**
   String get pracWrong;
 
   /// No description provided for @pracNext.
@@ -1985,7 +1985,7 @@ abstract class AppLocalizations {
   /// No description provided for @pracRegenCards.
   ///
   /// In en, this message translates to:
-  /// **'🔄 Regenerate all cards'**
+  /// **'Regenerate all cards'**
   String get pracRegenCards;
 
   /// No description provided for @pracMixedReview.
@@ -1997,7 +1997,7 @@ abstract class AppLocalizations {
   /// No description provided for @pracAllCaughtUp.
   ///
   /// In en, this message translates to:
-  /// **'All caught up! ✨'**
+  /// **'All caught up!'**
   String get pracAllCaughtUp;
 
   /// No description provided for @pracNoFlashcards.
@@ -2039,7 +2039,7 @@ abstract class AppLocalizations {
   /// No description provided for @pracMutArabic.
   ///
   /// In en, this message translates to:
-  /// **'آيات متشابهة'**
+  /// **'Similar verses'**
   String get pracMutArabic;
 
   /// No description provided for @pracMutSimilar.
@@ -2057,13 +2057,13 @@ abstract class AppLocalizations {
   /// No description provided for @pracBrowse.
   ///
   /// In en, this message translates to:
-  /// **'📚 Browse'**
+  /// **'Browse'**
   String get pracBrowse;
 
   /// No description provided for @pracPractice.
   ///
   /// In en, this message translates to:
-  /// **'🎯 Practice'**
+  /// **'Practice'**
   String get pracPractice;
 
   /// No description provided for @pracTotalCards.
@@ -2081,43 +2081,43 @@ abstract class AppLocalizations {
   /// No description provided for @assessAgeChild.
   ///
   /// In en, this message translates to:
-  /// **'🧒 Child (7-12)'**
+  /// **'Child (7-12)'**
   String get assessAgeChild;
 
   /// No description provided for @assessAgeTeen.
   ///
   /// In en, this message translates to:
-  /// **'🧑 Teen (13-17)'**
+  /// **'Teen (13-17)'**
   String get assessAgeTeen;
 
   /// No description provided for @assessAgeYoungAdult.
   ///
   /// In en, this message translates to:
-  /// **'💪 Young Adult (18-30)'**
+  /// **'Young Adult (18-30)'**
   String get assessAgeYoungAdult;
 
   /// No description provided for @assessAgeAdult.
   ///
   /// In en, this message translates to:
-  /// **'🧔 Adult (31-45)'**
+  /// **'Adult (31-45)'**
   String get assessAgeAdult;
 
   /// No description provided for @assessAgeMiddle.
   ///
   /// In en, this message translates to:
-  /// **'🌟 Middle-Aged (46-55)'**
+  /// **'Middle-Aged (46-55)'**
   String get assessAgeMiddle;
 
   /// No description provided for @assessAgeSenior.
   ///
   /// In en, this message translates to:
-  /// **'📿 Senior (56-70)'**
+  /// **'Senior (56-70)'**
   String get assessAgeSenior;
 
   /// No description provided for @assessAgeElderly.
   ///
   /// In en, this message translates to:
-  /// **'🤲 Elderly (71+)'**
+  /// **'Elderly (71+)'**
   String get assessAgeElderly;
 
   /// No description provided for @assessOnePage.
@@ -2597,19 +2597,19 @@ abstract class AppLocalizations {
   /// No description provided for @progAssStrong.
   ///
   /// In en, this message translates to:
-  /// **'💪 Strong'**
+  /// **'Strong'**
   String get progAssStrong;
 
   /// No description provided for @progAssOkay.
   ///
   /// In en, this message translates to:
-  /// **'🤔 Okay'**
+  /// **'Okay'**
   String get progAssOkay;
 
   /// No description provided for @progAssNeedsWork.
   ///
   /// In en, this message translates to:
-  /// **'😬 Needs Work'**
+  /// **'Needs Work'**
   String get progAssNeedsWork;
 
   /// No description provided for @homeReadyToStart.
@@ -2621,7 +2621,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeActiveDaysKeepItUp.
   ///
   /// In en, this message translates to:
-  /// **'{days} active days — keep it up! 🔥'**
+  /// **'{days} active days — keep it up!'**
   String homeActiveDaysKeepItUp(Object days);
 
   /// No description provided for @homeSessionCompleted.
@@ -2765,7 +2765,7 @@ abstract class AppLocalizations {
   /// No description provided for @planCompleted.
   ///
   /// In en, this message translates to:
-  /// **'Completed ✨'**
+  /// **'Completed'**
   String get planCompleted;
 
   /// No description provided for @planWhyThisPlan.
@@ -3281,37 +3281,37 @@ abstract class AppLocalizations {
   /// No description provided for @tomorrowPreview.
   ///
   /// In en, this message translates to:
-  /// **'📖 Page {page} · 🔁 Review today\\\'s pages'**
+  /// **'Page {page} · Review today\\\'s pages'**
   String tomorrowPreview(int page);
 
   /// No description provided for @khatmCongrats.
   ///
   /// In en, this message translates to:
-  /// **'You\\\'ve completed the Quran! 🎉'**
+  /// **'You\\\'ve completed the Quran!'**
   String get khatmCongrats;
 
   /// No description provided for @feedbackSabaqStrong.
   ///
   /// In en, this message translates to:
-  /// **'Excellent! You rated this page as strong — great foundation! 🎯'**
+  /// **'Excellent! You rated this page as strong — great foundation!'**
   String get feedbackSabaqStrong;
 
   /// No description provided for @feedbackSabaqNeedsWork.
   ///
   /// In en, this message translates to:
-  /// **'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪'**
+  /// **'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow.'**
   String get feedbackSabaqNeedsWork;
 
   /// No description provided for @feedbackRepetition.
   ///
   /// In en, this message translates to:
-  /// **'Masha\\\'Allah! {reps} repetitions — building rock-solid memory! 🧠'**
+  /// **'Masha\\\'Allah! {reps} repetitions — building rock-solid memory!'**
   String feedbackRepetition(int reps);
 
   /// No description provided for @feedbackFallback.
   ///
   /// In en, this message translates to:
-  /// **'Masha\\\'Allah! Great work today. Every session counts! ✨'**
+  /// **'Masha\\\'Allah! Great work today. Every session counts!'**
   String get feedbackFallback;
 
   /// No description provided for @feedbackFallbackShort.
@@ -3323,7 +3323,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackTime.
   ///
   /// In en, this message translates to:
-  /// **'Masha\\\'Allah! A solid {minutes}-minute session. Consistency builds mountains! 🌟'**
+  /// **'Masha\\\'Allah! A solid {minutes}-minute session. Consistency builds mountains!'**
   String feedbackTime(int minutes);
 
   /// No description provided for @loadingPage.
@@ -3575,7 +3575,7 @@ abstract class AppLocalizations {
   /// No description provided for @planMinDuration.
   ///
   /// In en, this message translates to:
-  /// **'min {min}'**
+  /// **'{min} min'**
   String planMinDuration(int min);
 
   /// No description provided for @dashboardFlashcards.
@@ -3625,6 +3625,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mutashabihat'**
   String get fcMutashabihat;
+
+  /// No description provided for @fcMixedReviewDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All card types combined'**
+  String get fcMixedReviewDesc;
+
+  /// No description provided for @fcNextVerseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'What comes next?'**
+  String get fcNextVerseDesc;
+
+  /// No description provided for @fcPreviousVerseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'What comes before?'**
+  String get fcPreviousVerseDesc;
+
+  /// No description provided for @fcCompleteItDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the verse'**
+  String get fcCompleteItDesc;
+
+  /// No description provided for @fcSurahDetectiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Which surah is this from?'**
+  String get fcSurahDetectiveDesc;
+
+  /// No description provided for @fcSequenceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Order the verses'**
+  String get fcSequenceDesc;
+
+  /// No description provided for @fcMutashabihatDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar verses'**
+  String get fcMutashabihatDesc;
 
   /// No description provided for @undSpotlightTitle.
   ///
@@ -4034,6 +4076,78 @@ abstract class AppLocalizations {
   /// **'Tap to reveal'**
   String get pracTapToReveal;
 
+  /// No description provided for @ratingForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot'**
+  String get ratingForgot;
+
+  /// No description provided for @ratingWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get ratingWeak;
+
+  /// No description provided for @ratingOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ratingOk;
+
+  /// No description provided for @ratingStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get ratingStrong;
+
+  /// No description provided for @fcReviewComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Complete!'**
+  String get fcReviewComplete;
+
+  /// No description provided for @fcCardsReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards reviewed'**
+  String get fcCardsReviewed;
+
+  /// No description provided for @fcDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get fcDone;
+
+  /// No description provided for @fcAllCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'All caught up!'**
+  String get fcAllCaughtUp;
+
+  /// No description provided for @fcNoCardsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards due right now.\nKeep memorizing and cards will appear!'**
+  String get fcNoCardsDue;
+
+  /// No description provided for @fcBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get fcBack;
+
+  /// No description provided for @fcSandboxMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Sandbox Mode'**
+  String get fcSandboxMode;
+
+  /// No description provided for @fcCorrectOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct order!'**
+  String get fcCorrectOrder;
+
   /// No description provided for @cardTypeVerseCompletion.
   ///
   /// In en, this message translates to:
@@ -4117,6 +4231,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We believe memorization without\nunderstanding is incomplete.'**
   String get onboardingBrandStatement;
+
+  /// No description provided for @onboardingReadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read & Listen'**
+  String get onboardingReadTitle;
+
+  /// No description provided for @onboardingReadDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin with the Mushaf itself: Hafs or Warsh, the full Madani page layout, and audio recitation that matches the verse you are reading.'**
+  String get onboardingReadDesc;
+
+  /// No description provided for @onboardingUnderstandTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand with Depth'**
+  String get onboardingUnderstandTitle;
+
+  /// No description provided for @onboardingUnderstandDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning is not an add-on. Translations, tafsir, and reasons of revelation sit beside the verse so memorization has context.'**
+  String get onboardingUnderstandDesc;
+
+  /// No description provided for @onboardingMemorizeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memorize & Master'**
+  String get onboardingMemorizeTitle;
+
+  /// No description provided for @onboardingMemorizeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A daily rhythm: Sabaq (new memorization), Sabqi (recent review), and Manzil (revision) guided by smart spaced repetition.'**
+  String get onboardingMemorizeDesc;
 
   /// No description provided for @onboardingBegin.
   ///
@@ -4637,7 +4787,7 @@ abstract class AppLocalizations {
   /// No description provided for @verseCopied.
   ///
   /// In en, this message translates to:
-  /// **'Verse {verseKey} copied'**
+  /// **'Verse copied — {verseKey}'**
   String verseCopied(String verseKey);
 
   /// No description provided for @verseCopiedForSharing.

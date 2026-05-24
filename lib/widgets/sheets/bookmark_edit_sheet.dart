@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:quran_app/models/bookmark_model.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
@@ -115,7 +116,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 const SizedBox(width: 6),
                 Text(
                   bm.type == BookmarkType.verse
-                      ? '${bm.verseKey} · ${bm.surahName}'
+                      ? VerseRefFormatter.format(bm.verseKey!, locale: l.localeName, tier: VerseRefFormat.standard)
                       : '${l.navPage} ${bm.pageNumber} · ${bm.surahName}',
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,

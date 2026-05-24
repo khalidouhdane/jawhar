@@ -140,17 +140,16 @@ class _TopicCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 // Secondary text / subtitle
                 if (AppLocalizations.of(context)!.localeName != 'ar') ...[
-                  ExcludeSemantics(
-                    child: Text(
-                      topic.titleAr,
-                      style: GoogleFonts.amiri(
-                        fontSize: 13,
-                        color: theme.secondaryText,
-                        height: 1.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  Text(
+                    topic.subtitle,
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 11,
+                      color: theme.secondaryText,
+                      height: 1.2,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ] else ...[
                   Text(

@@ -1,5 +1,7 @@
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/flashcard_models.dart';
@@ -90,12 +92,6 @@ class _MutashabihatPracticeScreenState
     } catch (_) {
       return '';
     }
-  }
-
-  String _getSurahName(String verseKey) {
-    final surah = int.tryParse(verseKey.split(':').first);
-    if (surah == null) return '';
-    return quran.getSurahNameArabic(surah);
   }
 
   @override
@@ -261,8 +257,10 @@ class _MutashabihatPracticeScreenState
     final mutText = mutVerse.text.isNotEmpty
         ? mutVerse.text
         : _getVerseText(mutVerse.verseKey);
-    final srcName = _getSurahName(group.sourceVerseKey);
-    final mutName = _getSurahName(mutVerse.verseKey);
+    final srcSurahId = int.tryParse(group.sourceVerseKey.split(':').first) ?? 1;
+    final mutSurahId = int.tryParse(mutVerse.verseKey.split(':').first) ?? 1;
+    final srcName = VerseRefFormatter.surahName(srcSurahId, AppLocalizations.of(context)!.localeName);
+    final mutName = VerseRefFormatter.surahName(mutSurahId, AppLocalizations.of(context)!.localeName);
     final srcWords = group.uniqueWords['src'] ?? [];
     final mutWords = group.uniqueWords['mut'] ?? [];
 
@@ -271,7 +269,7 @@ class _MutashabihatPracticeScreenState
         // Source verse
         _verseBlock(
           theme,
-          label: '$srcName (${group.sourceVerseKey})',
+          label: VerseRefFormatter.format(group.sourceVerseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
           text: srcText,
           highlightWords: srcWords,
           highlightColor: const Color(0xFF3B82F6),
@@ -281,7 +279,7 @@ class _MutashabihatPracticeScreenState
         // Similar verse (hidden until revealed)
         _verseBlock(
           theme,
-          label: '$mutName (${mutVerse.verseKey})',
+          label: VerseRefFormatter.format(mutVerse.verseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
           text: mutText,
           highlightWords: mutWords,
           highlightColor: const Color(0xFFF59E0B),
@@ -391,7 +389,8 @@ class _MutashabihatPracticeScreenState
     final srcText = group.sourceText.isNotEmpty
         ? group.sourceText
         : _getVerseText(group.sourceVerseKey);
-    final srcName = _getSurahName(group.sourceVerseKey);
+    final srcSurahId = int.tryParse(group.sourceVerseKey.split(':').first) ?? 1;
+    final srcName = VerseRefFormatter.surahName(srcSurahId, AppLocalizations.of(context)!.localeName);
 
     return Column(
       children: [
@@ -444,8 +443,7 @@ class _MutashabihatPracticeScreenState
                     entry.value,
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
-                    style: TextStyle(
-                      fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+                    style: GoogleFonts.amiriQuran(
                       fontSize: 18,
                       height: 2.0,
                       color: entry.key == mutAyah
@@ -478,7 +476,7 @@ class _MutashabihatPracticeScreenState
             children: [
               _verseBlock(
                 theme,
-                label: '$srcName (${group.sourceVerseKey})',
+                label: VerseRefFormatter.format(group.sourceVerseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
                 text: srcText,
                 highlightWords: group.uniqueWords['src'] ?? [],
                 highlightColor: const Color(0xFF3B82F6),
@@ -499,9 +497,11 @@ class _MutashabihatPracticeScreenState
   Widget _buildQuizCard(ThemeProvider theme, MutashabihatGroup group) {
     final srcWords = group.uniqueWords['src'] ?? [];
     final mutWords = group.uniqueWords['mut'] ?? [];
-    final srcName = _getSurahName(group.sourceVerseKey);
+    final srcSurahId = int.tryParse(group.sourceVerseKey.split(':').first) ?? 1;
     final mutVerse = group.similarVerses.first;
-    final mutName = _getSurahName(mutVerse.verseKey);
+    final mutSurahId = int.tryParse(mutVerse.verseKey.split(':').first) ?? 1;
+    final srcName = VerseRefFormatter.surahName(srcSurahId, AppLocalizations.of(context)!.localeName);
+    final mutName = VerseRefFormatter.surahName(mutSurahId, AppLocalizations.of(context)!.localeName);
 
     if (srcWords.isEmpty && mutWords.isEmpty) {
       // No unique words — skip
@@ -552,8 +552,7 @@ class _MutashabihatPracticeScreenState
             child: Text(
               quizWord,
               textDirection: TextDirection.rtl,
-              style: TextStyle(
-                fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+              style: GoogleFonts.amiriQuran(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
                 color: theme.accentColor,
@@ -582,19 +581,34 @@ class _MutashabihatPracticeScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    _quizCorrect == true
-                        ? AppLocalizations.of(context)!.pracCorrect
-                        : AppLocalizations.of(context)!.pracWrong,
-                    textDirection: TextDirection.rtl,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _quizCorrect == true
-                          ? Colors.green.shade700
-                          : Colors.red.shade700,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    textDirection: Directionality.of(context),
+                    children: [
+                      Icon(
+                        _quizCorrect == true
+                            ? LucideIcons.checkCircle
+                            : LucideIcons.alertCircle,
+                        size: 16,
+                        color: _quizCorrect == true
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _quizCorrect == true
+                            ? AppLocalizations.of(context)!.pracCorrect
+                            : AppLocalizations.of(context)!.pracWrong,
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: _quizCorrect == true
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   if (srcWords.isNotEmpty)
@@ -768,8 +782,7 @@ class _MutashabihatPracticeScreenState
         text,
         textAlign: TextAlign.center,
         textDirection: TextDirection.rtl,
-        style: TextStyle(
-          fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+        style: GoogleFonts.amiriQuran(
           fontSize: 18,
           height: 2.0,
           color: theme.primaryText,
@@ -788,8 +801,7 @@ class _MutashabihatPracticeScreenState
       spans.add(
         TextSpan(
           text: i > 0 ? ' $w' : w,
-          style: TextStyle(
-            fontFamily: AppLocalizations.of(context)!.pracHafsScript,
+          style: GoogleFonts.amiriQuran(
             fontSize: 18,
             height: 2.0,
             color: isHighlight ? color : theme.primaryText,
@@ -836,7 +848,7 @@ class _MutashabihatPracticeScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🏆', style: TextStyle(fontSize: 48)),
+          Icon(LucideIcons.trophy, size: 48, color: theme.accentColor),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.pracComplete,
@@ -873,7 +885,7 @@ class _MutashabihatPracticeScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('📿', style: TextStyle(fontSize: 48)),
+          Icon(LucideIcons.bookmark, size: 48, color: theme.mutedText),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.pracNoMut,

@@ -371,7 +371,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get werdDaily => 'الورد اليومي';
 
   @override
-  String get werdComplete => 'ماشاء الله! 🎉';
+  String get werdComplete => 'ماشاء الله!';
 
   @override
   String get werdCompleteDesc => 'أكملت وردك اليومي';
@@ -881,7 +881,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get assessEstTimeline => 'الجدول الزمني المقدر';
 
   @override
-  String get assessStartJourney => 'ابدأ رحلتي ✨';
+  String get assessStartJourney => 'ابدأ رحلتي';
 
   @override
   String get assessYourProfile => 'ملفك الشخصي للحفظ';
@@ -920,7 +920,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeWelcomeBack => 'مرحباً بعودتك!';
 
   @override
-  String get homeLetsGo => 'هيا بنا! ✨';
+  String get homeLetsGo => 'هيا بنا!';
 
   @override
   String get pracMutashabihat => 'المتشابهات';
@@ -941,10 +941,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pracNoDiffWords => 'لا توجد كلمات مميزة متاحة لهذا الزوج.';
 
   @override
-  String get pracCorrect => '✅ صحيح!';
+  String get pracCorrect => 'صحيح!';
 
   @override
-  String get pracWrong => '❌ خطأ';
+  String get pracWrong => 'خطأ';
 
   @override
   String get pracNext => 'التالي ←';
@@ -962,13 +962,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pracStrengthen => 'عزز حفظك';
 
   @override
-  String get pracRegenCards => '🔄 إعادة إنشاء جميع البطاقات';
+  String get pracRegenCards => 'إعادة إنشاء جميع البطاقات';
 
   @override
   String get pracMixedReview => 'مراجعة مختلطة';
 
   @override
-  String get pracAllCaughtUp => 'أنجزت كل شيء! ✨';
+  String get pracAllCaughtUp => 'أنجزت كل شيء!';
 
   @override
   String get pracNoFlashcards => 'لا توجد بطاقات مستحقة الآن';
@@ -998,10 +998,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pracBrowseStudy => 'تصفح، ادرس وتدرب';
 
   @override
-  String get pracBrowse => '📚 تصفح';
+  String get pracBrowse => 'تصفح';
 
   @override
-  String get pracPractice => '🎯 تدرب';
+  String get pracPractice => 'تدرب';
 
   @override
   String get pracTotalCards => 'إجمالي البطاقات';
@@ -1010,25 +1010,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pracCreateProfileUnlock => 'أنشئ ملف حفظ لفتح البطاقات';
 
   @override
-  String get assessAgeChild => '🧒 طفل (7-12)';
+  String get assessAgeChild => 'طفل (7-12)';
 
   @override
-  String get assessAgeTeen => '🧑 مراهق (13-17)';
+  String get assessAgeTeen => 'مراهق (13-17)';
 
   @override
-  String get assessAgeYoungAdult => '💪 شاب (18-30)';
+  String get assessAgeYoungAdult => 'شاب (18-30)';
 
   @override
-  String get assessAgeAdult => '🧔 بالغ (31-45)';
+  String get assessAgeAdult => 'بالغ (31-45)';
 
   @override
-  String get assessAgeMiddle => '🌟 في منتصف العمر (46-55)';
+  String get assessAgeMiddle => 'في منتصف العمر (46-55)';
 
   @override
-  String get assessAgeSenior => '📿 كبير السن (56-70)';
+  String get assessAgeSenior => 'كبير السن (56-70)';
 
   @override
-  String get assessAgeElderly => '🤲 مسن (71+)';
+  String get assessAgeElderly => 'مسن (71+)';
 
   @override
   String get assessOnePage => 'صفحة واحدة';
@@ -1273,13 +1273,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get progPagesPerWeek => 'صفحة/أسبوع';
 
   @override
-  String get progAssStrong => '💪 قوي';
+  String get progAssStrong => 'قوي';
 
   @override
-  String get progAssOkay => '🤔 متوسط';
+  String get progAssOkay => 'متوسط';
 
   @override
-  String get progAssNeedsWork => '😬 يحتاج مراجعة';
+  String get progAssNeedsWork => 'يحتاج مراجعة';
 
   @override
   String homeReadyToStart(Object name) {
@@ -1288,7 +1288,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String homeActiveDaysKeepItUp(Object days) {
-    return '$days أيام نشطة — واصل تقدمك! 🔥';
+    return '$days أيام نشطة — واصل تقدمك!';
   }
 
   @override
@@ -1389,7 +1389,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planStartSession => 'بدء الجلسة';
 
   @override
-  String get planCompleted => 'مكتملة ✨';
+  String get planCompleted => 'مكتملة';
 
   @override
   String get planWhyThisPlan => 'لماذا هذه الخطة؟';
@@ -1686,35 +1686,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String tomorrowPreview(int page) {
-    return '📖 صفحة $page · 🔁 مراجعة صفحات اليوم';
+    return 'صفحة $page · مراجعة صفحات اليوم';
   }
 
   @override
-  String get khatmCongrats => 'لقد ختمت القرآن! 🎉';
+  String get khatmCongrats => 'لقد ختمت القرآن!';
 
   @override
   String get feedbackSabaqStrong =>
-      'ممتاز! تقييمك لهذه الصفحة ممتاز — أساس قوي! 🎯';
+      'ممتاز! تقييمك لهذه الصفحة ممتاز — أساس قوي!';
 
   @override
   String get feedbackSabaqNeedsWork =>
-      'كل جلسة صعبة هي تقدم. الصفحات التي تتحداك اليوم ستكون الأقوى غدًا. 💪';
+      'كل جلسة صعبة هي تقدم. الصفحات التي تتحداك اليوم ستكون الأقوى غدًا.';
 
   @override
   String feedbackRepetition(int reps) {
-    return 'ما شاء الله! $reps تكرار — تبني ذاكرة قوية كالصخر! 🧠';
+    return 'ما شاء الله! $reps تكرار — تبني ذاكرة قوية كالصخر!';
   }
 
   @override
   String get feedbackFallback =>
-      'ما شاء الله! عمل رائع اليوم. كل جلسة تصنع الفرق! ✨';
+      'ما شاء الله! عمل رائع اليوم. كل جلسة تصنع الفرق!';
 
   @override
   String get feedbackFallbackShort => 'ما شاء الله! عمل رائع اليوم.';
 
   @override
   String feedbackTime(int minutes) {
-    return 'ما شاء الله! جلسة قوية مدتها $minutes دقيقة. الاستمرارية تبني الجبال! 🌟';
+    return 'ما شاء الله! جلسة قوية مدتها $minutes دقيقة. الاستمرارية تبني الجبال!';
   }
 
   @override
@@ -1857,7 +1857,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String planMinDuration(int min) {
-    return 'دقيقة $min';
+    return '$min دقيقة';
   }
 
   @override
@@ -1883,6 +1883,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fcMutashabihat => 'المتشابهات';
+
+  @override
+  String get fcMixedReviewDesc => 'مراجعة شاملة لكافة البطاقات';
+
+  @override
+  String get fcNextVerseDesc => 'تذكر الآية التالية';
+
+  @override
+  String get fcPreviousVerseDesc => 'تذكر الآية السابقة';
+
+  @override
+  String get fcCompleteItDesc => 'أكمل الكلمات المفقودة';
+
+  @override
+  String get fcSurahDetectiveDesc => 'تحديد السورة من الآية';
+
+  @override
+  String get fcSequenceDesc => 'ترتيب الآيات المبعثرة';
+
+  @override
+  String get fcMutashabihatDesc => 'تمييز الآيات المتشابهة';
 
   @override
   String get undSpotlightTitle => 'إضاءات قرآنية';
@@ -2144,6 +2165,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pracTapToReveal => 'انقر للإظهار';
 
   @override
+  String get ratingForgot => 'نسيت';
+
+  @override
+  String get ratingWeak => 'ضعيف';
+
+  @override
+  String get ratingOk => 'متوسط';
+
+  @override
+  String get ratingStrong => 'قوي';
+
+  @override
+  String get fcReviewComplete => 'اكتملت المراجعة!';
+
+  @override
+  String get fcCardsReviewed => 'البطاقات المراجعة';
+
+  @override
+  String get fcDone => 'تم';
+
+  @override
+  String get fcAllCaughtUp => 'أنهيت كل المراجعات!';
+
+  @override
+  String get fcNoCardsDue =>
+      'لا توجد بطاقات مستحقة الآن.\nاستمر في الحفظ وستظهر البطاقات!';
+
+  @override
+  String get fcBack => 'رجوع';
+
+  @override
+  String get fcSandboxMode => 'وضع التجربة';
+
+  @override
+  String get fcCorrectOrder => 'ترتيب صحيح!';
+
+  @override
   String get cardTypeVerseCompletion => 'إكمال الآية';
 
   @override
@@ -2186,6 +2244,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboardingBrandStatement => 'نؤمن بأن الحفظ بدون فهم\nغير مكتمل.';
+
+  @override
+  String get onboardingReadTitle => 'اقرأ واستمع';
+
+  @override
+  String get onboardingReadDesc =>
+      'ابدأ بالمصحف نفسه: برواية حفص أو ورش، بصفحة المدينة الكاملة، وتلاوة تتبع الآية التي تقرأها.';
+
+  @override
+  String get onboardingUnderstandTitle => 'افهم بعمق';
+
+  @override
+  String get onboardingUnderstandDesc =>
+      'الفهم ليس إضافة ثانوية. التراجم والتفسير وأسباب النزول تلازم الآيات لترسيخ سياق الحفظ.';
+
+  @override
+  String get onboardingMemorizeTitle => 'احفظ وأتقن';
+
+  @override
+  String get onboardingMemorizeDesc =>
+      'إيقاع يومي: حفظ جديد ومراجعة قريبة وبعيدة موجهة بالتكرار المتباعد الذكي لتثبيت الحفظ.';
 
   @override
   String get onboardingBegin => 'ابدأ';
@@ -2494,7 +2573,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String verseCopied(String verseKey) {
-    return 'تم نسخ الآية $verseKey';
+    return 'تم نسخ الآية — $verseKey';
   }
 
   @override

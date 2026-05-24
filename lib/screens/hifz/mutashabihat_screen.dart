@@ -12,6 +12,7 @@ import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/utils/app_logger.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Browsable collection of mutashabihat (similar verse) groups.
 /// Filter by status (All/Needs Practice/Mastered/Not Studied).
@@ -321,7 +322,7 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header row: label + verse key + surah name
+          // Header row: label + verse reference
           Row(
             children: [
               Container(
@@ -341,25 +342,15 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                verseKey,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: theme.primaryText,
-                ),
-              ),
-              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  surahName,
-                  style: GoogleFonts.amiri(
-                    fontSize: 13,
-                    color: theme.secondaryText,
+                  VerseRefFormatter.format(verseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
+                  style: TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: theme.primaryText,
                   ),
-                  textDirection: TextDirection.rtl,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

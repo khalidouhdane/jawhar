@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Compact overlay widget that shows the translation of a verse.
 ///
@@ -47,7 +49,7 @@ class TranslationOverlay extends StatelessWidget {
         boxShadow: theme.shadowRing,
       ),
       child: translationText != null
-          ? _buildContent(theme, translationText!)
+          ? _buildContent(context, theme, translationText!)
           : _buildFromProvider(context, theme),
     );
   }
@@ -57,11 +59,11 @@ class TranslationOverlay extends StatelessWidget {
 
     // Check active translation
     if (ctx.activeVerseKey == verseKey && ctx.activeTranslation != null) {
-      return _buildContent(theme, ctx.activeTranslation!.text);
+      return _buildContent(context, theme, ctx.activeTranslation!.text);
     }
 
     if (ctx.isLoadingTranslation && ctx.activeVerseKey == verseKey) {
-      return _buildShimmer(theme);
+      return _buildShimmer(context, theme);
     }
 
     // Trigger load if we don't have data
@@ -71,10 +73,10 @@ class TranslationOverlay extends StatelessWidget {
       }
     });
 
-    return _buildShimmer(theme);
+    return _buildShimmer(context, theme);
   }
 
-  Widget _buildContent(ThemeProvider theme, String text) {
+  Widget _buildContent(BuildContext context, ThemeProvider theme, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -85,7 +87,11 @@ class TranslationOverlay extends StatelessWidget {
             Icon(Icons.translate, size: 14, color: theme.accentColor),
             const SizedBox(width: 6),
             Text(
-              verseKey,
+              VerseRefFormatter.format(
+                verseKey,
+                locale: AppLocalizations.of(context)!.localeName,
+                tier: VerseRefFormat.compact,
+              ),
               style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -117,7 +123,7 @@ class TranslationOverlay extends StatelessWidget {
     );
   }
 
-  Widget _buildShimmer(ThemeProvider theme) {
+  Widget _buildShimmer(BuildContext context, ThemeProvider theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -127,7 +133,11 @@ class TranslationOverlay extends StatelessWidget {
             Icon(Icons.translate, size: 14, color: theme.accentColor),
             const SizedBox(width: 6),
             Text(
-              verseKey,
+              VerseRefFormatter.format(
+                verseKey,
+                locale: AppLocalizations.of(context)!.localeName,
+                tier: VerseRefFormat.compact,
+              ),
               style: GoogleFonts.ibmPlexSansArabic(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,

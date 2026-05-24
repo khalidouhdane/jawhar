@@ -5,6 +5,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/tafsir_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Bottom sheet that shows tafsir (exegesis) for a selected verse.
 ///
@@ -164,7 +165,13 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            l.tafsirTitle(widget.verseKey),
+                            l.tafsirTitle(
+                              VerseRefFormatter.format(
+                                widget.verseKey,
+                                locale: l.localeName,
+                                tier: VerseRefFormat.compact,
+                              ),
+                            ),
                             style: GoogleFonts.ibmPlexSansArabic(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

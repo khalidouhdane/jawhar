@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -166,7 +167,11 @@ class _SessionOverlayState extends State<SessionOverlay> {
     // Build the playing title
     String playingVerseLabel = AppLocalizations.of(context)!.audioSelectVerse;
     if (audioProvider.activeVerseKey != null) {
-      playingVerseLabel = audioProvider.activeVerseKey!;
+      playingVerseLabel = VerseRefFormatter.format(
+        audioProvider.activeVerseKey!,
+        locale: AppLocalizations.of(context)!.localeName,
+        tier: VerseRefFormat.compact,
+      );
     }
 
     return SafeArea(

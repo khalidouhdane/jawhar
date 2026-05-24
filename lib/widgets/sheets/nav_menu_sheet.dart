@@ -8,6 +8,7 @@ import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/models/bookmark_model.dart';
 import 'package:quran_app/widgets/sheets/bookmark_edit_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 
 // ─── Nav Menu Sheet ───
@@ -583,7 +584,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
 
                     // Subtitle: verse key or page, plus collection name if assigned
                     String subtitle = isVerse
-                        ? '${bookmark.verseKey} · ${l.navPage} ${bookmark.pageNumber}'
+                        ? '${VerseRefFormatter.format(bookmark.verseKey!, locale: l.localeName, tier: VerseRefFormat.compact)} · ${l.navPage} ${bookmark.pageNumber}'
                         : '${l.navPage} ${bookmark.pageNumber}';
                     if (bookmark.collectionId != null) {
                       final col = bookmarkProvider.getCollection(

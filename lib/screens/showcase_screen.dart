@@ -335,96 +335,26 @@ class PhoneFrame extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF2C2C2E),
-        borderRadius: BorderRadius.circular(30),
+        color: isDark ? const Color(0xFF1E1E1F) : const Color(0xFF2E2F30),
+        borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: isDark ? const Color(0xFF333333) : const Color(0xFF48484A),
+          color: isDark ? const Color(0xFF2C2D2E) : const Color(0xFF4E4F50),
           width: 3.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 15,
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 18,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(4.0),
+      padding: const EdgeInsets.all(6.0), // Elegant, uniform inner bezel padding
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Container(
-          color: theme.scaffoldBackground,
-          child: Column(
-            children: [
-              // ── Phone Notch & Status Bar ──
-              Container(
-                height: 18,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                color: theme.scaffoldBackground,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '19:27',
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                        color: theme.primaryText,
-                      ),
-                    ),
-                    // Notch
-                    Container(
-                      width: 36,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.black : const Color(0xFF1C1C1E),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Icon(Icons.signal_cellular_4_bar, color: theme.primaryText, size: 8),
-                        const SizedBox(width: 2),
-                        Icon(Icons.wifi, color: theme.primaryText, size: 8),
-                        const SizedBox(width: 2),
-                        Container(
-                          width: 10,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: theme.primaryText, width: 0.6),
-                            borderRadius: BorderRadius.circular(1.5),
-                          ),
-                          padding: const EdgeInsets.all(0.4),
-                          child: Container(
-                            color: theme.primaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Main Screen Viewport ──
-              Expanded(child: child),
-
-              // ── iOS Home Indicator ──
-              Container(
-                height: 10,
-                color: theme.scaffoldBackground,
-                alignment: Alignment.center,
-                child: Container(
-                  width: 36,
-                  height: 2.2,
-                  decoration: BoxDecoration(
-                    color: theme.mutedText.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          color: const Color(0xFF121212), // Default premium dark display base
+          child: child,
         ),
       ),
     );
@@ -461,10 +391,25 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
     final stackWidth = size.width * 0.8;
     final stackHeight = size.height * 0.46;
 
-    // Standard phone screen has 9:19.5 aspect ratio. 
-    // Card height = screen + status bar (18) + home indicator (10) + border (7)
-    final cardHeight = stackHeight * 0.95;
-    final cardWidth = ((cardHeight - 35) * 0.47).clamp(80.0, stackWidth * 0.62);
+    // We want the inner viewport (screen) to match the screenshot aspect ratio (600 / 1298 ≈ 0.46225).
+    // The PhoneFrame has a border of 3.5 on each side and padding of 6.0 on each side.
+    // Total horizontal reduction = 2 * (3.5 + 6.0) = 19.0.
+    // Total vertical reduction = 2 * (3.5 + 6.0) = 19.0.
+    // Inner screenshot aspect ratio = (cardWidth - 19.0) / (cardHeight - 19.0) = 0.46225.
+    
+    // Constraints:
+    final maxCardHeight = stackHeight * 0.95;
+    final maxCardWidth = stackWidth * 0.75; // Leave 25% for stack offset and padding
+
+    // 1. Estimate cardHeight based on height constraint
+    double cardHeight = maxCardHeight;
+    double cardWidth = 0.46225 * (cardHeight - 19.0) + 19.0;
+
+    // 2. Adjust if it exceeds width constraint to maintain aspect ratio
+    if (cardWidth > maxCardWidth) {
+      cardWidth = maxCardWidth;
+      cardHeight = (cardWidth - 19.0) / 0.46225 + 19.0;
+    }
 
     // Calculate margins to center the offset stack within the container
     final double stackSpan = cardWidth + stackWidth * 0.22;

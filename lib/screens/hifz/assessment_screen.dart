@@ -1,5 +1,6 @@
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -12,6 +13,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/icon_resolver.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
+import 'package:quran_app/services/audio_proxy_server.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -1173,7 +1175,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           final fullUrl = audioUrl.startsWith('http')
               ? audioUrl
               : 'https://audio.qurancdn.com/$audioUrl';
-          await _samplePlayer.play(UrlSource(fullUrl));
+          final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(fullUrl) : fullUrl;
+          await _samplePlayer.play(UrlSource(finalUrl));
           // Stop after 10 seconds for a short preview
           Future.delayed(const Duration(seconds: 10), () {
             if (_playingReciterId == reciterId && mounted) {

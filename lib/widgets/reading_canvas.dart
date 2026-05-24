@@ -12,6 +12,7 @@ import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/widgets/context/tafsir_sheet.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 class ReadingCanvas extends StatefulWidget {
   final List<Verse> verses;
@@ -135,7 +136,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
 
   List<InlineSpan> _buildSpans(
     ThemeProvider theme,
-    AudioProvider audioProvider,
+    String? activeVerseKey,
     QuranReadingProvider readingProvider,
     double fontSize,
   ) {
@@ -169,7 +170,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
       }
 
       final isSelected = widget.selectedVerseId == verse.id;
-      final isPlaying = audioProvider.activeVerseKey == verse.verseKey;
+      final isPlaying = activeVerseKey == verse.verseKey;
       final isFlashHighlight =
           context.watch<BookmarkProvider>().highlightVerseKey == verse.verseKey;
       final isHighlighted = isSelected || isPlaying || isFlashHighlight;
@@ -328,8 +329,9 @@ class ReadingCanvasState extends State<ReadingCanvas> {
               height: double.infinity,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return Consumer<AudioProvider>(
-                    builder: (context, audioProvider, child) {
+                  return Selector<AudioProvider, String?>(
+                    selector: (context, provider) => provider.activeVerseKey,
+                    builder: (context, activeVerseKey, child) {
                       final readingProvider = context
                           .watch<QuranReadingProvider>();
                       final isActivePage =
@@ -379,7 +381,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
 
                           final testSpans = _buildSpans(
                             theme,
-                            audioProvider,
+                            activeVerseKey,
                             readingProvider,
                             midFS,
                           );
@@ -443,7 +445,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
 
                       final finalSpans = _buildSpans(
                         theme,
-                        audioProvider,
+                        activeVerseKey,
                         readingProvider,
                         calculatedFontSize,
                       );
@@ -667,14 +669,27 @@ class _ContextualMenu extends StatelessWidget {
             _ActionIcon(
               icon: LucideIcons.copy,
               onTap: () {
-                Clipboard.setData(
-                  ClipboardData(text: '$_verseText\n[${verse.verseKey}]'),
-                );
                 final l = AppLocalizations.of(context);
+                Clipboard.setData(
+                  ClipboardData(
+                    text: '$_verseText\n[${VerseRefFormatter.format(
+                      verse.verseKey,
+                      locale: l?.localeName ?? 'en',
+                      tier: VerseRefFormat.full,
+                    )}]',
+                  ),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      l?.verseCopied(verse.verseKey) ?? 'Verse ${verse.verseKey} copied',
+                      l?.verseCopied(
+                            VerseRefFormatter.format(
+                              verse.verseKey,
+                              locale: l.localeName,
+                              tier: VerseRefFormat.standard,
+                            ),
+                          ) ??
+                          'Verse ${verse.verseKey} copied',
                       style: TextStyle(fontFamily: 'Inter'),
                     ),
                     behavior: SnackBarBehavior.floating,
@@ -722,10 +737,16 @@ class _ContextualMenu extends StatelessWidget {
             _ActionIcon(
               icon: LucideIcons.share,
               onTap: () {
-                Clipboard.setData(
-                  ClipboardData(text: '$_verseText\n\n— ${verse.verseKey}'),
-                );
                 final l = AppLocalizations.of(context);
+                Clipboard.setData(
+                  ClipboardData(
+                    text: '$_verseText\n\n— ${VerseRefFormatter.format(
+                      verse.verseKey,
+                      locale: l?.localeName ?? 'en',
+                      tier: VerseRefFormat.full,
+                    )}',
+                  ),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(

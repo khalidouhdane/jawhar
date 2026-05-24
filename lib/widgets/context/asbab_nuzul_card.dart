@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/context_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// An expandable card that shows asbab al-nuzul (reason/occasion of revelation)
 /// for a verse.
@@ -148,7 +150,11 @@ class _AsbabNuzulCardState extends State<AsbabNuzulCard>
                           ),
                         ),
                         Text(
-                          'Verse ${widget.verseKey}',
+                          VerseRefFormatter.format(
+                            widget.verseKey,
+                            locale: AppLocalizations.of(context)!.localeName,
+                            tier: VerseRefFormat.standard,
+                          ),
                           style: GoogleFonts.ibmPlexSansArabic(
                             fontSize: 11,
                             color: theme.secondaryText,

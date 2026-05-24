@@ -7,36 +7,10 @@ import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/services/api_client.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
 import 'package:quran_app/services/mp3quran_service.dart';
+import 'package:quran_app/services/audio_proxy_server.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:quran_app/utils/app_logger.dart';
-
-/// Surah names for media notification display.
-const List<String> _surahNames = [
-  '', // index 0 unused
-  'Al-Fatihah', 'Al-Baqarah', 'Ali \'Imran', 'An-Nisa', 'Al-Ma\'idah',
-  'Al-An\'am', 'Al-A\'raf', 'Al-Anfal', 'At-Tawbah', 'Yunus',
-  'Hud', 'Yusuf', 'Ar-Ra\'d', 'Ibrahim', 'Al-Hijr',
-  'An-Nahl', 'Al-Isra', 'Al-Kahf', 'Maryam', 'Taha',
-  'Al-Anbiya', 'Al-Hajj', 'Al-Mu\'minun', 'An-Nur', 'Al-Furqan',
-  'Ash-Shu\'ara', 'An-Naml', 'Al-Qasas', 'Al-Ankabut', 'Ar-Rum',
-  'Luqman', 'As-Sajdah', 'Al-Ahzab', 'Saba', 'Fatir',
-  'Ya-Sin', 'As-Saffat', 'Sad', 'Az-Zumar', 'Ghafir',
-  'Fussilat', 'Ash-Shura', 'Az-Zukhruf', 'Ad-Dukhan', 'Al-Jathiyah',
-  'Al-Ahqaf', 'Muhammad', 'Al-Fath', 'Al-Hujurat', 'Qaf',
-  'Adh-Dhariyat', 'At-Tur', 'An-Najm', 'Al-Qamar', 'Ar-Rahman',
-  'Al-Waqi\'ah', 'Al-Hadid', 'Al-Mujadila', 'Al-Hashr', 'Al-Mumtahanah',
-  'As-Saf', 'Al-Jumu\'ah', 'Al-Munafiqun', 'At-Taghabun', 'At-Talaq',
-  'At-Tahrim', 'Al-Mulk', 'Al-Qalam', 'Al-Haqqah', 'Al-Ma\'arij',
-  'Nuh', 'Al-Jinn', 'Al-Muzzammil', 'Al-Muddaththir', 'Al-Qiyamah',
-  'Al-Insan', 'Al-Mursalat', 'An-Naba', 'An-Nazi\'at', 'Abasa',
-  'At-Takwir', 'Al-Infitar', 'Al-Mutaffifin', 'Al-Inshiqaq', 'Al-Buruj',
-  'At-Tariq', 'Al-A\'la', 'Al-Ghashiyah', 'Al-Fajr', 'Al-Balad',
-  'Ash-Shams', 'Al-Layl', 'Ad-Duhaa', 'Ash-Sharh', 'At-Tin',
-  'Al-Alaq', 'Al-Qadr', 'Al-Bayyinah', 'Az-Zalzalah', 'Al-Adiyat',
-  'Al-Qari\'ah', 'At-Takathur', 'Al-Asr', 'Al-Humazah', 'Al-Fil',
-  'Quraysh', 'Al-Ma\'un', 'Al-Kawthar', 'Al-Kafirun', 'An-Nasr',
-  'Al-Masad', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas',
-];
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Repeat mode for audio playback
 enum AudioRepeatMode { none, repeatVerse, repeatRange }
@@ -155,6 +129,10 @@ class AudioProvider extends ChangeNotifier {
 
 
   AudioProvider() {
+    if (Platform.isWindows) {
+      AudioProxyServer().start();
+    }
+
     _player.onPlayerStateChanged.listen((state) {
       if (_isSeeking) return;
       final playing = state == PlayerState.playing;
@@ -308,7 +286,8 @@ class AudioProvider extends ChangeNotifier {
 
       _verseTimings = List<_VerseTiming>.from(data.timings);
 
-      await _player.setSourceUrl(data.audioUrl);
+      final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(data.audioUrl) : data.audioUrl;
+      await _player.setSourceUrl(finalUrl);
       if (gen != _generation) return; // cancelled
 
       final duration = await _getOrWaitForDuration();
@@ -321,10 +300,30 @@ class AudioProvider extends ChangeNotifier {
       final timing = _findTiming(savedKey);
       if (timing != null) {
         _activeVerseKey = savedKey;
-        await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-        if (gen != _generation) return; // cancelled
         await _player.setPlaybackRate(_playbackSpeed);
-        await _player.resume();
+        
+        if (Platform.isWindows && timing.firstSegmentMs > 0) {
+          // On Windows, set volume to 0 to buffer silently, play first, delay, seek, then restore volume
+          await _player.setVolume(0.0);
+          await _player.resume();
+          if (gen != _generation) return; // cancelled
+          
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (gen != _generation) return; // cancelled
+          
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return; // cancelled
+          
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (gen != _generation) return; // cancelled
+          
+          await _player.setVolume(1.0); // Restore volume
+        } else {
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return; // cancelled
+          await _player.resume();
+        }
+        
         _isSeeking = false;
         _isLoading = false;
         _isPlaying = true;
@@ -554,7 +553,7 @@ class AudioProvider extends ChangeNotifier {
         return data;
       }
     } catch (e) {
-      AppLogger.info('Audio', 'Error fetching chapter audio: $e');
+      AppLogger.error('Audio', 'Error fetching chapter audio', e);
     }
     return null;
   }
@@ -604,7 +603,8 @@ class AudioProvider extends ChangeNotifier {
       _currentChapter = chapterNumber;
       _verseTimings = List<_VerseTiming>.from(data.timings);
 
-      await _player.setSourceUrl(data.audioUrl);
+      final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(data.audioUrl) : data.audioUrl;
+      await _player.setSourceUrl(finalUrl);
       if (gen != _generation) return; // cancelled
 
       final duration = await _getOrWaitForDuration();
@@ -629,7 +629,23 @@ class AudioProvider extends ChangeNotifier {
       // For MP3Quran, we need to resume first then seek because some
       // backends silently ignore seek on an unbuffered source.
       if (timing != null && timing.firstSegmentMs > 0) {
-        if (_apiSource == ApiSource.mp3Quran) {
+        if (Platform.isWindows) {
+          // On Windows, set volume to 0 to buffer silently, play first, delay, seek, then restore volume
+          await _player.setVolume(0.0);
+          await _player.resume();
+          if (gen != _generation) return; // cancelled
+          
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (gen != _generation) return; // cancelled
+          
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return; // cancelled
+          
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (gen != _generation) return; // cancelled
+          
+          await _player.setVolume(1.0); // Restore volume
+        } else if (_apiSource == ApiSource.mp3Quran) {
           // Start playback first so the source buffers
           await _player.resume();
           if (gen != _generation) return;
@@ -649,6 +665,9 @@ class AudioProvider extends ChangeNotifier {
           if (gen != _generation) return;
         }
       } else {
+        if (Platform.isWindows) {
+          await _player.setVolume(1.0); // Ensure volume is up
+        }
         await _player.resume();
         if (gen != _generation) return;
       }
@@ -681,7 +700,7 @@ class AudioProvider extends ChangeNotifier {
       _syncNotificationState();
       notifyListeners();
     } catch (e) {
-      AppLogger.info('Audio', 'Error in playVerseList: $e');
+      AppLogger.error('Audio', 'Error in playVerseList', e);
       if (gen != _generation) return;
       _isSeeking = false;
       _isLoading = false;
@@ -718,15 +737,9 @@ class AudioProvider extends ChangeNotifier {
   void _syncNotificationMetadata() async {
     if (_currentChapter == null || _audioHandler == null) return;
 
-    final surahName =
-        (_currentChapter! >= 1 && _currentChapter! < _surahNames.length)
-        ? _surahNames[_currentChapter!]
-        : 'Surah $_currentChapter';
-
-    // Verse info for subtitle
-    final verseInfo = _activeVerseKey != null
-        ? ' \u2022 Ayah ${_activeVerseKey!.split(':').last}'
-        : '';
+    final notificationTitle = _activeVerseKey != null
+        ? VerseRefFormatter.format(_activeVerseKey!, locale: 'en', tier: VerseRefFormat.full)
+        : 'Surah ${VerseRefFormatter.surahName(_currentChapter!, 'en')}';
 
     // Copy the reciter image asset to a temp file for the notification
     Uri? artUri;
@@ -737,7 +750,7 @@ class AudioProvider extends ChangeNotifier {
     }
 
     _audioHandler!.setMediaMetadata(
-      surahName: '$surahName$verseInfo',
+      surahName: notificationTitle,
       reciterName: _reciterName,
       artUri: artUri,
       duration: _totalDuration,
@@ -825,6 +838,9 @@ class AudioProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (Platform.isWindows) {
+      AudioProxyServer().stop();
+    }
     _player.dispose();
     super.dispose();
   }

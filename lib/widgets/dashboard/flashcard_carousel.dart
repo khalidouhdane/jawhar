@@ -29,7 +29,7 @@ class FlashcardCarousel extends StatelessWidget {
         _CardCategory(
           icon: LucideIcons.shuffle,
           title: l10n.fcMixedReview,
-          titleAr: 'مراجعة شاملة',
+          description: l10n.fcMixedReviewDesc,
           dueCount: totalDue,
           isHero: true,
           type: null,
@@ -37,42 +37,42 @@ class FlashcardCarousel extends StatelessWidget {
       _CardCategory(
         icon: LucideIcons.skipForward,
         title: l10n.fcNextVerse,
-        titleAr: 'ما بعدها؟',
+        description: l10n.fcNextVerseDesc,
         dueCount: fc.getDueCountForType(FlashcardType.nextVerse),
         type: FlashcardType.nextVerse,
       ),
       _CardCategory(
         icon: LucideIcons.skipBack,
         title: l10n.fcPreviousVerse,
-        titleAr: 'ما قبلها؟',
+        description: l10n.fcPreviousVerseDesc,
         dueCount: fc.getDueCountForType(FlashcardType.previousVerse),
         type: FlashcardType.previousVerse,
       ),
       _CardCategory(
         icon: LucideIcons.pencil,
         title: l10n.fcCompleteIt,
-        titleAr: 'أكمل الآية',
+        description: l10n.fcCompleteItDesc,
         dueCount: fc.getDueCountForType(FlashcardType.verseCompletion),
         type: FlashcardType.verseCompletion,
       ),
       _CardCategory(
         icon: LucideIcons.search,
         title: l10n.fcSurahDetective,
-        titleAr: 'من أي سورة؟',
+        description: l10n.fcSurahDetectiveDesc,
         dueCount: fc.getDueCountForType(FlashcardType.surahDetective),
         type: FlashcardType.surahDetective,
       ),
       _CardCategory(
         icon: LucideIcons.link,
         title: l10n.fcSequence,
-        titleAr: 'رتب الآيات',
+        description: l10n.fcSequenceDesc,
         dueCount: fc.getDueCountForType(FlashcardType.connectSequence),
         type: FlashcardType.connectSequence,
       ),
       _CardCategory(
         icon: LucideIcons.swords,
         title: l10n.fcMutashabihat,
-        titleAr: 'المتشابهات',
+        description: l10n.fcMutashabihatDesc,
         dueCount: fc.getDueCountForType(FlashcardType.mutashabihatDuel),
         type: FlashcardType.mutashabihatDuel,
       ),
@@ -124,7 +124,7 @@ class FlashcardCarousel extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 110,
+          height: 132,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 16, right: 12),
@@ -144,7 +144,7 @@ class FlashcardCarousel extends StatelessWidget {
 class _CardCategory {
   final IconData icon;
   final String title;
-  final String titleAr;
+  final String description;
   final int dueCount;
   final bool isHero;
   final FlashcardType? type;
@@ -152,7 +152,7 @@ class _CardCategory {
   const _CardCategory({
     required this.icon,
     required this.title,
-    required this.titleAr,
+    required this.description,
     required this.dueCount,
     this.isHero = false,
     required this.type,
@@ -167,6 +167,7 @@ class _FlashcardCategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = AppLocalizations.of(context)!.localeName == 'ar';
     final hasDue = category.dueCount > 0;
     final iconBg = theme.isDark
         ? Colors.white.withValues(alpha: 0.06)
@@ -243,28 +244,40 @@ class _FlashcardCategoryCard extends StatelessWidget {
                 // Title
                 Text(
                   category.title,
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: theme.primaryText,
-                    height: 1.2,
-                  ),
+                  style: isArabic
+                      ? GoogleFonts.amiri(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: theme.primaryText,
+                          height: 1.2,
+                        )
+                      : TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: theme.primaryText,
+                          height: 1.2,
+                        ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                ExcludeSemantics(
-                  child: Text(
-                    category.titleAr,
-                    style: GoogleFonts.amiri(
-                      fontSize: 12,
-                      color: theme.secondaryText,
-                      height: 1.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                const SizedBox(height: 10),
+                Text(
+                  category.description,
+                  style: isArabic
+                      ? GoogleFonts.amiri(
+                          fontSize: 12,
+                          color: theme.secondaryText,
+                          height: 1.45,
+                        )
+                      : TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 11,
+                          color: theme.secondaryText,
+                          height: 1.35,
+                        ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

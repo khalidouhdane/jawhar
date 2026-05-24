@@ -372,7 +372,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get werdDaily => 'Daily Werd';
 
   @override
-  String get werdComplete => 'Masha\'Allah! 🎉';
+  String get werdComplete => 'Masha\'Allah!';
 
   @override
   String get werdCompleteDesc => 'You completed your daily werd';
@@ -891,7 +891,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assessEstTimeline => 'Estimated Timeline';
 
   @override
-  String get assessStartJourney => 'Start My Journey ✨';
+  String get assessStartJourney => 'Start My Journey';
 
   @override
   String get assessYourProfile => 'Your Memory Profile';
@@ -930,7 +930,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWelcomeBack => 'Welcome back!';
 
   @override
-  String get homeLetsGo => 'Let\\\'s Go! ✨';
+  String get homeLetsGo => 'Let\\\'s Go!';
 
   @override
   String get pracMutashabihat => 'Mutashabihat';
@@ -952,10 +952,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No distinguishing words available for this pair.';
 
   @override
-  String get pracCorrect => '✅ صحيح!';
+  String get pracCorrect => 'Correct!';
 
   @override
-  String get pracWrong => '❌ خطأ';
+  String get pracWrong => 'Incorrect';
 
   @override
   String get pracNext => 'Next →';
@@ -973,13 +973,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pracStrengthen => 'Strengthen your memorization';
 
   @override
-  String get pracRegenCards => '🔄 Regenerate all cards';
+  String get pracRegenCards => 'Regenerate all cards';
 
   @override
   String get pracMixedReview => 'Mixed Review';
 
   @override
-  String get pracAllCaughtUp => 'All caught up! ✨';
+  String get pracAllCaughtUp => 'All caught up!';
 
   @override
   String get pracNoFlashcards => 'No flashcards due right now';
@@ -1000,7 +1000,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pracSequence => 'Sequence';
 
   @override
-  String get pracMutArabic => 'آيات متشابهة';
+  String get pracMutArabic => 'Similar verses';
 
   @override
   String get pracMutSimilar => 'Mutashabihat (Similar Verses)';
@@ -1009,10 +1009,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pracBrowseStudy => 'Browse, study & practice';
 
   @override
-  String get pracBrowse => '📚 Browse';
+  String get pracBrowse => 'Browse';
 
   @override
-  String get pracPractice => '🎯 Practice';
+  String get pracPractice => 'Practice';
 
   @override
   String get pracTotalCards => 'Total cards';
@@ -1022,25 +1022,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Create a Hifz profile to unlock flashcards';
 
   @override
-  String get assessAgeChild => '🧒 Child (7-12)';
+  String get assessAgeChild => 'Child (7-12)';
 
   @override
-  String get assessAgeTeen => '🧑 Teen (13-17)';
+  String get assessAgeTeen => 'Teen (13-17)';
 
   @override
-  String get assessAgeYoungAdult => '💪 Young Adult (18-30)';
+  String get assessAgeYoungAdult => 'Young Adult (18-30)';
 
   @override
-  String get assessAgeAdult => '🧔 Adult (31-45)';
+  String get assessAgeAdult => 'Adult (31-45)';
 
   @override
-  String get assessAgeMiddle => '🌟 Middle-Aged (46-55)';
+  String get assessAgeMiddle => 'Middle-Aged (46-55)';
 
   @override
-  String get assessAgeSenior => '📿 Senior (56-70)';
+  String get assessAgeSenior => 'Senior (56-70)';
 
   @override
-  String get assessAgeElderly => '🤲 Elderly (71+)';
+  String get assessAgeElderly => 'Elderly (71+)';
 
   @override
   String get assessOnePage => '1 page';
@@ -1287,13 +1287,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progPagesPerWeek => 'pages/wk';
 
   @override
-  String get progAssStrong => '💪 Strong';
+  String get progAssStrong => 'Strong';
 
   @override
-  String get progAssOkay => '🤔 Okay';
+  String get progAssOkay => 'Okay';
 
   @override
-  String get progAssNeedsWork => '😬 Needs Work';
+  String get progAssNeedsWork => 'Needs Work';
 
   @override
   String homeReadyToStart(Object name) {
@@ -1302,7 +1302,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeActiveDaysKeepItUp(Object days) {
-    return '$days active days — keep it up! 🔥';
+    return '$days active days — keep it up!';
   }
 
   @override
@@ -1403,7 +1403,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planStartSession => 'Start Session';
 
   @override
-  String get planCompleted => 'Completed ✨';
+  String get planCompleted => 'Completed';
 
   @override
   String get planWhyThisPlan => 'Why this plan?';
@@ -1705,35 +1705,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tomorrowPreview(int page) {
-    return '📖 Page $page · 🔁 Review today\\\'s pages';
+    return 'Page $page · Review today\\\'s pages';
   }
 
   @override
-  String get khatmCongrats => 'You\\\'ve completed the Quran! 🎉';
+  String get khatmCongrats => 'You\\\'ve completed the Quran!';
 
   @override
   String get feedbackSabaqStrong =>
-      'Excellent! You rated this page as strong — great foundation! 🎯';
+      'Excellent! You rated this page as strong — great foundation!';
 
   @override
   String get feedbackSabaqNeedsWork =>
-      'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow. 💪';
+      'Every difficult session is progress. The pages that challenge you today will be your strongest tomorrow.';
 
   @override
   String feedbackRepetition(int reps) {
-    return 'Masha\\\'Allah! $reps repetitions — building rock-solid memory! 🧠';
+    return 'Masha\\\'Allah! $reps repetitions — building rock-solid memory!';
   }
 
   @override
   String get feedbackFallback =>
-      'Masha\\\'Allah! Great work today. Every session counts! ✨';
+      'Masha\\\'Allah! Great work today. Every session counts!';
 
   @override
   String get feedbackFallbackShort => 'Masha\\\'Allah! Great work today.';
 
   @override
   String feedbackTime(int minutes) {
-    return 'Masha\\\'Allah! A solid $minutes-minute session. Consistency builds mountains! 🌟';
+    return 'Masha\\\'Allah! A solid $minutes-minute session. Consistency builds mountains!';
   }
 
   @override
@@ -1878,7 +1878,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String planMinDuration(int min) {
-    return 'min $min';
+    return '$min min';
   }
 
   @override
@@ -1904,6 +1904,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fcMutashabihat => 'Mutashabihat';
+
+  @override
+  String get fcMixedReviewDesc => 'All card types combined';
+
+  @override
+  String get fcNextVerseDesc => 'What comes next?';
+
+  @override
+  String get fcPreviousVerseDesc => 'What comes before?';
+
+  @override
+  String get fcCompleteItDesc => 'Complete the verse';
+
+  @override
+  String get fcSurahDetectiveDesc => 'Which surah is this from?';
+
+  @override
+  String get fcSequenceDesc => 'Order the verses';
+
+  @override
+  String get fcMutashabihatDesc => 'Similar verses';
 
   @override
   String get undSpotlightTitle => 'Understanding Spotlight';
@@ -2164,6 +2185,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pracTapToReveal => 'Tap to reveal';
 
   @override
+  String get ratingForgot => 'Forgot';
+
+  @override
+  String get ratingWeak => 'Weak';
+
+  @override
+  String get ratingOk => 'OK';
+
+  @override
+  String get ratingStrong => 'Strong';
+
+  @override
+  String get fcReviewComplete => 'Review Complete!';
+
+  @override
+  String get fcCardsReviewed => 'Cards reviewed';
+
+  @override
+  String get fcDone => 'Done';
+
+  @override
+  String get fcAllCaughtUp => 'All caught up!';
+
+  @override
+  String get fcNoCardsDue =>
+      'No cards due right now.\nKeep memorizing and cards will appear!';
+
+  @override
+  String get fcBack => 'Back';
+
+  @override
+  String get fcSandboxMode => 'Sandbox Mode';
+
+  @override
+  String get fcCorrectOrder => 'Correct order!';
+
+  @override
   String get cardTypeVerseCompletion => 'Verse Completion';
 
   @override
@@ -2207,6 +2265,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingBrandStatement =>
       'We believe memorization without\nunderstanding is incomplete.';
+
+  @override
+  String get onboardingReadTitle => 'Read & Listen';
+
+  @override
+  String get onboardingReadDesc =>
+      'Begin with the Mushaf itself: Hafs or Warsh, the full Madani page layout, and audio recitation that matches the verse you are reading.';
+
+  @override
+  String get onboardingUnderstandTitle => 'Understand with Depth';
+
+  @override
+  String get onboardingUnderstandDesc =>
+      'Meaning is not an add-on. Translations, tafsir, and reasons of revelation sit beside the verse so memorization has context.';
+
+  @override
+  String get onboardingMemorizeTitle => 'Memorize & Master';
+
+  @override
+  String get onboardingMemorizeDesc =>
+      'A daily rhythm: Sabaq (new memorization), Sabqi (recent review), and Manzil (revision) guided by smart spaced repetition.';
 
   @override
   String get onboardingBegin => 'Begin';
@@ -2515,7 +2594,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String verseCopied(String verseKey) {
-    return 'Verse $verseKey copied';
+    return 'Verse copied — $verseKey';
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:quran_app/services/quran_auth_service.dart';
@@ -64,7 +65,7 @@ class ApiClient {
     Map<String, String>? headers,
     bool retryOn5xx = true,
   }) async {
-    if (kIsWeb) {
+    if (kIsWeb || Platform.isWindows) {
       uri = Uri.parse(
         'https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}',
       );
@@ -172,7 +173,7 @@ class ApiClient {
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
   }) async {
-    if (kIsWeb) {
+    if (kIsWeb || Platform.isWindows) {
       uri = Uri.parse(
         'https://website-lilac-phi-50.vercel.app/api/proxy?url=${uri.toString()}',
       );

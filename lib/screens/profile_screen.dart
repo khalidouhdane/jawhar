@@ -88,8 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: AppHeader(
                       title: l!.profileTitle,
                       subtitle: l.profileSubtitle,
-                      // Remove avatar tap action here so it just shows the avatar without infinite looping to profile
-                      onAvatarTap: () {},
                     ),
                   ),
                   const SizedBox(height: 24),
