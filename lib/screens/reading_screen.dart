@@ -903,6 +903,8 @@ class QuranPageState extends State<QuranPage>
   List<Verse>? _verses;
   bool _isLoading = true;
   int? _localSelectedVerseId;
+  late final ScrollController _tafsirScrollController;
+  String? _lastScrolledVerseKey;
 
   int? get _selectedVerseId => widget.selectedVerseId ?? _localSelectedVerseId;
 
@@ -912,16 +914,38 @@ class QuranPageState extends State<QuranPage>
   @override
   void initState() {
     super.initState();
+    _tafsirScrollController = ScrollController();
     _loadPage();
+  }
+
+  @override
+  void dispose() {
+    _tafsirScrollController.dispose();
+    super.dispose();
   }
 
   void _loadPage() {
     final provider = context.read<QuranReadingProvider>();
     final verses = provider.getPageVerses(widget.pageNumber);
+    _lastScrolledVerseKey = null;
     setState(() {
       _verses = verses;
       _isLoading = false;
     });
+  }
+
+  void _scrollToVerse(int index) {
+    if (!_tafsirScrollController.hasClients) return;
+    const double estimatedItemHeight = 200.0;
+    final double viewportHeight = _tafsirScrollController.position.viewportDimension;
+    double targetOffset = (index * estimatedItemHeight) - (viewportHeight / 2) + (estimatedItemHeight / 2);
+    final double maxScroll = _tafsirScrollController.position.maxScrollExtent;
+    targetOffset = targetOffset.clamp(0.0, maxScroll);
+    _tafsirScrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   /// Get the verse key for the currently selected verse.
@@ -1104,37 +1128,29 @@ class QuranPageState extends State<QuranPage>
 
     // Check for highlighted verse to auto-scroll
     final highlightKey = contextProvider.highlightVerseKey;
-    int? highlightIndex;
-    if (highlightKey != null && _verses != null) {
-      highlightIndex = _verses!.indexWhere((v) => v.verseKey == highlightKey);
-      if (highlightIndex < 0) highlightIndex = null;
-    }
 
-    // Use an ItemScrollController approach via initial scroll offset
-    final scrollController = ScrollController();
+    final activeVerseKey = context.select<AudioProvider, String?>((p) => p.activeVerseKey);
 
-    // Schedule scroll to highlighted verse after build
-    if (highlightIndex != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        // Estimate position: ~180px per verse item
-        final estimatedOffset = highlightIndex! * 180.0;
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            estimatedOffset,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutCubic,
-          );
-        }
-        context.read<ContextProvider>().clearHighlightVerse();
-      });
+    final scrollKey = activeVerseKey ?? highlightKey;
+    if (scrollKey != null && scrollKey != _lastScrolledVerseKey && _verses != null) {
+      final index = _verses!.indexWhere((v) => v.verseKey == scrollKey);
+      if (index >= 0) {
+        _lastScrolledVerseKey = scrollKey;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _scrollToVerse(index);
+          if (scrollKey == highlightKey) {
+            context.read<ContextProvider>().clearHighlightVerse();
+          }
+        });
+      }
     }
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.onCanvasTapped,
       child: ListView.builder(
-        controller: scrollController,
+        controller: _tafsirScrollController,
         padding: EdgeInsets.only(
           top: MediaQuery.paddingOf(context).top > 0
               ? MediaQuery.paddingOf(context).top + 60
@@ -1151,7 +1167,8 @@ class QuranPageState extends State<QuranPage>
               .map((w) => w.textUthmani)
               .join(' ');
           final translation = translations[verse.verseKey];
-          final isHighlighted = verse.verseKey == highlightKey;
+          final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
+                                (highlightKey != null && verse.verseKey == highlightKey);
 
           return GestureDetector(
             onTap: widget.onCanvasTapped,
@@ -1165,13 +1182,11 @@ class QuranPageState extends State<QuranPage>
               curve: Curves.easeOut,
               decoration: BoxDecoration(
                 color: isHighlighted
-                    ? theme.accentColor.withValues(alpha: 0.08)
+                    ? theme.verseHighlight
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(theme.radiusMd),
               ),
-              padding: isHighlighted
-                  ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                  : EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
