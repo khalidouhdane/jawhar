@@ -183,8 +183,22 @@ class MaskPainter extends CustomPainter {
 
     // 2. Erase spotlight circle with radial transparency gradient
     if (pointerOffset != null && revealFactor > 0.0) {
-      // Base spotlight size of 40px, scaling up to 120px with pressure, scaled by animated reveal factor
-      final double targetRadius = 40.0 + (pressure * 80.0);
+      final double maxDimension = size.longestSide;
+      final double minRadius = 40.0;
+      // Circle needs to be at least 1.5x the longest side to guarantee full screen clearance
+      final double maxRadius = maxDimension * 1.5;
+
+      // Normalize pressure from [0.1, 1.0] range to [0.0, 1.0]
+      final double normalizedPressure = ((pressure - 0.1) / 0.9).clamp(0.0, 1.0);
+      
+      // Use a quartic (4th power) curve to keep light/default touches precise (~95px for 0.5),
+      // while allowing firm/max pressure (1.0) to grow the circle to full screen.
+      final double curveFactor = normalizedPressure *
+          normalizedPressure *
+          normalizedPressure *
+          normalizedPressure;
+      
+      final double targetRadius = minRadius + (curveFactor * (maxRadius - minRadius));
       final double radius = targetRadius * revealFactor;
 
       final gradientPaint = Paint()
