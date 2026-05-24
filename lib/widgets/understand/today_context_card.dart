@@ -206,22 +206,23 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = isPrimary ? theme.buttonDefaultBg : Colors.transparent;
+    final fgColor = isPrimary ? theme.buttonDefaultText : theme.secondaryText;
+    final borderColor = isPrimary ? Colors.transparent : theme.dividerColor;
+
     return Material(
-      color: isPrimary
-          ? accentColor.withValues(alpha: 0.08)
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
+      color: bgColor,
+      borderRadius: BorderRadius.circular(theme.radiusPill),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(theme.radiusPill),
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
-              color: isPrimary 
-                  ? accentColor.withValues(alpha: 0.3)
-                  : theme.dividerColor,
+              color: borderColor,
             ),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(theme.radiusPill),
+            boxShadow: isPrimary ? theme.shadowRing : null,
           ),
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
@@ -230,7 +231,7 @@ class _ActionChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: accentColor,
+                color: fgColor,
               ),
               const SizedBox(width: 6),
               Text(
@@ -239,7 +240,7 @@ class _ActionChip extends StatelessWidget {
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: accentColor,
+                  color: fgColor,
                 ),
               ),
             ],
