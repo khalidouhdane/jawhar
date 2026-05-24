@@ -359,6 +359,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeEdgePadding => 'Edge Padding';
 
   @override
+  String get themeTabAppearance => 'Appearance';
+
+  @override
+  String get themeTabSpotlight => 'Spotlight';
+
+  @override
+  String get themeSpotlightDesc =>
+      'Spotlight mode hides the Quran page during active Hifz sessions. Press down with your stylus or touch to temporarily peek at the text.';
+
+  @override
+  String get themeSpotlightMinRadius => 'Base Spotlight Size';
+
+  @override
+  String get themeSpotlightMidRadius => 'Mid-point Peek Size';
+
+  @override
+  String get themeSpotlightSensitivity => 'Pressure Sensitivity';
+
+  @override
+  String get themeSpotlightMaskOpacity => 'Mask Opacity';
+
+  @override
+  String get themeSpotlightFeathering => 'Feathering (Softness)';
+
+  @override
+  String get themeSpotlightCurve => 'Pressure Scaling Curve';
+
+  @override
+  String get themeSpotlightCurveLinear => 'Linear';
+
+  @override
+  String get themeSpotlightCurveQuadratic => 'Quadratic';
+
+  @override
+  String get themeSpotlightCurveQuartic => 'Quartic';
+
+  @override
+  String get themeSpotlightCurveDualZone => 'Dual-Zone';
+
+  @override
   String get werdSetTitle => 'Set Your Daily Werd';
 
   @override

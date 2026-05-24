@@ -794,6 +794,84 @@ abstract class AppLocalizations {
   /// **'Edge Padding'**
   String get themeEdgePadding;
 
+  /// No description provided for @themeTabAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get themeTabAppearance;
+
+  /// No description provided for @themeTabSpotlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Spotlight'**
+  String get themeTabSpotlight;
+
+  /// No description provided for @themeSpotlightDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Spotlight mode hides the Quran page during active Hifz sessions. Press down with your stylus or touch to temporarily peek at the text.'**
+  String get themeSpotlightDesc;
+
+  /// No description provided for @themeSpotlightMinRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Spotlight Size'**
+  String get themeSpotlightMinRadius;
+
+  /// No description provided for @themeSpotlightMidRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-point Peek Size'**
+  String get themeSpotlightMidRadius;
+
+  /// No description provided for @themeSpotlightSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure Sensitivity'**
+  String get themeSpotlightSensitivity;
+
+  /// No description provided for @themeSpotlightMaskOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Mask Opacity'**
+  String get themeSpotlightMaskOpacity;
+
+  /// No description provided for @themeSpotlightFeathering.
+  ///
+  /// In en, this message translates to:
+  /// **'Feathering (Softness)'**
+  String get themeSpotlightFeathering;
+
+  /// No description provided for @themeSpotlightCurve.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure Scaling Curve'**
+  String get themeSpotlightCurve;
+
+  /// No description provided for @themeSpotlightCurveLinear.
+  ///
+  /// In en, this message translates to:
+  /// **'Linear'**
+  String get themeSpotlightCurveLinear;
+
+  /// No description provided for @themeSpotlightCurveQuadratic.
+  ///
+  /// In en, this message translates to:
+  /// **'Quadratic'**
+  String get themeSpotlightCurveQuadratic;
+
+  /// No description provided for @themeSpotlightCurveQuartic.
+  ///
+  /// In en, this message translates to:
+  /// **'Quartic'**
+  String get themeSpotlightCurveQuartic;
+
+  /// No description provided for @themeSpotlightCurveDualZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Dual-Zone'**
+  String get themeSpotlightCurveDualZone;
+
   /// No description provided for @werdSetTitle.
   ///
   /// In en, this message translates to:

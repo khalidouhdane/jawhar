@@ -15,6 +15,9 @@ enum QuranContentAlignment { top, center, bottom }
 
 enum QuranTextAlign { right, center, justify }
 
+/// Spotlight pressure curve types
+enum SpotlightCurveType { linear, quadratic, quartic, dualZone }
+
 /// Provides theme colors for the entire app.
 /// Defaults to system brightness; falls back to light mode.
 class ThemeProvider extends ChangeNotifier {
@@ -42,6 +45,27 @@ class ThemeProvider extends ChangeNotifier {
         _theme = AppTheme.light;
       }
     }
+    
+    // Load spotlight settings
+    _spotlightMinRadius = prefs.getDouble('spotlight_min_radius') ?? 40.0;
+    _spotlightMidRadius = prefs.getDouble('spotlight_mid_radius') ?? 120.0;
+    _spotlightMaskOpacity = prefs.getDouble('spotlight_mask_opacity') ?? 1.0;
+    _spotlightFeathering = prefs.getDouble('spotlight_feathering') ?? 0.2;
+    _spotlightSensitivity = prefs.getDouble('spotlight_sensitivity') ?? 1.0;
+    
+    final curveStr = prefs.getString('spotlight_curve_type');
+    if (curveStr == 'linear') {
+      _spotlightCurveType = SpotlightCurveType.linear;
+    } else if (curveStr == 'quadratic') {
+      _spotlightCurveType = SpotlightCurveType.quadratic;
+    } else if (curveStr == 'quartic') {
+      _spotlightCurveType = SpotlightCurveType.quartic;
+    } else if (curveStr == 'dualZone') {
+      _spotlightCurveType = SpotlightCurveType.dualZone;
+    } else {
+      _spotlightCurveType = SpotlightCurveType.dualZone;
+    }
+
     notifyListeners();
   }
 
@@ -70,6 +94,14 @@ class ThemeProvider extends ChangeNotifier {
   bool _showBookIconIndicator = true;
   bool _showJuzInfo = false;
 
+  // Spotlight settings
+  double _spotlightMinRadius = 40.0;
+  double _spotlightMidRadius = 120.0;
+  SpotlightCurveType _spotlightCurveType = SpotlightCurveType.dualZone;
+  double _spotlightMaskOpacity = 1.0;
+  double _spotlightFeathering = 0.2;
+  double _spotlightSensitivity = 1.0;
+
   AppTheme get theme => _theme;
   bool get isDark => _theme == AppTheme.dark;
 
@@ -92,6 +124,14 @@ class ThemeProvider extends ChangeNotifier {
   bool get dynamicPageInfoEnabled => _dynamicPageInfoEnabled;
   bool get showBookIconIndicator => _showBookIconIndicator;
   bool get showJuzInfo => _showJuzInfo;
+
+  // Spotlight getters
+  double get spotlightMinRadius => _spotlightMinRadius;
+  double get spotlightMidRadius => _spotlightMidRadius;
+  SpotlightCurveType get spotlightCurveType => _spotlightCurveType;
+  double get spotlightMaskOpacity => _spotlightMaskOpacity;
+  double get spotlightFeathering => _spotlightFeathering;
+  double get spotlightSensitivity => _spotlightSensitivity;
 
   void setTheme(AppTheme theme) {
     if (_theme == theme) return;
@@ -183,6 +223,43 @@ class ThemeProvider extends ChangeNotifier {
 
   void setSpineEffectPadding(double padding) {
     _spineEffectPadding = padding.clamp(0, 16);
+    notifyListeners();
+  }
+
+  void setSpotlightMinRadius(double radius) {
+    _spotlightMinRadius = radius.clamp(10.0, 100.0);
+    _prefs?.setDouble('spotlight_min_radius', _spotlightMinRadius);
+    notifyListeners();
+  }
+
+  void setSpotlightMidRadius(double radius) {
+    _spotlightMidRadius = radius.clamp(60.0, 300.0);
+    _prefs?.setDouble('spotlight_mid_radius', _spotlightMidRadius);
+    notifyListeners();
+  }
+
+  void setSpotlightMaskOpacity(double opacity) {
+    _spotlightMaskOpacity = double.parse(opacity.toStringAsFixed(2)).clamp(0.5, 1.0);
+    _prefs?.setDouble('spotlight_mask_opacity', _spotlightMaskOpacity);
+    notifyListeners();
+  }
+
+  void setSpotlightFeathering(double feathering) {
+    _spotlightFeathering = double.parse(feathering.toStringAsFixed(2)).clamp(0.0, 1.0);
+    _prefs?.setDouble('spotlight_feathering', _spotlightFeathering);
+    notifyListeners();
+  }
+
+  void setSpotlightSensitivity(double sensitivity) {
+    _spotlightSensitivity = double.parse(sensitivity.toStringAsFixed(1)).clamp(0.2, 2.0);
+    _prefs?.setDouble('spotlight_sensitivity', _spotlightSensitivity);
+    notifyListeners();
+  }
+
+  void setSpotlightCurveType(SpotlightCurveType curveType) {
+    if (_spotlightCurveType == curveType) return;
+    _spotlightCurveType = curveType;
+    _prefs?.setString('spotlight_curve_type', curveType.name);
     notifyListeners();
   }
 

@@ -8,10 +8,219 @@ import 'package:quran_app/theme/geist_typography.dart';
 
 // ─── Theme Picker Sheet ───
 
-class ThemePickerSheet extends StatelessWidget {
+class ThemePickerSheet extends StatefulWidget {
   final VoidCallback onClose;
 
   const ThemePickerSheet({super.key, required this.onClose});
+
+  @override
+  State<ThemePickerSheet> createState() => _ThemePickerSheetState();
+}
+
+class _ThemePickerSheetState extends State<ThemePickerSheet> {
+  int _activeTab = 0; // 0 for Appearance, 1 for Spotlight
+
+  Widget _buildSpotlightSettings(ThemeProvider theme, AppLocalizations l) {
+    final isDualZone = theme.spotlightCurveType == SpotlightCurveType.dualZone;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Descriptive context card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.pillBackground,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                LucideIcons.info,
+                size: 18,
+                color: theme.accentColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l.themeSpotlightDesc,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.4,
+                    color: theme.secondaryText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Curve Selector Section
+        Text(
+          l.themeSpotlightCurve,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: theme.primaryText,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: CupertinoSlidingSegmentedControl<SpotlightCurveType>(
+            groupValue: theme.spotlightCurveType,
+            backgroundColor: Colors.black.withValues(alpha: 0.05),
+            thumbColor: theme.canvasBackground,
+            children: {
+              SpotlightCurveType.linear: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  l.themeSpotlightCurveLinear,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.linear
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: theme.primaryText,
+                  ),
+                ),
+              ),
+              SpotlightCurveType.quadratic: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  l.themeSpotlightCurveQuadratic,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.quadratic
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: theme.primaryText,
+                  ),
+                ),
+              ),
+              SpotlightCurveType.quartic: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  l.themeSpotlightCurveQuartic,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.quartic
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: theme.primaryText,
+                  ),
+                ),
+              ),
+              SpotlightCurveType.dualZone: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  l.themeSpotlightCurveDualZone,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.dualZone
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: theme.primaryText,
+                  ),
+                ),
+              ),
+            },
+            onValueChanged: (v) {
+              if (v != null) {
+                theme.setSpotlightCurveType(v);
+              }
+            },
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Sliders Group
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.pillBackground,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _DebouncedSliderControl(
+                label: l.themeSpotlightMinRadius,
+                initialValue: theme.spotlightMinRadius,
+                min: 10,
+                max: 100,
+                step: 5,
+                displayFormat: (v) => '${v.round()} px',
+                onChanged: (v) => theme.setSpotlightMinRadius(v),
+                theme: theme,
+              ),
+              
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 250),
+                crossFadeState: isDualZone
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                firstChild: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    _DebouncedSliderControl(
+                      label: l.themeSpotlightMidRadius,
+                      initialValue: theme.spotlightMidRadius,
+                      min: 60,
+                      max: 300,
+                      step: 10,
+                      displayFormat: (v) => '${v.round()} px',
+                      onChanged: (v) => theme.setSpotlightMidRadius(v),
+                      theme: theme,
+                    ),
+                  ],
+                ),
+                secondChild: const SizedBox.shrink(),
+              ),
+
+              const SizedBox(height: 20),
+              _DebouncedSliderControl(
+                label: l.themeSpotlightMaskOpacity,
+                initialValue: theme.spotlightMaskOpacity,
+                min: 0.5,
+                max: 1.0,
+                step: 0.05,
+                displayFormat: (v) => '${(v * 100).round()}%',
+                onChanged: (v) => theme.setSpotlightMaskOpacity(v),
+                theme: theme,
+              ),
+
+              const SizedBox(height: 20),
+              _DebouncedSliderControl(
+                label: l.themeSpotlightFeathering,
+                initialValue: theme.spotlightFeathering,
+                min: 0.0,
+                max: 1.0,
+                step: 0.05,
+                displayFormat: (v) => '${(v * 100).round()}%',
+                onChanged: (v) => theme.setSpotlightFeathering(v),
+                theme: theme,
+              ),
+
+              const SizedBox(height: 20),
+              _DebouncedSliderControl(
+                label: l.themeSpotlightSensitivity,
+                initialValue: theme.spotlightSensitivity,
+                min: 0.2,
+                max: 2.0,
+                step: 0.1,
+                displayFormat: (v) => '${v.toStringAsFixed(1)}x',
+                onChanged: (v) => theme.setSpotlightSensitivity(v),
+                theme: theme,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +258,7 @@ class ThemePickerSheet extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l!.themeAppearance,
+                    _activeTab == 0 ? l!.themeTabAppearance : l!.themeTabSpotlight,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -57,7 +266,7 @@ class ThemePickerSheet extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onClose,
+                    onTap: widget.onClose,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(
@@ -69,8 +278,48 @@ class ThemePickerSheet extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              // Segmented Tab Selector
+              SizedBox(
+                width: double.infinity,
+                child: CupertinoSlidingSegmentedControl<int>(
+                  groupValue: _activeTab,
+                  backgroundColor: Colors.black.withValues(alpha: 0.05),
+                  thumbColor: theme.canvasBackground,
+                  children: {
+                    0: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        l.themeTabAppearance,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: _activeTab == 0 ? FontWeight.w600 : FontWeight.w400,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                    ),
+                    1: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        l.themeTabSpotlight,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: _activeTab == 1 ? FontWeight.w600 : FontWeight.w400,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                    ),
+                  },
+                  onValueChanged: (v) {
+                    if (v != null) {
+                      setState(() => _activeTab = v);
+                    }
+                  },
+                ),
+              ),
               const SizedBox(height: 24),
-              Row(
+              if (_activeTab == 0) ...[
+                Row(
                 children: [
                   _buildThemeOption(
                     context: context,
@@ -533,12 +782,16 @@ class ThemePickerSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+            ] else ...[
+              _buildSpotlightSettings(theme, l),
+              const SizedBox(height: 24),
             ],
-          ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildThemeOption({
     required BuildContext context,

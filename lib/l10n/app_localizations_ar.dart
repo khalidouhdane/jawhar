@@ -358,6 +358,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get themeEdgePadding => 'حشو الحافة';
 
   @override
+  String get themeTabAppearance => 'المظهر';
+
+  @override
+  String get themeTabSpotlight => 'تسليط الضوء';
+
+  @override
+  String get themeSpotlightDesc =>
+      'يقوم وضع تسليط الضوء بإخفاء صفحة القرآن أثناء جلسات الحفظ النشطة. اضغط بالقلم أو باللمس لمعاينة النص مؤقتاً.';
+
+  @override
+  String get themeSpotlightMinRadius => 'الحجم الأساسي';
+
+  @override
+  String get themeSpotlightMidRadius => 'حجم نقطة المعاينة';
+
+  @override
+  String get themeSpotlightSensitivity => 'حساسية الضغط';
+
+  @override
+  String get themeSpotlightMaskOpacity => 'شفافية القناع';
+
+  @override
+  String get themeSpotlightFeathering => 'تنعيم الحواف';
+
+  @override
+  String get themeSpotlightCurve => 'منحنى القياس';
+
+  @override
+  String get themeSpotlightCurveLinear => 'خطي';
+
+  @override
+  String get themeSpotlightCurveQuadratic => 'تربيعي';
+
+  @override
+  String get themeSpotlightCurveQuartic => 'رباعي';
+
+  @override
+  String get themeSpotlightCurveDualZone => 'ثنائي النطاق';
+
+  @override
   String get werdSetTitle => 'حدد وردك اليومي';
 
   @override

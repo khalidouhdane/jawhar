@@ -251,6 +251,13 @@ class _SessionReadingViewState extends State<SessionReadingView> {
         // Wrap quran canvas with spotlight mask
         SessionSpotlightMask(
           isActive: sessionActive,
+          onTap: () {
+            if (_selectedVerseId != null) {
+              setState(() => _selectedVerseId = null);
+            } else {
+              setState(() => _isFullScreen = !_isFullScreen);
+            }
+          },
           child: _buildQuranContent(theme),
         ),
 

@@ -7,11 +7,13 @@ import 'package:quran_app/providers/theme_provider.dart';
 class SessionSpotlightMask extends StatefulWidget {
   final Widget child;
   final bool isActive;
+  final VoidCallback? onTap;
 
   const SessionSpotlightMask({
     super.key,
     required this.child,
     required this.isActive,
+    this.onTap,
   });
 
   @override
@@ -26,6 +28,8 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
   Offset? _touchOffset;
   double _pressure = 0.5;
   int? _activePointerId;
+  Duration? _downTime;
+  Offset? _downPosition;
 
   @override
   void initState() {
@@ -62,6 +66,8 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
     if (_activePointerId != null) return; // Lock to first pointer
 
     _activePointerId = event.pointer;
+    _downTime = event.timeStamp;
+    _downPosition = event.localPosition;
     _updatePointer(event);
   }
 
@@ -103,7 +109,17 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
     if (!widget.isActive) return;
     if (event.pointer != _activePointerId) return;
 
+    if (_downTime != null && _downPosition != null) {
+      final duration = event.timeStamp - _downTime!;
+      final distance = (event.localPosition - _downPosition!).distance;
+      if (duration.inMilliseconds < 500 && distance < 25.0) {
+        widget.onTap?.call();
+      }
+    }
+
     _activePointerId = null;
+    _downTime = null;
+    _downPosition = null;
     _controller.reverse();
   }
 
@@ -144,6 +160,12 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
                       revealFactor: _animation.value,
                       pressure: _pressure,
                       maskColor: maskColor,
+                      minRadius: theme.spotlightMinRadius,
+                      midRadius: theme.spotlightMidRadius,
+                      curveType: theme.spotlightCurveType,
+                      maskOpacity: theme.spotlightMaskOpacity,
+                      feathering: theme.spotlightFeathering,
+                      sensitivity: theme.spotlightSensitivity,
                     ),
                     size: Size.infinite,
                   );
@@ -162,12 +184,24 @@ class MaskPainter extends CustomPainter {
   final double revealFactor;
   final double pressure;
   final Color maskColor;
+  final double minRadius;
+  final double midRadius;
+  final SpotlightCurveType curveType;
+  final double maskOpacity;
+  final double feathering;
+  final double sensitivity;
 
   MaskPainter({
     required this.pointerOffset,
     required this.revealFactor,
     required this.pressure,
     required this.maskColor,
+    required this.minRadius,
+    required this.midRadius,
+    required this.curveType,
+    required this.maskOpacity,
+    required this.feathering,
+    required this.sensitivity,
   });
 
   @override
@@ -177,34 +211,53 @@ class MaskPainter extends CustomPainter {
     // Save canvas layer to support alpha blend modes
     canvas.saveLayer(rect, Paint());
 
-    // 1. Draw solid background color matching the canvas theme background
-    final maskPaint = Paint()..color = maskColor;
+    // 1. Draw solid background color matching the canvas theme background with custom opacity
+    final maskPaint = Paint()..color = maskColor.withValues(alpha: maskOpacity);
     canvas.drawRect(rect, maskPaint);
 
     // 2. Erase spotlight circle with radial transparency gradient
     if (pointerOffset != null && revealFactor > 0.0) {
       final double maxDimension = size.longestSide;
-      final double minRadius = 40.0;
       // Circle needs to be at least 1.5x the longest side to guarantee full screen clearance
       final double maxRadius = maxDimension * 1.5;
 
       // Normalize pressure from [0.1, 1.0] range to [0.0, 1.0]
       final double normalizedPressure = ((pressure - 0.1) / 0.9).clamp(0.0, 1.0);
       
-      // Use a quartic (4th power) curve to keep light/default touches precise (~95px for 0.5),
-      // while allowing firm/max pressure (1.0) to grow the circle to full screen.
-      final double curveFactor = normalizedPressure *
-          normalizedPressure *
-          normalizedPressure *
-          normalizedPressure;
+      // Apply sensitivity scaling
+      final double p = (normalizedPressure * sensitivity).clamp(0.0, 1.0);
       
-      final double targetRadius = minRadius + (curveFactor * (maxRadius - minRadius));
+      // Compute scaling factor based on the selected curve type
+      double targetRadius;
+      switch (curveType) {
+        case SpotlightCurveType.linear:
+          targetRadius = minRadius + p * (maxRadius - minRadius);
+          break;
+        case SpotlightCurveType.quadratic:
+          targetRadius = minRadius + (p * p) * (maxRadius - minRadius);
+          break;
+        case SpotlightCurveType.quartic:
+          targetRadius = minRadius + (p * p * p * p) * (maxRadius - minRadius);
+          break;
+        case SpotlightCurveType.dualZone:
+          if (p <= 0.5) {
+            final double t = p / 0.5;
+            targetRadius = minRadius + t * (midRadius - minRadius);
+          } else {
+            final double t = (p - 0.5) / 0.5;
+            targetRadius = midRadius + (t * t) * (maxRadius - midRadius);
+          }
+          break;
+      }
+
       final double radius = targetRadius * revealFactor;
 
+      // Compute feathering stops to create soft fading transition
+      final double stopStart = (1.0 - feathering).clamp(0.0, 0.999);
       final gradientPaint = Paint()
         ..shader = RadialGradient(
           colors: const [Colors.black, Colors.transparent],
-          stops: const [0.0, 1.0],
+          stops: [stopStart, 1.0],
         ).createShader(Rect.fromCircle(center: pointerOffset!, radius: radius))
         ..blendMode = BlendMode.dstOut;
 
@@ -219,6 +272,12 @@ class MaskPainter extends CustomPainter {
     return oldDelegate.pointerOffset != pointerOffset ||
         oldDelegate.revealFactor != revealFactor ||
         oldDelegate.pressure != pressure ||
-        oldDelegate.maskColor != maskColor;
+        oldDelegate.maskColor != maskColor ||
+        oldDelegate.minRadius != minRadius ||
+        oldDelegate.midRadius != midRadius ||
+        oldDelegate.curveType != curveType ||
+        oldDelegate.maskOpacity != maskOpacity ||
+        oldDelegate.feathering != feathering ||
+        oldDelegate.sensitivity != sensitivity;
   }
 }
