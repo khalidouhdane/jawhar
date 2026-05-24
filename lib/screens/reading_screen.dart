@@ -1271,28 +1271,15 @@ class QuranPageState extends State<QuranPage>
                               );
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: theme.accentColor.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(100),
-                                border: Border.all(
-                                  color: theme.accentColor.withValues(alpha: 0.15),
-                                ),
+                                color: theme.pillBackground,
+                                shape: BoxShape.circle,
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.play_arrow_rounded, size: 12, color: theme.accentColor),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    l.localeName == 'ar' ? 'تشغيل' : 'Play',
-                                    style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.accentColor,
-                                    ),
-                                  ),
-                                ],
+                              child: Icon(
+                                Icons.play_arrow_rounded,
+                                size: 12,
+                                color: theme.accentColor,
                               ),
                             ),
                           ),
