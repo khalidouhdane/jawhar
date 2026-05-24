@@ -23,6 +23,7 @@ import 'package:quran_app/widgets/bottom_dock.dart';
 import 'package:quran_app/widgets/context/tafsir_sheet.dart';
 import 'package:quran_app/widgets/overlays.dart';
 import 'package:quran_app/widgets/top_nav_bar.dart';
+import 'package:quran_app/utils/app_logger.dart';
 
 class TabletReadingView extends StatefulWidget {
   final int initialPage;
@@ -40,6 +41,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
   late PageController _pageController;
   late final ScrollController _tafsirScrollController;
   String? _lastScrolledVerseKey;
+  final Map<String, double> _measuredHeights = {};
+  double? _lastFontSize;
+  AppTheme? _lastThemeMode;
 
   // Lifted selection state
   int? _selectedVerseId;
@@ -174,18 +178,47 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       return;
     }
 
-    final maxScroll = _tafsirScrollController.position.maxScrollExtent;
-    if (index > 0 && maxScroll == 0) {
+    final readingProvider = context.read<QuranReadingProvider>();
+    final activePage = readingProvider.activePage;
+    final verses = readingProvider.getPageVerses(activePage);
+
+    // Check if we have measured the heights of the target verse and all preceding verses
+    bool allMeasured = true;
+    for (int i = 0; i <= index; i++) {
+      if (i >= verses.length) break;
+      if (!_measuredHeights.containsKey(verses[i].verseKey)) {
+        allMeasured = false;
+        break;
+      }
+    }
+
+    if (!allMeasured) {
+      AppLogger.warn('TafsirScroll', 'Tablet Scroll index $index ($verseKey): waiting for measurements...');
       Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
       return;
     }
 
+    final maxScroll = _tafsirScrollController.position.maxScrollExtent;
     _lastScrolledVerseKey = verseKey;
 
-    const double estimatedItemHeight = 200.0;
     final double viewportHeight = _tafsirScrollController.position.viewportDimension;
-    double targetOffset = (index * estimatedItemHeight) - (viewportHeight / 2) + (estimatedItemHeight / 2);
+    
+    // Sum exact heights of preceding verses
+    final double topPadding = MediaQuery.paddingOf(context).top > 0
+        ? MediaQuery.paddingOf(context).top + 60
+        : 60;
+
+    double offset = topPadding;
+    for (int i = 0; i < index; i++) {
+      if (i >= verses.length) break;
+      offset += _measuredHeights[verses[i].verseKey]!;
+    }
+
+    final targetHeight = _measuredHeights[verseKey]!;
+    double targetOffset = offset - (viewportHeight / 2) + (targetHeight / 2);
     targetOffset = targetOffset.clamp(0.0, maxScroll);
+
+    AppLogger.warn('TafsirScroll', 'Tablet Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding');
 
     _tafsirScrollController.animateTo(
       targetOffset,
@@ -657,10 +690,18 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       }
     }
 
+    // Clear height cache if typography/theme parameters change
+    if (_lastFontSize != theme.quranFontSize || _lastThemeMode != theme.theme) {
+      _lastFontSize = theme.quranFontSize;
+      _lastThemeMode = theme.theme;
+      _measuredHeights.clear();
+      _lastScrolledVerseKey = null;
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: _toggleFullScreen,
-      child: ListView.builder(
+      child: SingleChildScrollView(
         controller: _tafsirScrollController,
         padding: EdgeInsets.only(
           top: MediaQuery.paddingOf(context).top > 0
@@ -670,18 +711,32 @@ class _TabletReadingViewState extends State<TabletReadingView> {
           left: 20,
           right: 20,
         ),
-        itemCount: verses.length,
-        itemBuilder: (context, index) {
-          final verse = verses[index];
-          final verseText = verse.words
-              .where((w) => w.charTypeName != 'end')
-              .map((w) => w.textUthmani)
-              .join(' ');
-          final translation = translations[verse.verseKey];
-          final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
-                                (highlightKey != null && verse.verseKey == highlightKey);
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: List.generate(verses.length, (index) {
+            final verse = verses[index];
+            final verseText = verse.words
+                .where((w) => w.charTypeName != 'end')
+                .map((w) => w.textUthmani)
+                .join(' ');
+            final translation = translations[verse.verseKey];
+            final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
+                                  (highlightKey != null && verse.verseKey == highlightKey);
 
-          return GestureDetector(
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  final renderBox = context.findRenderObject() as RenderBox?;
+                  if (renderBox != null && renderBox.hasSize) {
+                    final height = renderBox.size.height;
+                    if (_measuredHeights[verse.verseKey] != height) {
+                      _measuredHeights[verse.verseKey] = height;
+                    }
+                  }
+                });
+
+                return GestureDetector(
             onTap: _toggleFullScreen,
             onLongPress: () {
               final audioProvider = context.read<AudioProvider>();
@@ -912,8 +967,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
             ),
           );
         },
-      ),
-    );
+      );
+    }),
+  ),
+),
+);
   }
 
   @override

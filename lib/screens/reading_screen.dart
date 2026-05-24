@@ -17,6 +17,8 @@ import 'package:quran_app/widgets/overlays.dart';
 import 'package:quran_app/widgets/reading_canvas.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
 import 'package:quran_app/utils/verse_ref_formatter.dart';
+import 'package:quran_app/utils/app_logger.dart';
+import 'package:quran_app/services/tafsir_service.dart';
 
 import 'package:quran_app/widgets/top_nav_bar.dart';
 import 'package:quran_app/services/local_storage_service.dart';
@@ -905,6 +907,9 @@ class QuranPageState extends State<QuranPage>
   int? _localSelectedVerseId;
   late final ScrollController _tafsirScrollController;
   String? _lastScrolledVerseKey;
+  final Map<String, double> _measuredHeights = {};
+  double? _lastFontSize;
+  AppTheme? _lastThemeMode;
 
   int? get _selectedVerseId => widget.selectedVerseId ?? _localSelectedVerseId;
 
@@ -934,7 +939,7 @@ class QuranPageState extends State<QuranPage>
     });
   }
 
-  void _scrollToVerse(int index, String verseKey) {
+  void _scrollToVerse(int index, String verseKey, ThemeProvider theme, Map<String, VerseText> translations) {
     if (!mounted) return;
 
     final activeVerseKey = context.read<AudioProvider>().activeVerseKey;
@@ -943,22 +948,45 @@ class QuranPageState extends State<QuranPage>
     if (currentKey != verseKey) return; // Stale scroll target
 
     if (!_tafsirScrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
+      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey, theme, translations));
+      return;
+    }
+
+    // Check if we have measured the heights of the target verse and all preceding verses
+    bool allMeasured = true;
+    for (int i = 0; i <= index; i++) {
+      if (!_measuredHeights.containsKey(_verses![i].verseKey)) {
+        allMeasured = false;
+        break;
+      }
+    }
+
+    if (!allMeasured) {
+      AppLogger.warn('TafsirScroll', 'Mobile Scroll index $index ($verseKey): waiting for measurements...');
+      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey, theme, translations));
       return;
     }
 
     final maxScroll = _tafsirScrollController.position.maxScrollExtent;
-    if (index > 0 && maxScroll == 0) {
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
-      return;
-    }
-
     _lastScrolledVerseKey = verseKey;
 
-    const double estimatedItemHeight = 200.0;
     final double viewportHeight = _tafsirScrollController.position.viewportDimension;
-    double targetOffset = (index * estimatedItemHeight) - (viewportHeight / 2) + (estimatedItemHeight / 2);
+    
+    // Sum exact heights of preceding verses
+    final double topPadding = MediaQuery.paddingOf(context).top > 0
+        ? MediaQuery.paddingOf(context).top + 60
+        : 60;
+
+    double offset = topPadding;
+    for (int i = 0; i < index; i++) {
+      offset += _measuredHeights[_verses![i].verseKey]!;
+    }
+
+    final targetHeight = _measuredHeights[verseKey]!;
+    double targetOffset = offset - (viewportHeight / 2) + (targetHeight / 2);
     targetOffset = targetOffset.clamp(0.0, maxScroll);
+
+    AppLogger.warn('TafsirScroll', 'Mobile Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding');
 
     _tafsirScrollController.animateTo(
       targetOffset,
@@ -966,6 +994,7 @@ class QuranPageState extends State<QuranPage>
       curve: Curves.easeOutCubic,
     );
   }
+
 
   /// Get the verse key for the currently selected verse.
   String? get _selectedVerseKey {
@@ -1145,6 +1174,14 @@ class QuranPageState extends State<QuranPage>
       );
     }
 
+    // Clear height cache if typography/theme parameters change
+    if (_lastFontSize != theme.quranFontSize || _lastThemeMode != theme.theme) {
+      _lastFontSize = theme.quranFontSize;
+      _lastThemeMode = theme.theme;
+      _measuredHeights.clear();
+      _lastScrolledVerseKey = null;
+    }
+
     // Check for highlighted verse to auto-scroll
     final highlightKey = contextProvider.highlightVerseKey;
 
@@ -1157,7 +1194,7 @@ class QuranPageState extends State<QuranPage>
         _lastScrolledVerseKey = scrollKey;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          _scrollToVerse(index, scrollKey);
+          _scrollToVerse(index, scrollKey, theme, translations);
           if (scrollKey == highlightKey) {
             context.read<ContextProvider>().clearHighlightVerse();
           }
@@ -1168,7 +1205,7 @@ class QuranPageState extends State<QuranPage>
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.onCanvasTapped,
-      child: ListView.builder(
+      child: SingleChildScrollView(
         controller: _tafsirScrollController,
         padding: EdgeInsets.only(
           top: MediaQuery.paddingOf(context).top > 0
@@ -1178,34 +1215,48 @@ class QuranPageState extends State<QuranPage>
           left: 20,
           right: 20,
         ),
-        itemCount: _verses!.length,
-        itemBuilder: (context, index) {
-          final verse = _verses![index];
-          final verseText = verse.words
-              .where((w) => w.charTypeName != 'end')
-              .map((w) => w.textUthmani)
-              .join(' ');
-          final translation = translations[verse.verseKey];
-          final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
-                                (highlightKey != null && verse.verseKey == highlightKey);
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: List.generate(_verses!.length, (index) {
+            final verse = _verses![index];
+            final verseText = verse.words
+                .where((w) => w.charTypeName != 'end')
+                .map((w) => w.textUthmani)
+                .join(' ');
+            final translation = translations[verse.verseKey];
+            final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
+                                  (highlightKey != null && verse.verseKey == highlightKey);
 
-          return GestureDetector(
-            onTap: widget.onCanvasTapped,
-            onLongPress: () {
-              // Long-press to play audio from this verse
-              final audioProvider = context.read<AudioProvider>();
-              audioProvider.playSingleVerse(verse);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                color: isHighlighted
-                    ? theme.verseHighlight
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(theme.radiusMd),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            return LayoutBuilder(
+            builder: (context, constraints) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                final renderBox = context.findRenderObject() as RenderBox?;
+                if (renderBox != null && renderBox.hasSize) {
+                  final height = renderBox.size.height;
+                  if (_measuredHeights[verse.verseKey] != height) {
+                    _measuredHeights[verse.verseKey] = height;
+                  }
+                }
+              });
+
+              return GestureDetector(
+                onTap: widget.onCanvasTapped,
+                onLongPress: () {
+                  // Long-press to play audio from this verse
+                  final audioProvider = context.read<AudioProvider>();
+                  audioProvider.playSingleVerse(verse);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    color: isHighlighted
+                        ? theme.verseHighlight
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(theme.radiusMd),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1422,8 +1473,11 @@ class QuranPageState extends State<QuranPage>
             ),
           );
         },
-      ),
-    );
+      );
+    }),
+  ),
+),
+);
   }
 
 }
