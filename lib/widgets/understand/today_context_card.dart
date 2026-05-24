@@ -11,6 +11,7 @@ import 'package:quran_app/widgets/context/tafsir_sheet.dart'
     show showTafsirSheet;
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
 
 /// Contextual header card shown at the top of the Understand tab
 /// when the user has an active hifz plan with a sabaq page.
@@ -44,15 +45,24 @@ class TodayContextCard extends StatelessWidget {
       }
     }
 
-    // Use invertedForeground for text on the dark hero card
-    final heroText = theme.invertedForeground;
+    // Use practiceCyan for study tab accent
+    final accentColor = SemanticColors.practiceCyan.fg(theme.isDark);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.isDark ? const Color(0xFF1A1A1A) : const Color(0xFF171717),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
+        border: BorderDirectional(
+          start: BorderSide(
+            color: accentColor,
+            width: 4,
+          ),
+          top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+          end: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+        ),
         boxShadow: theme.shadowCard,
       ),
       child: Column(
@@ -65,11 +75,11 @@ class TodayContextCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: heroText.withValues(alpha: 0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(theme.radiusLg),
                 ),
                 child: Center(
-                  child: Icon(LucideIcons.sparkles, size: 16, color: heroText),
+                  child: Icon(LucideIcons.sparkles, size: 16, color: accentColor),
                 ),
               ),
               const SizedBox(width: 10),
@@ -83,7 +93,7 @@ class TodayContextCard extends StatelessWidget {
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: heroText,
+                        color: theme.primaryText,
                       ),
                     ),
                     Text(
@@ -91,7 +101,7 @@ class TodayContextCard extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
-                        color: heroText.withValues(alpha: 0.7),
+                        color: theme.secondaryText,
                       ),
                     ),
                   ],
@@ -107,7 +117,7 @@ class TodayContextCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: heroText.withValues(alpha: 0.06),
+                color: theme.dividerColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(theme.radiusLg),
               ),
               child: Row(
@@ -118,7 +128,7 @@ class TodayContextCard extends StatelessWidget {
                       style: GoogleFonts.amiri(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: heroText.withValues(alpha: 0.9),
+                        color: theme.primaryText,
                       ),
                     ),
                   ),
@@ -135,7 +145,7 @@ class TodayContextCard extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 12,
-                        color: heroText.withValues(alpha: 0.6),
+                        color: theme.secondaryText,
                       ),
                     ),
                   ),
@@ -154,7 +164,7 @@ class TodayContextCard extends StatelessWidget {
                   icon: LucideIcons.bookMarked,
                   onTap: () => _openTafsir(context, sabaqPage),
                   theme: theme,
-                  heroText: heroText,
+                  accentColor: accentColor,
                 ),
               ),
               const SizedBox(width: 8),
@@ -169,7 +179,7 @@ class TodayContextCard extends StatelessWidget {
                     ),
                   ),
                   theme: theme,
-                  heroText: heroText,
+                  accentColor: accentColor,
                   isPrimary: true,
                 ),
               ),
@@ -200,7 +210,7 @@ class _ActionChip extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final ThemeProvider theme;
-  final Color heroText;
+  final Color accentColor;
   final bool isPrimary;
 
   const _ActionChip({
@@ -208,7 +218,7 @@ class _ActionChip extends StatelessWidget {
     required this.icon,
     required this.onTap,
     required this.theme,
-    required this.heroText,
+    required this.accentColor,
     this.isPrimary = false,
   });
 
@@ -216,13 +226,21 @@ class _ActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: isPrimary
-          ? theme.scaffoldBackground
-          : heroText.withValues(alpha: 0.1),
+          ? accentColor.withValues(alpha: 0.08)
+          : Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isPrimary 
+                  ? accentColor.withValues(alpha: 0.3)
+                  : theme.dividerColor,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -230,9 +248,7 @@ class _ActionChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: isPrimary
-                    ? theme.primaryText
-                    : heroText.withValues(alpha: 0.8),
+                color: accentColor,
               ),
               const SizedBox(width: 6),
               Text(
@@ -241,9 +257,7 @@ class _ActionChip extends StatelessWidget {
                   fontFamily: GeistTypography.primaryFontFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isPrimary
-                      ? theme.primaryText
-                      : heroText.withValues(alpha: 0.8),
+                  color: accentColor,
                 ),
               ),
             ],

@@ -39,6 +39,8 @@ class WerdCard extends StatelessWidget {
     ThemeProvider theme,
     AppLocalizations l,
   ) {
+    final accentColor = SemanticColors.practiceBlue.fg(theme.isDark);
+
     return GestureDetector(
       onTap: () => _openSetupSheet(context),
       child: Container(
@@ -47,7 +49,16 @@ class WerdCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(theme.radiusLg),
-          border: Border.all(color: theme.dividerColor, width: 1),
+          border: BorderDirectional(
+            start: BorderSide(
+              color: accentColor,
+              width: 4,
+            ),
+            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+            end: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+            bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+          ),
+          boxShadow: theme.shadowCard,
         ),
         child: Column(
           children: [
@@ -55,13 +66,13 @@ class WerdCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: theme.accentColor.withValues(alpha: 0.08),
+                color: accentColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 LucideIcons.calendarCheck,
                 size: 24,
-                color: theme.accentColor,
+                color: accentColor,
               ),
             ),
             const SizedBox(height: 14),
@@ -76,14 +87,19 @@ class WerdCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.accentColor,
+                color: accentColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(theme.radiusMd),
-                boxShadow: theme.shadowRing,
+                border: Border.all(
+                  color: accentColor.withValues(alpha: 0.3),
+                ),
               ),
               child: Text(
                 l.werdGetStarted,
-                style: theme.textButton.copyWith(
-                  color: theme.scaffoldBackground,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: accentColor,
                 ),
               ),
             ),
@@ -102,12 +118,26 @@ class WerdCard extends StatelessWidget {
     AppLocalizations l,
   ) {
     final config = werd.config!;
+    final isComplete = config.isComplete;
+    final accentColor = isComplete
+        ? SemanticColors.progressMemorized
+        : SemanticColors.practiceBlue.fg(theme.isDark);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
-        border: Border.all(color: theme.dividerColor, width: 1),
+        border: BorderDirectional(
+          start: BorderSide(
+            color: accentColor,
+            width: 4,
+          ),
+          top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+          end: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+        ),
+        boxShadow: theme.shadowCard,
       ),
       child: Column(
         children: [
@@ -121,13 +151,13 @@ class WerdCard extends StatelessWidget {
                     Icon(
                       LucideIcons.calendarCheck,
                       size: 16,
-                      color: theme.accentColor,
+                      color: accentColor,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       l.werdDaily,
                       style: theme.textCaption.copyWith(
-                        color: theme.accentColor,
+                        color: accentColor,
                       ),
                     ),
                     const Spacer(),
@@ -158,7 +188,7 @@ class WerdCard extends StatelessWidget {
                     _ProgressRing(
                       progress: config.progress,
                       isComplete: config.isComplete,
-                      accentColor: theme.accentColor,
+                      accentColor: accentColor,
                       trackColor: theme.dividerColor,
                       textColor: theme.primaryText,
                       completeColor: SemanticColors.progressMemorized,
@@ -195,16 +225,21 @@ class WerdCard extends StatelessWidget {
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.accentColor,
+                                  color: accentColor.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(
                                     theme.radiusMd,
                                   ),
-                                  boxShadow: theme.shadowRing,
+                                  border: Border.all(
+                                    color: accentColor.withValues(alpha: 0.3),
+                                  ),
                                 ),
                                 child: Text(
                                   l.werdStartReading,
-                                  style: theme.textButton.copyWith(
-                                    color: theme.scaffoldBackground,
+                                  style: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor,
                                   ),
                                 ),
                               ),
