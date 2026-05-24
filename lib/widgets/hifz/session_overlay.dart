@@ -13,6 +13,7 @@ import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/widgets/audio_player_bridge.dart';
 import 'package:quran_app/widgets/hifz/verse_highlighter.dart';
 import 'package:quran_app/widgets/overlays.dart';
+import 'package:quran_app/widgets/floating_corner_card.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/theme/icon_resolver.dart';
 import 'package:quran_app/theme/geist_typography.dart';
@@ -119,6 +120,519 @@ class _SessionOverlayState extends State<SessionOverlay> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    final isTablet = MediaQuery.sizeOf(context).width >= 768;
+
+    if (isTablet) {
+      final audioProvider = context.watch<AudioProvider>();
+      final session = widget.session;
+      final l = AppLocalizations.of(context)!;
+
+      final currentPosStr = _formatDuration(audioProvider.currentPosition);
+      final totalDurStr = _formatDuration(audioProvider.totalDuration);
+      final progress = audioProvider.totalDuration.inMilliseconds > 0
+          ? (audioProvider.currentPosition.inMilliseconds /
+                    audioProvider.totalDuration.inMilliseconds)
+                .clamp(0.0, 1.0)
+          : 0.0;
+
+      // Build the playing title
+      String playingVerseLabel = l.audioSelectVerse;
+      if (audioProvider.activeVerseKey != null) {
+        playingVerseLabel = VerseRefFormatter.format(
+          audioProvider.activeVerseKey!,
+          locale: l.localeName,
+          tier: VerseRefFormat.compact,
+        );
+      }
+
+      return Positioned.fill(
+        child: Stack(
+          children: [
+            // ── Card 1: Top-Start (Session Info & Exit) ──
+            FloatingCornerCard(
+              alignment: AlignmentDirectional.topStart,
+              slideOffset: const Offset(-1.2, -1.2),
+              isFullScreen: widget.isFullScreen,
+              maxWidth: 340,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: widget.onMinimize,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: theme.scaffoldBackground.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.minimize2,
+                        size: 14,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: widget.onExit,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: theme.scaffoldBackground.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.x,
+                        size: 14,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              session.currentPhaseIcon,
+                              size: 13,
+                              color: theme.accentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                _getPhaseLabel(context, session.currentPhase).toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: theme.accentColor,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l.overlayPageLines(widget.pageNumber, 1, 15),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 11,
+                            color: theme.secondaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${session.currentStepNumber}/${session.activePhaseCount}',
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: theme.accentColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Card 2: Top-End (Timer & Settings) ──
+            FloatingCornerCard(
+              alignment: AlignmentDirectional.topEnd,
+              slideOffset: const Offset(1.2, -1.2),
+              isFullScreen: widget.isFullScreen,
+              maxWidth: 240,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: widget.onTogglePause,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: theme.pillBackground,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            session.isPaused ? LucideIcons.pause : LucideIcons.timer,
+                            size: 13,
+                            color: theme.secondaryText,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatTime(session.elapsedSeconds),
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => session.toggleSpotlightActive(),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: session.isSpotlightActive
+                            ? theme.accentColor.withValues(alpha: 0.15)
+                            : theme.scaffoldBackground.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: session.isSpotlightActive
+                              ? theme.accentColor.withValues(alpha: 0.4)
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Icon(
+                        session.isSpotlightActive ? LucideIcons.eyeOff : LucideIcons.eye,
+                        size: 14,
+                        color: session.isSpotlightActive ? theme.accentColor : theme.secondaryText,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _showThemePicker,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: theme.scaffoldBackground.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.slidersHorizontal,
+                        size: 14,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Card 3: Bottom-Start (Audio Hub) ──
+            FloatingCornerCard(
+              alignment: AlignmentDirectional.bottomStart,
+              slideOffset: const Offset(-1.2, 1.2),
+              isFullScreen: widget.isFullScreen,
+              maxWidth: 360,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: theme.pillBackground,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          LucideIcons.user,
+                          size: 18,
+                          color: theme.iconColor,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              audioProvider.reciterName,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: theme.primaryText,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              playingVerseLabel,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 10,
+                                color: theme.secondaryText,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _showReciterMenu,
+                        child: Icon(
+                          LucideIcons.globe,
+                          size: 18,
+                          color: theme.iconColor,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => setState(() => _isAudioExpanded = !_isAudioExpanded),
+                        child: Icon(
+                          _isAudioExpanded ? LucideIcons.chevronDown : LucideIcons.chevronUp,
+                          size: 18,
+                          color: theme.iconColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_isAudioExpanded) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Text(
+                          currentPosStr,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 9,
+                            color: theme.mutedText,
+                          ),
+                        ),
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 3,
+                              activeTrackColor: theme.sliderActive,
+                              inactiveTrackColor: theme.sliderInactive,
+                              thumbColor: theme.sliderActive,
+                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
+                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                            ),
+                            child: Slider(
+                              value: progress,
+                              onChanged: (val) => audioProvider.seekToFraction(val),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          totalDurStr,
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 9,
+                            color: theme.mutedText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => audioProvider.toggleRepeatMode(),
+                          child: Icon(
+                            audioProvider.repeatMode == AudioRepeatMode.repeatVerse
+                                ? LucideIcons.repeat1
+                                : LucideIcons.repeat,
+                            size: 18,
+                            color: audioProvider.repeatMode != AudioRepeatMode.none
+                                ? theme.accentColor
+                                : theme.iconColor,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => audioProvider.skipToPreviousVerse(),
+                              child: Icon(
+                                LucideIcons.skipBack,
+                                size: 20,
+                                color: theme.iconColor,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () {
+                                if (audioProvider.activeVerseKey == null && widget.verses.isNotEmpty) {
+                                  SessionAudioHelper.playPageAudio(audioProvider, widget.verses);
+                                } else {
+                                  audioProvider.togglePlay();
+                                }
+                              },
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: theme.accentColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: audioProvider.isLoading
+                                    ? Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: theme.scaffoldBackground,
+                                        ),
+                                      )
+                                    : Icon(
+                                        audioProvider.isPlaying ? LucideIcons.pause : LucideIcons.play,
+                                        size: 16,
+                                        color: theme.scaffoldBackground,
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () => audioProvider.skipToNextVerse(),
+                              child: Icon(
+                                LucideIcons.skipForward,
+                                size: 20,
+                                color: theme.iconColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: _showAudioSettings,
+                          child: Icon(
+                            LucideIcons.settings,
+                            size: 18,
+                            color: theme.iconColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // ── Card 4: Bottom-End (Reps & Actions) ──
+            FloatingCornerCard(
+              alignment: AlignmentDirectional.bottomEnd,
+              slideOffset: const Offset(1.2, 1.2),
+              isFullScreen: widget.isFullScreen,
+              maxWidth: 360,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (session.isGuidedMode && session.currentStep != null) ...[
+                    _buildRecipeStepBanner(theme, session),
+                    const SizedBox(height: 12),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: widget.onRepTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: theme.accentColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${session.repCount}',
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: theme.accentColor,
+                                ),
+                              ),
+                              if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
+                                Text(
+                                  '/${session.plan!.sabaqRepetitionTarget}',
+                                  style: TextStyle(
+                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontSize: 12,
+                                    color: theme.accentColor.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (session.isGuidedMode && session.currentStep != null) ...[
+                            _ActionButton(
+                              icon: LucideIcons.chevronLeft,
+                              theme: theme,
+                              onTap: () => session.previousStep(),
+                            ),
+                            const SizedBox(width: 12),
+                            _buildBigAddRepButton(theme, session),
+                            const SizedBox(width: 12),
+                            if (session.currentStepIndex < (session.currentRecipe?.steps.length ?? 1) - 1)
+                              _ActionButton(
+                                  icon: LucideIcons.chevronRight,
+                                  theme: theme,
+                                  onTap: () => session.nextStep(),
+                              )
+                            else
+                              _ActionButton(
+                                icon: LucideIcons.checkCircle,
+                                theme: theme,
+                                isPrimary: true,
+                                onTap: widget.onDone,
+                              ),
+                          ] else ...[
+                            _ActionButton(
+                              icon: LucideIcons.skipForward,
+                              theme: theme,
+                              onTap: widget.onSkip ?? () {},
+                            ),
+                            const SizedBox(width: 12),
+                            _buildBigAddRepButton(theme, session),
+                            const SizedBox(width: 12),
+                            _ActionButton(
+                              icon: LucideIcons.check,
+                              theme: theme,
+                              isPrimary: true,
+                              onTap: widget.onDone,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Positioned.fill(
       child: Column(
@@ -702,18 +1216,18 @@ class _TopPhaseBar extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _getPhaseLabel(BuildContext context, SessionPhase phase) {
-    switch (phase) {
-      case SessionPhase.sabaq:
-        return AppLocalizations.of(context)!.phaseSabaq;
-      case SessionPhase.sabqi:
-        return AppLocalizations.of(context)!.phaseSabqi;
-      case SessionPhase.manzil:
-        return AppLocalizations.of(context)!.phaseManzil;
-      case SessionPhase.flashcards:
-        return AppLocalizations.of(context)!.phaseFlashcards;
-    }
+String _getPhaseLabel(BuildContext context, SessionPhase phase) {
+  switch (phase) {
+    case SessionPhase.sabaq:
+      return AppLocalizations.of(context)!.phaseSabaq;
+    case SessionPhase.sabqi:
+      return AppLocalizations.of(context)!.phaseSabqi;
+    case SessionPhase.manzil:
+      return AppLocalizations.of(context)!.phaseManzil;
+    case SessionPhase.flashcards:
+      return AppLocalizations.of(context)!.phaseFlashcards;
   }
 }
 
