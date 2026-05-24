@@ -17,6 +17,7 @@ void showTafsirSheet(
   BuildContext context, {
   required String verseKey,
   String? surahName,
+  int initialTabIndex = 0,
 }) {
   final theme = context.read<ThemeProvider>();
   // Capture the provider ONCE before opening the sheet.
@@ -33,6 +34,7 @@ void showTafsirSheet(
       surahName: surahName,
       theme: theme,
       contextProvider: contextProvider,
+      initialTabIndex: initialTabIndex,
     ),
   );
 }
@@ -42,12 +44,14 @@ class _TafsirSheetContent extends StatefulWidget {
   final String? surahName;
   final ThemeProvider theme;
   final ContextProvider contextProvider;
+  final int initialTabIndex;
 
   const _TafsirSheetContent({
     required this.verseKey,
     this.surahName,
     required this.theme,
     required this.contextProvider,
+    this.initialTabIndex = 0,
   });
 
   @override
@@ -69,7 +73,11 @@ class _TafsirSheetContentState extends State<_TafsirSheetContent>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
     _isArabic = widget.contextProvider.locale == 'ar';
 
     // Listen to provider changes manually — no context.watch needed
