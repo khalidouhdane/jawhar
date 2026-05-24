@@ -11,6 +11,7 @@ import 'package:quran_app/screens/hifz/flashcard_review_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_screen.dart';
 import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/widgets/app_header.dart';
 
 /// Practice tab — flashcard category hub + mutashabihat practice.
@@ -129,85 +130,101 @@ class _PracticeScreenState extends State<PracticeScreen> {
   Widget _buildMixedHero(ThemeProvider theme, FlashcardProvider fc) {
     final totalDue = fc.dueCardCount;
     final hasDue = totalDue > 0;
-    final heroText = theme.invertedForeground;
 
-    return Material(
-      color: hasDue
-          ? (theme.isDark ? const Color(0xFF1A1A1A) : const Color(0xFF171717))
-          : theme.cardColor,
-      borderRadius: BorderRadius.circular(theme.radiusXl),
-      child: InkWell(
-        onTap: () => _openReview(),
+    // Use pillarMemorize (Ship Red) for the memory/practice accent color
+    final baseAccent = SemanticColors.pillarMemorize.fg(theme.isDark);
+    final accentColor = hasDue ? baseAccent : baseAccent.withValues(alpha: 0.4);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusXl),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(theme.radiusXl),
-            boxShadow: theme.shadowCard,
+        border: Border.all(
+          color: theme.dividerColor,
+          width: 1.0,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // Start-edge accent spine
+          PositionedDirectional(
+            start: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            child: Container(
+              color: accentColor,
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: hasDue
-                      ? heroText.withValues(alpha: 0.1)
-                      : (theme.isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.05)),
-                  borderRadius: BorderRadius.circular(theme.radiusLg + 6),
-                ),
-                child: Center(
-                  child: Icon(
-                    LucideIcons.shuffle,
-                    size: 22,
-                    color: hasDue ? heroText : theme.primaryText,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // Main content with InkWell for tapping
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _openReview(),
+              borderRadius: BorderRadius.circular(theme.radiusXl),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
                   children: [
-                    Text(
-                      hasDue
-                          ? AppLocalizations.of(context)!.pracMixedReview
-                          : AppLocalizations.of(context)!.pracAllCaughtUp,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: hasDue ? heroText : theme.primaryText,
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(theme.radiusLg + 6),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          LucideIcons.shuffle,
+                          size: 22,
+                          color: accentColor,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      hasDue
-                          ? '$totalDue cards · ~${fc.estimatedMinutes} min · All types'
-                          : AppLocalizations.of(context)!.pracNoFlashcards,
-                      style: TextStyle(
-                        fontFamily: GeistTypography.primaryFontFamily,
-                        fontSize: 12,
-                        color: hasDue
-                            ? heroText.withValues(alpha: 0.8)
-                            : theme.mutedText,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            hasDue
+                                ? AppLocalizations.of(context)!.pracMixedReview
+                                : AppLocalizations.of(context)!.pracAllCaughtUp,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            hasDue
+                                ? '$totalDue cards · ~${fc.estimatedMinutes} min · All types'
+                                : AppLocalizations.of(context)!.pracNoFlashcards,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              color: theme.secondaryText,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    if (hasDue)
+                      Icon(
+                        LucideIcons.arrowRight,
+                        size: 20,
+                        color: accentColor,
+                      ),
                   ],
                 ),
               ),
-              if (hasDue)
-                Icon(
-                  LucideIcons.arrowRight,
-                  size: 20,
-                  color: heroText.withValues(alpha: 0.8),
-                ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
