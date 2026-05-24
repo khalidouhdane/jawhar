@@ -40,109 +40,126 @@ class ProfileDashboard extends StatelessWidget {
     final plan = planProvider.todayPlan;
     final theme = context.watch<ThemeProvider>();
 
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: 16,
-            ),
-            child: AppHeader(onAvatarTap: onAvatarTap),
-          ),
-        ),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        context.read<HifzDatabaseService>().getPageStatusCounts(profile.id),
+        context.read<HifzDatabaseService>().getStreak(profile.id),
+        context.read<HifzDatabaseService>().getSessionHistory(profile.id),
+      ]),
+      builder: (context, snapshot) {
+        final data = snapshot.data;
+        final counts = (data?[0] as Map<PageStatus, int>?) ?? {};
+        final streakData = (data?[1] as StreakData?) ?? const StreakData();
+        final sessions = (data?[2] as List<SessionRecord>?) ?? [];
 
-        // 1. Contextual Status
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: ContextualStatus(),
-        ),
+        final memorizedCount = counts[PageStatus.memorized] ?? 0;
+        final streakDays = streakData.totalActiveDays;
+        final sessionCount = sessions.length;
 
-        // 2. Plan Card / Rest Day / Loading
-        Padding(
+        final hasProgress = streakDays > 0 || memorizedCount > 0 || sessionCount > 0;
+
+        final progressStrip = Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              if (planProvider.isLoading) ...[
-                _buildPlanLoadingSkeleton(theme),
-                const SizedBox(height: 16),
-              ] else if (planProvider.isRestDay) ...[
-                _buildRestDayCard(context, theme, onStartSession),
-                const SizedBox(height: 16),
-              ] else if (plan != null) ...[
-                PlanCard(
-                  plan: plan,
-                  theme: theme,
-                  onStartSession: onStartSession,
-                  profile: profile,
+          child: ProgressStrip(
+            memorizedPages: memorizedCount,
+            streakDays: streakDays,
+            sessionCount: sessionCount,
+            onTap: onProgressStripTap,
+          ),
+        );
+
+        return ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: 16,
                 ),
-                const SizedBox(height: 16),
-              ],
-            ],
-          ),
-        ),
-
-        // 3. Continue Reading
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: ContinueReadingCard(),
-        ),
-        const SizedBox(height: 20),
-
-        // 4. Flashcard Carousel (edge-to-edge scrolling)
-        const FlashcardCarousel(),
-        const SizedBox(height: 20),
-
-        // 5. Explore Stories & Themes (edge-to-edge scrolling)
-        const ExploreCarousel(),
-        const SizedBox(height: 20),
-        // 6. Progress Strip
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: FutureBuilder<Map<PageStatus, int>>(
-            future: context.read<HifzDatabaseService>().getPageStatusCounts(
-              profile.id,
+                child: AppHeader(onAvatarTap: onAvatarTap),
+              ),
             ),
-            builder: (context, snapshot) {
-              final counts = snapshot.data ?? {};
-              final memorizedCount = counts[PageStatus.memorized] ?? 0;
-              int currentJuz = 1;
-              if (plan != null && plan.sabaqPage > 0) {
-                currentJuz = ((plan.sabaqPage - 1) / 20).floor() + 1;
-              } else if (memorizedCount > 0) {
-                currentJuz = (memorizedCount / 20).ceil().clamp(1, 30);
-              }
-              return ProgressStrip(
-                memorizedPages: memorizedCount,
-                currentJuz: currentJuz,
-                onTap: onProgressStripTap,
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 24),
 
-        // 7. Understanding Spotlight (Only if plan has sabaq)
-        if (plan != null && plan.sabaqPage > 0) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: UnderstandingSpotlight(sabaqPage: plan.sabaqPage),
-          ),
-          const SizedBox(height: 16),
-        ],
+            // 1. Contextual Status
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: ContextualStatus(),
+            ),
 
-        // 8. Suggestions
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _buildSuggestions(context),
-        ),
+            // 2. Plan Card / Rest Day / Loading
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  if (planProvider.isLoading) ...[
+                    _buildPlanLoadingSkeleton(theme),
+                    const SizedBox(height: 16),
+                  ] else if (planProvider.isRestDay) ...[
+                    _buildRestDayCard(context, theme, onStartSession),
+                    const SizedBox(height: 16),
+                  ] else if (plan != null) ...[
+                    PlanCard(
+                      plan: plan,
+                      theme: theme,
+                      onStartSession: onStartSession,
+                      profile: profile,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+              ),
+            ),
 
-        const SizedBox(height: 48), // Bottom padding
-      ],
+            // 3. Redesigned Progress Strip dynamically placed at top if user has progress
+            if (hasProgress) ...[
+              progressStrip,
+              const SizedBox(height: 16),
+            ],
+
+            // 4. Continue Reading
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: ContinueReadingCard(),
+            ),
+            const SizedBox(height: 20),
+
+            // 5. Flashcard Carousel (edge-to-edge scrolling)
+            const FlashcardCarousel(),
+            const SizedBox(height: 20),
+
+            // 6. Explore Stories & Themes (edge-to-edge scrolling)
+            const ExploreCarousel(),
+            const SizedBox(height: 20),
+
+            // 7. Progress Strip at bottom if user does not have progress
+            if (!hasProgress) ...[
+              progressStrip,
+              const SizedBox(height: 24),
+            ],
+
+            // 8. Understanding Spotlight (Only if plan has sabaq)
+            if (plan != null && plan.sabaqPage > 0) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: UnderstandingSpotlight(sabaqPage: plan.sabaqPage),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // 9. Suggestions
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildSuggestions(context),
+            ),
+
+            const SizedBox(height: 48), // Bottom padding
+          ],
+        );
+      },
     );
   }
 
