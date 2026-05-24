@@ -6,9 +6,7 @@ import 'package:quran_app/data/surah_metadata.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
-import 'package:quran_app/screens/reading_screen.dart';
-import 'package:quran_app/widgets/context/tafsir_sheet.dart'
-    show showTafsirSheet;
+import 'package:quran_app/screens/hifz/page_understanding_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
@@ -163,36 +161,22 @@ class TodayContextCard extends StatelessWidget {
                   ),
                 ],
 
-                // Action chips
+                // Action button: "Explore Today's Sabaq Context" / "فهم سياق السبق اليوم"
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ActionChip(
-                        label: l10n.readingTafsir,
-                        icon: LucideIcons.bookMarked,
-                        onTap: () => _openTafsir(context, sabaqPage),
-                        theme: theme,
-                        accentColor: accentColor,
-                      ),
+                _ActionChip(
+                  label: Localizations.localeOf(context).languageCode == 'ar'
+                      ? "فهم سياق السبق اليوم"
+                      : "Explore Today's Sabaq Context",
+                  icon: LucideIcons.compass,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PageUnderstandingScreen(sabaqPage: sabaqPage),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _ActionChip(
-                        label: l10n.readingRead,
-                        icon: LucideIcons.bookOpen,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ReadingScreen(initialPage: sabaqPage),
-                          ),
-                        ),
-                        theme: theme,
-                        accentColor: accentColor,
-                        isPrimary: true,
-                      ),
-                    ),
-                  ],
+                  ),
+                  theme: theme,
+                  accentColor: accentColor,
+                  isPrimary: true,
                 ),
               ],
             ),
@@ -200,20 +184,6 @@ class TodayContextCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _openTafsir(BuildContext context, int sabaqPage) {
-    final rewaya = context.read<QuranReadingProvider>().selectedRewaya;
-    final surahs = getAllSurahs(rewaya: rewaya);
-    SurahInfo? surah;
-    for (int i = surahs.length - 1; i >= 0; i--) {
-      if (surahs[i].startPage <= sabaqPage) {
-        surah = surahs[i];
-        break;
-      }
-    }
-    final verseKey = '${surah?.id ?? 1}:1';
-    showTafsirSheet(context, verseKey: verseKey, surahName: surah?.nameSimple);
   }
 }
 
