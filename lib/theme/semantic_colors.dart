@@ -6,6 +6,26 @@ import 'package:flutter/material.dart';
 class SemanticColors {
   SemanticColors._();
 
+  // ── Core Pillar Themes (Consistent with Landing Page / DESIGN.md) ──
+  static const pillarRead = SemanticPair(
+    lightBg: Color(0xFFEFF6FF), // 5% tint of #0a72ef
+    lightFg: Color(0xFF0A72EF), // Develop Blue
+    darkBg: Color(0x140A72EF),
+    darkFg: Color(0xFF3B82F6),
+  );
+  static const pillarUnderstand = SemanticPair(
+    lightBg: Color(0xFFFDF2F8), // 5% tint of #de1d8d
+    lightFg: Color(0xFFDE1D8D), // Preview Pink
+    darkBg: Color(0x14DE1D8D),
+    darkFg: Color(0xFFF472B6),
+  );
+  static const pillarMemorize = SemanticPair(
+    lightBg: Color(0xFFFFF5F5), // 5% tint of #ff5b4f
+    lightFg: Color(0xFFFF5B4F), // Ship Red
+    darkBg: Color(0x14FF5B4F),
+    darkFg: Color(0xFFFB7185),
+  );
+
   // ── Practice Card Identity (muted, whispered tints) ──
   static const practiceBlue = SemanticPair(
     lightBg: Color(0xFFF0F4FF),

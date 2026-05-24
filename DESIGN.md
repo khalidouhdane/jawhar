@@ -26,10 +26,10 @@ What distinguishes Vercel from other monochrome design systems is its shadow-as-
 - **Pure White** (`#ffffff`): Page background, card surfaces, button text on dark.
 - **True Black** (`#000000`): Secondary use, `--geist-console-text-color-default`, used in specific console/code contexts.
 
-### Workflow Accent Colors
-- **Ship Red** (`#ff5b4f`): `--ship-text`, the "ship to production" workflow step — warm, urgent coral-red.
-- **Preview Pink** (`#de1d8d`): `--preview-text`, the preview deployment workflow — vivid magenta-pink.
-- **Develop Blue** (`#0a72ef`): `--develop-text`, the development workflow — bright, focused blue.
+### Workflow / Pillar Accent Colors
+- **Read (Recitation / Werd)**: **Develop Blue** (`#0a72ef` / `--develop-text`) — bright, focused blue.
+- **Understand (Tafsir / Context)**: **Preview Pink** (`#de1d8d` / `--preview-text`) — vivid magenta-pink.
+- **Memorize (Hifz / Progress)**: **Ship Red** (`#ff5b4f` / `--ship-text`) — warm, urgent coral-red.
 
 ### Console / Code Colors
 - **Console Blue** (`#0070f3`): `--geist-console-text-color-blue`, syntax highlighting blue.

@@ -39,7 +39,7 @@ class WerdCard extends StatelessWidget {
     ThemeProvider theme,
     AppLocalizations l,
   ) {
-    final accentColor = SemanticColors.practiceBlue.fg(theme.isDark);
+    final accentColor = SemanticColors.pillarRead.fg(theme.isDark);
 
     return GestureDetector(
       onTap: () => _openSetupSheet(context),
@@ -49,9 +49,9 @@ class WerdCard extends StatelessWidget {
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(theme.radiusLg),
           border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.5),
+            color: theme.dividerColor,
+            width: 1.0,
           ),
-          boxShadow: theme.shadowCard,
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -133,7 +133,7 @@ class WerdCard extends StatelessWidget {
     final isComplete = config.isComplete;
     final accentColor = isComplete
         ? SemanticColors.progressMemorized
-        : SemanticColors.practiceBlue.fg(theme.isDark);
+        : SemanticColors.pillarRead.fg(theme.isDark);
 
     return Container(
       width: double.infinity,
@@ -141,9 +141,9 @@ class WerdCard extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
         border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.5),
+          color: theme.dividerColor,
+          width: 1.0,
         ),
-        boxShadow: theme.shadowCard,
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(

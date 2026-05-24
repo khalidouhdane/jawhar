@@ -45,8 +45,8 @@ class TodayContextCard extends StatelessWidget {
       }
     }
 
-    // Use practiceCyan for study tab accent
-    final accentColor = SemanticColors.practiceCyan.fg(theme.isDark);
+    // Use pillarUnderstand for study tab accent (Preview Pink)
+    final accentColor = SemanticColors.pillarUnderstand.fg(theme.isDark);
 
     return Container(
       width: double.infinity,
@@ -54,9 +54,9 @@ class TodayContextCard extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
         border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.5),
+          color: theme.dividerColor,
+          width: 1.0,
         ),
-        boxShadow: theme.shadowCard,
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
