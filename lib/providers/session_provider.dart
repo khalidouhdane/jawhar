@@ -47,6 +47,9 @@ class SessionProvider extends ChangeNotifier {
   int? _lastVerseLearned; // CE-9: verse-level coverage
   int? _totalVersesOnPage; // CE-9: total verses on the page
 
+  /// Whether the spotlight mask feature is currently active.
+  bool _isSpotlightActive = false;
+
   // ── Recipe-guided mode ──
   bool _isGuidedMode = true;
   Map<String, SessionRecipe> _recipes = {}; // keyed by phase name
@@ -75,6 +78,8 @@ class SessionProvider extends ChangeNotifier {
   bool get showingAssessment => _showingAssessment;
   bool get showingCoverageDialog => _showingCoverageDialog;
   List<int> get actualPagesCovered => _actualPagesCovered;
+  /// Whether the spotlight mask feature is currently active.
+  bool get isSpotlightActive => _isSpotlightActive;
 
   bool get sabaqDone => _sabaqDone;
   bool get sabqiDone => _sabqiDone;
@@ -193,6 +198,7 @@ class SessionProvider extends ChangeNotifier {
     _manzilDone = plan.manzilDoneOffline;
     _showingAssessment = false;
     _showingCoverageDialog = false;
+    _isSpotlightActive = false;
     _actualPagesCovered = [];
 
     // Start with the first non-offline phase
@@ -226,6 +232,20 @@ class SessionProvider extends ChangeNotifier {
   void toggleGuidedMode() {
     _isGuidedMode = !_isGuidedMode;
     notifyListeners();
+  }
+
+  /// Toggles the Spotlight Mask state.
+  void toggleSpotlightActive() {
+    _isSpotlightActive = !_isSpotlightActive;
+    notifyListeners();
+  }
+
+  /// Set the Spotlight Mask state explicitly.
+  void setSpotlightActive(bool active) {
+    if (_isSpotlightActive != active) {
+      _isSpotlightActive = active;
+      notifyListeners();
+    }
   }
 
   /// Set guided mode explicitly.
@@ -423,6 +443,7 @@ class SessionProvider extends ChangeNotifier {
   Future<SessionRecord> completeSession() async {
     _isActive = false;
     _isPaused = false;
+    _isSpotlightActive = false;
 
     // Determine actual sabaq pages: use reported coverage, or fall back to planned page
     final coveredPages = _actualPagesCovered.isNotEmpty
@@ -593,6 +614,7 @@ class SessionProvider extends ChangeNotifier {
     _totalSessionReps = 0;
     _showingAssessment = false;
     _showingCoverageDialog = false;
+    _isSpotlightActive = false;
     _actualPagesCovered = [];
     _lastVerseLearned = null;
     _totalVersesOnPage = null;
