@@ -120,6 +120,7 @@ flutter:
     - assets/images/reciters/
     - assets/images/diamond_logo.png
     - assets/images/diamond_spritesheet.webp
+    - assets/images/screenshots/
     - assets/prompts/
     - assets/data/translations/
 
