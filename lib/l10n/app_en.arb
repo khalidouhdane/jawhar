@@ -329,6 +329,17 @@
   "pracStrengthen": "Strengthen your memorization",
   "pracRegenCards": "Regenerate all cards",
   "pracMixedReview": "Mixed Review",
+  "pracMixedReviewSubtitle": "{count} cards · ~{minutes} min · All types",
+  "@pracMixedReviewSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "pracAllCaughtUp": "All caught up!",
   "pracNoFlashcards": "No flashcards due right now",
   "pracNextVerse": "Next Verse",

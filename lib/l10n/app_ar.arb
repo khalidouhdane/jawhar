@@ -329,6 +329,17 @@
   "pracStrengthen": "عزز حفظك",
   "pracRegenCards": "إعادة إنشاء جميع البطاقات",
   "pracMixedReview": "مراجعة مختلطة",
+  "pracMixedReviewSubtitle": "{count} بطاقة · ~{minutes} دقيقة · جميع الأنواع",
+  "@pracMixedReviewSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "pracAllCaughtUp": "أنجزت كل شيء!",
   "pracNoFlashcards": "لا توجد بطاقات مستحقة الآن",
   "pracNextVerse": "الآية التالية",

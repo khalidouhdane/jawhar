@@ -72,7 +72,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       subtitle: AppLocalizations.of(context)!.pracStrengthen,
                     ),
                   ),
-              const SizedBox(height: 24),
 
               if (profile.hasActiveProfile) ...[
                 // ── Mixed Review Hero ──
@@ -215,7 +214,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                           const SizedBox(height: 2),
                           Text(
                             hasDue
-                                ? '$totalDue cards · ~${fc.estimatedMinutes} min · All types'
+                                ? AppLocalizations.of(context)!.pracMixedReviewSubtitle(totalDue, fc.estimatedMinutes)
                                 : AppLocalizations.of(context)!.pracNoFlashcards,
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,

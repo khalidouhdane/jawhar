@@ -1008,6 +1008,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pracMixedReview => 'مراجعة مختلطة';
 
   @override
+  String pracMixedReviewSubtitle(int count, int minutes) {
+    return '$count بطاقة · ~$minutes دقيقة · جميع الأنواع';
+  }
+
+  @override
   String get pracAllCaughtUp => 'أنجزت كل شيء!';
 
   @override

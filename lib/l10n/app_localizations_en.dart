@@ -1019,6 +1019,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pracMixedReview => 'Mixed Review';
 
   @override
+  String pracMixedReviewSubtitle(int count, int minutes) {
+    return '$count cards · ~$minutes min · All types';
+  }
+
+  @override
   String get pracAllCaughtUp => 'All caught up!';
 
   @override

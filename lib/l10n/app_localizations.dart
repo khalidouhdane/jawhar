@@ -2072,6 +2072,12 @@ abstract class AppLocalizations {
   /// **'Mixed Review'**
   String get pracMixedReview;
 
+  /// No description provided for @pracMixedReviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards · ~{minutes} min · All types'**
+  String pracMixedReviewSubtitle(int count, int minutes);
+
   /// No description provided for @pracAllCaughtUp.
   ///
   /// In en, this message translates to:
