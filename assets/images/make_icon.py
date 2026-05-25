@@ -13,8 +13,9 @@ def create_composite_icons():
     if bbox:
         logo = logo.crop(bbox)
         
-    # Scale up the logo to ~75% of 1024 = 768 (was 614)
-    target_size = 768
+    # Scale up the logo to ~65% of 1024 = 665 (was 768, originally 614)
+    # This prevents the diamond logo from touching the edges or clipping under Android masks.
+    target_size = 665
     
     # Calculate aspect ratio
     aspect = logo.width / logo.height
