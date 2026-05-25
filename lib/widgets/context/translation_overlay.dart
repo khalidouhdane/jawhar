@@ -112,11 +112,20 @@ class TranslationOverlay extends StatelessWidget {
         ExcludeSemantics(
           child: Text(
             text,
-            style: GoogleFonts.ibmPlexSansArabic(
-              fontSize: 13,
-              height: 1.5,
-              color: theme.secondaryText,
-            ),
+            textDirection: AppLocalizations.of(context)!.localeName.startsWith('ar')
+                ? TextDirection.rtl
+                : TextDirection.ltr,
+            style: AppLocalizations.of(context)!.localeName.startsWith('ar')
+                ? GoogleFonts.amiri(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: theme.secondaryText,
+                  )
+                : GoogleFonts.ibmPlexSansArabic(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: theme.secondaryText,
+                  ),
           ),
         ),
       ],

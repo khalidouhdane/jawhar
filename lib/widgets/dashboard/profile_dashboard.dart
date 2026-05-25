@@ -52,7 +52,9 @@ class ProfileDashboard extends StatelessWidget {
         final streakData = (data?[1] as StreakData?) ?? const StreakData();
         final sessions = (data?[2] as List<SessionRecord>?) ?? [];
 
-        final memorizedCount = counts[PageStatus.memorized] ?? 0;
+        final memorizedCount = (counts[PageStatus.memorized] ?? 0) +
+            (counts[PageStatus.learning] ?? 0) +
+            (counts[PageStatus.reviewing] ?? 0);
         final streakDays = streakData.totalActiveDays;
         final sessionCount = sessions.length;
 

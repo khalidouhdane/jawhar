@@ -16,12 +16,17 @@ import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 class SurahDetailSheet extends StatelessWidget {
   final SurahInfo surah;
   final ScrollController? scrollController;
 
-  const SurahDetailSheet({super.key, required this.surah, this.scrollController});
+  const SurahDetailSheet({
+    super.key,
+    required this.surah,
+    this.scrollController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +36,9 @@ class SurahDetailSheet extends StatelessWidget {
     final asbabService = contextProvider.asbabService;
     final l10n = AppLocalizations.of(context)!;
     final isArabic = AppLocalizations.of(context)!.localeName == 'ar';
-    final intro = isArabic ? surahIntroductionsAr[surah.id] : surahIntroductions[surah.id];
+    final intro = isArabic
+        ? surahIntroductionsAr[surah.id]
+        : surahIntroductions[surah.id];
     final asbabEntries = asbabService.isLoaded
         ? asbabService.getEntriesForSurah(surah.id)
         : <AsbabNuzulEntry>[];
@@ -108,7 +115,9 @@ class SurahDetailSheet extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _Badge(
-                              label: isMeccan ? l10n.undSurahMeccan : l10n.undSurahMedinan,
+                              label: isMeccan
+                                  ? l10n.undSurahMeccan
+                                  : l10n.undSurahMedinan,
                               icon: isMeccan
                                   ? Icons.mosque_outlined
                                   : Icons.location_city_outlined,
@@ -123,7 +132,9 @@ class SurahDetailSheet extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             _Badge(
-                              label: l10n.undSurahVersesCount(displayVersesCount),
+                              label: l10n.undSurahVersesCount(
+                                displayVersesCount,
+                              ),
                               icon: Icons.format_list_numbered,
                               color: theme.accentColor,
                               theme: theme,
@@ -202,10 +213,16 @@ class SurahDetailSheet extends StatelessWidget {
                     ...asbabEntries.take(5).map((entry) {
                       final verseRef = entry.ayahs.length == 1
                           ? l10n.undSurahVerse(entry.ayahs.first)
-                          : l10n.undSurahVersesRange(entry.ayahs.first, entry.ayahs.last);
+                          : l10n.undSurahVersesRange(
+                              entry.ayahs.first,
+                              entry.ayahs.last,
+                            );
 
                       final versesArabic = entry.ayahs
-                          .map((a) => '${quran.getVerse(surah.id, a)} ﴿${quran.getVerseEndSymbol(a)}﴾')
+                          .map(
+                            (a) =>
+                                '${quran.getVerse(surah.id, a)} ﴿${VerseRefFormatter.delocalizeNumbers(quran.getVerseEndSymbol(a))}﴾',
+                          )
                           .join(' ');
 
                       return Container(
@@ -237,7 +254,8 @@ class SurahDetailSheet extends StatelessWidget {
                                 Text(
                                   verseRef,
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: theme.accentColor,
@@ -247,14 +265,23 @@ class SurahDetailSheet extends StatelessWidget {
                                 // Arabic verses first
                                 Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: theme.isDark 
-                                        ? theme.accentColor.withValues(alpha: 0.02) 
-                                        : theme.accentColor.withValues(alpha: 0.01),
+                                    color: theme.isDark
+                                        ? theme.accentColor.withValues(
+                                            alpha: 0.02,
+                                          )
+                                        : theme.accentColor.withValues(
+                                            alpha: 0.01,
+                                          ),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: theme.dividerColor.withValues(alpha: 0.3),
+                                      color: theme.dividerColor.withValues(
+                                        alpha: 0.3,
+                                      ),
                                     ),
                                   ),
                                   child: Directionality(
@@ -296,7 +323,8 @@ class SurahDetailSheet extends StatelessWidget {
                                     Text(
                                       l10n.asbabReadFull,
                                       style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
+                                        fontFamily:
+                                            GeistTypography.primaryFontFamily,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
                                         color: theme.accentColor,
@@ -304,7 +332,9 @@ class SurahDetailSheet extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 2),
                                     Icon(
-                                      isArabic ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                                      isArabic
+                                          ? LucideIcons.arrowLeft
+                                          : LucideIcons.arrowRight,
                                       size: 12,
                                       color: theme.accentColor,
                                     ),
@@ -333,13 +363,19 @@ class SurahDetailSheet extends StatelessWidget {
                           },
                           borderRadius: BorderRadius.circular(4),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 2,
+                            ),
                             child: Row(
                               children: [
                                 Text(
-                                  l10n.undSurahMoreEntriesCount(asbabEntries.length - 5),
+                                  l10n.undSurahMoreEntriesCount(
+                                    asbabEntries.length - 5,
+                                  ),
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color: theme.accentColor,
@@ -348,7 +384,9 @@ class SurahDetailSheet extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
-                                  isArabic ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                                  isArabic
+                                      ? LucideIcons.arrowLeft
+                                      : LucideIcons.arrowRight,
                                   size: 12,
                                   color: theme.accentColor,
                                 ),

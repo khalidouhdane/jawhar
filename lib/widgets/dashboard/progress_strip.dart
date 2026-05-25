@@ -30,7 +30,6 @@ class ProgressStrip extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusXl),
         border: Border.all(color: theme.dividerColor, width: 1),
-        boxShadow: theme.shadowCard,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(theme.radiusXl),

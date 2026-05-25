@@ -170,9 +170,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
 
   Widget _buildOverallStats(ThemeProvider theme, HifzProfileProvider profile) {
     final total = _allProgress!.length;
-    final memorized = _allProgress!.values
-        .where((p) => p.status == PageStatus.memorized)
-        .length;
+    final memorized = total;
     final pct = total > 0 ? (total / 604 * 100).toStringAsFixed(1) : '0.0';
 
     final l = AppLocalizations.of(context)!;
@@ -440,13 +438,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _legendItem(theme, Colors.green, AppLocalizations.of(context)!.progressLegendMemorized),
+                        _legendItem(theme, theme.primaryText, AppLocalizations.of(context)!.progressLegendMemorized),
                         const SizedBox(width: 8),
-                        _legendItem(theme, Colors.amber, AppLocalizations.of(context)!.progressLegendLearning),
+                        _legendItem(theme, theme.dividerColor, AppLocalizations.of(context)!.progressLegendLearning),
                         const SizedBox(width: 8),
-                        _legendItem(theme, Colors.blue, AppLocalizations.of(context)!.progressLegendReviewing),
+                        _legendItem(theme, theme.secondaryText, AppLocalizations.of(context)!.progressLegendReviewing),
                         const SizedBox(width: 8),
-                        _legendItem(theme, theme.dividerColor, AppLocalizations.of(context)!.progressLegendNotStarted),
+                        _legendItem(theme, theme.dividerColor.withValues(alpha: 0.2), AppLocalizations.of(context)!.progressLegendNotStarted),
                       ],
                     ),
                   ],
@@ -461,18 +459,24 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
 
   Widget _pageGridDot(ThemeProvider theme, int page, PageStatus? status) {
     Color dotColor;
+    Color textColor;
+
     switch (status) {
       case PageStatus.memorized:
-        dotColor = Colors.green;
-        break;
-      case PageStatus.learning:
-        dotColor = Colors.amber;
+        dotColor = theme.primaryText;
+        textColor = theme.scaffoldBackground;
         break;
       case PageStatus.reviewing:
-        dotColor = Colors.blue;
+        dotColor = theme.secondaryText;
+        textColor = theme.scaffoldBackground;
+        break;
+      case PageStatus.learning:
+        dotColor = theme.dividerColor;
+        textColor = theme.primaryText;
         break;
       default:
-        dotColor = theme.dividerColor;
+        dotColor = theme.dividerColor.withValues(alpha: 0.2);
+        textColor = theme.mutedText;
     }
 
     return Tooltip(
@@ -491,9 +495,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 7,
               fontWeight: FontWeight.w600,
-              color: status != null && status != PageStatus.notStarted
-                  ? Colors.white
-                  : theme.mutedText,
+              color: textColor,
             ),
           ),
         ),
