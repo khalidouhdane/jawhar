@@ -251,7 +251,7 @@ class _GeistButtonState extends State<GeistButton> {
   double _getBorderRadius() {
     switch (widget.shape) {
       case GeistButtonShape.rounded:
-        return GeistTokens.radiusPill;
+        return GeistTokens.radiusMd;
       case GeistButtonShape.square:
         return GeistTokens.radiusMd;
     }

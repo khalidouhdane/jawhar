@@ -212,16 +212,16 @@ class _ActionChip extends StatelessWidget {
 
     return Material(
       color: bgColor,
-      borderRadius: BorderRadius.circular(theme.radiusPill),
+      borderRadius: BorderRadius.circular(theme.radiusMd),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(theme.radiusPill),
+        borderRadius: BorderRadius.circular(theme.radiusMd),
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
               color: borderColor,
             ),
-            borderRadius: BorderRadius.circular(theme.radiusPill),
+            borderRadius: BorderRadius.circular(theme.radiusMd),
             boxShadow: isPrimary ? theme.shadowRing : null,
           ),
           padding: const EdgeInsets.symmetric(vertical: 10),

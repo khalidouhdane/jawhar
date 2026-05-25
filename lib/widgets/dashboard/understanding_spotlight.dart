@@ -90,7 +90,7 @@ class UnderstandingSpotlight extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: theme.buttonDefaultBg,
-                      borderRadius: BorderRadius.circular(theme.radiusPill),
+                      borderRadius: BorderRadius.circular(theme.radiusMd),
                       boxShadow: theme.shadowRing,
                     ),
                     child: Row(
