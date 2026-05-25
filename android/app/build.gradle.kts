@@ -48,6 +48,15 @@ android {
                 keyPassword = keyPasswordVal
             }
         }
+        getByName("debug") {
+            val projectDebugKeystore = file("debug.keystore")
+            if (projectDebugKeystore.exists()) {
+                storeFile = projectDebugKeystore
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
     }
 
     buildTypes {
@@ -60,13 +69,7 @@ android {
             if (keystoreFile.exists() && !keystorePassword.isNullOrEmpty() && !keyAliasName.isNullOrEmpty() && !keyPasswordVal.isNullOrEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                val debugConfig = signingConfigs.getByName("debug")
-                val debugKeystore = debugConfig.storeFile
-                if (debugKeystore != null && debugKeystore.exists()) {
-                    signingConfig = debugConfig
-                } else {
-                    signingConfig = null // Build unsigned in CI if no keystore/secrets are set
-                }
+                signingConfig = signingConfigs.getByName("debug")
             }
         }
     }
