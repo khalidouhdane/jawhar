@@ -485,12 +485,19 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
         return SingleChildScrollView(
           child: Text(
             translationText,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 14,
-              height: 1.6,
-              color: theme.primaryText,
-            ),
+            textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+            style: isArabic
+                ? GoogleFonts.amiri(
+                    fontSize: 16,
+                    height: 1.8,
+                    color: theme.primaryText,
+                  )
+                : TextStyle(
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    fontSize: 14,
+                    height: 1.6,
+                    color: theme.primaryText,
+                  ),
           ),
         );
 
