@@ -37,8 +37,7 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isTabInitialized) {
-      final localeName = AppLocalizations.of(context)!.localeName;
-      _activeTab = localeName.startsWith('ar') ? 'tafseer' : 'translation';
+      _activeTab = 'translation';
       _isTabInitialized = true;
     }
   }
@@ -271,7 +270,7 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                 _activeVerseIndex = index;
                 _showDetailedTafsir = localeName.startsWith('ar');
                 if (!nextHasAsbab && _activeTab == 'asbab') {
-                  _activeTab = localeName.startsWith('ar') ? 'tafseer' : 'translation';
+                  _activeTab = 'translation';
                 }
               });
               _loadVerseContent(nextVerse.verseKey, updateDetailedTafsir: false);
@@ -427,10 +426,8 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
 
   Widget _buildCustomTabBar(ThemeProvider theme, String verseKey, bool hasAsbab) {
     final l10n = AppLocalizations.of(context)!;
-    final isArabic = l10n.localeName.startsWith('ar');
     final tabs = [
-      if (!isArabic)
-        _TabItem(id: 'translation', label: l10n.readingTranslation),
+      _TabItem(id: 'translation', label: l10n.readingTranslation),
       _TabItem(id: 'tafseer', label: l10n.readingTafsir),
       if (hasAsbab)
         _TabItem(id: 'asbab', label: l10n.tafsirTabOccasion),
