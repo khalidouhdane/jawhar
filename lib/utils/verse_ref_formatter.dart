@@ -4,13 +4,19 @@ enum VerseRefFormat { full, standard, compact }
 
 class VerseRefFormatter {
   /// Converts standard digits to Eastern Arabic numerals if the locale is Arabic.
+  /// (Deprecated/Disabled: Enforces Latin numbers globally as requested).
   static String localizeNumbers(String input, String locale) {
-    if (!locale.startsWith('ar')) return input;
+    return input;
+  }
+
+  /// Converts Eastern Arabic numerals back to Latin digits.
+  static String delocalizeNumbers(String input) {
     final digits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    return input.split('').map((char) {
-      final val = int.tryParse(char);
-      return val != null ? digits[val] : char;
-    }).join('');
+    String result = input;
+    for (int i = 0; i < 10; i++) {
+      result = result.replaceAll(digits[i], i.toString());
+    }
+    return result;
   }
 
   /// Parse a verseKey "12:14" → (surahId: 12, verse: 14)
