@@ -33,9 +33,9 @@ platform :ios do
       end
     end
 
-    # 2.5 Revoke existing active Distribution certificates to prevent hitting the limit
+    # 2.5 Revoke oldest active Distribution certificate ONLY if we are near the limit
     begin
-      UI.message("Checking existing distribution certificates on the Developer Portal to prevent hitting the 2-cert limit...")
+      UI.message("Checking existing distribution certificates on the Developer Portal to prevent hitting Apple's limit...")
       token = Spaceship::ConnectAPI::Token.create(
         key_id: ENV["ASC_KEY_ID"],
         issuer_id: ENV["ASC_ISSUER_ID"],
@@ -45,16 +45,30 @@ platform :ios do
       certs = Spaceship::ConnectAPI::Certificate.all
       UI.message("Found #{certs.count} total certificates on the portal.")
       
-      certs.each do |c|
+      # Filter for Apple Distribution / iOS Distribution certificates
+      dist_certs = certs.select do |c|
         type = c.certificate_type
-        if type && (type.include?("DISTRIBUTION") || type.include?("Distribution"))
-          UI.message("Revoking certificate: #{c.name} (ID: #{c.id}, Type: #{type}, Expires: #{c.expiration_date})")
-          c.delete!
-        end
+        type && (type.include?("DISTRIBUTION") || type.include?("Distribution"))
       end
-      UI.message("Successfully cleared active Distribution certificates.")
+      
+      UI.message("Found #{dist_certs.count} active distribution certificates on the portal.")
+      
+      # Apple limits Apple Distribution certificates to 3 per account.
+      # We only revoke the oldest one if there are 2 or more active certificates,
+      # which ensures we always have free slots without wiping other developers' certificates.
+      if dist_certs.count >= 2
+        # Sort by expiration date (ISO string) to find the oldest one
+        sorted_certs = dist_certs.sort_by { |c| c.expiration_date || "" }
+        oldest_cert = sorted_certs.first
+        
+        UI.message("Threshold reached (>= 2 certs). Revoking oldest certificate to free up a slot: #{oldest_cert.name} (ID: #{oldest_cert.id}, Expires: #{oldest_cert.expiration_date})")
+        oldest_cert.delete!
+        UI.message("Successfully cleared the oldest active Distribution certificate.")
+      else
+        UI.message("Active distribution certificate count (#{dist_certs.count}) is below the threshold. No certificates were revoked.")
+      end
     rescue => e
-      UI.error("Error while cleaning up developer portal certificates: #{e.message}")
+      UI.error("Error while managing developer portal certificates: #{e.message}")
     end
 
     get_certificates(
