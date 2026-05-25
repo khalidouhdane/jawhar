@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+      - '!v*-android'
+      - '!v*-ios'
+  workflow_dispatch:
 
 jobs:
   build:
