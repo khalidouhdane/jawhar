@@ -46,19 +46,28 @@ android {
                 storePassword = keystorePassword
                 keyAlias = keyAliasName
                 keyPassword = keyPasswordVal
-            } else {
-                val debugConfig = signingConfigs.getByName("debug")
-                storeFile = debugConfig.storeFile
-                storePassword = debugConfig.storePassword
-                keyAlias = debugConfig.keyAlias
-                keyPassword = debugConfig.keyPassword
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val keystoreFile = file("upload-keystore.jks")
+            val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            val keyAliasName = System.getenv("ANDROID_KEY_ALIAS")
+            val keyPasswordVal = System.getenv("ANDROID_KEY_PASSWORD")
+
+            if (keystoreFile.exists() && !keystorePassword.isNullOrEmpty() && !keyAliasName.isNullOrEmpty() && !keyPasswordVal.isNullOrEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                val debugConfig = signingConfigs.getByName("debug")
+                val debugKeystore = debugConfig.storeFile
+                if (debugKeystore != null && debugKeystore.exists()) {
+                    signingConfig = debugConfig
+                } else {
+                    signingConfig = null // Build unsigned in CI if no keystore/secrets are set
+                }
+            }
         }
     }
 }
