@@ -11,6 +11,7 @@ import 'package:quran_app/screens/asbab_detail_screen.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/utils/verse_ref_formatter.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// A full-screen scrollable list displaying all asbab al-nuzul entries for a surah.
 ///
@@ -40,8 +41,8 @@ class AsbabListScreen extends StatelessWidget {
         backgroundColor: theme.scaffoldBackground,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            isArabic ? LucideIcons.arrowRight : LucideIcons.arrowLeft,
+          icon: DirectionalIcon(
+            icon: LucideIcons.arrowLeft,
             color: theme.primaryText,
           ),
           onPressed: () => Navigator.pop(context),
@@ -188,10 +189,8 @@ class AsbabListScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Icon(
-                              isArabic
-                                  ? LucideIcons.arrowLeft
-                                  : LucideIcons.arrowRight,
+                            DirectionalIcon(
+                              icon: LucideIcons.arrowRight,
                               size: 14,
                               color: theme.accentColor,
                             ),

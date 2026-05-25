@@ -12,6 +12,7 @@ import 'package:quran_app/data/quran_topics.dart';
 import 'package:quran_app/screens/topic_detail_screen.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// Immersive, verse-by-verse exploration screen for a page's context.
 class PageUnderstandingScreen extends StatefulWidget {
@@ -120,7 +121,7 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
+            icon: DirectionalIcon(icon: LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -148,7 +149,7 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
+          icon: DirectionalIcon(icon: LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -332,7 +333,7 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
         border: Border.all(color: theme.dividerColor, width: 0.5),
       ),
       child: IconButton(
-        icon: Icon(icon, size: 20, color: theme.primaryText),
+        icon: DirectionalIcon(icon: icon, size: 20, color: theme.primaryText),
         onPressed: onPressed,
       ),
     );

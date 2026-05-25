@@ -13,6 +13,7 @@ import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/utils/verse_ref_formatter.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// A premium full-screen view for a single asbab al-nuzul (reason of revelation) entry.
 ///
@@ -54,8 +55,8 @@ class AsbabDetailScreen extends StatelessWidget {
         backgroundColor: theme.scaffoldBackground,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            isArabic ? LucideIcons.arrowRight : LucideIcons.arrowLeft,
+          icon: DirectionalIcon(
+            icon: LucideIcons.arrowLeft,
             color: theme.primaryText,
           ),
           onPressed: () => Navigator.pop(context),

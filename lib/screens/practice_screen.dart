@@ -13,6 +13,7 @@ import 'package:quran_app/screens/hifz/mutashabihat_practice_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/widgets/app_header.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// Practice tab — flashcard category hub + mutashabihat practice.
 class PracticeScreen extends StatefulWidget {
@@ -226,8 +227,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       ),
                     ),
                     if (hasDue)
-                      Icon(
-                        LucideIcons.arrowRight,
+                      DirectionalIcon(
+                        icon: LucideIcons.arrowRight,
                         size: 20,
                         color: accentColor,
                       ),

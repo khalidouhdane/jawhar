@@ -15,6 +15,7 @@ import 'package:quran_app/widgets/understand/today_context_card.dart';
 import 'package:quran_app/widgets/understand/topic_carousel.dart';
 import 'package:quran_app/widgets/understand/surah_detail_sheet.dart';
 import 'package:quran_app/widgets/app_header.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// Understand tab — Study Hub for exploring Quran context.
 ///
@@ -368,8 +369,8 @@ class _SurahTile extends StatelessWidget {
                 ),
 
               const SizedBox(width: 8),
-              Icon(
-                LucideIcons.chevronRight, 
+              DirectionalIcon(
+                icon: LucideIcons.chevronRight, 
                 size: 16, 
                 color: theme.mutedText.withValues(alpha: 0.5),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
@@ -1005,7 +1006,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 18, color: theme.mutedText),
+            DirectionalIcon(icon: LucideIcons.chevronRight, size: 18, color: theme.mutedText),
           ],
         ),
       ),
@@ -1230,7 +1231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 18, color: theme.mutedText),
+            DirectionalIcon(icon: LucideIcons.chevronRight, size: 18, color: theme.mutedText),
           ],
         ),
       ),
@@ -1303,7 +1304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           if (showChevron)
-            Icon(LucideIcons.chevronRight, size: 16, color: theme.mutedText),
+            DirectionalIcon(icon: LucideIcons.chevronRight, size: 16, color: theme.mutedText),
         ],
       ),
     );

@@ -17,6 +17,7 @@ import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/utils/verse_ref_formatter.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 class SurahDetailSheet extends StatelessWidget {
   final SurahInfo surah;
@@ -331,10 +332,8 @@ class SurahDetailSheet extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(width: 2),
-                                    Icon(
-                                      isArabic
-                                          ? LucideIcons.arrowLeft
-                                          : LucideIcons.arrowRight,
+                                    DirectionalIcon(
+                                      icon: LucideIcons.arrowRight,
                                       size: 12,
                                       color: theme.accentColor,
                                     ),
@@ -383,10 +382,8 @@ class SurahDetailSheet extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                Icon(
-                                  isArabic
-                                      ? LucideIcons.arrowLeft
-                                      : LucideIcons.arrowRight,
+                                DirectionalIcon(
+                                  icon: LucideIcons.arrowRight,
                                   size: 12,
                                   color: theme.accentColor,
                                 ),

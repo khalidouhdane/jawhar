@@ -8,6 +8,7 @@ import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/widgets/understand/topic_section_card.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// Full-screen topic detail page showing curated narrative content,
 /// per-surah perspectives, and key verses with translations.
@@ -38,7 +39,7 @@ class TopicDetailScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(LucideIcons.arrowLeft, size: 20, color: primaryColor),
+          icon: DirectionalIcon(icon: LucideIcons.arrowLeft, size: 20, color: primaryColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -372,7 +373,7 @@ class TopicDetailScreen extends StatelessWidget {
             color: secondaryColor,
           ),
         ),
-        trailing: Icon(LucideIcons.chevronRight, size: 16, color: secondaryColor),
+        trailing: DirectionalIcon(icon: LucideIcons.chevronRight, size: 16, color: secondaryColor),
         onTap: () {
           Navigator.push(
             context,

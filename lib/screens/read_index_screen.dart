@@ -14,6 +14,7 @@ import 'package:quran_app/widgets/werd_card.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/widgets/sheets/reciter_menu_sheet.dart';
 import 'package:quran_app/widgets/app_header.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 /// Static lookup: Surah number → starting Mushaf page (Madani/Standard)
 const List<int> _surahStartPages = [
@@ -419,8 +420,8 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     ],
                   ),
                 ),
-                Icon(
-                  LucideIcons.chevronRight,
+                DirectionalIcon(
+                  icon: LucideIcons.chevronRight,
                   size: 16,
                   color: theme.mutedText.withValues(alpha: 0.5),
                 ),
@@ -525,8 +526,8 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                     ],
                   ),
                 ),
-                Icon(
-                  LucideIcons.chevronRight,
+                DirectionalIcon(
+                  icon: LucideIcons.chevronRight,
                   size: 16,
                   color: theme.mutedText.withValues(alpha: 0.5),
                 ),

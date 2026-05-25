@@ -6,6 +6,7 @@ import 'package:quran_app/l10n/app_localizations.dart';
 
 import 'animated_svg_icon.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/widgets/directional_icon.dart';
 
 class TopNavBar extends StatelessWidget {
   final String readMode;
@@ -97,8 +98,8 @@ class TopLeftNavBar extends StatelessWidget {
               color: theme.pillBackground,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              LucideIcons.chevronLeft,
+            child: DirectionalIcon(
+              icon: LucideIcons.chevronLeft,
               size: 18,
               color: theme.iconColor,
             ),
