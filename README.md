@@ -70,3 +70,10 @@ Ensure you have the Flutter SDK installed and configured on your system.
 
 *   **Free & Open:** Ad-free, tracking-free, and open to the community.
 *   **License:** Distributed under the MIT License. See `LICENSE` for details.
+
+---
+
+## 🤝 Contributing
+
+We welcome community feedback, bug reports, and contributions. Since the project is in active beta development, feel free to open an issue or pull request to discuss improvements.
+

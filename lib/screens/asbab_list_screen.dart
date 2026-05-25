@@ -10,6 +10,7 @@ import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/screens/asbab_detail_screen.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// A full-screen scrollable list displaying all asbab al-nuzul entries for a surah.
 ///
@@ -68,14 +69,22 @@ class AsbabListScreen extends StatelessWidget {
                 final entry = entries[index];
                 final verseRef = entry.ayahs.length == 1
                     ? l10n.undSurahVerse(entry.ayahs.first)
-                    : l10n.undSurahVersesRange(entry.ayahs.first, entry.ayahs.last);
+                    : l10n.undSurahVersesRange(
+                        entry.ayahs.first,
+                        entry.ayahs.last,
+                      );
 
                 // Join Arabic verse texts with end symbols
                 final versesArabic = entry.ayahs
-                    .map((a) => '${quran.getVerse(surah.id, a)} ﴿${quran.getVerseEndSymbol(a)}﴾')
+                    .map(
+                      (a) =>
+                          '${quran.getVerse(surah.id, a)} ﴿${VerseRefFormatter.delocalizeNumbers(quran.getVerseEndSymbol(a))}﴾',
+                    )
                     .join(' ');
 
-                final mainOccasion = entry.occasions.isNotEmpty ? entry.occasions.first : '';
+                final mainOccasion = entry.occasions.isNotEmpty
+                    ? entry.occasions.first
+                    : '';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -83,9 +92,7 @@ class AsbabListScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: theme.cardColor,
                     borderRadius: BorderRadius.circular(GeistTokens.radiusLg),
-                    border: Border.all(
-                      color: theme.dividerColor,
-                    ),
+                    border: Border.all(color: theme.dividerColor),
                     boxShadow: theme.shadowCard,
                   ),
                   child: InkWell(
@@ -94,10 +101,8 @@ class AsbabListScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => AsbabDetailScreen(
-                            entry: entry,
-                            surah: surah,
-                          ),
+                          builder: (_) =>
+                              AsbabDetailScreen(entry: entry, surah: surah),
                         ),
                       );
                     },
@@ -118,12 +123,17 @@ class AsbabListScreen extends StatelessWidget {
 
                         // Arabic verse snippet
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
-                            color: theme.isDark 
-                                ? theme.accentColor.withValues(alpha: 0.02) 
+                            color: theme.isDark
+                                ? theme.accentColor.withValues(alpha: 0.02)
                                 : theme.accentColor.withValues(alpha: 0.01),
-                            borderRadius: BorderRadius.circular(GeistTokens.radiusMd),
+                            borderRadius: BorderRadius.circular(
+                              GeistTokens.radiusMd,
+                            ),
                             border: Border.all(
                               color: theme.dividerColor.withValues(alpha: 0.3),
                             ),
@@ -179,7 +189,9 @@ class AsbabListScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Icon(
-                              isArabic ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                              isArabic
+                                  ? LucideIcons.arrowLeft
+                                  : LucideIcons.arrowRight,
                               size: 14,
                               color: theme.accentColor,
                             ),

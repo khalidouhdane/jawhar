@@ -12,6 +12,7 @@ import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/services/asbab_nuzul_service.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// A premium full-screen view for a single asbab al-nuzul (reason of revelation) entry.
 ///
@@ -41,7 +42,10 @@ class AsbabDetailScreen extends StatelessWidget {
 
     // Join all Arabic verses text with proper formatting
     final versesArabic = entry.ayahs
-        .map((a) => '${quran.getVerse(surah.id, a)} ﴿${quran.getVerseEndSymbol(a)}﴾')
+        .map(
+          (a) =>
+              '${quran.getVerse(surah.id, a)} ﴿${VerseRefFormatter.delocalizeNumbers(quran.getVerseEndSymbol(a))}﴾',
+        )
         .join(' ');
 
     return Scaffold(
@@ -76,7 +80,10 @@ class AsbabDetailScreen extends StatelessWidget {
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -84,10 +91,12 @@ class AsbabDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: theme.isDark 
-                                ? theme.accentColor.withValues(alpha: 0.03) 
+                            color: theme.isDark
+                                ? theme.accentColor.withValues(alpha: 0.03)
                                 : theme.accentColor.withValues(alpha: 0.02),
-                            borderRadius: BorderRadius.circular(GeistTokens.radiusLg),
+                            borderRadius: BorderRadius.circular(
+                              GeistTokens.radiusLg,
+                            ),
                             border: Border.all(
                               color: theme.dividerColor.withValues(alpha: 0.4),
                             ),
@@ -144,9 +153,13 @@ class AsbabDetailScreen extends StatelessWidget {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: theme.cardColor,
-                              borderRadius: BorderRadius.circular(GeistTokens.radiusMd),
+                              borderRadius: BorderRadius.circular(
+                                GeistTokens.radiusMd,
+                              ),
                               border: Border.all(
-                                color: theme.dividerColor.withValues(alpha: 0.5),
+                                color: theme.dividerColor.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
                               boxShadow: theme.shadowCard,
                             ),
@@ -191,14 +204,14 @@ class AsbabDetailScreen extends StatelessWidget {
                         final verseKey = '${surah.id}:$startAyah';
 
                         context.read<BookmarkProvider>().setHighlight(verseKey);
-                        context.read<ContextProvider>().setHighlightVerse(verseKey);
+                        context.read<ContextProvider>().setHighlightVerse(
+                          verseKey,
+                        );
 
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => ReadingScreen(
-                              initialPage: page,
-                            ),
+                            builder: (_) => ReadingScreen(initialPage: page),
                           ),
                         );
                       },
@@ -219,7 +232,9 @@ class AsbabDetailScreen extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: theme.dividerColor),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(GeistTokens.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            GeistTokens.radiusMd,
+                          ),
                         ),
                       ),
                     ),

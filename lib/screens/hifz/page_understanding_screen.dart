@@ -42,6 +42,10 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_verses.isNotEmpty) {
         final ctxProvider = context.read<ContextProvider>();
+        // Sync locale with ContextProvider for language-aware translations/tafsirs
+        final l10n = AppLocalizations.of(context)!;
+        ctxProvider.setLocale(l10n.localeName);
+
         // Ensure asbab is loaded
         await ctxProvider.ensureAsbabLoaded();
         // Load content for initial verse
