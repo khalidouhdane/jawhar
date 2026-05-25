@@ -28,10 +28,12 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
         color: theme.sheetBackground,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           Container(
             width: 48,
             height: 6,
@@ -228,8 +230,9 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
           const SizedBox(height: 24),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildRepeatChip(
     String label,

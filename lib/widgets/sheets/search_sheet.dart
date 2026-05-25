@@ -35,8 +35,10 @@ class _SearchSheetState extends State<SearchSheet> {
         color: theme.sheetBackground,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        children: [
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
           Container(
             width: 48,
             height: 6,
@@ -222,8 +224,9 @@ class _SearchSheetState extends State<SearchSheet> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// Approximate first page for each chapter (first 30 chapters)
   /// Falls back to chapter number for unknown chapters

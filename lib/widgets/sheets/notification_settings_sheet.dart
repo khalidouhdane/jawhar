@@ -19,11 +19,13 @@ class NotificationSettingsSheet extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // ── Handle ──
           Center(
             child: Container(
@@ -230,8 +232,9 @@ class NotificationSettingsSheet extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _pickTime(
     BuildContext context,

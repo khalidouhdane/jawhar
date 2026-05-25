@@ -51,8 +51,10 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         color: theme.sheetBackground,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        children: [
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
           Container(
             width: 48,
             height: 6,
@@ -172,8 +174,9 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
           Expanded(child: _buildTabContent(theme, l)),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTabContent(ThemeProvider theme, AppLocalizations l) {
     if (activeTab == 'surah') return _buildSurahList(theme, l);

@@ -108,8 +108,10 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
         color: theme.sheetBackground,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        children: [
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
           Container(
             width: 48,
             height: 6,
@@ -492,8 +494,9 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// Build a sync quality subtitle for a reciter tile.
   /// Shows nothing for perfect sync, a subtle indicator for corrected sync,

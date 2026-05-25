@@ -36,9 +36,11 @@ class ProfileSwitcherSheet extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final profiles = profileProvider.allProfiles;
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -194,6 +196,7 @@ class ProfileSwitcherSheet extends StatelessWidget {
           const SizedBox(height: 8),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
