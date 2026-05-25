@@ -62,6 +62,10 @@ class AudioProvider extends ChangeNotifier {
   String? _serverUrl;
   int? _moshafId;
 
+  bool _isIsolated = false;
+  String? _isolatedVerseKey;
+  int? _isolatedEndTimeMs;
+
   final Mp3QuranService _mp3QuranService = Mp3QuranService();
 
   Duration _currentPosition = Duration.zero;
@@ -153,6 +157,20 @@ class AudioProvider extends ChangeNotifier {
         return;
       }
 
+      if (_isIsolated && _isolatedEndTimeMs != null) {
+        final posMs = position.inMilliseconds;
+        if (posMs >= _isolatedEndTimeMs!) {
+          _player.pause();
+          _isIsolated = false;
+          _isolatedEndTimeMs = null;
+          _isPlaying = false;
+          _activeVerseKey = null;
+          _syncNotificationState();
+          notifyListeners();
+          return;
+        }
+      }
+
       // Update active verse based on current position using timing data
       if (_verseTimings.isNotEmpty) {
         final posMs = position.inMilliseconds;
@@ -192,6 +210,8 @@ class AudioProvider extends ChangeNotifier {
       if (_isSeeking) return;
       _activeVerseKey = null;
       _isPlaying = false;
+      _isIsolated = false;
+      _isolatedEndTimeMs = null;
       _syncNotificationState();
       notifyListeners();
     });
@@ -575,6 +595,9 @@ class AudioProvider extends ChangeNotifier {
     // Cancel any in-flight operation
     final gen = ++_generation;
 
+    _isIsolated = false;
+    _isolatedEndTimeMs = null;
+
     final startVerse = verses[startIndex];
     final chapterNumber = int.parse(startVerse.verseKey.split(':')[0]);
 
@@ -710,9 +733,170 @@ class AudioProvider extends ChangeNotifier {
     }
   }
 
-  /// Play a single verse
+  /// Plays a single verse isolated (only that verse, then stops/pauses).
+  /// Attempts to fetch single verse audio URL from Quran.com.
+  /// Falls back to chapter audio and stops when the verse's timestamp is reached.
+  Future<void> playSingleVerseIsolated(String verseKey) async {
+    // Cancel any in-flight operation
+    final gen = ++_generation;
+
+    _isSeeking = true;
+    _isLoading = true;
+    _isIsolated = true;
+    _isolatedVerseKey = verseKey;
+    _activeVerseKey = verseKey;
+    _isolatedEndTimeMs = null;
+
+    await _player.stop();
+    _isPlaying = false;
+    notifyListeners();
+
+    try {
+      // 1. If it's Quran.com, try to fetch single verse audio
+      if (_apiSource == ApiSource.quranDotCom) {
+        final uri = Uri.parse(
+          'https://apis.quran.foundation/content/api/v4/recitations/$_reciterId/by_ayah/$verseKey',
+        );
+        try {
+          final response = await ApiClient.get(
+            uri,
+            timeout: const Duration(seconds: 8),
+            maxRetries: 2,
+          );
+          if (gen != _generation) return;
+
+          if (response.statusCode == 200) {
+            final json = jsonDecode(response.body);
+            final audioFiles = json['audio_files'] as List?;
+            if (audioFiles != null && audioFiles.isNotEmpty) {
+              final rawUrl = audioFiles[0]['url'] as String;
+              String audioUrl;
+              if (rawUrl.startsWith('//')) {
+                audioUrl = 'https:$rawUrl';
+              } else if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+                audioUrl = rawUrl;
+              } else {
+                audioUrl = 'https://audio.qurancdn.com/$rawUrl';
+              }
+
+              final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(audioUrl) : audioUrl;
+              await _player.setSourceUrl(finalUrl);
+              await _player.setPlaybackRate(_playbackSpeed);
+
+              if (Platform.isWindows) {
+                await _player.setVolume(0.0);
+                await _player.resume();
+                if (gen != _generation) return;
+                await Future.delayed(const Duration(milliseconds: 500));
+                if (gen != _generation) return;
+                await _player.seek(Duration.zero);
+                if (gen != _generation) return;
+                await Future.delayed(const Duration(milliseconds: 100));
+                if (gen != _generation) return;
+                await _player.setVolume(1.0);
+              } else {
+                await _player.resume();
+              }
+
+              _isSeeking = false;
+              _isLoading = false;
+              _isPlaying = true;
+              _syncNotificationMetadata();
+              _syncNotificationState();
+              notifyListeners();
+              return;
+            }
+          }
+        } catch (e) {
+          AppLogger.error('Audio', 'Error fetching single verse audio, falling back to chapter audio', e);
+        }
+      }
+
+      // 2. Fallback to chapter audio and stop on end timestamp
+      final parts = verseKey.split(':');
+      final chapterNumber = int.parse(parts[0]);
+
+      final data = await _fetchChapterAudio(chapterNumber);
+      if (gen != _generation) return;
+
+      if (data == null) {
+        _isSeeking = false;
+        _isLoading = false;
+        _isIsolated = false;
+        _activeVerseKey = null;
+        notifyListeners();
+        return;
+      }
+
+      _currentChapter = chapterNumber;
+      _verseTimings = List<_VerseTiming>.from(data.timings);
+
+      final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(data.audioUrl) : data.audioUrl;
+      await _player.setSourceUrl(finalUrl);
+      if (gen != _generation) return;
+
+      final duration = await _getOrWaitForDuration();
+      if (duration != null && gen == _generation) {
+        _totalDuration = duration;
+        _applyBismillahCorrectionIfNeeded(duration);
+      }
+
+      final timing = _findTiming(verseKey);
+      if (timing != null) {
+        _isolatedEndTimeMs = timing.timestampTo;
+        await _player.setPlaybackRate(_playbackSpeed);
+
+        if (Platform.isWindows && timing.firstSegmentMs > 0) {
+          await _player.setVolume(0.0);
+          await _player.resume();
+          if (gen != _generation) return;
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (gen != _generation) return;
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return;
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (gen != _generation) return;
+          await _player.setVolume(1.0);
+        } else if (_apiSource == ApiSource.mp3Quran) {
+          await _player.resume();
+          if (gen != _generation) return;
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (gen != _generation) return;
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+        } else {
+          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          if (gen != _generation) return;
+          await _player.resume();
+        }
+
+        _isSeeking = false;
+        _isLoading = false;
+        _isPlaying = true;
+        _syncNotificationMetadata();
+        _syncNotificationState();
+        notifyListeners();
+      } else {
+        _isSeeking = false;
+        _isLoading = false;
+        _isIsolated = false;
+        _activeVerseKey = null;
+        notifyListeners();
+      }
+    } catch (e) {
+      AppLogger.error('Audio', 'Error in playSingleVerseIsolated', e);
+      if (gen != _generation) return;
+      _isSeeking = false;
+      _isLoading = false;
+      _isIsolated = false;
+      _activeVerseKey = null;
+      _syncNotificationState();
+      notifyListeners();
+    }
+  }
+
+  /// Play a single verse isolated
   Future<void> playSingleVerse(Verse verse) async {
-    await playVerseList([verse], startIndex: 0);
+    await playSingleVerseIsolated(verse.verseKey);
   }
 
   Future<void> togglePlay() async {

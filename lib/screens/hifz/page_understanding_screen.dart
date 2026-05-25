@@ -13,6 +13,8 @@ import 'package:quran_app/screens/topic_detail_screen.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/directional_icon.dart';
+import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/widgets/sheets/reciter_menu_sheet.dart';
 
 /// Immersive, verse-by-verse exploration screen for a page's context.
 class PageUnderstandingScreen extends StatefulWidget {
@@ -106,10 +108,47 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
     }
   }
 
+  void _openReciterMenu() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: 680),
+      builder: (sheetContext) {
+        return ExcludeSemantics(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(sheetContext).size.height * 0.1,
+            ),
+            child: DefaultTextStyle(
+              style: const TextStyle(fontFamily: 'Inter'),
+              child: ReciterMenuSheet(
+                onClose: () => Navigator.pop(sheetContext),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getShortReciterName(String fullName) {
+    final parts = fullName.trim().split(' ');
+    if (parts.isEmpty) return '';
+    if (parts.length >= 2) {
+      final firstLower = parts[0].toLowerCase();
+      if (firstLower == 'عبد' || firstLower == 'abdul' || firstLower == 'abdur') {
+        return '${parts[0]} ${parts[1]}';
+      }
+    }
+    return parts.first;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final contextProvider = context.watch<ContextProvider>();
+    final audioProvider = context.watch<AudioProvider>();
     final l10n = AppLocalizations.of(context)!;
     final localeName = l10n.localeName;
 
@@ -182,6 +221,84 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
           ],
         ),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: _openReciterMenu,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.headphones,
+                          size: 13,
+                          color: theme.accentColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _getShortReciterName(audioProvider.reciterName),
+                          style: TextStyle(
+                            fontFamily: GeistTypography.primaryFontFamily,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: theme.accentColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    final activeVerseKey = _verses[_activeVerseIndex].verseKey;
+                    final isActiveVersePlaying = audioProvider.activeVerseKey == activeVerseKey && audioProvider.isPlaying;
+                    if (isActiveVersePlaying) {
+                      audioProvider.togglePlay();
+                    } else {
+                      audioProvider.playSingleVerseIsolated(activeVerseKey);
+                    }
+                  },
+                  icon: Builder(
+                    builder: (context) {
+                      final activeVerseKey = _verses[_activeVerseIndex].verseKey;
+                      final isActiveVersePlaying = audioProvider.activeVerseKey == activeVerseKey && audioProvider.isPlaying;
+                      final isActiveVerseLoading = audioProvider.activeVerseKey == activeVerseKey && audioProvider.isLoading;
+
+                      if (isActiveVerseLoading) {
+                        return SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
+                          ),
+                        );
+                      }
+
+                      return Icon(
+                        isActiveVersePlaying ? LucideIcons.pause : LucideIcons.play,
+                        size: 20,
+                        color: theme.accentColor,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
