@@ -78,6 +78,8 @@
   "profileReading": "القراءة",
   "profileThemeLight": "فاتح",
   "profileThemeDark": "داكن",
+  "profileDefaultReciter": "القارئ الافتراضي",
+  "profileDefaultReciterDesc": "القارئ الافتراضي لتشغيل الصوتيات",
   "profileBookmarksTitle": "علاماتك المرجعية",
   "profileBookmarksDesc": "احفظ ونظم آياتك المفضلة",
   "profileSoon": "قريباً",

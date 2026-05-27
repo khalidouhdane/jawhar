@@ -243,6 +243,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileThemeDark => 'داكن';
 
   @override
+  String get profileDefaultReciter => 'القارئ الافتراضي';
+
+  @override
+  String get profileDefaultReciterDesc => 'القارئ الافتراضي لتشغيل الصوتيات';
+
+  @override
   String get profileBookmarksTitle => 'علاماتك المرجعية';
 
   @override

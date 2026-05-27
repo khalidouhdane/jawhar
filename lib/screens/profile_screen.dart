@@ -11,6 +11,10 @@ import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/providers/bookmark_provider.dart';
+import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/widgets/sheets/reciter_menu_sheet.dart';
+import 'package:quran_app/models/quran_models.dart';
+import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/screens/splash_screen.dart';
@@ -65,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final hifzProfile = context.watch<HifzProfileProvider>();
     final locale = context.watch<LocaleProvider>();
     final reading = context.watch<QuranReadingProvider>();
+    final audioProvider = context.watch<AudioProvider>();
     final l = AppLocalizations.of(context);
     final storage = context.read<LocalStorageService>();
     final lastRead = storage.getLastRead();
@@ -117,6 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hifzProfile,
                   locale,
                   reading,
+                  audioProvider,
                   l,
                   lastRead,
                 ),
@@ -136,12 +142,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     HifzProfileProvider hifzProfile,
     LocaleProvider locale,
     QuranReadingProvider reading,
+    AudioProvider audioProvider,
     AppLocalizations l,
     LastReadPosition? lastRead,
   ) {
     switch (_activeTab) {
       case ProfileTab.settings:
-        return _buildSettingsTab(context, theme, locale, reading, l);
+        return _buildSettingsTab(context, theme, locale, reading, audioProvider, l);
       case ProfileTab.hifz:
         return _buildHifzTab(context, theme, hifzProfile, l, lastRead);
       case ProfileTab.account:
@@ -154,6 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ThemeProvider theme,
     LocaleProvider locale,
     QuranReadingProvider reading,
+    AudioProvider audioProvider,
     AppLocalizations l,
   ) {
     return Column(
@@ -175,6 +183,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Theme
         _buildThemeSelector(context, theme, l),
+        const SizedBox(height: 12),
+
+        // Default Reciter
+        _buildDefaultReciterSelector(context, theme, audioProvider, l),
         const SizedBox(height: 32),
 
         // ═══════════════════════════════════════════
@@ -221,6 +233,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDefaultReciterSelector(
+    BuildContext context,
+    ThemeProvider theme,
+    AudioProvider audioProvider,
+    AppLocalizations l,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          constraints: const BoxConstraints(maxWidth: 680),
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (ctx) => FractionallySizedBox(
+            heightFactor: 0.85,
+            child: ReciterMenuSheet(
+              onClose: () => Navigator.pop(ctx),
+              onReciterSelected: (reciter) async {
+                // Update default reciter in LocalStorageService
+                final storage = context.read<LocalStorageService>();
+                storage.saveDefaultReciter(
+                  id: reciter.id,
+                  name: reciter.reciterName,
+                  apiSource: reciter.apiSource == ApiSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
+                  serverUrl: reciter.serverUrl,
+                  moshafId: reciter.moshafId,
+                );
+
+                // Update active profile if one exists
+                final hifzProfile = context.read<HifzProfileProvider>();
+                if (hifzProfile.hasActiveProfile) {
+                  final updatedProfile = hifzProfile.activeProfile!.copyWith(
+                    defaultReciterId: reciter.id,
+                    defaultReciterSource: reciter.apiSource == ApiSource.mp3Quran
+                        ? ReciterSource.mp3Quran
+                        : ReciterSource.quranDotCom,
+                  );
+                  await hifzProfile.updateProfile(updatedProfile);
+                }
+
+                // Update active audio reciter immediately
+                audioProvider.setReciter(
+                  reciter.id,
+                  name: reciter.reciterName,
+                  apiSource: reciter.apiSource,
+                  serverUrl: reciter.serverUrl,
+                  moshafId: reciter.moshafId,
+                );
+              },
+            ),
+          ),
+        );
+      },
+      child: _buildSettingsTile(
+        theme,
+        icon: LucideIcons.mic,
+        title: l.profileDefaultReciter,
+        subtitle: audioProvider.reciterName.isNotEmpty
+            ? audioProvider.reciterName
+            : 'Mishary Rashid Alafasy',
+      ),
     );
   }
 

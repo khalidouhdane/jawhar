@@ -6,6 +6,11 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
 import 'package:quran_app/providers/analytics_provider.dart';
 import 'package:quran_app/providers/flashcard_provider.dart';
+import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/providers/quran_reading_provider.dart';
+import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/models/quran_models.dart';
+import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/theme/icon_resolver.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
@@ -78,8 +83,50 @@ class ProfileSwitcherSheet extends StatelessWidget {
                           final planProvider = context.read<PlanProvider>();
                           final analyticsProvider = context.read<AnalyticsProvider>();
                           final flashcardProvider = context.read<FlashcardProvider>();
+                          final audioProvider = context.read<AudioProvider>();
+                          final readingProvider = context.read<QuranReadingProvider>();
+                          final storage = context.read<LocalStorageService>();
+
+                          final isArabic = Localizations.localeOf(context).languageCode == 'ar';
 
                           await profileProvider.switchProfile(p.id);
+                          
+                          // Sync default reciter from profile
+                          final defaultId = p.defaultReciterId;
+                          final defaultSource = p.defaultReciterSource;
+                          
+                          final match = readingProvider.reciters.where((r) => r.id == defaultId).firstOrNull;
+                          if (match != null) {
+                            storage.saveDefaultReciter(
+                              id: match.id,
+                              name: match.reciterName,
+                              apiSource: match.apiSource == ApiSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
+                              serverUrl: match.serverUrl,
+                              moshafId: match.moshafId,
+                            );
+                            audioProvider.setReciter(
+                              match.id,
+                              name: match.reciterName,
+                              apiSource: match.apiSource,
+                              serverUrl: match.serverUrl,
+                              moshafId: match.moshafId,
+                            );
+                          } else {
+                            final reciterName = isArabic
+                                ? (Reciter.arabicNamesById[defaultId] ?? 'قارئ $defaultId')
+                                : 'Reciter $defaultId';
+                            storage.saveDefaultReciter(
+                              id: defaultId,
+                              name: reciterName,
+                              apiSource: defaultSource == ReciterSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
+                            );
+                            audioProvider.setReciter(
+                              defaultId,
+                              name: reciterName,
+                              apiSource: defaultSource == ReciterSource.mp3Quran ? ApiSource.mp3Quran : ApiSource.quranDotCom,
+                            );
+                          }
+
                           planProvider.clearPlan();
                           await planProvider.loadOrGeneratePlan(p);
                           await analyticsProvider.loadAnalytics(p);

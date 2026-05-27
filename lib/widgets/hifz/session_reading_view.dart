@@ -236,7 +236,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
-    final sessionActive = context.select<SessionProvider, bool>((s) => s.isSpotlightActive);
+    final sessionActive = context.watch<SessionProvider>().isSpotlightActive;
 
     if (_isLoading) {
       return _buildLoadingState(theme);

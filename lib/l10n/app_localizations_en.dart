@@ -243,6 +243,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileThemeDark => 'Dark';
 
   @override
+  String get profileDefaultReciter => 'Default Reciter';
+
+  @override
+  String get profileDefaultReciterDesc => 'Default reciter for audio playback';
+
+  @override
   String get profileBookmarksTitle => 'Your Bookmarks';
 
   @override

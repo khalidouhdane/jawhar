@@ -61,6 +61,43 @@ class LocalStorageService {
   /// Returns the saved rewaya, or null if not yet set.
   int? get savedRewaya => _prefs.getInt(_keyRewaya);
 
+  // ── Default Reciter Preference ──
+  static const _keyDefaultReciterId = 'default_reciter_id';
+  static const _keyDefaultReciterName = 'default_reciter_name';
+  static const _keyDefaultReciterApiSource = 'default_reciter_api_source';
+  static const _keyDefaultReciterServerUrl = 'default_reciter_server_url';
+  static const _keyDefaultReciterMoshafId = 'default_reciter_moshaf_id';
+
+  /// Save the user's preferred default reciter.
+  void saveDefaultReciter({
+    required int id,
+    required String name,
+    required String apiSource,
+    String? serverUrl,
+    int? moshafId,
+  }) {
+    _prefs.setInt(_keyDefaultReciterId, id);
+    _prefs.setString(_keyDefaultReciterName, name);
+    _prefs.setString(_keyDefaultReciterApiSource, apiSource);
+    if (serverUrl != null) {
+      _prefs.setString(_keyDefaultReciterServerUrl, serverUrl);
+    } else {
+      _prefs.remove(_keyDefaultReciterServerUrl);
+    }
+    if (moshafId != null) {
+      _prefs.setInt(_keyDefaultReciterMoshafId, moshafId);
+    } else {
+      _prefs.remove(_keyDefaultReciterMoshafId);
+    }
+  }
+
+  /// Getters for default reciter details.
+  int? get defaultReciterId => _prefs.getInt(_keyDefaultReciterId);
+  String? get defaultReciterName => _prefs.getString(_keyDefaultReciterName);
+  String? get defaultReciterApiSource => _prefs.getString(_keyDefaultReciterApiSource);
+  String? get defaultReciterServerUrl => _prefs.getString(_keyDefaultReciterServerUrl);
+  int? get defaultReciterMoshafId => _prefs.getInt(_keyDefaultReciterMoshafId);
+
   // ── Onboarding ──
 
   /// Whether the user has completed the onboarding flow.

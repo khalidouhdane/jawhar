@@ -112,6 +112,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
     _tafsirScrollController.dispose();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
@@ -629,7 +630,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     final translations = contextProvider.getPageTranslations(pageNumber);
 
     // Load page translations if not already cached
-    if (translations.isEmpty && !contextProvider.isLoadingTranslation) {
+    if (translations.isEmpty && !contextProvider.isPageLoading(pageNumber)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           contextProvider.loadPageTranslations(pageNumber);
@@ -637,7 +638,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       });
     }
 
-    if (contextProvider.isLoadingTranslation && translations.isEmpty) {
+    if (contextProvider.isPageLoading(pageNumber) && translations.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -674,7 +675,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     }
 
     final highlightKey = contextProvider.highlightVerseKey;
-    final activeVerseKey = context.select<AudioProvider, String?>((p) => p.activeVerseKey);
+    final activeVerseKey = context.watch<AudioProvider>().activeVerseKey;
 
     final scrollKey = activeVerseKey ?? highlightKey;
     if (scrollKey != null && scrollKey != _lastScrolledVerseKey) {
