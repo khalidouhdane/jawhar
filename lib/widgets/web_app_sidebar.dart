@@ -56,7 +56,12 @@ class WebAppSidebar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             child: Row(
               children: [
-                Icon(LucideIcons.bookOpen, color: theme.accentColor, size: 24),
+                Image.asset(
+                  'assets/images/diamond_logo.png',
+                  width: 24,
+                  height: 24,
+                  filterQuality: FilterQuality.high,
+                ),
                 const SizedBox(width: 12),
                 Text(
                   'Jawhar',
