@@ -54,6 +54,7 @@ import 'package:quran_app/services/native_init.dart'
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Initialize local storage
   final prefs = await SharedPreferences.getInstance();

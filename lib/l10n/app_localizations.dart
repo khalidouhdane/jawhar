@@ -1340,6 +1340,30 @@ abstract class AppLocalizations {
   /// **'Repeat times'**
   String get audioRepeatTimes;
 
+  /// No description provided for @audioSyncCompensation.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Calibration'**
+  String get audioSyncCompensation;
+
+  /// No description provided for @audioSyncCompensationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust if the highlighted words don\'t match the voice (e.g. over Bluetooth).'**
+  String get audioSyncCompensationDesc;
+
+  /// No description provided for @audioSyncAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'← Advance Highlight'**
+  String get audioSyncAdvance;
+
+  /// No description provided for @audioSyncDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delay Highlight →'**
+  String get audioSyncDelay;
+
   /// No description provided for @readingJuz.
   ///
   /// In en, this message translates to:

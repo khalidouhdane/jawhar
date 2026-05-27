@@ -227,6 +227,98 @@ class _AudioSettingsSheetState extends State<AudioSettingsSheet> {
               ],
             ),
           ),
+          // Sync Calibration
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.inputFill,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.accentColor.withValues(alpha: 0.05),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          LucideIcons.sliders,
+                          size: 18,
+                          color: theme.accentColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l.audioSyncCompensation,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: theme.accentColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      audioProvider.audioOffsetMs == 0
+                          ? '0 ms'
+                          : '${audioProvider.audioOffsetMs > 0 ? '+' : ''}${audioProvider.audioOffsetMs} ms',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryText,
+                        fontFamily: 'JetBrains Mono',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l.audioSyncCompensationDesc,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.mutedText,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: theme.accentColor,
+                    inactiveTrackColor: theme.dividerColor,
+                    thumbColor: theme.accentColor,
+                    overlayColor: theme.accentColor.withValues(alpha: 0.12),
+                  ),
+                  child: Slider(
+                    value: audioProvider.audioOffsetMs.toDouble(),
+                    min: -2000.0,
+                    max: 2000.0,
+                    divisions: 40,
+                    label: '${audioProvider.audioOffsetMs > 0 ? '+' : ''}${audioProvider.audioOffsetMs} ms',
+                    onChanged: (val) {
+                      audioProvider.setAudioOffset(val.round());
+                    },
+                  ),
+                ),
+                // Helper labels
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l.audioSyncAdvance,
+                      style: TextStyle(fontSize: 10, color: theme.secondaryText),
+                    ),
+                    Text(
+                      l.audioSyncDelay,
+                      style: TextStyle(fontSize: 10, color: theme.secondaryText),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
         ],
       ),

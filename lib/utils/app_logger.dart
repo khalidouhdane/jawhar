@@ -15,7 +15,7 @@ import 'package:flutter/foundation.dart';
 class AppLogger {
   /// Set to `true` to enable informational (non-error) logs.
   /// Keep `false` during normal development to eliminate console noise.
-  static bool verbose = false;
+  static bool verbose = true;
 
   /// Log an informational message. Only prints when [verbose] is `true`.
   ///
