@@ -22,6 +22,7 @@ class AudioProxyServer {
   Future<void> start() async {
     if (isRunning) return;
     try {
+      AppLogger.info('AudioProxy', 'start() called. Stack trace:\n${StackTrace.current}');
       // Bind to loopback IPv4 with port 0 to allocate any free ephemeral port
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       _server!.listen(_handleRequest, onError: (e) {

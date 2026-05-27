@@ -640,6 +640,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get audioRepeatTimes => 'Repeat times';
 
   @override
+  String get audioSyncCompensation => 'Sync Calibration';
+
+  @override
+  String get audioSyncCompensationDesc =>
+      'Adjust if the highlighted words don\'t match the voice (e.g. over Bluetooth).';
+
+  @override
+  String get audioSyncAdvance => '← Advance Highlight';
+
+  @override
+  String get audioSyncDelay => 'Delay Highlight →';
+
+  @override
   String get readingJuz => 'Juz';
 
   @override

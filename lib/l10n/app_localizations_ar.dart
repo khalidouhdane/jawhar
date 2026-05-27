@@ -639,6 +639,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get audioRepeatTimes => 'عدد التكرار';
 
   @override
+  String get audioSyncCompensation => 'معايرة مزامنة الصوت';
+
+  @override
+  String get audioSyncCompensationDesc =>
+      'اضبط هذا الإعداد إذا لم تتطابق الكلمات المظللة مع الصوت (مثلاً عند استخدام البلوتوث).';
+
+  @override
+  String get audioSyncAdvance => '← تقديم التظليل';
+
+  @override
+  String get audioSyncDelay => 'تأخير التظليل →';
+
+  @override
   String get readingJuz => 'الجزء';
 
   @override

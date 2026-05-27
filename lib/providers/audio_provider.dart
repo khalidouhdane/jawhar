@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart' as ja;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/services/api_client.dart';
 import 'package:quran_app/services/quran_audio_handler.dart';
@@ -19,8 +21,10 @@ enum AudioRepeatMode { none, repeatVerse, repeatRange }
 enum AudioSyncQuality {
   /// Full timing data with accurate position reporting
   perfect,
+
   /// Timing data available but drift correction is active
   corrected,
+
   /// No timing data — verse highlighting disabled
   unavailable,
 }
@@ -33,7 +37,40 @@ enum AudioSyncQuality {
 /// Tracks the active verse by verseKey (e.g., "2:5") so highlighting
 /// works across page boundaries without needing the page's verse list.
 class AudioProvider extends ChangeNotifier {
-  final AudioPlayer _player = AudioPlayer();
+  final ja.AudioPlayer _player = ja.AudioPlayer(
+    useProxyForRequestHeaders: false,
+  );
+
+  int _audioOffsetMs = 0;
+  int get audioOffsetMs => _audioOffsetMs;
+
+  Future<void> _loadSavedOffset() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _audioOffsetMs = prefs.getInt('audio_offset_ms') ?? 0;
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> setAudioOffset(int offsetMs) async {
+    if (_audioOffsetMs == offsetMs) return;
+    _audioOffsetMs = offsetMs;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('audio_offset_ms', offsetMs);
+    } catch (_) {}
+  }
+
+  /// Static end-time overrides for reciter/surah/verses with known
+  /// database alignment errors. These should not move the seek start.
+  static const Map<String, int> _timingEndOverrides = {
+    '174:2:10': 1500, // Yasser Al-Dosari Surah 2 Verse 10 finishes 1.5s late.
+  };
+
+  static const int _androidSeekLeadInMs = 0;
+
+  bool get _shouldProxy => Platform.isWindows;
 
   /// Reference to the media notification handler.
   QuranAudioHandler? _audioHandler;
@@ -63,7 +100,6 @@ class AudioProvider extends ChangeNotifier {
   int? _moshafId;
 
   bool _isIsolated = false;
-  String? _isolatedVerseKey;
   int? _isolatedEndTimeMs;
 
   final Mp3QuranService _mp3QuranService = Mp3QuranService();
@@ -90,7 +126,9 @@ class AudioProvider extends ChangeNotifier {
   Duration get currentPosition => _currentPosition;
   Duration get totalDuration {
     if (_verseTimings.isNotEmpty) {
-      final timingDuration = Duration(milliseconds: _verseTimings.last.timestampTo);
+      final timingDuration = Duration(
+        milliseconds: _verseTimings.last.timestampTo,
+      );
       // Use true timing duration if it's larger than player's buffered duration
       if (timingDuration > _totalDuration) {
         return timingDuration;
@@ -98,6 +136,7 @@ class AudioProvider extends ChangeNotifier {
     }
     return _totalDuration;
   }
+
   String? get activeVerseKey => _activeVerseKey;
   int get reciterId => _reciterId;
   String get reciterName => _reciterName;
@@ -126,20 +165,23 @@ class AudioProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSeeking =
       false; // Guard: prevents onPositionChanged from overriding _activeVerseKey during seek
+  String? _seekLockVerseKey;
+  int? _seekLockUntilMs;
 
   // Cache: "reciterId:chapter" -> { audioUrl, timings }
   final Map<String, _ChapterAudioData> _chapterCache = {};
 
-
-
   AudioProvider() {
-    if (Platform.isWindows) {
+    _loadSavedOffset();
+    if (_shouldProxy) {
       AudioProxyServer().start();
     }
 
-    _player.onPlayerStateChanged.listen((state) {
+    _player.playerStateStream.listen((state) {
       if (_isSeeking) return;
-      final playing = state == PlayerState.playing;
+      final playing =
+          state.playing &&
+          state.processingState != ja.ProcessingState.completed;
       if (_isPlaying != playing) {
         _isPlaying = playing;
         _syncNotificationState();
@@ -147,7 +189,7 @@ class AudioProvider extends ChangeNotifier {
       }
     });
 
-    _player.onPositionChanged.listen((position) {
+    _player.positionStream.listen((position) {
       _currentPosition = position;
 
       // While seeking to a target verse, don't let intermediate positions
@@ -155,6 +197,19 @@ class AudioProvider extends ChangeNotifier {
       if (_isSeeking) {
         notifyListeners();
         return;
+      }
+
+      if (_seekLockVerseKey != null && _seekLockUntilMs != null) {
+        if (position.inMilliseconds < _seekLockUntilMs!) {
+          if (_activeVerseKey != _seekLockVerseKey) {
+            _activeVerseKey = _seekLockVerseKey;
+            _syncNotificationMetadata();
+          }
+          notifyListeners();
+          return;
+        }
+        _seekLockVerseKey = null;
+        _seekLockUntilMs = null;
       }
 
       if (_isIsolated && _isolatedEndTimeMs != null) {
@@ -173,7 +228,7 @@ class AudioProvider extends ChangeNotifier {
 
       // Update active verse based on current position using timing data
       if (_verseTimings.isNotEmpty) {
-        final posMs = position.inMilliseconds;
+        final posMs = position.inMilliseconds - _audioOffsetMs;
 
         String? newKey;
 
@@ -200,13 +255,22 @@ class AudioProvider extends ChangeNotifier {
       notifyListeners();
     });
 
-    _player.onDurationChanged.listen((duration) {
-      if (_isSeeking) return;
+    _player.durationStream.listen((duration) {
+      if (duration == null) return;
       _totalDuration = duration;
+      final shift = _applyBismillahCorrectionIfNeeded(duration);
+      if (shift != null) {
+        // Shift playhead to match the corrected timeline
+        Future<void>(() {
+          final newPos = _player.position + Duration(milliseconds: shift);
+          _player.seek(newPos < Duration.zero ? Duration.zero : newPos);
+        });
+      }
       notifyListeners();
     });
 
-    _player.onPlayerComplete.listen((_) {
+    _player.processingStateStream.listen((state) {
+      if (state != ja.ProcessingState.completed) return;
       if (_isSeeking) return;
       _activeVerseKey = null;
       _isPlaying = false;
@@ -226,7 +290,9 @@ class AudioProvider extends ChangeNotifier {
         if (_repeatCount == 0 || _currentRepeatIteration < _repeatCount - 1) {
           _currentRepeatIteration++;
           _activeVerseKey = oldKey;
-          _player.seek(Duration(milliseconds: oldTiming.firstSegmentMs));
+          _player.seek(
+            Duration(milliseconds: oldTiming.firstSegmentMs + _audioOffsetMs),
+          );
           return;
         } else {
           // Exhausted repeats, reset and continue
@@ -244,7 +310,11 @@ class AudioProvider extends ChangeNotifier {
           final startTiming = _findTiming(_repeatRangeStart!);
           if (startTiming != null) {
             _activeVerseKey = _repeatRangeStart;
-            _player.seek(Duration(milliseconds: startTiming.firstSegmentMs));
+            _player.seek(
+              Duration(
+                milliseconds: startTiming.firstSegmentMs + _audioOffsetMs,
+              ),
+            );
             return;
           }
         } else {
@@ -281,8 +351,6 @@ class AudioProvider extends ChangeNotifier {
     // Clear cache for MP3Quran when switching source type
     _chapterCache.clear();
 
-
-
     // If playing, restart with new reciter from current verse
     if (_activeVerseKey != null && _currentChapter != null) {
       final savedKey = _activeVerseKey!;
@@ -306,8 +374,10 @@ class AudioProvider extends ChangeNotifier {
 
       _verseTimings = List<_VerseTiming>.from(data.timings);
 
-      final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(data.audioUrl) : data.audioUrl;
-      await _player.setSourceUrl(finalUrl);
+      final finalUrl = _shouldProxy
+          ? AudioProxyServer().proxyUrl(data.audioUrl)
+          : data.audioUrl;
+      await _setSourceUrl(finalUrl);
       if (gen != _generation) return; // cancelled
 
       final duration = await _getOrWaitForDuration();
@@ -320,30 +390,21 @@ class AudioProvider extends ChangeNotifier {
       final timing = _findTiming(savedKey);
       if (timing != null) {
         _activeVerseKey = savedKey;
-        await _player.setPlaybackRate(_playbackSpeed);
-        
-        if (Platform.isWindows && timing.firstSegmentMs > 0) {
-          // On Windows, set volume to 0 to buffer silently, play first, delay, seek, then restore volume
-          await _player.setVolume(0.0);
-          await _player.resume();
-          if (gen != _generation) return; // cancelled
-          
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (gen != _generation) return; // cancelled
-          
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-          if (gen != _generation) return; // cancelled
-          
-          await Future.delayed(const Duration(milliseconds: 100));
-          if (gen != _generation) return; // cancelled
-          
-          await _player.setVolume(1.0); // Restore volume
+        await _player.setSpeed(_playbackSpeed);
+
+        if (timing.firstSegmentMs > 0) {
+          await _preciseSeekAndPlay(
+            timing.firstSegmentMs,
+            gen,
+            verseKey: timing.verseKey,
+          );
+          if (gen != _generation) return;
         } else {
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-          if (gen != _generation) return; // cancelled
-          await _player.resume();
+          await _player.setVolume(1.0);
+          await _startPlayback();
+          if (gen != _generation) return;
         }
-        
+
         _isSeeking = false;
         _isLoading = false;
         _isPlaying = true;
@@ -364,7 +425,7 @@ class AudioProvider extends ChangeNotifier {
   /// Set playback speed (0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
   Future<void> setPlaybackSpeed(double speed) async {
     _playbackSpeed = speed;
-    await _player.setPlaybackRate(speed);
+    await _player.setSpeed(speed);
     notifyListeners();
   }
 
@@ -421,7 +482,9 @@ class AudioProvider extends ChangeNotifier {
 
     final nextTiming = _verseTimings[currentIndex + 1];
     _activeVerseKey = nextTiming.verseKey;
-    await _player.seek(Duration(milliseconds: nextTiming.firstSegmentMs));
+    await _player.seek(
+      Duration(milliseconds: nextTiming.firstSegmentMs + _audioOffsetMs),
+    );
     notifyListeners();
   }
 
@@ -437,7 +500,9 @@ class AudioProvider extends ChangeNotifier {
 
     final prevTiming = _verseTimings[currentIndex - 1];
     _activeVerseKey = prevTiming.verseKey;
-    await _player.seek(Duration(milliseconds: prevTiming.firstSegmentMs));
+    await _player.seek(
+      Duration(milliseconds: prevTiming.firstSegmentMs + _audioOffsetMs),
+    );
     notifyListeners();
   }
 
@@ -484,8 +549,13 @@ class AudioProvider extends ChangeNotifier {
           timings = timingData.map((t) {
             final verseKey = '$chapterNumber:${t['ayah']}';
             // MP3Quran returns times in milliseconds
-            final timestampFrom = (t['start_time'] as num).toInt();
-            final timestampTo = (t['end_time'] as num).toInt();
+            int timestampFrom = (t['start_time'] as num).toInt();
+            int timestampTo = (t['end_time'] as num).toInt();
+
+            // Apply end-time override if defined.
+            final overrideKey = '$_reciterId:$verseKey';
+            timestampTo += _timingEndOverrides[overrideKey] ?? 0;
+
             final duration = timestampTo - timestampFrom;
 
             return _VerseTiming(
@@ -527,12 +597,25 @@ class AudioProvider extends ChangeNotifier {
 
         final timings = timestamps.map((t) {
           final verseKey = t['verse_key'] as String;
-          final timestampFrom = (t['timestamp_from'] as num).toInt();
-          final timestampTo = (t['timestamp_to'] as num).toInt();
+          int timestampFrom = (t['timestamp_from'] as num).toInt();
+          int timestampTo = (t['timestamp_to'] as num).toInt();
           final duration = (t['duration'] as num).toInt();
 
-          // Use the official timestamp_from directly for timing and seeking.
+          // Apply end-time override if defined.
+          final overrideKey = '$_reciterId:$verseKey';
+          timestampTo += _timingEndOverrides[overrideKey] ?? 0;
+
           int firstSegmentMs = timestampFrom;
+          final segments = t['segments'] as List?;
+          if (segments != null && segments.isNotEmpty) {
+            final firstSegment = segments.first;
+            if (firstSegment is List && firstSegment.length >= 2) {
+              final segmentStart = firstSegment[1];
+              if (segmentStart is num) {
+                firstSegmentMs = segmentStart.toInt();
+              }
+            }
+          }
 
           return _VerseTiming(
             verseKey: verseKey,
@@ -544,8 +627,14 @@ class AudioProvider extends ChangeNotifier {
         }).toList();
 
         // ── Diagnostic: Log timing accuracy for first 10 verses ──
-        AppLogger.info('AudioSync', '┌─── TIMING DIAGNOSTIC for chapter $chapterNumber, reciter $_reciterId ($_reciterName) ───');
-        AppLogger.info('AudioSync', '│ Total verses with timing: ${timings.length}');
+        AppLogger.info(
+          'AudioSync',
+          '┌─── TIMING DIAGNOSTIC for chapter $chapterNumber, reciter $_reciterId ($_reciterName) ───',
+        );
+        AppLogger.info(
+          'AudioSync',
+          '│ Total verses with timing: ${timings.length}',
+        );
         for (int i = 0; i < timings.length && i < 10; i++) {
           final t = timings[i];
           final delta = t.timestampFrom - t.firstSegmentMs;
@@ -554,16 +643,20 @@ class AudioProvider extends ChangeNotifier {
           final rawT = timestamps[i];
           final segs = rawT['segments'] as List?;
           final segCount = segs?.length ?? 0;
-          final seg0 = segs != null && segs.isNotEmpty ? segs[0].toString() : 'none';
-          AppLogger.info('AudioSync',
-              '│ ${t.verseKey.padRight(8)} '
-              'tsFrom=${t.timestampFrom}ms  '
-              'firstSeg=${t.firstSegmentMs}ms  '
-              'delta=${delta}ms  '
-              'tsTo=${t.timestampTo}ms  '
-              'gap=${gap}ms  '
-              'segs=$segCount  '
-              'seg0=$seg0');
+          final seg0 = segs != null && segs.isNotEmpty
+              ? segs[0].toString()
+              : 'none';
+          AppLogger.info(
+            'AudioSync',
+            '│ ${t.verseKey.padRight(8)} '
+                'tsFrom=${t.timestampFrom}ms  '
+                'firstSeg=${t.firstSegmentMs}ms  '
+                'delta=${delta}ms  '
+                'tsTo=${t.timestampTo}ms  '
+                'gap=${gap}ms  '
+                'segs=$segCount  '
+                'seg0=$seg0',
+          );
         }
         AppLogger.info('AudioSync', '└─── END TIMING DIAGNOSTIC ───');
 
@@ -585,7 +678,6 @@ class AudioProvider extends ChangeNotifier {
     }
     return null;
   }
-
 
   /// Play a list of verses starting from the given index.
   /// Loads the full chapter audio and seeks to the start verse.
@@ -626,8 +718,10 @@ class AudioProvider extends ChangeNotifier {
       _currentChapter = chapterNumber;
       _verseTimings = List<_VerseTiming>.from(data.timings);
 
-      final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(data.audioUrl) : data.audioUrl;
-      await _player.setSourceUrl(finalUrl);
+      final finalUrl = _shouldProxy
+          ? AudioProxyServer().proxyUrl(data.audioUrl)
+          : data.audioUrl;
+      await _setSourceUrl(finalUrl);
       if (gen != _generation) return; // cancelled
 
       final duration = await _getOrWaitForDuration();
@@ -647,51 +741,20 @@ class AudioProvider extends ChangeNotifier {
             'audioUrl=${data.audioUrl.substring(0, data.audioUrl.length.clamp(0, 80))}',
       );
 
-      await _player.setPlaybackRate(_playbackSpeed);
+      await _player.setSpeed(_playbackSpeed);
 
       // For MP3Quran, we need to resume first then seek because some
       // backends silently ignore seek on an unbuffered source.
       if (timing != null && timing.firstSegmentMs > 0) {
-        if (Platform.isWindows) {
-          // On Windows, set volume to 0 to buffer silently, play first, delay, seek, then restore volume
-          await _player.setVolume(0.0);
-          await _player.resume();
-          if (gen != _generation) return; // cancelled
-          
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (gen != _generation) return; // cancelled
-          
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-          if (gen != _generation) return; // cancelled
-          
-          await Future.delayed(const Duration(milliseconds: 100));
-          if (gen != _generation) return; // cancelled
-          
-          await _player.setVolume(1.0); // Restore volume
-        } else if (_apiSource == ApiSource.mp3Quran) {
-          // Start playback first so the source buffers
-          await _player.resume();
-          if (gen != _generation) return;
-          // Small delay to allow the player to prepare
-          await Future.delayed(const Duration(milliseconds: 300));
-          if (gen != _generation) return;
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-          if (gen != _generation) return;
-          AppLogger.info(
-            'Audio',
-            '[AudioProvider] MP3Quran seek to ${timing.firstSegmentMs}ms',
-          );
-        } else {
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-          if (gen != _generation) return;
-          await _player.resume();
-          if (gen != _generation) return;
-        }
+        await _preciseSeekAndPlay(
+          timing.firstSegmentMs,
+          gen,
+          verseKey: timing.verseKey,
+        );
+        if (gen != _generation) return;
       } else {
-        if (Platform.isWindows) {
-          await _player.setVolume(1.0); // Ensure volume is up
-        }
-        await _player.resume();
+        await _player.setVolume(1.0); // Ensure volume is up
+        await _startPlayback();
         if (gen != _generation) return;
       }
 
@@ -705,8 +768,6 @@ class AudioProvider extends ChangeNotifier {
       // see _isPlaying=false and try to resume() an already-playing source,
       // which may silently fail on some backends.
       _isPlaying = true;
-
-
 
       // If no timing data is available for this reciter, clear the
       // active verse so the UI doesn't freeze on the initial verse.
@@ -733,9 +794,9 @@ class AudioProvider extends ChangeNotifier {
     }
   }
 
-  /// Plays a single verse isolated (only that verse, then stops/pauses).
-  /// Attempts to fetch single verse audio URL from Quran.com.
-  /// Falls back to chapter audio and stops when the verse's timestamp is reached.
+  /// Plays a single verse isolated from the full chapter audio, then stops at
+  /// the verse end timestamp. Using the chapter file keeps Android VBR seeking
+  /// on the same indexed timeline as normal reading playback.
   Future<void> playSingleVerseIsolated(String verseKey) async {
     // Cancel any in-flight operation
     final gen = ++_generation;
@@ -743,7 +804,6 @@ class AudioProvider extends ChangeNotifier {
     _isSeeking = true;
     _isLoading = true;
     _isIsolated = true;
-    _isolatedVerseKey = verseKey;
     _activeVerseKey = verseKey;
     _isolatedEndTimeMs = null;
 
@@ -752,67 +812,6 @@ class AudioProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. If it's Quran.com, try to fetch single verse audio
-      if (_apiSource == ApiSource.quranDotCom) {
-        final uri = Uri.parse(
-          'https://apis.quran.foundation/content/api/v4/recitations/$_reciterId/by_ayah/$verseKey',
-        );
-        try {
-          final response = await ApiClient.get(
-            uri,
-            timeout: const Duration(seconds: 8),
-            maxRetries: 2,
-          );
-          if (gen != _generation) return;
-
-          if (response.statusCode == 200) {
-            final json = jsonDecode(response.body);
-            final audioFiles = json['audio_files'] as List?;
-            if (audioFiles != null && audioFiles.isNotEmpty) {
-              final rawUrl = audioFiles[0]['url'] as String;
-              String audioUrl;
-              if (rawUrl.startsWith('//')) {
-                audioUrl = 'https:$rawUrl';
-              } else if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-                audioUrl = rawUrl;
-              } else {
-                audioUrl = 'https://audio.qurancdn.com/$rawUrl';
-              }
-
-              final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(audioUrl) : audioUrl;
-              await _player.setSourceUrl(finalUrl);
-              await _player.setPlaybackRate(_playbackSpeed);
-
-              if (Platform.isWindows) {
-                await _player.setVolume(0.0);
-                await _player.resume();
-                if (gen != _generation) return;
-                await Future.delayed(const Duration(milliseconds: 500));
-                if (gen != _generation) return;
-                await _player.seek(Duration.zero);
-                if (gen != _generation) return;
-                await Future.delayed(const Duration(milliseconds: 100));
-                if (gen != _generation) return;
-                await _player.setVolume(1.0);
-              } else {
-                await _player.resume();
-              }
-
-              _isSeeking = false;
-              _isLoading = false;
-              _isPlaying = true;
-              _syncNotificationMetadata();
-              _syncNotificationState();
-              notifyListeners();
-              return;
-            }
-          }
-        } catch (e) {
-          AppLogger.error('Audio', 'Error fetching single verse audio, falling back to chapter audio', e);
-        }
-      }
-
-      // 2. Fallback to chapter audio and stop on end timestamp
       final parts = verseKey.split(':');
       final chapterNumber = int.parse(parts[0]);
 
@@ -831,8 +830,10 @@ class AudioProvider extends ChangeNotifier {
       _currentChapter = chapterNumber;
       _verseTimings = List<_VerseTiming>.from(data.timings);
 
-      final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(data.audioUrl) : data.audioUrl;
-      await _player.setSourceUrl(finalUrl);
+      final finalUrl = _shouldProxy
+          ? AudioProxyServer().proxyUrl(data.audioUrl)
+          : data.audioUrl;
+      await _setSourceUrl(finalUrl);
       if (gen != _generation) return;
 
       final duration = await _getOrWaitForDuration();
@@ -843,30 +844,20 @@ class AudioProvider extends ChangeNotifier {
 
       final timing = _findTiming(verseKey);
       if (timing != null) {
-        _isolatedEndTimeMs = timing.timestampTo;
-        await _player.setPlaybackRate(_playbackSpeed);
+        _isolatedEndTimeMs = timing.timestampTo + _audioOffsetMs;
+        await _player.setSpeed(_playbackSpeed);
 
-        if (Platform.isWindows && timing.firstSegmentMs > 0) {
-          await _player.setVolume(0.0);
-          await _player.resume();
+        if (timing.firstSegmentMs > 0) {
+          await _preciseSeekAndPlay(
+            timing.firstSegmentMs,
+            gen,
+            verseKey: timing.verseKey,
+          );
           if (gen != _generation) return;
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (gen != _generation) return;
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
-          if (gen != _generation) return;
-          await Future.delayed(const Duration(milliseconds: 100));
-          if (gen != _generation) return;
-          await _player.setVolume(1.0);
-        } else if (_apiSource == ApiSource.mp3Quran) {
-          await _player.resume();
-          if (gen != _generation) return;
-          await Future.delayed(const Duration(milliseconds: 300));
-          if (gen != _generation) return;
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
         } else {
-          await _player.seek(Duration(milliseconds: timing.firstSegmentMs));
+          await _player.setVolume(1.0);
+          await _startPlayback();
           if (gen != _generation) return;
-          await _player.resume();
         }
 
         _isSeeking = false;
@@ -903,7 +894,7 @@ class AudioProvider extends ChangeNotifier {
     if (_isPlaying) {
       await _player.pause();
     } else {
-      await _player.resume();
+      await _startPlayback();
     }
   }
 
@@ -922,7 +913,11 @@ class AudioProvider extends ChangeNotifier {
     if (_currentChapter == null || _audioHandler == null) return;
 
     final notificationTitle = _activeVerseKey != null
-        ? VerseRefFormatter.format(_activeVerseKey!, locale: 'en', tier: VerseRefFormat.full)
+        ? VerseRefFormatter.format(
+            _activeVerseKey!,
+            locale: 'en',
+            tier: VerseRefFormat.full,
+          )
         : 'Surah ${VerseRefFormatter.surahName(_currentChapter!, 'en')}';
 
     // Copy the reciter image asset to a temp file for the notification
@@ -969,14 +964,88 @@ class AudioProvider extends ChangeNotifier {
     }
   }
 
+  /// Unified precise seek and play logic.
+  /// Sets volume to 0.0, resumes playback, waits for buffer/preparation,
+  /// performs seek, waits for seek operation, then restores volume.
+  /// This ensures precise seeks on all platforms (Windows, Android, iOS).
+  Future<void> _preciseSeekAndPlay(
+    int targetMs,
+    int targetGen, {
+    String? verseKey,
+  }) async {
+    final limit = _totalDuration.inMilliseconds > 0
+        ? _totalDuration.inMilliseconds
+        : double.maxFinite.toInt();
+    final offsetTargetMs = (targetMs + _audioOffsetMs).clamp(0, limit);
+    if (Platform.isAndroid) {
+      final seekMs = (offsetTargetMs - _androidSeekLeadInMs).clamp(
+        0,
+        offsetTargetMs,
+      );
+      if (verseKey != null && seekMs < offsetTargetMs) {
+        _seekLockVerseKey = verseKey;
+        _seekLockUntilMs = offsetTargetMs;
+      }
+      AppLogger.info(
+        'AudioSync',
+        'Android indexed seek lead-in: target=${offsetTargetMs}ms seek=${seekMs}ms verse=$verseKey',
+      );
+      await _player.setVolume(1.0);
+      await _player.seek(Duration(milliseconds: seekMs));
+      if (targetGen != _generation) return;
+
+      await Future.delayed(const Duration(milliseconds: 50));
+      if (targetGen != _generation) return;
+
+      await _startPlayback();
+      return;
+    }
+
+    await _player.setVolume(0.0);
+    await _startPlayback();
+    if (targetGen != _generation) return;
+
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (targetGen != _generation) return;
+
+    await _player.seek(Duration(milliseconds: offsetTargetMs));
+    if (targetGen != _generation) return;
+
+    await Future.delayed(const Duration(milliseconds: 150));
+    if (targetGen != _generation) return;
+
+    // Extra tiny buffer to stabilize playback at the seeked position
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (targetGen != _generation) return;
+
+    await _player.setVolume(1.0);
+  }
+
+  Future<void> _startPlayback() async {
+    unawaited(_player.play());
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  Future<Duration?> _setSourceUrl(String url) {
+    final source = ja.ProgressiveAudioSource(
+      Uri.parse(url),
+      options: const ja.ProgressiveAudioSourceOptions(
+        androidExtractorOptions: ja.AndroidExtractorOptions(
+          mp3Flags: ja.AndroidExtractorOptions.flagMp3EnableIndexSeeking,
+        ),
+      ),
+    );
+    return _player.setAudioSource(source);
+  }
+
   Future<Duration?> _getOrWaitForDuration() async {
-    Duration? duration = await _player.getDuration();
+    Duration? duration = _player.duration;
     if (duration != null && duration.inMilliseconds > 0) {
       return duration;
     }
     for (int i = 0; i < 20; i++) {
       await Future.delayed(const Duration(milliseconds: 50));
-      duration = await _player.getDuration();
+      duration = _player.duration;
       if (duration != null && duration.inMilliseconds > 0) {
         return duration;
       }
@@ -984,27 +1053,40 @@ class AudioProvider extends ChangeNotifier {
     return null;
   }
 
-  void _applyBismillahCorrectionIfNeeded(Duration audioDuration) {
-    if (_verseTimings.isEmpty) return;
+  int? _applyBismillahCorrectionIfNeeded(Duration audioDuration) {
+    if (_verseTimings.isEmpty) return null;
 
     final lastVerse = _verseTimings.last;
     final expectedEndTime = lastVerse.timestampTo;
     final actualDurationMs = audioDuration.inMilliseconds;
 
-    // Rule: If actual duration is shorter than expected end time by at least 1500ms
-    if (actualDurationMs < (expectedEndTime - 1500)) {
-      final firstVerse = _verseTimings.first;
-      final bismillahGap = firstVerse.timestampFrom;
+    final firstVerse = _verseTimings.first;
+    final bismillahGap = firstVerse.timestampFrom;
+    final discrepancy = expectedEndTime - actualDurationMs;
 
-      final discrepancy = expectedEndTime - actualDurationMs;
-      // Verification: discrepancy should be close to the first verse start (Bismillah gap)
+    AppLogger.warn(
+      'AudioSync',
+      'Checking correction: actualDuration=$actualDurationMs ms, expectedEnd=$expectedEndTime ms, '
+          'discrepancy=$discrepancy ms, bismillahGap=$bismillahGap ms.',
+    );
+
+    // Rule: If actual duration is shorter than expected end time by at least
+    // 1500ms, the timing table is likely from a source with an intro/bismillah
+    // segment that this audio file does not contain. Shift by the measured
+    // duration discrepancy so seeks line up with the decoded file timeline.
+    if (actualDurationMs < (expectedEndTime - 1500)) {
+      // Verification: discrepancy should be reasonably close to the first
+      // verse start gap, allowing encoder padding/trailing silence differences.
       if ((discrepancy - bismillahGap).abs() < 1500) {
         final shift = -bismillahGap;
-        AppLogger.info(
+        if (shift == 0) {
+          AppLogger.warn('AudioSync', 'Shift is 0, no correction needed.');
+          return null;
+        }
+
+        AppLogger.warn(
           'AudioSync',
-          'Bismillah discrepancy detected: actualDuration=$actualDurationMs ms, '
-          'expectedEnd=$expectedEndTime ms, discrepancy=$discrepancy ms, '
-          'firstVerseStart=$bismillahGap ms. Shifting all timings by $shift ms.',
+          'Timeline discrepancy detected! Shifting all timings by $shift ms.',
         );
 
         _verseTimings = _verseTimings.map((t) {
@@ -1013,16 +1095,32 @@ class AudioProvider extends ChangeNotifier {
             timestampFrom: (t.timestampFrom + shift).clamp(0, actualDurationMs),
             timestampTo: (t.timestampTo + shift).clamp(0, actualDurationMs),
             duration: t.duration,
-            firstSegmentMs: (t.firstSegmentMs + shift).clamp(0, actualDurationMs),
+            firstSegmentMs: (t.firstSegmentMs + shift).clamp(
+              0,
+              actualDurationMs,
+            ),
           );
         }).toList();
+
+        return shift;
+      } else {
+        AppLogger.warn(
+          'AudioSync',
+          'Discrepancy ($discrepancy ms) was not close enough to bismillahGap ($bismillahGap ms) to apply correction.',
+        );
       }
+    } else {
+      AppLogger.warn(
+        'AudioSync',
+        'Audio duration is not significantly shorter than expected end time. No correction applied.',
+      );
     }
+    return null;
   }
 
   @override
   void dispose() {
-    if (Platform.isWindows) {
+    if (_shouldProxy) {
       AudioProxyServer().stop();
     }
     _player.dispose();
