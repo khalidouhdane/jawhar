@@ -9,8 +9,13 @@ import 'package:quran_app/utils/app_logger.dart';
 
 class ReciterMenuSheet extends StatefulWidget {
   final VoidCallback onClose;
+  final Function(dynamic reciter)? onReciterSelected;
 
-  const ReciterMenuSheet({super.key, required this.onClose});
+  const ReciterMenuSheet({
+    super.key,
+    required this.onClose,
+    this.onReciterSelected,
+  });
 
   @override
   State<ReciterMenuSheet> createState() => _ReciterMenuSheetState();
@@ -411,14 +416,18 @@ class _ReciterMenuSheetState extends State<ReciterMenuSheet> {
                           vertical: 4,
                         ),
                         onTap: () {
-                          audioProvider.setReciter(
-                            reciter.id,
-                            name: reciter.reciterName,
-                            apiSource: reciter.apiSource,
-                            serverUrl: reciter.serverUrl,
-                            moshafId: reciter.moshafId,
-                          );
-                          _addToRecent(reciter.id);
+                          if (widget.onReciterSelected != null) {
+                            widget.onReciterSelected!(reciter);
+                          } else {
+                            audioProvider.setReciter(
+                              reciter.id,
+                              name: reciter.reciterName,
+                              apiSource: reciter.apiSource,
+                              serverUrl: reciter.serverUrl,
+                              moshafId: reciter.moshafId,
+                            );
+                            _addToRecent(reciter.id);
+                          }
                           widget.onClose();
                         },
                         leading: Stack(

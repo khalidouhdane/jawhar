@@ -24,9 +24,10 @@ class ContextProvider extends ChangeNotifier {
   List<String>? _activeAsbabNuzul;
   AsbabNuzulEntry? _activeAsbabEntry;
 
-  // ── Page-level translation cache (LRU, max 5 pages) ──
+  // ── Page-level translation cache (LRU, max 30 pages) ──
   final Map<int, Map<String, VerseText>> _pageTranslationCache = {};
-  static const int _maxCachedPages = 5;
+  static const int _maxCachedPages = 30;
+  final Set<int> _loadingPages = {};
 
   // ── Verse highlighting for mode switch ──
   String? _highlightVerseKey;
@@ -65,10 +66,13 @@ class ContextProvider extends ChangeNotifier {
 
   String? get highlightVerseKey => _highlightVerseKey;
 
-  bool get isLoadingTranslation => _isLoadingTranslation;
+  bool get isLoadingTranslation => _isLoadingTranslation || _loadingPages.isNotEmpty;
   bool get isLoadingBriefTafsir => _isLoadingBriefTafsir;
   bool get isLoadingDetailedTafsir => _isLoadingDetailedTafsir;
   String? get error => _error;
+
+  /// Check if a specific page's translations are currently loading.
+  bool isPageLoading(int pageNumber) => _loadingPages.contains(pageNumber);
 
   bool get isAsbabNuzulLoaded => _asbabService.isLoaded;
 
@@ -204,12 +208,12 @@ class ContextProvider extends ChangeNotifier {
 
   /// Load translations for all verses on a page (batch).
   Future<void> loadPageTranslations(int pageNumber) async {
-    // Skip if already cached for this page
-    if (_pageTranslationCache.containsKey(pageNumber)) {
+    // Skip if already cached or already loading
+    if (_pageTranslationCache.containsKey(pageNumber) || _loadingPages.contains(pageNumber)) {
       return;
     }
 
-    _isLoadingTranslation = true;
+    _loadingPages.add(pageNumber);
     _error = null;
     notifyListeners();
 
@@ -224,12 +228,10 @@ class ContextProvider extends ChangeNotifier {
         _pageTranslationCache.remove(_pageTranslationCache.keys.first);
       }
       _pageTranslationCache[pageNumber] = results;
-
-      _isLoadingTranslation = false;
-      notifyListeners();
     } catch (e) {
       _error = e.toString();
-      _isLoadingTranslation = false;
+    } finally {
+      _loadingPages.remove(pageNumber);
       notifyListeners();
     }
   }
@@ -244,7 +246,8 @@ class ContextProvider extends ChangeNotifier {
     ].where((p) => p >= 1 && p <= 604).toList();
 
     for (final page in pagesToPrefetch) {
-      if (!_pageTranslationCache.containsKey(page)) {
+      if (!_pageTranslationCache.containsKey(page) && !_loadingPages.contains(page)) {
+        _loadingPages.add(page);
         try {
           final results = await _tafsirService.getTranslationsForPage(
             page,
@@ -259,6 +262,9 @@ class ContextProvider extends ChangeNotifier {
           }
         } catch (_) {
           // Silent fail for background prefetch
+        } finally {
+          _loadingPages.remove(page);
+          notifyListeners();
         }
       }
     }

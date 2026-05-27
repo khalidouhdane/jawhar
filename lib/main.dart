@@ -2,11 +2,13 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quran_app/providers/audio_provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/models/quran_models.dart';
+import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/services/local_storage_service.dart';
@@ -111,24 +113,71 @@ void main() async {
   final systemLang = PlatformDispatcher.instance.locale.languageCode;
   final initialLang = savedLocale ?? (systemLang == 'ar' ? 'ar' : 'en');
 
-  // Set default reciter based on saved rewaya with locale-aware name
-  if (storageService.savedRewaya == 2) {
-    // Warsh: Al Ayoun Al Koushi (MP3Quran id=16, but not in QDC map)
-    final name = initialLang == 'ar' ? 'العيون الكوشي' : 'Al Ayoun Al Koushi';
+  // Set default reciter: check SharedPreferences first, then active profile, then default rewaya
+  final savedReciterId = storageService.defaultReciterId;
+  if (savedReciterId != null) {
+    final name = storageService.defaultReciterName ?? '';
+    final apiSourceStr = storageService.defaultReciterApiSource ?? 'quranDotCom';
+    final serverUrl = storageService.defaultReciterServerUrl;
+    final moshafId = storageService.defaultReciterMoshafId;
+    
     audioProvider.setReciter(
-      16, // Al Ayoun Al Koushi
+      savedReciterId,
       name: name,
-      apiSource: ApiSource.mp3Quran,
-      serverUrl: "https://server11.mp3quran.net/koshi/",
-      moshafId: 16,
+      apiSource: apiSourceStr == 'mp3Quran' ? ApiSource.mp3Quran : ApiSource.quranDotCom,
+      serverUrl: serverUrl,
+      moshafId: moshafId,
     );
   } else {
-    // Hafs default: Mishary Rashid Alafasy (QDC id=7)
-    // setReciter would bail early because _reciterId already defaults to 7,
-    // so we directly update the name via updateReciterName.
-    if (initialLang == 'ar') {
-      final arabicName = Reciter.arabicNamesById[7] ?? 'مشاري راشد العفاسي';
-      audioProvider.updateReciterName(arabicName);
+    // Try profile default reciter
+    final activeProfile = await hifzDb.getActiveProfile();
+    if (activeProfile != null) {
+      final profileReciterId = activeProfile.defaultReciterId;
+      final profileReciterSource = activeProfile.defaultReciterSource;
+      
+      String reciterName = '';
+      if (profileReciterSource == ReciterSource.mp3Quran) {
+        if (profileReciterId == 16) {
+          reciterName = initialLang == 'ar' ? 'العيون الكوشي' : 'Al Ayoun Al Koushi';
+        } else {
+          reciterName = 'Reciter $profileReciterId';
+        }
+      } else {
+        reciterName = initialLang == 'ar' 
+            ? (Reciter.arabicNamesById[profileReciterId] ?? 'قارئ $profileReciterId') 
+            : 'Reciter $profileReciterId';
+      }
+      
+      audioProvider.setReciter(
+        profileReciterId,
+        name: reciterName,
+        apiSource: profileReciterSource == ReciterSource.mp3Quran ? ApiSource.mp3Quran : ApiSource.quranDotCom,
+        serverUrl: profileReciterSource == ReciterSource.mp3Quran && profileReciterId == 16 
+            ? "https://server11.mp3quran.net/koshi/" 
+            : null,
+        moshafId: profileReciterSource == ReciterSource.mp3Quran && profileReciterId == 16 
+            ? 16 
+            : null,
+      );
+    } else {
+      // Fallback to default rewaya reciter
+      if (storageService.savedRewaya == 2) {
+        // Warsh: Al Ayoun Al Koushi
+        final name = initialLang == 'ar' ? 'العيون الكوشي' : 'Al Ayoun Al Koushi';
+        audioProvider.setReciter(
+          16,
+          name: name,
+          apiSource: ApiSource.mp3Quran,
+          serverUrl: "https://server11.mp3quran.net/koshi/",
+          moshafId: 16,
+        );
+      } else {
+        // Hafs default: Mishary Rashid Alafasy (QDC id=7)
+        if (initialLang == 'ar') {
+          final arabicName = Reciter.arabicNamesById[7] ?? 'مشاري راشد العفاسي';
+          audioProvider.updateReciterName(arabicName);
+        }
+      }
     }
   }
 
@@ -305,42 +354,55 @@ class QuranApp extends StatelessWidget {
         // Sync reciter language when locale changes
         final readingProvider = context.read<QuranReadingProvider>();
         readingProvider.setLanguage(localeProvider.locale.languageCode);
-        return MaterialApp(
-          builder: DevicePreview.appBuilder,
-          title: 'Jawhar',
-          debugShowCheckedModeBanner: false,
-          locale: localeProvider.locale,
-          supportedLocales: const [Locale('en'), Locale('ar')],
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
 
-          theme: ThemeData(
-            textTheme: GoogleFonts.geistTextTheme(),
-            useMaterial3: true,
-            primaryColor: themeProvider.accentColor,
-            scaffoldBackgroundColor: themeProvider.scaffoldBackground,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1A454E),
-              primary: themeProvider.accentColor,
-              brightness: themeProvider.isDark
-                  ? Brightness.dark
-                  : Brightness.light,
+        final systemOverlayStyle = SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: themeProvider.isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: themeProvider.isDark ? Brightness.dark : Brightness.light,
+          systemNavigationBarColor: themeProvider.navBarBackground,
+          systemNavigationBarDividerColor: Colors.transparent,
+          systemNavigationBarIconBrightness: themeProvider.isDark ? Brightness.light : Brightness.dark,
+        );
+
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: systemOverlayStyle,
+          child: MaterialApp(
+            builder: DevicePreview.appBuilder,
+            title: 'Jawhar',
+            debugShowCheckedModeBanner: false,
+            locale: localeProvider.locale,
+            supportedLocales: const [Locale('en'), Locale('ar')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+
+            theme: ThemeData(
+              textTheme: GoogleFonts.geistTextTheme(),
+              useMaterial3: true,
+              primaryColor: themeProvider.accentColor,
+              scaffoldBackgroundColor: themeProvider.scaffoldBackground,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF1A454E),
+                primary: themeProvider.accentColor,
+                brightness: themeProvider.isDark
+                    ? Brightness.dark
+                    : Brightness.light,
+              ),
             ),
-          ),
-          scrollBehavior: const MaterialScrollBehavior().copyWith(
-            dragDevices: {
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.touch,
-              PointerDeviceKind.stylus,
-              PointerDeviceKind.trackpad,
-            },
-          ),
+            scrollBehavior: const MaterialScrollBehavior().copyWith(
+              dragDevices: {
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.touch,
+                PointerDeviceKind.stylus,
+                PointerDeviceKind.trackpad,
+              },
+            ),
 
-          home: const SplashScreen(),
+            home: const SplashScreen(),
+          ),
         );
       },
     );

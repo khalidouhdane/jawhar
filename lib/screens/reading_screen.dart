@@ -112,6 +112,7 @@ class _MobileReadingViewState extends State<MobileReadingView> {
     _pageReadTimer?.cancel();
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
@@ -1146,7 +1147,7 @@ class QuranPageState extends State<QuranPage>
     final translations = contextProvider.getPageTranslations(widget.pageNumber);
 
     // Load page translations if not already cached
-    if (translations.isEmpty && !contextProvider.isLoadingTranslation) {
+    if (translations.isEmpty && !contextProvider.isPageLoading(widget.pageNumber)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           contextProvider.loadPageTranslations(widget.pageNumber);
@@ -1154,7 +1155,7 @@ class QuranPageState extends State<QuranPage>
       });
     }
 
-    if (contextProvider.isLoadingTranslation && translations.isEmpty) {
+    if (contextProvider.isPageLoading(widget.pageNumber) && translations.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1185,7 +1186,7 @@ class QuranPageState extends State<QuranPage>
     // Check for highlighted verse to auto-scroll
     final highlightKey = contextProvider.highlightVerseKey;
 
-    final activeVerseKey = context.select<AudioProvider, String?>((p) => p.activeVerseKey);
+    final activeVerseKey = context.watch<AudioProvider>().activeVerseKey;
 
     final scrollKey = activeVerseKey ?? highlightKey;
     if (scrollKey != null && scrollKey != _lastScrolledVerseKey && _verses != null) {

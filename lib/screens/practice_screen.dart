@@ -73,22 +73,22 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     ),
                   ),
 
-              if (profile.hasActiveProfile) ...[
-                // ── Mixed Review Hero ──
-                _buildMixedHero(theme, fc),
-                const SizedBox(height: 16),
+              // ── Mixed Review Hero ──
+              _buildMixedHero(theme, fc),
+              const SizedBox(height: 16),
 
-                // ── Type Category Grid ──
-                _buildCategoryGrid(theme, fc),
-                const SizedBox(height: 20),
+              // ── Type Category Grid ──
+              _buildCategoryGrid(theme, fc),
+              const SizedBox(height: 20),
 
-                // ── Quick Stats ──
-                if (fc.totalCards > 0) ...[
-                  _buildStatsRow(theme, fc),
-                  const SizedBox(height: 24),
-                ],
+              // ── Quick Stats (Only if profile exists and has progress) ──
+              if (profile.hasActiveProfile && fc.totalCards > 0) ...[
+                _buildStatsRow(theme, fc),
+                const SizedBox(height: 24),
+              ],
 
-                // ── Regenerate ──
+              // ── Regenerate (Only if profile exists) ──
+              if (profile.hasActiveProfile)
                 Center(
                   child: GestureDetector(
                     onTap: () {
@@ -123,9 +123,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     ),
                   ),
                 ),
-              ] else ...[
-                _buildNoProfileCard(theme),
-              ],
             ],
           ),
         ),
@@ -140,12 +137,14 @@ class _PracticeScreenState extends State<PracticeScreen> {
   // ═══════════════════════════════════════
 
   Widget _buildMixedHero(ThemeProvider theme, FlashcardProvider fc) {
+    final profile = context.read<HifzProfileProvider>();
+    final hasProfile = profile.hasActiveProfile;
     final totalDue = fc.dueCardCount;
     final hasDue = totalDue > 0;
 
     // Use pillarMemorize (Ship Red) for the memory/practice accent color
     final baseAccent = SemanticColors.pillarMemorize.fg(theme.isDark);
-    final accentColor = hasDue ? baseAccent : baseAccent.withValues(alpha: 0.4);
+    final accentColor = (hasDue || !hasProfile) ? baseAccent : baseAccent.withValues(alpha: 0.4);
 
     return Container(
       width: double.infinity,
@@ -201,9 +200,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            hasDue
-                                ? AppLocalizations.of(context)!.pracMixedReview
-                                : AppLocalizations.of(context)!.pracAllCaughtUp,
+                            !hasProfile
+                                ? (AppLocalizations.of(context)!.localeName == 'ar'
+                                    ? 'مراجعة عشوائية (تجربة)'
+                                    : 'Mixed Sandbox Review')
+                                : (hasDue
+                                    ? AppLocalizations.of(context)!.pracMixedReview
+                                    : AppLocalizations.of(context)!.pracAllCaughtUp),
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 17,
@@ -213,9 +216,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            hasDue
-                                ? AppLocalizations.of(context)!.pracMixedReviewSubtitle(totalDue, fc.estimatedMinutes)
-                                : AppLocalizations.of(context)!.pracNoFlashcards,
+                            !hasProfile
+                                ? (AppLocalizations.of(context)!.localeName == 'ar'
+                                    ? 'تدرب على بطاقات عشوائية دون الحاجة لإنشاء ملف.'
+                                    : 'Practice with random cards without creating a profile.')
+                                : (hasDue
+                                    ? AppLocalizations.of(context)!.pracMixedReviewSubtitle(totalDue, fc.estimatedMinutes)
+                                    : AppLocalizations.of(context)!.pracNoFlashcards),
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 12,
@@ -225,7 +232,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         ],
                       ),
                     ),
-                    if (hasDue)
+                    if (hasDue || !hasProfile)
                       DirectionalIcon(
                         icon: LucideIcons.arrowRight,
                         size: 20,
@@ -656,34 +663,4 @@ class _PracticeScreenState extends State<PracticeScreen> {
     );
   }
 
-  // ═══════════════════════════════════════
-  // NO PROFILE
-  // ═══════════════════════════════════════
-
-  Widget _buildNoProfileCard(ThemeProvider theme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(theme.radiusXl),
-        border: Border.all(color: theme.dividerColor, width: 1),
-      ),
-      child: Column(
-        children: [
-          Icon(LucideIcons.layers, size: 32, color: theme.mutedText),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.pracCreateProfileUnlock,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 14,
-              color: theme.secondaryText,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

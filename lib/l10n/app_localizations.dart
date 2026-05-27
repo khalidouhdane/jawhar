@@ -566,6 +566,18 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get profileThemeDark;
 
+  /// No description provided for @profileDefaultReciter.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Reciter'**
+  String get profileDefaultReciter;
+
+  /// No description provided for @profileDefaultReciterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Default reciter for audio playback'**
+  String get profileDefaultReciterDesc;
+
   /// No description provided for @profileBookmarksTitle.
   ///
   /// In en, this message translates to:

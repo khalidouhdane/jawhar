@@ -25,6 +25,7 @@ class ProfileDashboard extends StatelessWidget {
   final VoidCallback onStartSession;
   final VoidCallback onProgressStripTap;
   final MemoryProfile profile;
+  final Widget? ayahCard;
 
   const ProfileDashboard({
     super.key,
@@ -32,6 +33,7 @@ class ProfileDashboard extends StatelessWidget {
     required this.onStartSession,
     required this.onProgressStripTap,
     required this.profile,
+    this.ayahCard,
   });
 
   @override
@@ -157,6 +159,16 @@ class ProfileDashboard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: _buildSuggestions(context),
             ),
+            const SizedBox(height: 16),
+
+            // 10. Ayah of the Day
+            if (ayahCard != null) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ayahCard!,
+              ),
+              const SizedBox(height: 20),
+            ],
 
             const SizedBox(height: 48), // Bottom padding
           ],

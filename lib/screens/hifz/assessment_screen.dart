@@ -9,6 +9,9 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/providers/audio_provider.dart';
+import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/models/quran_models.dart';
 
 import 'package:quran_app/theme/icon_resolver.dart';
 import 'package:quran_app/theme/geist_typography.dart';
@@ -189,7 +192,51 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     } else {
       await profileProvider.createProfile(profile);
     }
-    if (mounted) Navigator.of(context).pop();
+
+    // Sync selected reciter as default reciter in SharedPreferences and AudioProvider
+    if (mounted) {
+      final storage = context.read<LocalStorageService>();
+      final readingProvider = context.read<QuranReadingProvider>();
+      final reciterMatch = readingProvider.reciters.where((r) => r.id == _selectedReciterId).firstOrNull;
+      if (reciterMatch != null) {
+        storage.saveDefaultReciter(
+          id: reciterMatch.id,
+          name: reciterMatch.reciterName,
+          apiSource: reciterMatch.apiSource == ApiSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
+          serverUrl: reciterMatch.serverUrl,
+          moshafId: reciterMatch.moshafId,
+        );
+        
+        final audioProvider = context.read<AudioProvider>();
+        audioProvider.setReciter(
+          reciterMatch.id,
+          name: reciterMatch.reciterName,
+          apiSource: reciterMatch.apiSource,
+          serverUrl: reciterMatch.serverUrl,
+          moshafId: reciterMatch.moshafId,
+        );
+      } else {
+        // Fallback for offline/unloaded state
+        final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+        final reciterName = isArabic
+            ? (Reciter.arabicNamesById[_selectedReciterId] ?? 'قارئ $_selectedReciterId')
+            : 'Reciter $_selectedReciterId';
+            
+        storage.saveDefaultReciter(
+          id: _selectedReciterId,
+          name: reciterName,
+          apiSource: 'quranDotCom',
+        );
+        
+        final audioProvider = context.read<AudioProvider>();
+        audioProvider.setReciter(
+          _selectedReciterId,
+          name: reciterName,
+          apiSource: ApiSource.quranDotCom,
+        );
+      }
+      Navigator.of(context).pop();
+    }
   }
 
   @override

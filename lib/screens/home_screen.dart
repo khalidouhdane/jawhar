@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
-import 'package:quran_app/utils/verse_ref_formatter.dart';
 import 'package:quran_app/providers/analytics_provider.dart';
 import 'package:quran_app/providers/flashcard_provider.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
@@ -15,6 +13,7 @@ import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 import 'package:quran_app/widgets/dashboard/no_profile_dashboard.dart';
 import 'package:quran_app/widgets/dashboard/profile_dashboard.dart';
+import 'package:quran_app/widgets/dashboard/ayah_of_the_day_card.dart';
 import 'package:quran_app/screens/hifz/assessment_screen.dart';
 import 'package:quran_app/widgets/hifz/pre_session_sheet.dart';
 import 'package:quran_app/screens/hifz/progress_detail_screen.dart';
@@ -177,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onStartSession: _navigateToSession,
                 onProgressStripTap: _navigateToProgressDetail,
                 profile: profileProvider.activeProfile!,
+                ayahCard: _buildAyahCard(theme),
               );
             },
           ),
@@ -186,6 +186,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAyahCard(ThemeProvider theme) {
+    if (_ayahLoading) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(theme.radiusLg),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Center(
+          child: Text(
+            AppLocalizations.of(context)!.homeLoading,
+            style: TextStyle(
+              fontFamily: GeistTypography.primaryFontFamily,
+              fontSize: 13,
+              color: theme.mutedText,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_ayahText != null && _ayahRef != null) {
+      return AyahOfDayCard(
+        verseKey: _ayahRef!,
+        arabicText: _ayahText!,
+      );
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -194,73 +223,13 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(theme.radiusLg),
         border: Border.all(color: theme.dividerColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(LucideIcons.sparkle, size: 16, color: theme.accentColor),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.of(context)!.homeAyahTitle,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: theme.primaryText,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (_ayahLoading)
-            Center(
-              child: Text(
-                AppLocalizations.of(context)!.homeLoading,
-                style: TextStyle(
-                  fontFamily: GeistTypography.primaryFontFamily,
-                  fontSize: 13,
-                  color: theme.mutedText,
-                ),
-              ),
-            )
-          else if (_ayahText != null) ...[
-            Text(
-              _ayahText!,
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 20,
-                color: theme.primaryText,
-                height: 2.0,
-              ),
-            ),
-            if (_ayahRef != null) ...[
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  '— ${VerseRefFormatter.format(_ayahRef!, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.standard)}',
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 11,
-                    color: theme.mutedText,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ] else
-            Text(
-              AppLocalizations.of(context)!.homeAyahSubtitle,
-              style: TextStyle(
-                fontFamily: GeistTypography.primaryFontFamily,
-                fontSize: 13,
-                color: theme.mutedText,
-              ),
-            ),
-        ],
+      child: Text(
+        AppLocalizations.of(context)!.homeAyahSubtitle,
+        style: TextStyle(
+          fontFamily: GeistTypography.primaryFontFamily,
+          fontSize: 13,
+          color: theme.mutedText,
+        ),
       ),
     );
   }

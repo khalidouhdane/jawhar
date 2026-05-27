@@ -78,6 +78,8 @@
   "profileReading": "Reading",
   "profileThemeLight": "Light",
   "profileThemeDark": "Dark",
+  "profileDefaultReciter": "Default Reciter",
+  "profileDefaultReciterDesc": "Default reciter for audio playback",
   "profileBookmarksTitle": "Your Bookmarks",
   "profileBookmarksDesc": "Save and organize your favorite verses",
   "profileSoon": "Soon",
