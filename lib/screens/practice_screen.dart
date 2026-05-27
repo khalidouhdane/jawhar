@@ -55,7 +55,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackground,
-      body: Center(
+      body: Align(
+        alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: SafeArea(
