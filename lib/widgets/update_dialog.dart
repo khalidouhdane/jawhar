@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/providers/update_provider.dart';
+import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
 
 /// Shows a premium update dialog when a new version is available.
@@ -38,33 +41,23 @@ class UpdateDialog extends StatelessWidget {
   }
 
   Widget _buildCard(BuildContext context, UpdateProvider provider) {
+    final theme = context.watch<ThemeProvider>();
     final l = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1E2A2F) : Colors.white;
-    final cardBorder = isDark
-        ? Border.all(color: Colors.white.withValues(alpha: 0.08))
-        : Border.all(color: Colors.black.withValues(alpha: 0.06));
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 380),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(24),
-        border: cardBorder,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 40,
-            offset: const Offset(0, 16),
-          ),
-        ],
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(theme.radiusXl),
+        border: Border.all(color: theme.dividerColor, width: 1),
+        boxShadow: theme.shadowCardFull,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _header(context, provider, isDark, l),
-          _body(context, provider, isDark, l),
-          _footer(context, provider, isDark, l),
+          _header(context, provider, theme, l),
+          _body(context, provider, theme, l),
+          _footer(context, provider, theme, l),
         ],
       ),
     );
@@ -73,61 +66,66 @@ class UpdateDialog extends StatelessWidget {
   Widget _header(
     BuildContext context,
     UpdateProvider provider,
-    bool isDark,
+    ThemeProvider theme,
     AppLocalizations l,
   ) {
+    String title = l.updateAvailable;
+    if (provider.status == UpdateStatus.readyToInstall) {
+      title = l.updateReady;
+    } else if (provider.status == UpdateStatus.downloading) {
+      title = l.updateDownloading;
+    } else if (provider.status == UpdateStatus.error) {
+      title = l.updateError;
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF1A454E), const Color(0xFF0F2B30)]
-              : [const Color(0xFF1A454E), const Color(0xFF2D6A5F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [
+            theme.cardColor,
+            theme.accentLight,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(theme.radiusXl)),
       ),
       child: Column(
         children: [
-          // Icon
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.system_update_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
+          // Custom spinning diamond loader
+          _DiamondSpinner(
+            progress: provider.downloadProgress,
+            status: provider.status,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
-            l.updateAvailable,
+            title,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
+              fontFamily: GeistTypography.primaryFontFamily,
+              color: theme.primaryText,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           if (provider.updateInfo != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
+                color: theme.pillBackground,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: theme.dividerColor),
               ),
               child: Text(
                 'v${provider.updateInfo!.version}',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 13,
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  color: theme.secondaryText,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -140,35 +138,44 @@ class UpdateDialog extends StatelessWidget {
   Widget _body(
     BuildContext context,
     UpdateProvider provider,
-    bool isDark,
+    ThemeProvider theme,
     AppLocalizations l,
   ) {
-    final textColor = isDark ? Colors.white70 : Colors.black87;
-    final subtitleColor = isDark ? Colors.white38 : Colors.black45;
+    final showReleaseNotes = provider.updateInfo != null &&
+        provider.updateInfo!.releaseNotes.isNotEmpty &&
+        provider.status != UpdateStatus.downloading;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (provider.updateInfo != null &&
-              provider.updateInfo!.releaseNotes.isNotEmpty) ...[
+          if (showReleaseNotes) ...[
             Text(
               l.updateWhatsNew,
               style: TextStyle(
-                color: textColor,
-                fontSize: 14,
+                fontFamily: GeistTypography.primaryFontFamily,
+                color: theme.primaryText,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Container(
-              constraints: const BoxConstraints(maxHeight: 140),
+              constraints: const BoxConstraints(maxHeight: 120),
+              decoration: BoxDecoration(
+                color: theme.accentLight,
+                borderRadius: BorderRadius.circular(theme.radiusLg),
+                border: Border.all(color: theme.dividerColor),
+              ),
+              padding: const EdgeInsets.all(12),
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 child: Text(
                   provider.updateInfo!.releaseNotes,
                   style: TextStyle(
-                    color: subtitleColor,
+                    fontFamily: GeistTypography.primaryFontFamily,
+                    color: theme.secondaryText,
                     fontSize: 13,
                     height: 1.5,
                   ),
@@ -176,33 +183,35 @@ class UpdateDialog extends StatelessWidget {
               ),
             ),
           ],
-          // Download progress
+          // Linear progress bar (only show while downloading)
           if (provider.status == UpdateStatus.downloading) ...[
-            const SizedBox(height: 16),
-            _downloadProgress(context, provider, isDark, l),
+            const SizedBox(height: 8),
+            _downloadProgress(context, provider, theme, l),
           ],
-          // Error
-          if (provider.status == UpdateStatus.error) ...[
-            const SizedBox(height: 12),
+          // Error details
+          if (provider.status == UpdateStatus.error && provider.errorMessage != null) ...[
+            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.red.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(theme.radiusMd),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.error_outline,
-                    color: Colors.red.shade300,
-                    size: 20,
+                    LucideIcons.alertTriangle,
+                    color: Colors.red.shade400,
+                    size: 18,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l.updateError,
+                      provider.errorMessage!,
                       style: TextStyle(
-                        color: Colors.red.shade300,
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        color: Colors.red.shade400,
                         fontSize: 12,
                       ),
                     ),
@@ -219,12 +228,12 @@ class UpdateDialog extends StatelessWidget {
   Widget _downloadProgress(
     BuildContext context,
     UpdateProvider provider,
-    bool isDark,
+    ThemeProvider theme,
     AppLocalizations l,
   ) {
     final pct = (provider.downloadProgress * 100).toInt();
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -232,7 +241,8 @@ class UpdateDialog extends StatelessWidget {
             Text(
               l.updateDownloading,
               style: TextStyle(
-                color: isDark ? Colors.white60 : Colors.black54,
+                fontFamily: GeistTypography.primaryFontFamily,
+                color: theme.secondaryText,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -240,7 +250,8 @@ class UpdateDialog extends StatelessWidget {
             Text(
               '$pct%',
               style: TextStyle(
-                color: isDark ? Colors.white60 : Colors.black54,
+                fontFamily: GeistTypography.primaryFontFamily,
+                color: theme.primaryText,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -249,14 +260,12 @@ class UpdateDialog extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         ClipRRect(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(100),
           child: LinearProgressIndicator(
             value: provider.downloadProgress,
-            minHeight: 8,
-            backgroundColor: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.06),
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A454E)),
+            minHeight: 6,
+            backgroundColor: theme.dividerColor,
+            valueColor: AlwaysStoppedAnimation<Color>(theme.primaryText),
           ),
         ),
       ],
@@ -266,43 +275,188 @@ class UpdateDialog extends StatelessWidget {
   Widget _footer(
     BuildContext context,
     UpdateProvider provider,
-    bool isDark,
+    ThemeProvider theme,
     AppLocalizations l,
   ) {
     final isDownloading = provider.status == UpdateStatus.downloading;
+    final isReadyToInstall = provider.status == UpdateStatus.readyToInstall;
+    final isError = provider.status == UpdateStatus.error;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       child: Row(
         children: [
-          // Later button
+          // Later button (hidden during download)
+          if (!isDownloading)
+            Expanded(
+              child: GeistButton(
+                onPressed: () {
+                  provider.dismiss();
+                  Navigator.of(context).pop();
+                },
+                label: l.updateLater,
+                type: GeistButtonType.secondary,
+                size: GeistButtonSize.large,
+              ),
+            ),
+          if (!isDownloading) const SizedBox(width: 12),
+          // Update / Install / Retry button
           Expanded(
+            flex: isDownloading ? 1 : 2,
             child: GeistButton(
               onPressed: isDownloading
                   ? null
                   : () {
-                      provider.dismiss();
-                      Navigator.of(context).pop();
+                      if (isError) {
+                        provider.checkForUpdate(); // re-check/retry
+                      } else {
+                        provider.downloadAndInstall();
+                      }
                     },
-              label: l.updateLater,
-              type: GeistButtonType.secondary,
-              size: GeistButtonSize.large,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Update Now button
-          Expanded(
-            flex: 2,
-            child: GeistButton(
-              onPressed: isDownloading
-                  ? null
-                  : () => provider.downloadAndInstall(),
-              label: isDownloading ? l.updateDownloading : l.updateNow,
+              label: isDownloading
+                  ? l.updateDownloading
+                  : isError
+                      ? (AppLocalizations.of(context)?.retry ?? "Retry")
+                      : (isReadyToInstall ? l.updateInstall : l.updateNow),
               type: GeistButtonType.primary,
               size: GeistButtonSize.large,
               isLoading: isDownloading,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A custom spinning diamond loader widget.
+/// Rotates two concentric diamond outlines in opposite directions.
+class _DiamondSpinner extends StatefulWidget {
+  final double progress;
+  final UpdateStatus status;
+
+  const _DiamondSpinner({
+    required this.progress,
+    required this.status,
+  });
+
+  @override
+  State<_DiamondSpinner> createState() => _DiamondSpinnerState();
+}
+
+class _DiamondSpinnerState extends State<_DiamondSpinner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    final pct = (widget.progress * 100).toInt();
+
+    final isDownloading = widget.status == UpdateStatus.downloading;
+    final isReadyToInstall = widget.status == UpdateStatus.readyToInstall;
+    final isError = widget.status == UpdateStatus.error;
+
+    Widget centerWidget;
+    if (isDownloading) {
+      centerWidget = Text(
+        '$pct%',
+        style: TextStyle(
+          fontFamily: GeistTypography.primaryFontFamily,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: theme.primaryText,
+        ),
+      );
+    } else if (isReadyToInstall) {
+      centerWidget = Icon(
+        LucideIcons.check,
+        color: theme.primaryText,
+        size: 24,
+      );
+    } else if (isError) {
+      centerWidget = Icon(
+        LucideIcons.alertTriangle,
+        color: Colors.red.shade400,
+        size: 24,
+      );
+    } else {
+      centerWidget = Icon(
+        LucideIcons.download,
+        color: theme.primaryText,
+        size: 24,
+      );
+    }
+
+    return SizedBox(
+      width: 110,
+      height: 110,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer spinning diamond outline (clockwise)
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _controller.value * 2 * 3.141592653589793,
+                child: Transform.rotate(
+                  angle: 0.785398, // 45 degrees to start as a diamond
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: theme.primaryText.withValues(alpha: 0.15),
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          // Inner spinning diamond outline (counter-clockwise)
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: -_controller.value * 2 * 3.141592653589793,
+                child: Transform.rotate(
+                  angle: 0.785398, // 45 degrees to start as a diamond
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isError ? Colors.red.shade400 : theme.primaryText,
+                        width: 2.5,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          // Static center content
+          centerWidget,
         ],
       ),
     );

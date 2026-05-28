@@ -115,8 +115,7 @@ class _MobileReadingViewState extends State<MobileReadingView> {
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
     SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
+      SystemUiMode.edgeToEdge,
     );
     SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
     super.dispose();
@@ -450,25 +449,16 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                         final rp = context.read<QuranReadingProvider>();
                         final l = AppLocalizations.of(context);
                         String sName = '';
-                        if (rp.verses.isNotEmpty && rp.chapters.isNotEmpty) {
+                        if (rp.verses.isNotEmpty) {
                           final chId =
                               int.tryParse(
                                 rp.verses.first.verseKey.split(':')[0],
                               ) ??
                               1;
-                          try {
-                            final ch = rp.chapters.firstWhere(
-                              (c) => c.id == chId,
-                            );
-                            sName = l!.localeName == 'ar'
-                                ? ch.nameArabic
-                                : ch.nameSimple;
-                          } catch (_) {
-                            sName = VerseRefFormatter.surahName(
-                              chId,
-                              l!.localeName,
-                            );
-                          }
+                          sName = VerseRefFormatter.surahName(
+                            chId,
+                            l!.localeName,
+                          );
                         }
                         final added = context
                             .read<BookmarkProvider>()
@@ -522,19 +512,10 @@ class _MobileReadingViewState extends State<MobileReadingView> {
 
                   int chapterId =
                       int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
-                  try {
-                    final chapter = readingProvider.chapters.firstWhere(
-                      (c) => c.id == chapterId,
-                    );
-                    surahName = l.localeName == 'ar'
-                        ? chapter.nameArabic
-                        : chapter.nameSimple;
-                  } catch (e) {
-                    surahName = VerseRefFormatter.surahName(
-                      chapterId,
-                      l.localeName,
-                    );
-                  }
+                  surahName = VerseRefFormatter.surahName(
+                    chapterId,
+                    l.localeName,
+                  );
                 }
 
                 String formatDuration(Duration d) {
@@ -684,19 +665,10 @@ class _MobileReadingViewState extends State<MobileReadingView> {
 
                     int chapterId =
                         int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
-                    try {
-                      final chapter = readingProvider.chapters.firstWhere(
-                        (c) => c.id == chapterId,
-                      );
-                      surahName = l.localeName == 'ar'
-                          ? chapter.nameArabic
-                          : chapter.nameSimple;
-                    } catch (e) {
-                      surahName = VerseRefFormatter.surahName(
-                        chapterId,
-                        l.localeName,
-                      );
-                    }
+                    surahName = VerseRefFormatter.surahName(
+                      chapterId,
+                      l.localeName,
+                    );
                   }
 
                   // Determine dynamic layout for bottom edge
@@ -1039,6 +1011,10 @@ class QuranPageState extends State<QuranPage>
       'Mobile Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding',
     );
 
+    if (highlightKey == verseKey) {
+      context.read<ContextProvider>().clearHighlightVerse();
+    }
+
     _tafsirScrollController.animateTo(
       targetOffset,
       duration: const Duration(milliseconds: 600),
@@ -1250,9 +1226,6 @@ class QuranPageState extends State<QuranPage>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _scrollToVerse(index, scrollKey, theme, translations);
-          if (scrollKey == highlightKey) {
-            context.read<ContextProvider>().clearHighlightVerse();
-          }
         });
       }
     }

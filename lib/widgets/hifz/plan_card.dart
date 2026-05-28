@@ -21,6 +21,7 @@ class PlanCard extends StatefulWidget {
   final MemoryProfile? profile;
   final List<SessionRecipe> recipes;
   final int sessionCount;
+  final bool showStartSessionCta;
 
   const PlanCard({
     super.key,
@@ -30,6 +31,7 @@ class PlanCard extends StatefulWidget {
     this.profile,
     this.recipes = const [],
     this.sessionCount = 0,
+    this.showStartSessionCta = true,
   });
 
   @override
@@ -84,7 +86,7 @@ class _PlanCardState extends State<PlanCard> {
           ],
 
           // ── CTA Button ──
-          _buildCTA(theme, plan, l),
+          if (widget.showStartSessionCta) _buildCTA(theme, plan, l),
         ],
       ),
     );

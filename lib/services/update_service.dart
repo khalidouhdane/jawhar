@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -78,25 +79,64 @@ class UpdateService {
     }
   }
 
+  /// Check if the APK for the given [version] is already downloaded.
+  Future<bool> isUpdateDownloaded(String version) async {
+    try {
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/jawhar_update_$version.apk');
+      return file.existsSync() && file.lengthSync() > 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Download the APK from [url] and trigger the system installer.
   /// [onProgress] reports 0.0 → 1.0 download progress.
   Future<void> downloadAndInstall(
-    String url, {
+    String url,
+    String version, {
     void Function(double progress)? onProgress,
   }) async {
     final dir = await getTemporaryDirectory();
-    final filePath = '${dir.path}/jawhar_update.apk';
+    final filePath = '${dir.path}/jawhar_update_$version.apk';
+    final partFilePath = '$filePath.part';
+    final file = File(filePath);
+    final partFile = File(partFilePath);
 
-    // Download with progress
-    await _dio.download(
-      url,
-      filePath,
-      onReceiveProgress: (received, total) {
-        if (total > 0) {
-          onProgress?.call(received / total);
+    // Only download if we don't already have it
+    if (!file.existsSync() || file.lengthSync() == 0) {
+      // Clean up any older downloaded updates or incomplete downloads to free space
+      try {
+        final List<FileSystemEntity> entities = dir.listSync();
+        for (final entity in entities) {
+          if (entity is File) {
+            final name = entity.path.split('/').last.split('\\').last;
+            if (name.startsWith('jawhar_update_')) {
+              await entity.delete();
+            }
+          }
         }
-      },
-    );
+      } catch (_) {}
+
+      // Download with progress to the .part file
+      await _dio.download(
+        url,
+        partFilePath,
+        onReceiveProgress: (received, total) {
+          if (total > 0) {
+            onProgress?.call(received / total);
+          }
+        },
+      );
+
+      // Rename to completed .apk file upon successful completion
+      if (partFile.existsSync()) {
+        await partFile.rename(filePath);
+      }
+    } else {
+      // If file exists, simulate 100% download immediately
+      onProgress?.call(1.0);
+    }
 
     // Trigger the Android APK installer
     await OpenFilex.open(

@@ -36,7 +36,12 @@ class UpdateProvider extends ChangeNotifier {
     try {
       _updateInfo = await _service.checkForUpdate();
       if (_updateInfo != null) {
-        _status = UpdateStatus.available;
+        final isDownloaded = await _service.isUpdateDownloaded(_updateInfo!.version);
+        if (isDownloaded) {
+          _status = UpdateStatus.readyToInstall;
+        } else {
+          _status = UpdateStatus.available;
+        }
         notifyListeners();
         return true;
       } else {
@@ -56,13 +61,17 @@ class UpdateProvider extends ChangeNotifier {
   Future<void> downloadAndInstall() async {
     if (_updateInfo == null || _updateInfo!.apkDownloadUrl.isEmpty) return;
 
-    _status = UpdateStatus.downloading;
-    _downloadProgress = 0.0;
-    notifyListeners();
+    final isDownloaded = await _service.isUpdateDownloaded(_updateInfo!.version);
+    if (!isDownloaded) {
+      _status = UpdateStatus.downloading;
+      _downloadProgress = 0.0;
+      notifyListeners();
+    }
 
     try {
       await _service.downloadAndInstall(
         _updateInfo!.apkDownloadUrl,
+        _updateInfo!.version,
         onProgress: (progress) {
           _downloadProgress = progress;
           notifyListeners();

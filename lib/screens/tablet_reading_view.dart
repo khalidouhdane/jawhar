@@ -115,8 +115,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     _pageController.dispose();
     _tafsirScrollController.dispose();
     SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
+      SystemUiMode.edgeToEdge,
     );
     SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
     super.dispose();
@@ -242,6 +241,10 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       'TafsirScroll',
       'Tablet Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding',
     );
+
+    if (highlightKey == verseKey) {
+      context.read<ContextProvider>().clearHighlightVerse();
+    }
 
     _tafsirScrollController.animateTo(
       targetOffset,
@@ -569,14 +572,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     final rp = context.read<QuranReadingProvider>();
     final l = AppLocalizations.of(context);
     String sName = '';
-    if (rp.verses.isNotEmpty && rp.chapters.isNotEmpty) {
+    if (rp.verses.isNotEmpty) {
       final chId = int.tryParse(rp.verses.first.verseKey.split(':')[0]) ?? 1;
-      try {
-        final ch = rp.chapters.firstWhere((c) => c.id == chId);
-        sName = l!.localeName == 'ar' ? ch.nameArabic : ch.nameSimple;
-      } catch (_) {
-        sName = VerseRefFormatter.surahName(chId, l!.localeName);
-      }
+      sName = VerseRefFormatter.surahName(chId, l!.localeName);
     }
     final added = context.read<BookmarkProvider>().togglePageBookmark(
       pageNumber: rp.activePage,
@@ -709,9 +707,6 @@ class _TabletReadingViewState extends State<TabletReadingView> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _scrollToVerse(index, scrollKey);
-          if (scrollKey == highlightKey) {
-            context.read<ContextProvider>().clearHighlightVerse();
-          }
         });
       }
     }
@@ -1187,21 +1182,12 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                       final firstVerse = readingProvider.verses.first;
                       hizbName = '${l.readingHizb} ${firstVerse.hizbNumber}';
 
-                      int chapterId =
+                      final chapterId =
                           int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
-                      try {
-                        final chapter = readingProvider.chapters.firstWhere(
-                          (c) => c.id == chapterId,
-                        );
-                        surahName = l.localeName == 'ar'
-                            ? chapter.nameArabic
-                            : chapter.nameSimple;
-                      } catch (e) {
-                        surahName = VerseRefFormatter.surahName(
-                          chapterId,
-                          l.localeName,
-                        );
-                      }
+                      surahName = VerseRefFormatter.surahName(
+                        chapterId,
+                        l.localeName,
+                      );
                     }
 
                     String formatDuration(Duration d) {
@@ -1213,8 +1199,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                           .remainder(60)
                           .toString()
                           .padLeft(2, '0');
-                      if (d.inHours > 0)
+                      if (d.inHours > 0) {
                         return '${d.inHours}:$minutes:$seconds';
+                      }
                       return '$minutes:$seconds';
                     }
 
@@ -1540,21 +1527,12 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                         '${l.readingJuz} ${firstVerse.juzNumber.toString().padLeft(2, '0')}';
                     hizbName = '${l.readingHizb} ${firstVerse.hizbNumber}';
 
-                    int chapterId =
+                    final chapterId =
                         int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
-                    try {
-                      final chapter = readingProvider.chapters.firstWhere(
-                        (c) => c.id == chapterId,
-                      );
-                      surahName = l.localeName == 'ar'
-                          ? chapter.nameArabic
-                          : chapter.nameSimple;
-                    } catch (e) {
-                      surahName = VerseRefFormatter.surahName(
-                        chapterId,
-                        l.localeName,
-                      );
-                    }
+                    surahName = VerseRefFormatter.surahName(
+                      chapterId,
+                      l.localeName,
+                    );
                   }
 
                   final isOddPage = readingProvider.activePage.isOdd;

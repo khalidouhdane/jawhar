@@ -8,6 +8,7 @@ import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 class ContinueReadingCard extends StatelessWidget {
   const ContinueReadingCard({super.key});
@@ -38,8 +39,7 @@ class ContinueReadingCard extends StatelessWidget {
     final lastReadPage = lastRead.page;
     final surah = _surahInfoForPage(lastReadPage);
 
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final displaySurahName = isArabic ? surah.nameArabic : surah.nameSimple;
+    final displaySurahName = VerseRefFormatter.surahName(surah.id, l10n.localeName);
 
     final surahStart = surah.startPage;
     final surahEnd = surah.id < 114 ? surahStartPages[surah.id + 1] - 1 : 604;
@@ -61,124 +61,138 @@ class ContinueReadingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.homeContinue.toUpperCase(),
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-              color: theme.mutedText,
-            ),
-          ),
-          const SizedBox(height: 12),
+          // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    LucideIcons.bookOpen,
+                    size: 16,
+                    color: theme.mutedText,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.homeContinue.toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: GeistTypography.primaryFontFamily,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                      color: theme.mutedText,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${l10n.homePage} $lastReadPage ${l10n.werdPagesOf} $pagesInSurah',
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: theme.mutedText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Row(
+              // Progress circle (1:1 ratio, taking full height of content row)
+              SizedBox(
+                width: 64,
+                height: 64,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      width: 42,
-                      height: 42,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            value: progressInSurah,
-                            strokeWidth: 3.5,
-                            backgroundColor: theme.dividerColor,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              theme.primaryText,
-                            ),
-                          ),
-                          Text(
-                            percentageText,
-                            style: TextStyle(
-                              fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: theme.primaryText,
-                            ),
-                          ),
-                        ],
+                      width: 64,
+                      height: 64,
+                      child: CircularProgressIndicator(
+                        value: progressInSurah,
+                        strokeWidth: 4.5,
+                        backgroundColor: theme.dividerColor,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.primaryText,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displaySurahName,
-                            style: TextStyle(
-                              fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: theme.primaryText,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${l10n.homePage} $lastReadPage · ${l10n.planPagesCount(pagesInSurah)}',
-                            style: TextStyle(
-                              fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 13,
-                              color: theme.secondaryText,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      percentageText,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: theme.primaryText,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () {
-                  final nav = context.read<NavigationProvider>();
-                  nav.enterReadingView();
-                  Navigator.of(context)
-                      .push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ReadingScreen(initialPage: lastReadPage),
-                        ),
-                      )
-                      .then((_) => nav.exitReadingView());
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.foregroundColor,
-                    borderRadius: BorderRadius.circular(theme.radiusLg),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        LucideIcons.bookOpen,
-                        size: 16,
-                        color: theme.scaffoldBackground,
+              const SizedBox(width: 16),
+              // Details Column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      displaySurahName,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: theme.primaryText,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.actionResume,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: theme.scaffoldBackground,
+                    ),
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () {
+                        final nav = context.read<NavigationProvider>();
+                        nav.enterReadingView();
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ReadingScreen(initialPage: lastReadPage),
+                              ),
+                            )
+                            .then((_) => nav.exitReadingView());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.foregroundColor,
+                          borderRadius: BorderRadius.circular(theme.radiusLg),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.bookOpen,
+                              size: 16,
+                              color: theme.scaffoldBackground,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.actionResume,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: theme.scaffoldBackground,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -713,6 +713,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get updateError => 'فشل التحديث. يرجى المحاولة لاحقاً.';
 
   @override
+  String get updateInstall => 'تثبيت الآن';
+
+  @override
+  String get updateReady => 'جاهز للتثبيت';
+
+  @override
   String get assessBuildProfile => 'دعنا ننشئ ملف الحفظ الخاص بك';
 
   @override

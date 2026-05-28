@@ -16,6 +16,7 @@ import 'package:quran_app/widgets/understand/topic_carousel.dart';
 import 'package:quran_app/widgets/understand/surah_detail_sheet.dart';
 import 'package:quran_app/widgets/app_header.dart';
 import 'package:quran_app/widgets/directional_icon.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Understand tab — Study Hub for exploring Quran context.
 ///
@@ -264,7 +265,7 @@ class _SurahTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isArabic = l10n.localeName == 'ar';
-    final surahName = isArabic ? surah.nameArabic : surah.nameSimple;
+    final surahName = VerseRefFormatter.surahName(surah.id, l10n.localeName);
 
     return Material(
       color: Colors.transparent,

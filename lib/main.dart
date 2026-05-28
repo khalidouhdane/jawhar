@@ -56,6 +56,7 @@ import 'package:quran_app/services/native_init.dart'
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   GoogleFonts.config.allowRuntimeFetching = false;
 
   // Initialize local storage

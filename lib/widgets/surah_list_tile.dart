@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 class SurahListTile extends StatelessWidget {
   final int number;
@@ -25,6 +26,10 @@ class SurahListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = context.watch<ThemeProvider>();
+
+    final displayName = l10n.localeName.startsWith('en')
+        ? VerseRefFormatter.surahName(number, l10n.localeName)
+        : nameSimple;
 
     return GestureDetector(
       onTap: onTap,
@@ -75,7 +80,7 @@ class SurahListTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    nameSimple,
+                    displayName,
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 15,

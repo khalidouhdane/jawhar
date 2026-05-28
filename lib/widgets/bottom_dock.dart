@@ -30,16 +30,33 @@ class BottomDock extends StatefulWidget {
 class _BottomDockState extends State<BottomDock> {
   double? _dragValue;
 
+  int _clampPage(int page, int totalPages) => page.clamp(1, totalPages).toInt();
+
+  @override
+  void didUpdateWidget(covariant BottomDock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final dragValue = _dragValue;
+    if (dragValue != null && widget.activePage == dragValue.round()) {
+      _dragValue = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final totalPages = widget.paginationArray.isNotEmpty
         ? widget.paginationArray.length
         : 604;
+    final previewPage = _clampPage(
+      (_dragValue ?? widget.activePage.toDouble()).round(),
+      totalPages,
+    );
+    final isPreviewingPage = _dragValue != null;
 
     return Container(
       margin: widget.margin,
-      decoration: widget.decoration ??
+      decoration:
+          widget.decoration ??
           BoxDecoration(
             color: theme.dockBackground,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -95,7 +112,8 @@ class _BottomDockState extends State<BottomDock> {
               child: SizedBox(
                 height: 48,
                 child: PaginationSlider(
-                  activePage: widget.activePage,
+                  activePage: previewPage,
+                  isPreviewing: isPreviewingPage,
                   paginationArray: widget.paginationArray,
                   onPageSelected: widget.onPageSelected,
                 ),
@@ -105,19 +123,20 @@ class _BottomDockState extends State<BottomDock> {
             // Full-width page slider
             SizedBox(
               key: const ValueKey('page_slider'),
-              height: 20,
+              height: 28,
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 6,
                   activeTrackColor: theme.sliderActive,
                   inactiveTrackColor: theme.sliderInactive,
-                  thumbColor: Colors.transparent,
+                  thumbColor: theme.sliderActive,
                   thumbShape: const RoundSliderThumbShape(
-                    enabledThumbRadius: 0,
+                    enabledThumbRadius: 7,
                   ),
                   overlayShape: const RoundSliderOverlayShape(
-                    overlayRadius: 14,
+                    overlayRadius: 18,
                   ),
+                  overlayColor: theme.sliderActive.withValues(alpha: 0.12),
                   trackShape: const _FullWidthTrackShape(),
                 ),
                 child: ExcludeSemantics(
@@ -129,13 +148,13 @@ class _BottomDockState extends State<BottomDock> {
                       setState(() {
                         _dragValue = val;
                       });
-                      widget.onPageSelected(val.round());
                     },
                     onChangeEnd: (val) {
+                      final page = _clampPage(val.round(), totalPages);
                       setState(() {
-                        _dragValue = null;
+                        _dragValue = page.toDouble();
                       });
-                      widget.onPageSelected(val.round());
+                      widget.onPageSelected(page);
                     },
                   ),
                 ),
@@ -173,12 +192,14 @@ class _FullWidthTrackShape extends RoundedRectSliderTrackShape {
 /// [onPageSelected] so the center item drives the reading view.
 class PaginationSlider extends StatefulWidget {
   final int activePage;
+  final bool isPreviewing;
   final List<int> paginationArray;
   final ValueChanged<int> onPageSelected;
 
   const PaginationSlider({
     super.key,
     required this.activePage,
+    this.isPreviewing = false,
     required this.paginationArray,
     required this.onPageSelected,
   });
@@ -190,9 +211,10 @@ class PaginationSlider extends StatefulWidget {
 class _PaginationSliderState extends State<PaginationSlider> {
   late ScrollController _scrollController;
   static const double _itemWidth = 36.0;
+  static const int _anchorCycle = 50;
 
-  // The index currently closest to center (updated on scroll).
-  int _centerIndex = 0;
+  // The virtual index currently closest to center (updated on scroll).
+  int _centerVirtualIndex = 0;
 
   // True only when the user physically drags the pagination strip.
   // Programmatic scrolls (jumpTo, animateTo) leave this false.
@@ -201,11 +223,11 @@ class _PaginationSliderState extends State<PaginationSlider> {
   @override
   void initState() {
     super.initState();
-    _centerIndex = _activeIndex;
+    _centerVirtualIndex = _initialVirtualIndex;
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _jumpToIndex(_centerIndex);
+      _jumpToVirtualIndex(_centerVirtualIndex);
     });
   }
 
@@ -214,14 +236,32 @@ class _PaginationSliderState extends State<PaginationSlider> {
     return idx == -1 ? 0 : idx;
   }
 
+  int get _pageCount => widget.paginationArray.length;
+
+  int get _initialVirtualIndex => (_anchorCycle * _pageCount) + _activeIndex;
+
+  int _floorMod(int value, int divisor) {
+    final remainder = value % divisor;
+    return remainder < 0 ? remainder + divisor : remainder;
+  }
+
+  int _pageForVirtualIndex(int virtualIndex) {
+    if (_pageCount == 0) return widget.activePage;
+    return widget.paginationArray[_floorMod(virtualIndex, _pageCount)];
+  }
+
   @override
   void didUpdateWidget(PaginationSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.activePage != widget.activePage) {
-      final newIndex = _activeIndex;
-      if (newIndex != _centerIndex) {
-        _centerIndex = newIndex;
-        _animateToIndex(newIndex);
+      final newIndex = _nearestVirtualIndexForPage(widget.activePage);
+      if (newIndex != _centerVirtualIndex) {
+        _centerVirtualIndex = newIndex;
+        if (widget.isPreviewing) {
+          _jumpToVirtualIndex(newIndex);
+        } else {
+          _animateToVirtualIndex(newIndex);
+        }
       }
     }
   }
@@ -230,23 +270,42 @@ class _PaginationSliderState extends State<PaginationSlider> {
   // Scroll helpers
   // ------------------------------------------------------------------
 
-  /// The scroll offset that places [index] exactly at the viewport center.
-  double _offsetForIndex(int index) {
+  /// The scroll offset that places [virtualIndex] exactly at the viewport center.
+  double _offsetForVirtualIndex(int virtualIndex) {
     if (!_scrollController.hasClients) return 0;
     final viewportW = _scrollController.position.viewportDimension;
-    final desired = (index * _itemWidth) - (viewportW / 2) + (_itemWidth / 2);
-    return desired.clamp(0.0, _scrollController.position.maxScrollExtent);
+    return (virtualIndex * _itemWidth) - (viewportW / 2) + (_itemWidth / 2);
   }
 
-  void _jumpToIndex(int index) {
+  int _nearestVirtualIndexForPage(int page) {
+    final pageIndex = widget.paginationArray.indexOf(page);
+    if (pageIndex == -1 || _pageCount == 0) return _centerVirtualIndex;
+
+    final currentCycleStart =
+        _centerVirtualIndex - _floorMod(_centerVirtualIndex, _pageCount);
+    final candidates = [
+      currentCycleStart - _pageCount + pageIndex,
+      currentCycleStart + pageIndex,
+      currentCycleStart + _pageCount + pageIndex,
+    ];
+
+    candidates.sort(
+      (a, b) => (a - _centerVirtualIndex).abs().compareTo(
+        (b - _centerVirtualIndex).abs(),
+      ),
+    );
+    return candidates.first;
+  }
+
+  void _jumpToVirtualIndex(int index) {
     if (!_scrollController.hasClients) return;
-    _scrollController.jumpTo(_offsetForIndex(index));
+    _scrollController.jumpTo(_offsetForVirtualIndex(index));
   }
 
-  void _animateToIndex(int index) {
+  void _animateToVirtualIndex(int index) {
     if (!_scrollController.hasClients) return;
     _scrollController.animateTo(
-      _offsetForIndex(index),
+      _offsetForVirtualIndex(index),
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
     );
@@ -260,14 +319,11 @@ class _PaginationSliderState extends State<PaginationSlider> {
     final scrollOffset = _scrollController.offset;
     final centerPixel = scrollOffset + viewportW / 2;
 
-    int closestIndex = (centerPixel / _itemWidth).round().clamp(
-      0,
-      widget.paginationArray.length - 1,
-    );
+    final closestIndex = (centerPixel / _itemWidth).round();
 
-    if (closestIndex != _centerIndex) {
+    if (closestIndex != _centerVirtualIndex) {
       setState(() {
-        _centerIndex = closestIndex;
+        _centerVirtualIndex = closestIndex;
       });
     }
   }
@@ -280,8 +336,8 @@ class _PaginationSliderState extends State<PaginationSlider> {
     }
     if (notification is ScrollEndNotification && _userDragging) {
       _userDragging = false;
-      _animateToIndex(_centerIndex);
-      widget.onPageSelected(widget.paginationArray[_centerIndex]);
+      _animateToVirtualIndex(_centerVirtualIndex);
+      widget.onPageSelected(_pageForVirtualIndex(_centerVirtualIndex));
     }
     return false;
   }
@@ -296,6 +352,7 @@ class _PaginationSliderState extends State<PaginationSlider> {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
+    if (_pageCount == 0) return const SizedBox.shrink();
 
     return NotificationListener<ScrollNotification>(
       onNotification: _handleScrollNotification,
@@ -303,11 +360,11 @@ class _PaginationSliderState extends State<PaginationSlider> {
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        itemCount: widget.paginationArray.length,
+        itemExtent: _itemWidth,
         itemBuilder: (context, index) {
-          final pageNum = widget.paginationArray[index];
-          final isActive = index == _centerIndex;
-          final distance = (index - _centerIndex).abs();
+          final pageNum = _pageForVirtualIndex(index);
+          final isActive = index == _centerVirtualIndex;
+          final distance = (index - _centerVirtualIndex).abs();
 
           // Opacity gradient radiates from the center item.
           double targetOpacity;
@@ -327,9 +384,9 @@ class _PaginationSliderState extends State<PaginationSlider> {
 
           return GestureDetector(
             onTap: () {
-              _centerIndex = index;
+              _centerVirtualIndex = index;
               widget.onPageSelected(pageNum);
-              _animateToIndex(index);
+              _animateToVirtualIndex(index);
             },
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
