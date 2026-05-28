@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/notification_provider.dart';
@@ -22,6 +23,9 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  bool? _lastIsInReadingView;
+  bool? _lastIsDark;
+
   @override
   void initState() {
     super.initState();
@@ -50,10 +54,32 @@ class _AppShellState extends State<AppShell> {
     notif.ensureScheduled(sessionCompletedToday: plan.isPlanCompleted);
   }
 
+  void _syncSystemBars(NavigationProvider nav, ThemeProvider theme) {
+    final shouldSync =
+        !nav.isInReadingView &&
+        (_lastIsInReadingView != nav.isInReadingView ||
+            _lastIsDark != theme.isDark);
+
+    _lastIsInReadingView = nav.isInReadingView;
+    _lastIsDark = theme.isDark;
+
+    if (!shouldSync) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
+      SystemChrome.setSystemUIOverlayStyle(theme.systemOverlayStyle);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final nav = context.watch<NavigationProvider>();
     final theme = context.watch<ThemeProvider>();
+    _syncSystemBars(nav, theme);
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isWide = screenWidth > 768;
 

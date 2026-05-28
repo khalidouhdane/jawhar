@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#EBEBEB</color>
+    <color name="jawhar_window_background">#FAFAFA</color>
+    <color name="jawhar_navigation_bar">#F5F5F5</color>
 </resources>

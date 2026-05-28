@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_shadows.dart';
@@ -45,14 +46,14 @@ class ThemeProvider extends ChangeNotifier {
         _theme = AppTheme.light;
       }
     }
-    
+
     // Load spotlight settings
     _spotlightMinRadius = prefs.getDouble('spotlight_min_radius') ?? 40.0;
     _spotlightMidRadius = prefs.getDouble('spotlight_mid_radius') ?? 120.0;
     _spotlightMaskOpacity = prefs.getDouble('spotlight_mask_opacity') ?? 1.0;
     _spotlightFeathering = prefs.getDouble('spotlight_feathering') ?? 0.2;
     _spotlightSensitivity = prefs.getDouble('spotlight_sensitivity') ?? 1.0;
-    
+
     final curveStr = prefs.getString('spotlight_curve_type');
     if (curveStr == 'linear') {
       _spotlightCurveType = SpotlightCurveType.linear;
@@ -239,19 +240,25 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   void setSpotlightMaskOpacity(double opacity) {
-    _spotlightMaskOpacity = double.parse(opacity.toStringAsFixed(2)).clamp(0.5, 1.0);
+    _spotlightMaskOpacity = double.parse(
+      opacity.toStringAsFixed(2),
+    ).clamp(0.5, 1.0);
     _prefs?.setDouble('spotlight_mask_opacity', _spotlightMaskOpacity);
     notifyListeners();
   }
 
   void setSpotlightFeathering(double feathering) {
-    _spotlightFeathering = double.parse(feathering.toStringAsFixed(2)).clamp(0.0, 1.0);
+    _spotlightFeathering = double.parse(
+      feathering.toStringAsFixed(2),
+    ).clamp(0.0, 1.0);
     _prefs?.setDouble('spotlight_feathering', _spotlightFeathering);
     notifyListeners();
   }
 
   void setSpotlightSensitivity(double sensitivity) {
-    _spotlightSensitivity = double.parse(sensitivity.toStringAsFixed(1)).clamp(0.2, 2.0);
+    _spotlightSensitivity = double.parse(
+      sensitivity.toStringAsFixed(1),
+    ).clamp(0.2, 2.0);
     _prefs?.setDouble('spotlight_sensitivity', _spotlightSensitivity);
     notifyListeners();
   }
@@ -331,6 +338,19 @@ class ThemeProvider extends ChangeNotifier {
       isDark ? const Color(0xFF161616) : const Color(0xFFF5F5F5);
 
   Color get dockBackground => navBarBackground;
+
+  SystemUiOverlayStyle get systemOverlayStyle => SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+    systemNavigationBarColor: navBarBackground,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: isDark
+        ? Brightness.light
+        : Brightness.dark,
+    systemNavigationBarContrastEnforced: false,
+    systemStatusBarContrastEnforced: false,
+  );
 
   Color get playerBackground =>
       isDark ? const Color(0xFF161616) : const Color(0xFFF5F5F5);

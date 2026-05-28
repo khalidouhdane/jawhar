@@ -52,6 +52,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
   // Track audio active verse changes
   String? _lastActiveVerseKey;
   late final AudioProvider _audioProvider;
+  late final ThemeProvider _themeProvider;
 
   // Werd progress tracking
   final Set<int> _readPagesInSession = {};
@@ -91,6 +92,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     });
 
     _audioProvider = context.read<AudioProvider>();
+    _themeProvider = context.read<ThemeProvider>();
     _lastActiveVerseKey = _audioProvider.activeVerseKey;
     _audioProvider.addListener(_onAudioChanged);
 
@@ -112,7 +114,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
     _tafsirScrollController.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+    SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
     super.dispose();
   }
 
@@ -139,7 +145,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     final playingPage = _getVersePage(verseKey);
 
     if (readMode == 'read') {
-      final currentS = TabletLayoutMath.pageToSpread(readingProvider.activePage);
+      final currentS = TabletLayoutMath.pageToSpread(
+        readingProvider.activePage,
+      );
       final rightP = TabletLayoutMath.spreadToRightPage(currentS);
       final leftP = TabletLayoutMath.spreadToLeftPage(currentS);
 
@@ -176,7 +184,10 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     if (currentKey != verseKey) return; // Stale scroll target
 
     if (!_tafsirScrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
+      Future.delayed(
+        const Duration(milliseconds: 50),
+        () => _scrollToVerse(index, verseKey),
+      );
       return;
     }
 
@@ -195,16 +206,23 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     }
 
     if (!allMeasured) {
-      AppLogger.warn('TafsirScroll', 'Tablet Scroll index $index ($verseKey): waiting for measurements...');
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey));
+      AppLogger.warn(
+        'TafsirScroll',
+        'Tablet Scroll index $index ($verseKey): waiting for measurements...',
+      );
+      Future.delayed(
+        const Duration(milliseconds: 50),
+        () => _scrollToVerse(index, verseKey),
+      );
       return;
     }
 
     final maxScroll = _tafsirScrollController.position.maxScrollExtent;
     _lastScrolledVerseKey = verseKey;
 
-    final double viewportHeight = _tafsirScrollController.position.viewportDimension;
-    
+    final double viewportHeight =
+        _tafsirScrollController.position.viewportDimension;
+
     // Sum exact heights of preceding verses
     final double topPadding = MediaQuery.paddingOf(context).top > 0
         ? MediaQuery.paddingOf(context).top + 60
@@ -220,7 +238,10 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     double targetOffset = offset - (viewportHeight / 2) + (targetHeight / 2);
     targetOffset = targetOffset.clamp(0.0, maxScroll);
 
-    AppLogger.warn('TafsirScroll', 'Tablet Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding');
+    AppLogger.warn(
+      'TafsirScroll',
+      'Tablet Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding',
+    );
 
     _tafsirScrollController.animateTo(
       targetOffset,
@@ -343,6 +364,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
       }
     });
   }
@@ -388,7 +410,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
   void _startPagesReadTimer(Set<int> pages) {
     _pageReadTimer?.cancel();
 
-    final unreadPages = pages.where((p) => !_readPagesInSession.contains(p)).toSet();
+    final unreadPages = pages
+        .where((p) => !_readPagesInSession.contains(p))
+        .toSet();
     if (unreadPages.isEmpty) return;
 
     final werdProvider = context.read<WerdProvider>();
@@ -520,7 +544,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
   }
 
   void _openAudioSettings() {
-    _showOverlay((ctx) => AudioSettingsSheet(onClose: () => Navigator.pop(ctx)));
+    _showOverlay(
+      (ctx) => AudioSettingsSheet(onClose: () => Navigator.pop(ctx)),
+    );
   }
 
   void _openNavMenu() {
@@ -574,10 +600,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(theme.radiusMd),
         ),
-        margin: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 12,
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
     );
   }
@@ -595,17 +618,16 @@ class _TabletReadingViewState extends State<TabletReadingView> {
               begin: Alignment.centerRight,
               end: Alignment.centerLeft,
               colors: [
-                Colors.black.withValues(alpha: theme.spineEffectIntensity * 0.15),
+                Colors.black.withValues(
+                  alpha: theme.spineEffectIntensity * 0.15,
+                ),
                 Colors.black.withValues(alpha: 0.0),
               ],
             ),
           ),
         ),
         // Central spine line
-        Container(
-          width: 1.5,
-          color: theme.dividerColor.withValues(alpha: 0.5),
-        ),
+        Container(width: 1.5, color: theme.dividerColor.withValues(alpha: 0.5)),
         // Right side shadow
         Container(
           width: 12,
@@ -614,7 +636,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Colors.black.withValues(alpha: theme.spineEffectIntensity * 0.15),
+                Colors.black.withValues(
+                  alpha: theme.spineEffectIntensity * 0.15,
+                ),
                 Colors.black.withValues(alpha: 0.0),
               ],
             ),
@@ -722,8 +746,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                 .map((w) => w.textUthmani)
                 .join(' ');
             final translation = translations[verse.verseKey];
-            final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
-                                  (highlightKey != null && verse.verseKey == highlightKey);
+            final isHighlighted =
+                (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
+                (highlightKey != null && verse.verseKey == highlightKey);
 
             return LayoutBuilder(
               builder: (context, constraints) {
@@ -739,237 +764,295 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                 });
 
                 return GestureDetector(
-            onTap: _toggleFullScreen,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                color: isHighlighted
-                    ? theme.verseHighlight
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(theme.radiusMd),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              final audioProvider = context.read<AudioProvider>();
-                              audioProvider.playVerseList(
-                                verses,
-                                startIndex: index,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: theme.pillBackground,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.play_arrow_rounded,
-                                size: 12,
-                                color: theme.accentColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Tafsir button
-                          GestureDetector(
-                            onTap: () {
-                              final readingProv = context.read<QuranReadingProvider>();
-                              final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
-                              String? surahName;
-                              try {
-                                surahName = readingProv.chapters
-                                    .firstWhere((c) => c.id == chapterId)
-                                    .nameSimple;
-                              } catch (_) {}
-                              showTafsirSheet(
-                                context,
-                                verseKey: verse.verseKey,
-                                surahName: surahName,
-                                initialTabIndex: 0,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: theme.pillBackground,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(LucideIcons.bookOpen, size: 12, color: theme.accentColor),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    l.contextTafsir,
-                                    style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.primaryText,
+                  onTap: _toggleFullScreen,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOut,
+                    decoration: BoxDecoration(
+                      color: isHighlighted
+                          ? theme.verseHighlight
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(theme.radiusMd),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    final audioProvider = context
+                                        .read<AudioProvider>();
+                                    audioProvider.playVerseList(
+                                      verses,
+                                      startIndex: index,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: theme.pillBackground,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.play_arrow_rounded,
+                                      size: 12,
+                                      color: theme.accentColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Tafsir button
+                                GestureDetector(
+                                  onTap: () {
+                                    final readingProv = context
+                                        .read<QuranReadingProvider>();
+                                    final chapterId =
+                                        int.tryParse(
+                                          verse.verseKey.split(':').first,
+                                        ) ??
+                                        1;
+                                    String? surahName;
+                                    try {
+                                      surahName = readingProv.chapters
+                                          .firstWhere((c) => c.id == chapterId)
+                                          .nameSimple;
+                                    } catch (_) {}
+                                    showTafsirSheet(
+                                      context,
+                                      verseKey: verse.verseKey,
+                                      surahName: surahName,
+                                      initialTabIndex: 0,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: theme.pillBackground,
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.bookOpen,
+                                          size: 12,
+                                          color: theme.accentColor,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          l.contextTafsir,
+                                          style: TextStyle(
+                                            fontFamily: GeistTypography
+                                                .primaryFontFamily,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: theme.primaryText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (contextProvider.asbabService
+                                    .hasOccasionByKey(verse.verseKey)) ...[
+                                  const SizedBox(width: 8),
+                                  // Reason button
+                                  GestureDetector(
+                                    onTap: () {
+                                      final readingProv = context
+                                          .read<QuranReadingProvider>();
+                                      final chapterId =
+                                          int.tryParse(
+                                            verse.verseKey.split(':').first,
+                                          ) ??
+                                          1;
+                                      String? surahName;
+                                      try {
+                                        surahName = readingProv.chapters
+                                            .firstWhere(
+                                              (c) => c.id == chapterId,
+                                            )
+                                            .nameSimple;
+                                      } catch (_) {}
+                                      context
+                                          .read<ContextProvider>()
+                                          .loadAsbabNuzul(verse.verseKey);
+                                      showTafsirSheet(
+                                        context,
+                                        verseKey: verse.verseKey,
+                                        surahName: surahName,
+                                        initialTabIndex: 2,
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.accentColor.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
+                                        border: Border.all(
+                                          color: theme.accentColor.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.history_edu,
+                                            size: 12,
+                                            color: theme.accentColor,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            AppLocalizations.of(
+                                                  context,
+                                                )?.asbabNuzulTitle ??
+                                                'Reason',
+                                            style: TextStyle(
+                                              fontFamily: GeistTypography
+                                                  .primaryFontFamily,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: theme.accentColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ),
-                          if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey)) ...[
-                            const SizedBox(width: 8),
-                            // Reason button
-                            GestureDetector(
-                              onTap: () {
-                                final readingProv = context.read<QuranReadingProvider>();
-                                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
-                                String? surahName;
-                                try {
-                                  surahName = readingProv.chapters
-                                      .firstWhere((c) => c.id == chapterId)
-                                      .nameSimple;
-                                } catch (_) {}
-                                context.read<ContextProvider>().loadAsbabNuzul(verse.verseKey);
-                                showTafsirSheet(
-                                  context,
-                                  verseKey: verse.verseKey,
-                                  surahName: surahName,
-                                  initialTabIndex: 2,
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: theme.accentColor.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(100),
-                                  border: Border.all(
-                                    color: theme.accentColor.withValues(alpha: 0.15),
-                                  ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: theme.accentColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(
+                                  theme.radiusLg,
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.history_edu, size: 12, color: theme.accentColor),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      AppLocalizations.of(context)?.asbabNuzulTitle ?? 'Reason',
-                                      style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: theme.accentColor,
-                                      ),
-                                    ),
-                                  ],
+                              ),
+                              child: Text(
+                                VerseRefFormatter.format(
+                                  verse.verseKey,
+                                  locale: l.localeName,
+                                  tier: VerseRefFormat.compact,
+                                ),
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.accentColor,
                                 ),
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
                         ),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: theme.accentColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(theme.radiusLg),
-                        ),
-                        child: Text(
-                          VerseRefFormatter.format(
-                            verse.verseKey,
-                            locale: l.localeName,
-                            tier: VerseRefFormat.compact,
-                          ),
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: theme.accentColor,
+                        Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: Text(
+                            verseText,
+                            textAlign: TextAlign.right,
+                            style: GoogleFonts.amiriQuran(
+                              fontSize: theme.quranFontSize,
+                              height: theme.quranLineHeight,
+                              fontWeight: FontWeight.w400,
+                              color: theme.quranText,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Text(
-                      verseText,
-                      textAlign: TextAlign.right,
-                      style: GoogleFonts.amiriQuran(
-                        fontSize: theme.quranFontSize,
-                        height: theme.quranLineHeight,
-                        fontWeight: FontWeight.w400,
-                        color: theme.quranText,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (translation != null)
-                    Container(
-                      padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: theme.accentColor.withValues(alpha: 0.5),
-                            width: 3,
+                        const SizedBox(height: 8),
+                        if (translation != null)
+                          Container(
+                            padding: const EdgeInsets.only(
+                              left: 12,
+                              top: 4,
+                              bottom: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(
+                                  color: theme.accentColor.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                            margin: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              translation.text,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 14,
+                                height: 1.6,
+                                color: theme.secondaryText,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.only(
+                              left: 12,
+                              top: 4,
+                              bottom: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(
+                                  color: theme.dividerColor.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                            margin: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              l.translationLoading,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic,
+                                color: theme.mutedText,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        translation.text,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 14,
-                          height: 1.6,
-                          color: theme.secondaryText,
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
+                        if (index < verses.length - 1)
+                          Divider(
+                            height: 32,
                             color: theme.dividerColor.withValues(alpha: 0.3),
-                            width: 3,
                           ),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        l.translationLoading,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 13,
-                          fontStyle: FontStyle.italic,
-                          color: theme.mutedText,
-                        ),
-                      ),
+                      ],
                     ),
-                  if (index < verses.length - 1)
-                    Divider(
-                      height: 32,
-                      color: theme.dividerColor.withValues(alpha: 0.3),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }),
-  ),
-),
-);
+                  ),
+                );
+              },
+            );
+          }),
+        ),
+      ),
+    );
   }
 
   @override
@@ -1005,8 +1088,10 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                           itemBuilder: (context, index) {
                             if (readMode == 'read') {
                               final S = 302 - index;
-                              final rightPage = TabletLayoutMath.spreadToRightPage(S);
-                              final leftPage = TabletLayoutMath.spreadToLeftPage(S);
+                              final rightPage =
+                                  TabletLayoutMath.spreadToRightPage(S);
+                              final leftPage =
+                                  TabletLayoutMath.spreadToLeftPage(S);
 
                               return Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1018,9 +1103,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                       pageNumber: leftPage,
                                       onCanvasTapped: _toggleFullScreen,
                                       readMode: 'read',
-                                      onTranslateVerse: _switchToTranslationMode,
+                                      onTranslateVerse:
+                                          _switchToTranslationMode,
                                       selectedVerseId: _selectedVerseId,
-                                      onVerseSelected: (id) => _onVerseSelected(id, leftPage),
+                                      onVerseSelected: (id) =>
+                                          _onVerseSelected(id, leftPage),
                                     ),
                                   ),
                                   // Spine Divider
@@ -1032,9 +1119,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                       pageNumber: rightPage,
                                       onCanvasTapped: _toggleFullScreen,
                                       readMode: 'read',
-                                      onTranslateVerse: _switchToTranslationMode,
+                                      onTranslateVerse:
+                                          _switchToTranslationMode,
                                       selectedVerseId: _selectedVerseId,
-                                      onVerseSelected: (id) => _onVerseSelected(id, rightPage),
+                                      onVerseSelected: (id) =>
+                                          _onVerseSelected(id, rightPage),
                                     ),
                                   ),
                                 ],
@@ -1045,13 +1134,13 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   // Left Column: Translation Panel
-                                  Expanded(
-                                    child: _buildTafsirPanel(p, theme),
-                                  ),
+                                  Expanded(child: _buildTafsirPanel(p, theme)),
                                   // Subtle divider
                                   Container(
                                     width: 1,
-                                    color: theme.dividerColor.withValues(alpha: 0.3),
+                                    color: theme.dividerColor.withValues(
+                                      alpha: 0.3,
+                                    ),
                                   ),
                                   // Right Column: Quran Page Canvas
                                   Expanded(
@@ -1060,9 +1149,11 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                       pageNumber: p,
                                       onCanvasTapped: _toggleFullScreen,
                                       readMode: 'read',
-                                      onTranslateVerse: _switchToTranslationMode,
+                                      onTranslateVerse:
+                                          _switchToTranslationMode,
                                       selectedVerseId: _selectedVerseId,
-                                      onVerseSelected: (id) => _onVerseSelected(id, p),
+                                      onVerseSelected: (id) =>
+                                          _onVerseSelected(id, p),
                                     ),
                                   ),
                                 ],
@@ -1079,291 +1170,358 @@ class _TabletReadingViewState extends State<TabletReadingView> {
 
             // Split-Corner overlay layout for tablets
             Consumer3<QuranReadingProvider, AudioProvider, BookmarkProvider>(
-              builder: (context, readingProvider, audioProvider, bookmarkProvider, child) {
-                final l = AppLocalizations.of(context);
-                String surahName = l!.loading;
-                String hizbName = '...';
+              builder:
+                  (
+                    context,
+                    readingProvider,
+                    audioProvider,
+                    bookmarkProvider,
+                    child,
+                  ) {
+                    final l = AppLocalizations.of(context);
+                    String surahName = l!.loading;
+                    String hizbName = '...';
 
-                if (readingProvider.verses.isNotEmpty &&
-                    readingProvider.chapters.isNotEmpty) {
-                  final firstVerse = readingProvider.verses.first;
-                  hizbName = '${l.readingHizb} ${firstVerse.hizbNumber}';
+                    if (readingProvider.verses.isNotEmpty &&
+                        readingProvider.chapters.isNotEmpty) {
+                      final firstVerse = readingProvider.verses.first;
+                      hizbName = '${l.readingHizb} ${firstVerse.hizbNumber}';
 
-                  int chapterId =
-                      int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
-                  try {
-                    final chapter = readingProvider.chapters.firstWhere(
-                      (c) => c.id == chapterId,
+                      int chapterId =
+                          int.tryParse(firstVerse.verseKey.split(':')[0]) ?? 1;
+                      try {
+                        final chapter = readingProvider.chapters.firstWhere(
+                          (c) => c.id == chapterId,
+                        );
+                        surahName = l.localeName == 'ar'
+                            ? chapter.nameArabic
+                            : chapter.nameSimple;
+                      } catch (e) {
+                        surahName = VerseRefFormatter.surahName(
+                          chapterId,
+                          l.localeName,
+                        );
+                      }
+                    }
+
+                    String formatDuration(Duration d) {
+                      final minutes = d.inMinutes
+                          .remainder(60)
+                          .toString()
+                          .padLeft(2, '0');
+                      final seconds = d.inSeconds
+                          .remainder(60)
+                          .toString()
+                          .padLeft(2, '0');
+                      if (d.inHours > 0)
+                        return '${d.inHours}:$minutes:$seconds';
+                      return '$minutes:$seconds';
+                    }
+
+                    final currentPosStr = formatDuration(
+                      audioProvider.currentPosition,
                     );
-                    surahName = l.localeName == 'ar'
-                        ? chapter.nameArabic
-                        : chapter.nameSimple;
-                  } catch (e) {
-                    surahName = VerseRefFormatter.surahName(chapterId, l.localeName);
-                  }
-                }
+                    final totalDurStr = formatDuration(
+                      audioProvider.totalDuration,
+                    );
+                    final progress =
+                        audioProvider.totalDuration.inMilliseconds > 0
+                        ? (audioProvider.currentPosition.inMilliseconds /
+                                  audioProvider.totalDuration.inMilliseconds)
+                              .clamp(0.0, 1.0)
+                        : 0.0;
 
-                String formatDuration(Duration d) {
-                  final minutes = d.inMinutes
-                      .remainder(60)
-                      .toString()
-                      .padLeft(2, '0');
-                  final seconds = d.inSeconds
-                      .remainder(60)
-                      .toString()
-                      .padLeft(2, '0');
-                  if (d.inHours > 0) return '${d.inHours}:$minutes:$seconds';
-                  return '$minutes:$seconds';
-                }
+                    String playingVerseLabel = l.readingSelectVerse;
+                    if (audioProvider.activeVerseKey != null) {
+                      playingVerseLabel = VerseRefFormatter.format(
+                        audioProvider.activeVerseKey!,
+                        locale: l.localeName,
+                        tier: VerseRefFormat.standard,
+                      );
+                    }
 
-                final currentPosStr = formatDuration(audioProvider.currentPosition);
-                final totalDurStr = formatDuration(audioProvider.totalDuration);
-                final progress = audioProvider.totalDuration.inMilliseconds > 0
-                    ? (audioProvider.currentPosition.inMilliseconds /
-                              audioProvider.totalDuration.inMilliseconds)
-                          .clamp(0.0, 1.0)
-                    : 0.0;
+                    final isBookmarked = bookmarkProvider.isPageBookmarked(
+                      readingProvider.activePage,
+                    );
 
-                String playingVerseLabel = l.readingSelectVerse;
-                if (audioProvider.activeVerseKey != null) {
-                  playingVerseLabel = VerseRefFormatter.format(
-                    audioProvider.activeVerseKey!,
-                    locale: l.localeName,
-                    tier: VerseRefFormat.standard,
-                  );
-                }
+                    final werdProvider = context.watch<WerdProvider>();
+                    final hasWerd =
+                        werdProvider.hasWerd &&
+                        werdProvider.config?.isEnabled == true;
+                    final config = werdProvider.config;
+                    final progressToday =
+                        hasWerd && config != null && config.todayTarget > 0
+                        ? (config.pagesReadToday / config.todayTarget).clamp(
+                            0.0,
+                            1.0,
+                          )
+                        : 0.0;
 
-                final isBookmarked = bookmarkProvider.isPageBookmarked(
-                  readingProvider.activePage,
-                );
+                    bool isViewingPlayingPage = true;
+                    int? targetPage;
+                    if (audioProvider.activeVerseKey != null) {
+                      final playingPage = _getVersePage(
+                        audioProvider.activeVerseKey!,
+                      );
+                      if (readMode == 'read') {
+                        final spread = TabletLayoutMath.pageToSpread(
+                          readingProvider.activePage,
+                        );
+                        final rightPage = TabletLayoutMath.spreadToRightPage(
+                          spread,
+                        );
+                        final leftPage = TabletLayoutMath.spreadToLeftPage(
+                          spread,
+                        );
+                        isViewingPlayingPage =
+                            (playingPage == rightPage ||
+                            playingPage == leftPage);
+                      } else {
+                        isViewingPlayingPage =
+                            (readingProvider.activePage == playingPage);
+                      }
+                      if (!isViewingPlayingPage) {
+                        targetPage = playingPage;
+                      }
+                    }
 
-                final werdProvider = context.watch<WerdProvider>();
-                final hasWerd = werdProvider.hasWerd && werdProvider.config?.isEnabled == true;
-                final config = werdProvider.config;
-                final progressToday = hasWerd && config != null && config.todayTarget > 0
-                    ? (config.pagesReadToday / config.todayTarget).clamp(0.0, 1.0)
-                    : 0.0;
-
-                bool isViewingPlayingPage = true;
-                int? targetPage;
-                if (audioProvider.activeVerseKey != null) {
-                  final playingPage = _getVersePage(audioProvider.activeVerseKey!);
-                  if (readMode == 'read') {
-                    final spread = TabletLayoutMath.pageToSpread(readingProvider.activePage);
-                    final rightPage = TabletLayoutMath.spreadToRightPage(spread);
-                    final leftPage = TabletLayoutMath.spreadToLeftPage(spread);
-                    isViewingPlayingPage = (playingPage == rightPage || playingPage == leftPage);
-                  } else {
-                    isViewingPlayingPage = (readingProvider.activePage == playingPage);
-                  }
-                  if (!isViewingPlayingPage) {
-                    targetPage = playingPage;
-                  }
-                }
-
-                return Stack(
-                  children: [
-                    // ── Card 1: Top-Start (Back & Mode Toggle) ──
-                    FloatingCornerCard(
-                      alignment: AlignmentDirectional.topStart,
-                      slideOffset: const Offset(-1.2, -1.2),
-                      isFullScreen: isFullScreen,
-                      maxWidth: 320,
-                      padding: EdgeInsets.zero,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TopLeftNavBar(
-                          readMode: readMode,
-                          onReadModeChanged: (v) {
-                            _onReadModeChanged(v);
-                          },
-                        ),
-                      ),
-                    ),
-
-                    // ── Card 2: Top-End (Surah Info & Actions) ──
-                    FloatingCornerCard(
-                      alignment: AlignmentDirectional.topEnd,
-                      slideOffset: const Offset(1.2, -1.2),
-                      isFullScreen: isFullScreen,
-                      maxWidth: 360,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                surahName,
-                                style: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.primaryText,
-                                ),
-                              ),
-                              Text(
-                                hizbName,
-                                style: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.secondaryText,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Divider(color: theme.dividerColor.withValues(alpha: 0.1), height: 1),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${l.readingJuz} ${readingProvider.verses.isNotEmpty ? readingProvider.verses.first.juzNumber : "..."} · ${l.homePage} ${readingProvider.activePage}',
-                                style: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.mutedText,
-                                ),
-                              ),
-                              TopRightNavBar(
-                                isBookmarked: isBookmarked,
-                                onThemeTapped: _openThemePicker,
-                                onNavMenuTapped: _openNavMenu,
-                                onBookmarkTapped: _togglePageBookmark,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ── Card 3: Bottom-Start (Audio Hub) ──
-                    FloatingCornerCard(
-                      alignment: AlignmentDirectional.bottomStart,
-                      slideOffset: const Offset(-1.2, 1.2),
-                      isFullScreen: isFullScreen,
-                      maxWidth: 360,
-                      padding: EdgeInsets.zero,
-                      child: AudioPlayerBridge(
-                        margin: EdgeInsets.zero,
-                        decoration: const BoxDecoration(color: Colors.transparent),
-                        isExpanded: isAudioExpanded,
-                        isPlaying: audioProvider.isPlaying,
-                        isLoading: audioProvider.isLoading,
-                        isViewingPlayingPage: isViewingPlayingPage,
-                        currentPositionText: currentPosStr,
-                        totalDurationText: totalDurStr,
-                        progress: progress,
-                        playingTitle: playingVerseLabel,
-                        reciterId: audioProvider.reciterId,
-                        reciterName: audioProvider.reciterName,
-                        repeatMode: audioProvider.repeatMode,
-                        repeatCount: audioProvider.repeatCount,
-                        onToggleExpand: () => setState(
-                          () => isAudioExpanded = !isAudioExpanded,
-                        ),
-                        onTogglePlay: () {
-                          if (audioProvider.activeVerseKey == null &&
-                              readingProvider.verses.isNotEmpty) {
-                            audioProvider.playVerseList(
-                              readingProvider.verses,
-                            );
-                          } else {
-                            audioProvider.togglePlay();
-                          }
-                        },
-                        onReciterMenuTapped: _openReciterMenu,
-                        onSettingsTapped: _openAudioSettings,
-                        onSkipNext: () => audioProvider.skipToNextVerse(),
-                        onSkipPrevious: () =>
-                            audioProvider.skipToPreviousVerse(),
-                        onJumpForward: () => audioProvider.seekForward(10),
-                        onJumpBackward: () => audioProvider.seekBackward(10),
-                        onRepeatToggle: () =>
-                            audioProvider.toggleRepeatMode(),
-                        onSeek: (val) => audioProvider.seekToFraction(val),
-                        onJumpToPlayingVerse: targetPage != null
-                            ? () => _handlePageSelected(targetPage!)
-                            : null,
-                      ),
-                    ),
-
-                    // ── Card 4: Bottom-End (Quick Navigation & Werd) ──
-                    FloatingCornerCard(
-                      alignment: AlignmentDirectional.bottomEnd,
-                      slideOffset: const Offset(1.2, 1.2),
-                      isFullScreen: isFullScreen,
-                      maxWidth: 360,
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          BottomDock(
-                            margin: EdgeInsets.zero,
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                            decoration: const BoxDecoration(color: Colors.transparent),
-                            activePage: readingProvider.activePage,
-                            paginationArray: List.generate(
-                              604,
-                              (index) => index + 1,
+                    return Stack(
+                      children: [
+                        // ── Card 1: Top-Start (Back & Mode Toggle) ──
+                        FloatingCornerCard(
+                          alignment: AlignmentDirectional.topStart,
+                          slideOffset: const Offset(-1.2, -1.2),
+                          isFullScreen: isFullScreen,
+                          maxWidth: 320,
+                          padding: EdgeInsets.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TopLeftNavBar(
+                              readMode: readMode,
+                              onReadModeChanged: (v) {
+                                _onReadModeChanged(v);
+                              },
                             ),
-                            surahName: surahName,
-                            hizbName: hizbName,
-                            onPageSelected: _handlePageSelected,
                           ),
-                          if (hasWerd && config != null) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+
+                        // ── Card 2: Top-End (Surah Info & Actions) ──
+                        FloatingCornerCard(
+                          alignment: AlignmentDirectional.topEnd,
+                          slideOffset: const Offset(1.2, -1.2),
+                          isFullScreen: isFullScreen,
+                          maxWidth: 360,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        l.localeName == 'ar' ? 'الورد اليومي' : 'Daily Werd',
-                                        style: TextStyle(
-                                          fontFamily: GeistTypography.primaryFontFamily,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: theme.secondaryText,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${config.pagesReadToday} / ${config.todayTarget} ${l.localeName == 'ar' ? 'صفحة' : 'pages'}',
-                                        style: TextStyle(
-                                          fontFamily: GeistTypography.primaryFontFamily,
-                                          fontSize: 9,
-                                          color: theme.mutedText,
-                                        ),
-                                      ),
-                                    ],
+                                  Text(
+                                    surahName,
+                                    style: TextStyle(
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.primaryText,
+                                    ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: LinearProgressIndicator(
-                                      value: progressToday,
-                                      minHeight: 3,
-                                      backgroundColor: theme.sliderInactive,
-                                      valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
+                                  Text(
+                                    hizbName,
+                                    style: TextStyle(
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: theme.secondaryText,
                                     ),
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 8),
+                              Divider(
+                                color: theme.dividerColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                height: 1,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${l.readingJuz} ${readingProvider.verses.isNotEmpty ? readingProvider.verses.first.juzNumber : "..."} · ${l.homePage} ${readingProvider.activePage}',
+                                    style: TextStyle(
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: theme.mutedText,
+                                    ),
+                                  ),
+                                  TopRightNavBar(
+                                    isBookmarked: isBookmarked,
+                                    onThemeTapped: _openThemePicker,
+                                    onNavMenuTapped: _openNavMenu,
+                                    onBookmarkTapped: _togglePageBookmark,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ── Card 3: Bottom-Start (Audio Hub) ──
+                        FloatingCornerCard(
+                          alignment: AlignmentDirectional.bottomStart,
+                          slideOffset: const Offset(-1.2, 1.2),
+                          isFullScreen: isFullScreen,
+                          maxWidth: 360,
+                          padding: EdgeInsets.zero,
+                          child: AudioPlayerBridge(
+                            margin: EdgeInsets.zero,
+                            decoration: const BoxDecoration(
+                              color: Colors.transparent,
                             ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
+                            isExpanded: isAudioExpanded,
+                            isPlaying: audioProvider.isPlaying,
+                            isLoading: audioProvider.isLoading,
+                            isViewingPlayingPage: isViewingPlayingPage,
+                            currentPositionText: currentPosStr,
+                            totalDurationText: totalDurStr,
+                            progress: progress,
+                            playingTitle: playingVerseLabel,
+                            reciterId: audioProvider.reciterId,
+                            reciterName: audioProvider.reciterName,
+                            repeatMode: audioProvider.repeatMode,
+                            repeatCount: audioProvider.repeatCount,
+                            onToggleExpand: () => setState(
+                              () => isAudioExpanded = !isAudioExpanded,
+                            ),
+                            onTogglePlay: () {
+                              if (audioProvider.activeVerseKey == null &&
+                                  readingProvider.verses.isNotEmpty) {
+                                audioProvider.playVerseList(
+                                  readingProvider.verses,
+                                );
+                              } else {
+                                audioProvider.togglePlay();
+                              }
+                            },
+                            onReciterMenuTapped: _openReciterMenu,
+                            onSettingsTapped: _openAudioSettings,
+                            onSkipNext: () => audioProvider.skipToNextVerse(),
+                            onSkipPrevious: () =>
+                                audioProvider.skipToPreviousVerse(),
+                            onJumpForward: () => audioProvider.seekForward(10),
+                            onJumpBackward: () =>
+                                audioProvider.seekBackward(10),
+                            onRepeatToggle: () =>
+                                audioProvider.toggleRepeatMode(),
+                            onSeek: (val) => audioProvider.seekToFraction(val),
+                            onJumpToPlayingVerse: targetPage != null
+                                ? () => _handlePageSelected(targetPage!)
+                                : null,
+                          ),
+                        ),
+
+                        // ── Card 4: Bottom-End (Quick Navigation & Werd) ──
+                        FloatingCornerCard(
+                          alignment: AlignmentDirectional.bottomEnd,
+                          slideOffset: const Offset(1.2, 1.2),
+                          isFullScreen: isFullScreen,
+                          maxWidth: 360,
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              BottomDock(
+                                margin: EdgeInsets.zero,
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  16,
+                                  8,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Colors.transparent,
+                                ),
+                                activePage: readingProvider.activePage,
+                                paginationArray: List.generate(
+                                  604,
+                                  (index) => index + 1,
+                                ),
+                                surahName: surahName,
+                                hizbName: hizbName,
+                                onPageSelected: _handlePageSelected,
+                              ),
+                              if (hasWerd && config != null) ...[
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    16,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            l.localeName == 'ar'
+                                                ? 'الورد اليومي'
+                                                : 'Daily Werd',
+                                            style: TextStyle(
+                                              fontFamily: GeistTypography
+                                                  .primaryFontFamily,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: theme.secondaryText,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${config.pagesReadToday} / ${config.todayTarget} ${l.localeName == 'ar' ? 'صفحة' : 'pages'}',
+                                            style: TextStyle(
+                                              fontFamily: GeistTypography
+                                                  .primaryFontFamily,
+                                              fontSize: 9,
+                                              color: theme.mutedText,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: progressToday,
+                                          minHeight: 3,
+                                          backgroundColor: theme.sliderInactive,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                theme.accentColor,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
             ),
 
             // Fullscreen Overlay Info
@@ -1392,7 +1550,10 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                           ? chapter.nameArabic
                           : chapter.nameSimple;
                     } catch (e) {
-                      surahName = VerseRefFormatter.surahName(chapterId, l.localeName);
+                      surahName = VerseRefFormatter.surahName(
+                        chapterId,
+                        l.localeName,
+                      );
                     }
                   }
 
@@ -1478,7 +1639,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                     colors: [
                                       theme.canvasBackground,
                                       theme.canvasBackground,
-                                      theme.canvasBackground.withValues(alpha: 0.0),
+                                      theme.canvasBackground.withValues(
+                                        alpha: 0.0,
+                                      ),
                                     ],
                                     stops: const [0.0, 0.5, 1.0],
                                   ),
@@ -1502,7 +1665,8 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                   left: 26,
                                   right: 26,
                                   top: 16,
-                                  bottom: MediaQuery.paddingOf(context).bottom > 0
+                                  bottom:
+                                      MediaQuery.paddingOf(context).bottom > 0
                                       ? 20
                                       : 18,
                                 ),
@@ -1513,7 +1677,9 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                     colors: [
                                       theme.canvasBackground,
                                       theme.canvasBackground,
-                                      theme.canvasBackground.withValues(alpha: 0.0),
+                                      theme.canvasBackground.withValues(
+                                        alpha: 0.0,
+                                      ),
                                     ],
                                     stops: const [0.0, 0.5, 1.0],
                                   ),
@@ -1529,7 +1695,8 @@ class _TabletReadingViewState extends State<TabletReadingView> {
                                         Align(
                                           alignment: pageNumberAlignment,
                                           child: OverlayText(
-                                            text: '${readingProvider.activePage}',
+                                            text:
+                                                '${readingProvider.activePage}',
                                           ),
                                         ),
                                         if (hizbAlignment != null)
