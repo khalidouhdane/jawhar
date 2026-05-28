@@ -343,7 +343,7 @@ class ThemeProvider extends ChangeNotifier {
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-    systemNavigationBarColor: navBarBackground,
+    systemNavigationBarColor: Colors.transparent,
     systemNavigationBarDividerColor: Colors.transparent,
     systemNavigationBarIconBrightness: isDark
         ? Brightness.light

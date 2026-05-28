@@ -1484,6 +1484,18 @@ abstract class AppLocalizations {
   /// **'Update failed. Please try again later.'**
   String get updateError;
 
+  /// No description provided for @updateInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Now'**
+  String get updateInstall;
+
+  /// No description provided for @updateReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to Install'**
+  String get updateReady;
+
   /// No description provided for @assessBuildProfile.
   ///
   /// In en, this message translates to:

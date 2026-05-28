@@ -231,6 +231,8 @@
   "updateLater": "لاحقاً",
   "updateDownloading": "جاري التحميل...",
   "updateError": "فشل التحديث. يرجى المحاولة لاحقاً.",
+  "updateInstall": "تثبيت الآن",
+  "updateReady": "جاهز للتثبيت",
   "assessBuildProfile": "دعنا ننشئ ملف الحفظ الخاص بك",
   "assessQuickQuestions": "بضعة أسئلة سريعة لتخصيص رحلتك",
   "assessNameHint": "كيف تحب أن نناديك؟",

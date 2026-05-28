@@ -714,6 +714,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateError => 'Update failed. Please try again later.';
 
   @override
+  String get updateInstall => 'Install Now';
+
+  @override
+  String get updateReady => 'Ready to Install';
+
+  @override
   String get assessBuildProfile => 'Let\\\'s build your Hifz profile';
 
   @override

@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/werd_models.dart';
+import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/semantic_colors.dart';
 import 'package:quran_app/providers/werd_provider.dart';
+import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/widgets/sheets/werd_setup_sheet.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/theme/geist_typography.dart';
@@ -48,10 +50,7 @@ class WerdCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(theme.radiusLg),
-          border: Border.all(
-            color: theme.dividerColor,
-            width: 1.0,
-          ),
+          border: Border.all(color: theme.dividerColor, width: 1.0),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -62,9 +61,7 @@ class WerdCard extends StatelessWidget {
               top: 0,
               bottom: 0,
               width: 4,
-              child: Container(
-                color: accentColor,
-              ),
+              child: Container(color: accentColor),
             ),
             // Main Content
             Padding(
@@ -100,13 +97,13 @@ class WerdCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 9,
+                    ),
                     decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.08),
+                      color: theme.buttonDefaultBg,
                       borderRadius: BorderRadius.circular(theme.radiusMd),
-                      border: Border.all(
-                        color: accentColor.withValues(alpha: 0.3),
-                      ),
                     ),
                     child: Text(
                       l.werdGetStarted,
@@ -114,7 +111,7 @@ class WerdCard extends StatelessWidget {
                         fontFamily: GeistTypography.primaryFontFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: accentColor,
+                        color: theme.buttonDefaultText,
                       ),
                     ),
                   ),
@@ -146,10 +143,7 @@ class WerdCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
-        border: Border.all(
-          color: theme.dividerColor,
-          width: 1.0,
-        ),
+        border: Border.all(color: theme.dividerColor, width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -160,9 +154,7 @@ class WerdCard extends StatelessWidget {
             top: 0,
             bottom: 0,
             width: 4,
-            child: Container(
-              color: accentColor,
-            ),
+            child: Container(color: accentColor),
           ),
           // Main Content
           Padding(
@@ -180,9 +172,7 @@ class WerdCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       l.werdDaily,
-                      style: theme.textCaption.copyWith(
-                        color: accentColor,
-                      ),
+                      style: theme.textCaption.copyWith(color: accentColor),
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -242,28 +232,26 @@ class WerdCard extends StatelessWidget {
                           if (!config.isComplete)
                             GestureDetector(
                               onTap: () =>
-                                  onStartReading?.call(config.startPage),
+                                  _startReading(context, config.startPage),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
-                                  vertical: 8,
+                                  vertical: 9,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: accentColor.withValues(alpha: 0.08),
+                                  color: theme.buttonDefaultBg,
                                   borderRadius: BorderRadius.circular(
                                     theme.radiusMd,
-                                  ),
-                                  border: Border.all(
-                                    color: accentColor.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Text(
                                   l.werdStartReading,
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: accentColor,
+                                    color: theme.buttonDefaultText,
                                   ),
                                 ),
                               ),
@@ -296,6 +284,21 @@ class WerdCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => const WerdSetupSheet(),
     );
+  }
+
+  void _startReading(BuildContext context, int page) {
+    if (onStartReading != null) {
+      onStartReading!(page);
+      return;
+    }
+
+    final nav = context.read<NavigationProvider>();
+    nav.enterReadingView();
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(builder: (_) => ReadingScreen(initialPage: page)),
+        )
+        .then((_) => nav.exitReadingView());
   }
 }
 

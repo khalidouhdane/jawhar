@@ -1,3 +1,4 @@
+import 'package:quran/quran.dart' as quran;
 import 'package:quran_app/data/surah_metadata.dart';
 
 enum VerseRefFormat { full, standard, compact }
@@ -34,7 +35,11 @@ class VerseRefFormatter {
   static String surahName(int surahId, String locale) {
     if (surahId < 1 || surahId > 114) return '';
     final info = allSurahs[surahId - 1];
-    return locale.startsWith('ar') ? info.nameArabic : info.nameSimple;
+    if (locale.startsWith('ar')) {
+      return info.nameArabic;
+    }
+    final translation = quran.getSurahNameEnglish(surahId);
+    return '${info.nameSimple} ($translation)';
   }
 
   /// Format a verse reference from a verseKey like "12:14"

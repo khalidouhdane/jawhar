@@ -70,6 +70,7 @@ class NoProfileDashboard extends StatelessWidget {
                 plan: fakePlan,
                 theme: theme,
                 onStartSession: onStartJourney,
+                showStartSessionCta: false,
               ),
               const SizedBox(height: 16),
 
@@ -83,10 +84,7 @@ class NoProfileDashboard extends StatelessWidget {
               const SizedBox(height: 16),
 
               // ── Create Your Hifz Profile CTA Card ──
-              HifzCtaCard(
-                theme: theme,
-                onTap: onStartJourney,
-              ),
+              HifzCtaCard(theme: theme, onTap: onStartJourney),
               const SizedBox(height: 20),
 
               // ── Continue Reading (Werd Card) ──

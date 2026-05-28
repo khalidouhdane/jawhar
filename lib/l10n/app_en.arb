@@ -231,6 +231,8 @@
   "updateLater": "Later",
   "updateDownloading": "Downloading...",
   "updateError": "Update failed. Please try again later.",
+  "updateInstall": "Install Now",
+  "updateReady": "Ready to Install",
   "assessBuildProfile": "Let\\'s build your Hifz profile",
   "assessQuickQuestions": "A few quick questions to personalize your journey",
   "assessNameHint": "What should we call you?",

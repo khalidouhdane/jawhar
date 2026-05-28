@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -9,9 +12,24 @@ plugins {
 }
 
 android {
-    namespace = "com.example.quran_app"
+    namespace = "com.alphafoundr.jawhar"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    }
+
+    val keystoreFile = if (keystoreProperties.containsKey("storeFile")) {
+        file(keystoreProperties.getProperty("storeFile"))
+    } else {
+        file("upload-keystore.jks")
+    }
+    val keystorePassword = keystoreProperties.getProperty("storePassword") ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    val keyAliasName = keystoreProperties.getProperty("keyAlias") ?: System.getenv("ANDROID_KEY_ALIAS")
+    val keyPasswordVal = keystoreProperties.getProperty("keyPassword") ?: System.getenv("ANDROID_KEY_PASSWORD")
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -24,10 +42,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.quran_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.alphafoundr.jawhar"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -36,11 +51,6 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = file("upload-keystore.jks")
-            val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            val keyAliasName = System.getenv("ANDROID_KEY_ALIAS")
-            val keyPasswordVal = System.getenv("ANDROID_KEY_PASSWORD")
-
             if (keystoreFile.exists() && !keystorePassword.isNullOrEmpty() && !keyAliasName.isNullOrEmpty() && !keyPasswordVal.isNullOrEmpty()) {
                 storeFile = keystoreFile
                 storePassword = keystorePassword
@@ -61,11 +71,6 @@ android {
 
     buildTypes {
         release {
-            val keystoreFile = file("upload-keystore.jks")
-            val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            val keyAliasName = System.getenv("ANDROID_KEY_ALIAS")
-            val keyPasswordVal = System.getenv("ANDROID_KEY_PASSWORD")
-
             if (keystoreFile.exists() && !keystorePassword.isNullOrEmpty() && !keyAliasName.isNullOrEmpty() && !keyPasswordVal.isNullOrEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
