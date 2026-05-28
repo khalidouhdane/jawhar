@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
@@ -120,18 +121,21 @@ class AppBottomNavBar extends StatelessWidget {
       );
     }
 
-    return Container(
-      height: 70 + (bottomPadding > 0 ? bottomPadding : 0),
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: bottomPadding > 0 ? bottomPadding : 0,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: theme.systemOverlayStyle,
+      child: Container(
+        height: 70 + (bottomPadding > 0 ? bottomPadding : 0),
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: bottomPadding > 0 ? bottomPadding : 0,
+        ),
+        decoration: BoxDecoration(
+          color: theme.navBarBackground,
+          border: Border(top: BorderSide(color: theme.dividerColor, width: 1)),
+        ),
+        child: navContent,
       ),
-      decoration: BoxDecoration(
-        color: theme.navBarBackground,
-        border: Border(top: BorderSide(color: theme.dividerColor, width: 1)),
-      ),
-      child: navContent,
     );
   }
 }

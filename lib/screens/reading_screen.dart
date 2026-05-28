@@ -66,6 +66,7 @@ class _MobileReadingViewState extends State<MobileReadingView> {
 
   // Saved reference to avoid context.read in dispose
   late final AudioProvider _audioProvider;
+  late final ThemeProvider _themeProvider;
 
   // Werd progress tracking
   final Set<int> _readPagesInSession = {};
@@ -100,6 +101,7 @@ class _MobileReadingViewState extends State<MobileReadingView> {
 
     // Save ref for dispose, initialize _lastActiveVerseKey
     _audioProvider = context.read<AudioProvider>();
+    _themeProvider = context.read<ThemeProvider>();
     _lastActiveVerseKey = _audioProvider.activeVerseKey;
     _audioProvider.addListener(_onAudioChanged);
 
@@ -112,7 +114,11 @@ class _MobileReadingViewState extends State<MobileReadingView> {
     _pageReadTimer?.cancel();
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+    SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
     super.dispose();
   }
 
@@ -170,6 +176,7 @@ class _MobileReadingViewState extends State<MobileReadingView> {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       } else {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
       }
     });
   }
@@ -397,7 +404,9 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                       _startPageReadTimer(page);
 
                       // Prefetch adjacent page translations
-                      context.read<ContextProvider>().prefetchAdjacentPages(page);
+                      context.read<ContextProvider>().prefetchAdjacentPages(
+                        page,
+                      );
                     },
                     itemBuilder: (context, index) {
                       final page = _totalPages - index;
@@ -428,7 +437,8 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                     constraints: const BoxConstraints(maxWidth: 680),
                     child: TopNavBar(
                       readMode: readMode,
-                      onReadModeChanged: (mode) => setState(() => readMode = mode),
+                      onReadModeChanged: (mode) =>
+                          setState(() => readMode = mode),
                       onThemeTapped: _openThemePicker,
                       onNavMenuTapped: _openNavMenu,
                       isBookmarked: context
@@ -447,12 +457,17 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                               ) ??
                               1;
                           try {
-                            final ch = rp.chapters.firstWhere((c) => c.id == chId);
+                            final ch = rp.chapters.firstWhere(
+                              (c) => c.id == chId,
+                            );
                             sName = l!.localeName == 'ar'
                                 ? ch.nameArabic
                                 : ch.nameSimple;
                           } catch (_) {
-                            sName = VerseRefFormatter.surahName(chId, l!.localeName);
+                            sName = VerseRefFormatter.surahName(
+                              chId,
+                              l!.localeName,
+                            );
                           }
                         }
                         final added = context
@@ -476,7 +491,9 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                             duration: const Duration(seconds: 2),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(theme.radiusMd),
+                              borderRadius: BorderRadius.circular(
+                                theme.radiusMd,
+                              ),
                             ),
                             margin: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -513,7 +530,10 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                         ? chapter.nameArabic
                         : chapter.nameSimple;
                   } catch (e) {
-                    surahName = VerseRefFormatter.surahName(chapterId, l.localeName);
+                    surahName = VerseRefFormatter.surahName(
+                      chapterId,
+                      l.localeName,
+                    );
                   }
                 }
 
@@ -618,11 +638,14 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                               onSkipNext: () => audioProvider.skipToNextVerse(),
                               onSkipPrevious: () =>
                                   audioProvider.skipToPreviousVerse(),
-                              onJumpForward: () => audioProvider.seekForward(10),
-                              onJumpBackward: () => audioProvider.seekBackward(10),
+                              onJumpForward: () =>
+                                  audioProvider.seekForward(10),
+                              onJumpBackward: () =>
+                                  audioProvider.seekBackward(10),
                               onRepeatToggle: () =>
                                   audioProvider.toggleRepeatMode(),
-                              onSeek: (val) => audioProvider.seekToFraction(val),
+                              onSeek: (val) =>
+                                  audioProvider.seekToFraction(val),
                             ),
                             BottomDock(
                               activePage: readingProvider.activePage,
@@ -669,7 +692,10 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                           ? chapter.nameArabic
                           : chapter.nameSimple;
                     } catch (e) {
-                      surahName = VerseRefFormatter.surahName(chapterId, l.localeName);
+                      surahName = VerseRefFormatter.surahName(
+                        chapterId,
+                        l.localeName,
+                      );
                     }
                   }
 
@@ -768,7 +794,9 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                                     colors: [
                                       theme.canvasBackground,
                                       theme.canvasBackground,
-                                      theme.canvasBackground.withValues(alpha: 0.0),
+                                      theme.canvasBackground.withValues(
+                                        alpha: 0.0,
+                                      ),
                                     ],
                                     stops: const [0.0, 0.5, 1.0],
                                   ),
@@ -793,7 +821,8 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                                   left: 26,
                                   right: 26,
                                   top: 16,
-                                  bottom: MediaQuery.paddingOf(context).bottom > 0
+                                  bottom:
+                                      MediaQuery.paddingOf(context).bottom > 0
                                       ? 20 // Clears bottom swipe bar corners but stays low
                                       : 18,
                                 ),
@@ -804,7 +833,9 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                                     colors: [
                                       theme.canvasBackground,
                                       theme.canvasBackground,
-                                      theme.canvasBackground.withValues(alpha: 0.0),
+                                      theme.canvasBackground.withValues(
+                                        alpha: 0.0,
+                                      ),
                                     ],
                                     stops: const [0.0, 0.5, 1.0],
                                   ),
@@ -820,7 +851,8 @@ class _MobileReadingViewState extends State<MobileReadingView> {
                                         Align(
                                           alignment: pageNumberAlignment,
                                           child: OverlayText(
-                                            text: '${readingProvider.activePage}',
+                                            text:
+                                                '${readingProvider.activePage}',
                                           ),
                                         ),
                                         if (hizbAlignment != null)
@@ -940,7 +972,12 @@ class QuranPageState extends State<QuranPage>
     });
   }
 
-  void _scrollToVerse(int index, String verseKey, ThemeProvider theme, Map<String, VerseText> translations) {
+  void _scrollToVerse(
+    int index,
+    String verseKey,
+    ThemeProvider theme,
+    Map<String, VerseText> translations,
+  ) {
     if (!mounted) return;
 
     final activeVerseKey = context.read<AudioProvider>().activeVerseKey;
@@ -949,7 +986,10 @@ class QuranPageState extends State<QuranPage>
     if (currentKey != verseKey) return; // Stale scroll target
 
     if (!_tafsirScrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey, theme, translations));
+      Future.delayed(
+        const Duration(milliseconds: 50),
+        () => _scrollToVerse(index, verseKey, theme, translations),
+      );
       return;
     }
 
@@ -963,16 +1003,23 @@ class QuranPageState extends State<QuranPage>
     }
 
     if (!allMeasured) {
-      AppLogger.warn('TafsirScroll', 'Mobile Scroll index $index ($verseKey): waiting for measurements...');
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToVerse(index, verseKey, theme, translations));
+      AppLogger.warn(
+        'TafsirScroll',
+        'Mobile Scroll index $index ($verseKey): waiting for measurements...',
+      );
+      Future.delayed(
+        const Duration(milliseconds: 50),
+        () => _scrollToVerse(index, verseKey, theme, translations),
+      );
       return;
     }
 
     final maxScroll = _tafsirScrollController.position.maxScrollExtent;
     _lastScrolledVerseKey = verseKey;
 
-    final double viewportHeight = _tafsirScrollController.position.viewportDimension;
-    
+    final double viewportHeight =
+        _tafsirScrollController.position.viewportDimension;
+
     // Sum exact heights of preceding verses
     final double topPadding = MediaQuery.paddingOf(context).top > 0
         ? MediaQuery.paddingOf(context).top + 60
@@ -987,7 +1034,10 @@ class QuranPageState extends State<QuranPage>
     double targetOffset = offset - (viewportHeight / 2) + (targetHeight / 2);
     targetOffset = targetOffset.clamp(0.0, maxScroll);
 
-    AppLogger.warn('TafsirScroll', 'Mobile Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding');
+    AppLogger.warn(
+      'TafsirScroll',
+      'Mobile Scroll index $index ($verseKey): offset: $targetOffset, maxScroll: $maxScroll, viewport: $viewportHeight, topPadding: $topPadding',
+    );
 
     _tafsirScrollController.animateTo(
       targetOffset,
@@ -995,7 +1045,6 @@ class QuranPageState extends State<QuranPage>
       curve: Curves.easeOutCubic,
     );
   }
-
 
   /// Get the verse key for the currently selected verse.
   String? get _selectedVerseKey {
@@ -1111,7 +1160,8 @@ class QuranPageState extends State<QuranPage>
           Builder(
             builder: (ctx) {
               final ctxProvider = ctx.watch<ContextProvider>();
-              if (!ctxProvider.translationEnabled || _selectedVerseKey == null) {
+              if (!ctxProvider.translationEnabled ||
+                  _selectedVerseKey == null) {
                 return const SizedBox.shrink();
               }
               return Positioned(
@@ -1147,7 +1197,8 @@ class QuranPageState extends State<QuranPage>
     final translations = contextProvider.getPageTranslations(widget.pageNumber);
 
     // Load page translations if not already cached
-    if (translations.isEmpty && !contextProvider.isPageLoading(widget.pageNumber)) {
+    if (translations.isEmpty &&
+        !contextProvider.isPageLoading(widget.pageNumber)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           contextProvider.loadPageTranslations(widget.pageNumber);
@@ -1155,7 +1206,8 @@ class QuranPageState extends State<QuranPage>
       });
     }
 
-    if (contextProvider.isPageLoading(widget.pageNumber) && translations.isEmpty) {
+    if (contextProvider.isPageLoading(widget.pageNumber) &&
+        translations.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1189,7 +1241,9 @@ class QuranPageState extends State<QuranPage>
     final activeVerseKey = context.watch<AudioProvider>().activeVerseKey;
 
     final scrollKey = activeVerseKey ?? highlightKey;
-    if (scrollKey != null && scrollKey != _lastScrolledVerseKey && _verses != null) {
+    if (scrollKey != null &&
+        scrollKey != _lastScrolledVerseKey &&
+        _verses != null) {
       final index = _verses!.indexWhere((v) => v.verseKey == scrollKey);
       if (index >= 0) {
         _lastScrolledVerseKey = scrollKey;
@@ -1225,264 +1279,330 @@ class QuranPageState extends State<QuranPage>
                 .map((w) => w.textUthmani)
                 .join(' ');
             final translation = translations[verse.verseKey];
-            final isHighlighted = (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
-                                  (highlightKey != null && verse.verseKey == highlightKey);
+            final isHighlighted =
+                (activeVerseKey != null && verse.verseKey == activeVerseKey) ||
+                (highlightKey != null && verse.verseKey == highlightKey);
 
             return LayoutBuilder(
-            builder: (context, constraints) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                final renderBox = context.findRenderObject() as RenderBox?;
-                if (renderBox != null && renderBox.hasSize) {
-                  final height = renderBox.size.height;
-                  if (_measuredHeights[verse.verseKey] != height) {
-                    _measuredHeights[verse.verseKey] = height;
+              builder: (context, constraints) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  final renderBox = context.findRenderObject() as RenderBox?;
+                  if (renderBox != null && renderBox.hasSize) {
+                    final height = renderBox.size.height;
+                    if (_measuredHeights[verse.verseKey] != height) {
+                      _measuredHeights[verse.verseKey] = height;
+                    }
                   }
-                }
-              });
+                });
 
-              return GestureDetector(
-                onTap: widget.onCanvasTapped,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 600),
-                  curve: Curves.easeOut,
-                  decoration: BoxDecoration(
-                    color: isHighlighted
-                        ? theme.verseHighlight
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(theme.radiusMd),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Verse actions row (Play, Tafsir, Reason on left; Badge on right)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          // Play button
-                          GestureDetector(
-                            onTap: () {
-                              final audioProvider = context.read<AudioProvider>();
-                              audioProvider.playVerseList(
-                                _verses!,
-                                startIndex: index,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: theme.pillBackground,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.play_arrow_rounded,
-                                size: 12,
-                                color: theme.accentColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Tafsir button
-                          GestureDetector(
-                            onTap: () {
-                              final readingProv = context.read<QuranReadingProvider>();
-                              final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
-                              String? surahName;
-                              try {
-                                surahName = readingProv.chapters
-                                    .firstWhere((c) => c.id == chapterId)
-                                    .nameSimple;
-                              } catch (_) {}
-                              showTafsirSheet(
-                                context,
-                                verseKey: verse.verseKey,
-                                surahName: surahName,
-                                initialTabIndex: 0,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: theme.pillBackground,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(LucideIcons.bookOpen, size: 12, color: theme.accentColor),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    l.contextTafsir,
-                                    style: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.primaryText,
+                return GestureDetector(
+                  onTap: widget.onCanvasTapped,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOut,
+                    decoration: BoxDecoration(
+                      color: isHighlighted
+                          ? theme.verseHighlight
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(theme.radiusMd),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Verse actions row (Play, Tafsir, Reason on left; Badge on right)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                // Play button
+                                GestureDetector(
+                                  onTap: () {
+                                    final audioProvider = context
+                                        .read<AudioProvider>();
+                                    audioProvider.playVerseList(
+                                      _verses!,
+                                      startIndex: index,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: theme.pillBackground,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.play_arrow_rounded,
+                                      size: 12,
+                                      color: theme.accentColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Tafsir button
+                                GestureDetector(
+                                  onTap: () {
+                                    final readingProv = context
+                                        .read<QuranReadingProvider>();
+                                    final chapterId =
+                                        int.tryParse(
+                                          verse.verseKey.split(':').first,
+                                        ) ??
+                                        1;
+                                    String? surahName;
+                                    try {
+                                      surahName = readingProv.chapters
+                                          .firstWhere((c) => c.id == chapterId)
+                                          .nameSimple;
+                                    } catch (_) {}
+                                    showTafsirSheet(
+                                      context,
+                                      verseKey: verse.verseKey,
+                                      surahName: surahName,
+                                      initialTabIndex: 0,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: theme.pillBackground,
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.bookOpen,
+                                          size: 12,
+                                          color: theme.accentColor,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          l.contextTafsir,
+                                          style: TextStyle(
+                                            fontFamily: GeistTypography
+                                                .primaryFontFamily,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: theme.primaryText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (contextProvider.asbabService
+                                    .hasOccasionByKey(verse.verseKey)) ...[
+                                  const SizedBox(width: 8),
+                                  // Reason button
+                                  GestureDetector(
+                                    onTap: () {
+                                      final readingProv = context
+                                          .read<QuranReadingProvider>();
+                                      final chapterId =
+                                          int.tryParse(
+                                            verse.verseKey.split(':').first,
+                                          ) ??
+                                          1;
+                                      String? surahName;
+                                      try {
+                                        surahName = readingProv.chapters
+                                            .firstWhere(
+                                              (c) => c.id == chapterId,
+                                            )
+                                            .nameSimple;
+                                      } catch (_) {}
+                                      context
+                                          .read<ContextProvider>()
+                                          .loadAsbabNuzul(verse.verseKey);
+                                      showTafsirSheet(
+                                        context,
+                                        verseKey: verse.verseKey,
+                                        surahName: surahName,
+                                        initialTabIndex: 2,
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.accentColor.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
+                                        border: Border.all(
+                                          color: theme.accentColor.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.history_edu,
+                                            size: 12,
+                                            color: theme.accentColor,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            AppLocalizations.of(
+                                                  context,
+                                                )?.asbabNuzulTitle ??
+                                                'Reason',
+                                            style: TextStyle(
+                                              fontFamily: GeistTypography
+                                                  .primaryFontFamily,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: theme.accentColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ),
-                          if (contextProvider.asbabService.hasOccasionByKey(verse.verseKey)) ...[
-                            const SizedBox(width: 8),
-                            // Reason button
-                            GestureDetector(
-                              onTap: () {
-                                final readingProv = context.read<QuranReadingProvider>();
-                                final chapterId = int.tryParse(verse.verseKey.split(':').first) ?? 1;
-                                String? surahName;
-                                try {
-                                  surahName = readingProv.chapters
-                                      .firstWhere((c) => c.id == chapterId)
-                                      .nameSimple;
-                                } catch (_) {}
-                                context.read<ContextProvider>().loadAsbabNuzul(verse.verseKey);
-                                showTafsirSheet(
-                                  context,
-                                  verseKey: verse.verseKey,
-                                  surahName: surahName,
-                                  initialTabIndex: 2,
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: theme.accentColor.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(100),
-                                  border: Border.all(
-                                    color: theme.accentColor.withValues(alpha: 0.15),
-                                  ),
+                            // Verse key badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: theme.accentColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(
+                                  theme.radiusLg,
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.history_edu, size: 12, color: theme.accentColor),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      AppLocalizations.of(context)?.asbabNuzulTitle ?? 'Reason',
-                                      style: TextStyle(
-                                        fontFamily: GeistTypography.primaryFontFamily,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: theme.accentColor,
-                                      ),
-                                    ),
-                                  ],
+                              ),
+                              child: Text(
+                                VerseRefFormatter.format(
+                                  verse.verseKey,
+                                  locale: l.localeName,
+                                  tier: VerseRefFormat.compact,
+                                ),
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.accentColor,
                                 ),
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      // Verse key badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
                         ),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: theme.accentColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(theme.radiusLg),
-                        ),
-                        child: Text(
-                          VerseRefFormatter.format(verse.verseKey, locale: l.localeName, tier: VerseRefFormat.compact),
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: theme.accentColor,
+                        // Arabic text — uses same font as ReadingCanvas
+                        Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: Text(
+                            verseText,
+                            textAlign: TextAlign.right,
+                            style: GoogleFonts.amiriQuran(
+                              fontSize: theme.quranFontSize,
+                              height: theme.quranLineHeight,
+                              fontWeight: FontWeight.w400,
+                              color: theme.quranText,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  // Arabic text — uses same font as ReadingCanvas
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Text(
-                      verseText,
-                      textAlign: TextAlign.right,
-                      style: GoogleFonts.amiriQuran(
-                        fontSize: theme.quranFontSize,
-                        height: theme.quranLineHeight,
-                        fontWeight: FontWeight.w400,
-                        color: theme.quranText,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Translation (from batch cache)
-                  if (translation != null)
-                    Container(
-                      padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: theme.accentColor.withValues(alpha: 0.5),
-                            width: 3,
+                        const SizedBox(height: 8),
+                        // Translation (from batch cache)
+                        if (translation != null)
+                          Container(
+                            padding: const EdgeInsets.only(
+                              left: 12,
+                              top: 4,
+                              bottom: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(
+                                  color: theme.accentColor.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                            margin: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              translation.text,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 14,
+                                height: 1.6,
+                                color: theme.secondaryText,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.only(
+                              left: 12,
+                              top: 4,
+                              bottom: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(
+                                  color: theme.dividerColor.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                            margin: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              l.translationLoading,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic,
+                                color: theme.mutedText,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        translation.text,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 14,
-                          height: 1.6,
-                          color: theme.secondaryText,
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
+                        if (index < _verses!.length - 1)
+                          Divider(
+                            height: 32,
                             color: theme.dividerColor.withValues(alpha: 0.3),
-                            width: 3,
                           ),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        l.translationLoading,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 13,
-                          fontStyle: FontStyle.italic,
-                          color: theme.mutedText,
-                        ),
-                      ),
+                      ],
                     ),
-                  if (index < _verses!.length - 1)
-                    Divider(
-                      height: 32,
-                      color: theme.dividerColor.withValues(alpha: 0.3),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }),
-  ),
-),
-);
+                  ),
+                );
+              },
+            );
+          }),
+        ),
+      ),
+    );
   }
-
 }
 
 class BookSideIndicator extends StatelessWidget {
   final bool isRightPage;
   final ThemeProvider theme;
 
-  const BookSideIndicator({super.key, required this.isRightPage, required this.theme});
+  const BookSideIndicator({
+    super.key,
+    required this.isRightPage,
+    required this.theme,
+  });
 
   @override
   Widget build(BuildContext context) {

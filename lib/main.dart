@@ -355,19 +355,13 @@ class QuranApp extends StatelessWidget {
         final readingProvider = context.read<QuranReadingProvider>();
         readingProvider.setLanguage(localeProvider.locale.languageCode);
 
-        final systemOverlayStyle = SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: themeProvider.isDark ? Brightness.light : Brightness.dark,
-          statusBarBrightness: themeProvider.isDark ? Brightness.dark : Brightness.light,
-          systemNavigationBarColor: themeProvider.navBarBackground,
-          systemNavigationBarDividerColor: Colors.transparent,
-          systemNavigationBarIconBrightness: themeProvider.isDark ? Brightness.light : Brightness.dark,
-        );
-
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: systemOverlayStyle,
-          child: MaterialApp(
-            builder: DevicePreview.appBuilder,
+        return MaterialApp(
+          builder: (context, child) {
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: themeProvider.systemOverlayStyle,
+              child: DevicePreview.appBuilder(context, child),
+            );
+          },
             title: 'Jawhar',
             debugShowCheckedModeBanner: false,
             locale: localeProvider.locale,
@@ -402,9 +396,8 @@ class QuranApp extends StatelessWidget {
             ),
 
             home: const SplashScreen(),
-          ),
-        );
-      },
+          );
+        },
     );
   }
 }
