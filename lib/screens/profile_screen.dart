@@ -85,56 +85,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Header ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: AppHeader(
-                      title: l!.profileTitle,
-                      subtitle: l.profileSubtitle,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: AppHeader(
+                          title: l!.profileTitle,
+                          subtitle: l.profileSubtitle,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      GeistSegmentedControl<ProfileTab>(
+                        theme: theme,
+                        selectedTab: _activeTab,
+                        onTabChanged: (tab) => setState(() => _activeTab = tab),
+                        tabs: {
+                          ProfileTab.settings: l.profileTabSettings,
+                          ProfileTab.hifz: l.profileTabHifz,
+                          ProfileTab.account: l.profileTabAccount,
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Scrollable Tab Content ──
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                    child: _buildActiveTabContent(
+                      context,
+                      theme,
+                      hifzProfile,
+                      locale,
+                      reading,
+                      audioProvider,
+                      l,
+                      lastRead,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  GeistSegmentedControl<ProfileTab>(
-                    theme: theme,
-                    selectedTab: _activeTab,
-                    onTabChanged: (tab) => setState(() => _activeTab = tab),
-                    tabs: {
-                      ProfileTab.settings: l.profileTabSettings,
-                      ProfileTab.hifz: l.profileTabHifz,
-                      ProfileTab.account: l.profileTabAccount,
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Scrollable Tab Content ──
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-                child: _buildActiveTabContent(
-                  context,
-                  theme,
-                  hifzProfile,
-                  locale,
-                  reading,
-                  audioProvider,
-                  l,
-                  lastRead,
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 
   Widget _buildActiveTabContent(
@@ -149,7 +149,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     switch (_activeTab) {
       case ProfileTab.settings:
-        return _buildSettingsTab(context, theme, locale, reading, audioProvider, l);
+        return _buildSettingsTab(
+          context,
+          theme,
+          locale,
+          reading,
+          audioProvider,
+          l,
+        );
       case ProfileTab.hifz:
         return _buildHifzTab(context, theme, hifzProfile, l, lastRead);
       case ProfileTab.account:
@@ -260,7 +267,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 storage.saveDefaultReciter(
                   id: reciter.id,
                   name: reciter.reciterName,
-                  apiSource: reciter.apiSource == ApiSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
+                  apiSource: reciter.apiSource == ApiSource.mp3Quran
+                      ? 'mp3Quran'
+                      : 'quranDotCom',
                   serverUrl: reciter.serverUrl,
                   moshafId: reciter.moshafId,
                 );
@@ -270,7 +279,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (hifzProfile.hasActiveProfile) {
                   final updatedProfile = hifzProfile.activeProfile!.copyWith(
                     defaultReciterId: reciter.id,
-                    defaultReciterSource: reciter.apiSource == ApiSource.mp3Quran
+                    defaultReciterSource:
+                        reciter.apiSource == ApiSource.mp3Quran
                         ? ReciterSource.mp3Quran
                         : ReciterSource.quranDotCom,
                   );
@@ -1083,7 +1093,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            DirectionalIcon(icon: LucideIcons.chevronRight, size: 18, color: theme.mutedText),
+            DirectionalIcon(
+              icon: LucideIcons.chevronRight,
+              size: 18,
+              color: theme.mutedText,
+            ),
           ],
         ),
       ),
@@ -1308,7 +1322,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            DirectionalIcon(icon: LucideIcons.chevronRight, size: 18, color: theme.mutedText),
+            DirectionalIcon(
+              icon: LucideIcons.chevronRight,
+              size: 18,
+              color: theme.mutedText,
+            ),
           ],
         ),
       ),
@@ -1381,7 +1399,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           if (showChevron)
-            DirectionalIcon(icon: LucideIcons.chevronRight, size: 16, color: theme.mutedText),
+            DirectionalIcon(
+              icon: LucideIcons.chevronRight,
+              size: 16,
+              color: theme.mutedText,
+            ),
         ],
       ),
     );

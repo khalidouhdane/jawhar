@@ -103,16 +103,10 @@ class QuranEncService {
           'Verse not found: $verseKey (key: $translationKey)',
         );
       } else {
-        AppLogger.info(
-          'QuranEnc',
-          'HTTP ${response.statusCode} for $verseKey',
-        );
+        AppLogger.info('QuranEnc', 'HTTP ${response.statusCode} for $verseKey');
       }
     } catch (e) {
-      AppLogger.info(
-        'QuranEnc',
-        'Error fetching $verseKey: $e',
-      );
+      AppLogger.info('QuranEnc', 'Error fetching $verseKey: $e');
     }
     return null;
   }

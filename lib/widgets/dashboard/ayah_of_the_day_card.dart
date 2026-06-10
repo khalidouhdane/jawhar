@@ -10,7 +10,8 @@ import 'package:quran_app/l10n/app_localizations.dart';
 import 'package:quran_app/data/quran_topics.dart';
 import 'package:quran_app/data/topic_content.dart';
 import 'package:quran_app/screens/topic_detail_screen.dart';
-import 'package:quran_app/widgets/context/tafsir_sheet.dart' show showTafsirSheet;
+import 'package:quran_app/widgets/context/tafsir_sheet.dart'
+    show showTafsirSheet;
 
 /// An expanded and rich card showing the Ayah of the Day.
 /// Includes Uthmani text, translation, Tafsir sheet shortcuts,
@@ -136,11 +137,7 @@ class _AyahOfDayCardState extends State<AyahOfDayCard> {
           // ── Header (Title + Sparkles icon) ──
           Row(
             children: [
-              Icon(
-                LucideIcons.sparkle,
-                size: 16,
-                color: theme.accentColor,
-              ),
+              Icon(LucideIcons.sparkle, size: 16, color: theme.accentColor),
               const SizedBox(width: 8),
               Text(
                 AppLocalizations.of(context)!.homeAyahTitle,
@@ -280,8 +277,12 @@ class _AyahOfDayCardState extends State<AyahOfDayCard> {
               runSpacing: 8,
               children: _connectedTopics.map((topic) {
                 final topicTitle = isAr ? topic.titleAr : topic.title;
-                final topicBg = topic.color.withValues(alpha: theme.isDark ? 0.15 : 0.08);
-                final topicBorder = topic.color.withValues(alpha: theme.isDark ? 0.4 : 0.3);
+                final topicBg = topic.color.withValues(
+                  alpha: theme.isDark ? 0.15 : 0.08,
+                );
+                final topicBorder = topic.color.withValues(
+                  alpha: theme.isDark ? 0.4 : 0.3,
+                );
 
                 return Material(
                   color: topicBg,
@@ -297,7 +298,10 @@ class _AyahOfDayCardState extends State<AyahOfDayCard> {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(theme.radiusMd),
                         border: Border.all(color: topicBorder, width: 1),
@@ -305,11 +309,7 @@ class _AyahOfDayCardState extends State<AyahOfDayCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            topic.icon,
-                            size: 13,
-                            color: topic.color,
-                          ),
+                          Icon(topic.icon, size: 13, color: topic.color),
                           const SizedBox(width: 6),
                           Text(
                             topicTitle,
@@ -342,7 +342,9 @@ class _AyahOfDayCardState extends State<AyahOfDayCard> {
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Container(
             height: 14,
-            width: index == 2 ? MediaQuery.of(context).size.width * 0.5 : double.infinity,
+            width: index == 2
+                ? MediaQuery.of(context).size.width * 0.5
+                : double.infinity,
             decoration: BoxDecoration(
               color: theme.dividerColor.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(4),

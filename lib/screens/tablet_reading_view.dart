@@ -114,9 +114,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
     _tafsirScrollController.dispose();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
     super.dispose();
   }
@@ -174,8 +172,18 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     }
   }
 
-  void _scrollToVerse(int index, String verseKey) {
+  void _scrollToVerse(int index, String verseKey, {int attempt = 0}) {
     if (!mounted) return;
+
+    // Cap retries (~1s at 50ms each) so a never-arriving measurement/controller
+    // cannot spin a Future.delayed chain forever.
+    if (attempt > 20) {
+      AppLogger.warn(
+        'TafsirScroll',
+        'Tablet Scroll index $index ($verseKey): giving up after $attempt attempts',
+      );
+      return;
+    }
 
     final activeVerseKey = context.read<AudioProvider>().activeVerseKey;
     final highlightKey = context.read<ContextProvider>().highlightVerseKey;
@@ -185,7 +193,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
     if (!_tafsirScrollController.hasClients) {
       Future.delayed(
         const Duration(milliseconds: 50),
-        () => _scrollToVerse(index, verseKey),
+        () => _scrollToVerse(index, verseKey, attempt: attempt + 1),
       );
       return;
     }
@@ -211,7 +219,7 @@ class _TabletReadingViewState extends State<TabletReadingView> {
       );
       Future.delayed(
         const Duration(milliseconds: 50),
-        () => _scrollToVerse(index, verseKey),
+        () => _scrollToVerse(index, verseKey, attempt: attempt + 1),
       );
       return;
     }

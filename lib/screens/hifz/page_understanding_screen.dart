@@ -23,7 +23,8 @@ class PageUnderstandingScreen extends StatefulWidget {
   const PageUnderstandingScreen({super.key, required this.sabaqPage});
 
   @override
-  State<PageUnderstandingScreen> createState() => _PageUnderstandingScreenState();
+  State<PageUnderstandingScreen> createState() =>
+      _PageUnderstandingScreenState();
 }
 
 class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
@@ -48,7 +49,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
   @override
   void initState() {
     super.initState();
-    _verses = context.read<QuranReadingProvider>().getPageVerses(widget.sabaqPage);
+    _verses = context.read<QuranReadingProvider>().getPageVerses(
+      widget.sabaqPage,
+    );
     _pillKeys.addAll(List.generate(_verses.length, (_) => GlobalKey()));
     _pageController = PageController(initialPage: _activeVerseIndex);
 
@@ -137,7 +140,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
     if (parts.isEmpty) return '';
     if (parts.length >= 2) {
       final firstLower = parts[0].toLowerCase();
-      if (firstLower == 'عبد' || firstLower == 'abdul' || firstLower == 'abdur') {
+      if (firstLower == 'عبد' ||
+          firstLower == 'abdul' ||
+          firstLower == 'abdur') {
         return '${parts[0]} ${parts[1]}';
       }
     }
@@ -160,7 +165,11 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: DirectionalIcon(icon: LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
+            icon: DirectionalIcon(
+              icon: LucideIcons.chevronLeft,
+              size: 20,
+              color: theme.primaryText,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -188,7 +197,11 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: DirectionalIcon(icon: LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
+          icon: DirectionalIcon(
+            icon: LucideIcons.chevronLeft,
+            size: 20,
+            color: theme.primaryText,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -230,7 +243,10 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                 GestureDetector(
                   onTap: _openReciterMenu,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(100),
@@ -263,7 +279,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                   constraints: const BoxConstraints(),
                   onPressed: () {
                     final activeVerseKey = _verses[_activeVerseIndex].verseKey;
-                    final isActiveVersePlaying = audioProvider.activeVerseKey == activeVerseKey && audioProvider.isPlaying;
+                    final isActiveVersePlaying =
+                        audioProvider.activeVerseKey == activeVerseKey &&
+                        audioProvider.isPlaying;
                     if (isActiveVersePlaying) {
                       audioProvider.togglePlay();
                     } else {
@@ -272,9 +290,14 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                   },
                   icon: Builder(
                     builder: (context) {
-                      final activeVerseKey = _verses[_activeVerseIndex].verseKey;
-                      final isActiveVersePlaying = audioProvider.activeVerseKey == activeVerseKey && audioProvider.isPlaying;
-                      final isActiveVerseLoading = audioProvider.activeVerseKey == activeVerseKey && audioProvider.isLoading;
+                      final activeVerseKey =
+                          _verses[_activeVerseIndex].verseKey;
+                      final isActiveVersePlaying =
+                          audioProvider.activeVerseKey == activeVerseKey &&
+                          audioProvider.isPlaying;
+                      final isActiveVerseLoading =
+                          audioProvider.activeVerseKey == activeVerseKey &&
+                          audioProvider.isLoading;
 
                       if (isActiveVerseLoading) {
                         return SizedBox(
@@ -282,13 +305,17 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(theme.accentColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.accentColor,
+                            ),
                           ),
                         );
                       }
 
                       return Icon(
-                        isActiveVersePlaying ? LucideIcons.pause : LucideIcons.play,
+                        isActiveVersePlaying
+                            ? LucideIcons.pause
+                            : LucideIcons.play,
                         size: 20,
                         color: theme.accentColor,
                       );
@@ -324,7 +351,10 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
         itemBuilder: (context, index) {
           final verse = _verses[index];
           final isActive = index == _activeVerseIndex;
-          final label = VerseRefFormatter.localizeNumbers(verse.verseNumber.toString(), localeName);
+          final label = VerseRefFormatter.localizeNumbers(
+            verse.verseNumber.toString(),
+            localeName,
+          );
 
           return Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -356,7 +386,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 13,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? theme.scaffoldBackground : theme.primaryText,
+                    color: isActive
+                        ? theme.scaffoldBackground
+                        : theme.primaryText,
                   ),
                 ),
               ),
@@ -383,7 +415,8 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
             itemCount: _verses.length,
             onPageChanged: (index) {
               final nextVerse = _verses[index];
-              final nextHasAsbab = contextProvider.asbabService.hasOccasionByKey(nextVerse.verseKey);
+              final nextHasAsbab = contextProvider.asbabService
+                  .hasOccasionByKey(nextVerse.verseKey);
               setState(() {
                 _activeVerseIndex = index;
                 _showDetailedTafsir = localeName.startsWith('ar');
@@ -391,7 +424,10 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                   _activeTab = 'translation';
                 }
               });
-              _loadVerseContent(nextVerse.verseKey, updateDetailedTafsir: false);
+              _loadVerseContent(
+                nextVerse.verseKey,
+                updateDetailedTafsir: false,
+              );
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollToActivePill();
               });
@@ -400,7 +436,12 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
               final verse = _verses[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildVerseDeepDiveCard(verse, theme, contextProvider, localeName),
+                child: _buildVerseDeepDiveCard(
+                  verse,
+                  theme,
+                  contextProvider,
+                  localeName,
+                ),
               );
             },
           ),
@@ -464,14 +505,20 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
   ) {
     final isArabic = localeName.startsWith('ar');
     final surahId = VerseRefFormatter.parse(verse.verseKey).$1;
-    final hasAsbab = contextProvider.asbabService.hasOccasionByKey(verse.verseKey);
+    final hasAsbab = contextProvider.asbabService.hasOccasionByKey(
+      verse.verseKey,
+    );
 
     // Reconstruct Arabic text
     final arabicText = verse.words.map((w) => w.textUthmani).join(' ').trim();
 
     // Filter topics
-    final filteredProphetStories = prophetStories.where((t) => t.surahIds.contains(surahId)).toList();
-    final filteredThemes = quranThemes.where((t) => t.surahIds.contains(surahId)).toList();
+    final filteredProphetStories = prophetStories
+        .where((t) => t.surahIds.contains(surahId))
+        .toList();
+    final filteredThemes = quranThemes
+        .where((t) => t.surahIds.contains(surahId))
+        .toList();
     final allRelatedTopics = [...filteredProphetStories, ...filteredThemes];
 
     return Container(
@@ -518,7 +565,12 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
           // Active Tab Content
           Expanded(
             flex: 6,
-            child: _buildActiveTabContent(verse, theme, contextProvider, isArabic),
+            child: _buildActiveTabContent(
+              verse,
+              theme,
+              contextProvider,
+              isArabic,
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -542,13 +594,16 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
     );
   }
 
-  Widget _buildCustomTabBar(ThemeProvider theme, String verseKey, bool hasAsbab) {
+  Widget _buildCustomTabBar(
+    ThemeProvider theme,
+    String verseKey,
+    bool hasAsbab,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final tabs = [
       _TabItem(id: 'translation', label: l10n.readingTranslation),
       _TabItem(id: 'tafseer', label: l10n.readingTafsir),
-      if (hasAsbab)
-        _TabItem(id: 'asbab', label: l10n.tafsirTabOccasion),
+      if (hasAsbab) _TabItem(id: 'asbab', label: l10n.tafsirTabOccasion),
     ];
 
     return Container(
@@ -581,7 +636,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                      color: isActive ? theme.scaffoldBackground : theme.secondaryText,
+                      color: isActive
+                          ? theme.scaffoldBackground
+                          : theme.secondaryText,
                     ),
                   ),
                 ),
@@ -680,7 +737,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
               if (briefTafsir != null && briefTafsir.isNotEmpty)
                 Text(
                   briefTafsir,
-                  textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                  textDirection: isArabic
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
                   style: isArabic
                       ? GoogleFonts.amiri(
                           fontSize: 16,
@@ -707,21 +766,27 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
               if (!_showDetailedTafsir)
                 Center(
                   child: GeistButton(
-                    label: isArabic ? 'عرض التفسير المفصل' : 'Show Detailed Tafseer',
+                    label: isArabic
+                        ? 'عرض التفسير المفصل'
+                        : 'Show Detailed Tafseer',
                     type: GeistButtonType.secondary,
                     size: GeistButtonSize.small,
                     onPressed: () {
                       setState(() {
                         _showDetailedTafsir = true;
                       });
-                      context.read<ContextProvider>().loadDetailedTafsir(verse.verseKey);
+                      context.read<ContextProvider>().loadDetailedTafsir(
+                        verse.verseKey,
+                      );
                     },
                   ),
                 )
               else ...[
                 const Divider(height: 24),
                 Text(
-                  isArabic ? 'التفسير التفصيلي (ابن كثير)' : 'Detailed Tafseer (Ibn Kathir)',
+                  isArabic
+                      ? 'التفسير التفصيلي (ابن كثير)'
+                      : 'Detailed Tafseer (Ibn Kathir)',
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 13,
@@ -735,7 +800,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                 else if (contextProvider.activeDetailedTafsir?.text != null)
                   Text(
                     contextProvider.activeDetailedTafsir!.text,
-                    textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                    textDirection: isArabic
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
                     style: isArabic
                         ? GoogleFonts.amiri(
                             fontSize: 16,
@@ -889,7 +956,9 @@ class _PageUnderstandingScreenState extends State<PageUnderstandingScreen> {
                           Icon(topic.icon, size: 14, color: theme.accentColor),
                           const Spacer(),
                           Text(
-                            AppLocalizations.of(context)!.topicSurahsCount(topic.surahIds.length),
+                            AppLocalizations.of(
+                              context,
+                            )!.topicSurahsCount(topic.surahIds.length),
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 10,

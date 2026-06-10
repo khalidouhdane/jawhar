@@ -134,7 +134,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         } else {
           setState(() {
             _isSigningIn = false;
-            _signInError = AppLocalizations.of(context)!.onboardingSignInCancelled;
+            _signInError = AppLocalizations.of(
+              context,
+            )!.onboardingSignInCancelled;
           });
         }
       }

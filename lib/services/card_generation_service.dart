@@ -64,7 +64,6 @@ class CardGenerationService {
     final random = Random();
     final budget = _maxDueCards - dueCount;
 
-
     // Split budget across 6 types
     final perType = (budget / 6).ceil();
     final nvBudget = perType;
@@ -167,7 +166,7 @@ class CardGenerationService {
       final surahName = quran.getSurahNameArabic(v.surah);
 
       final card = Flashcard(
-        id: '${profileId}_nv_${v.surah}_${v.verse}_${DateTime.now().millisecondsSinceEpoch}',
+        id: '${profileId}_nv_${v.surah}_${v.verse}',
         type: FlashcardType.nextVerse,
         profileId: profileId,
         verseKey: verseKey,
@@ -225,7 +224,7 @@ class CardGenerationService {
       final surahNameEn = quran.getSurahNameEnglish(v.surah);
 
       final card = Flashcard(
-        id: '${profileId}_sd_${v.surah}_${v.verse}_${DateTime.now().millisecondsSinceEpoch + i}',
+        id: '${profileId}_sd_${v.surah}_${v.verse}',
         type: FlashcardType.surahDetective,
         profileId: profileId,
         verseKey: verseKey,
@@ -303,7 +302,7 @@ class CardGenerationService {
       }
 
       final card = Flashcard(
-        id: '${profileId}_md_${group.groupId}_${DateTime.now().millisecondsSinceEpoch}',
+        id: '${profileId}_md_${group.groupId}',
         type: FlashcardType.mutashabihatDuel,
         profileId: profileId,
         verseKey: verseKey,
@@ -375,7 +374,7 @@ class CardGenerationService {
       final surahName = quran.getSurahNameArabic(v.surah);
 
       final card = Flashcard(
-        id: '${profileId}_vc_${v.surah}_${v.verse}_${DateTime.now().millisecondsSinceEpoch + i}',
+        id: '${profileId}_vc_${v.surah}_${v.verse}',
         type: FlashcardType.verseCompletion,
         profileId: profileId,
         verseKey: verseKey,
@@ -437,7 +436,7 @@ class CardGenerationService {
       final surahName = quran.getSurahNameArabic(v.surah);
 
       final card = Flashcard(
-        id: '${profileId}_pv_${v.surah}_${v.verse}_${DateTime.now().millisecondsSinceEpoch + i}',
+        id: '${profileId}_pv_${v.surah}_${v.verse}',
         type: FlashcardType.previousVerse,
         profileId: profileId,
         verseKey: verseKey,
@@ -527,7 +526,7 @@ class CardGenerationService {
       indices.shuffle(random);
 
       final card = Flashcard(
-        id: '${profileId}_cs_${seq[0].surah}_${seq[0].verse}_${DateTime.now().millisecondsSinceEpoch}',
+        id: '${profileId}_cs_${seq[0].surah}_${seq[0].verse}',
         type: FlashcardType.connectSequence,
         profileId: profileId,
         verseKey: anchorKey,

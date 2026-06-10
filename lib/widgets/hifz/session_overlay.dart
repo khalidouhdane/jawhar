@@ -205,7 +205,10 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
-                                _getPhaseLabel(context, session.currentPhase).toUpperCase(),
+                                _getPhaseLabel(
+                                  context,
+                                  session.currentPhase,
+                                ).toUpperCase(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -235,7 +238,10 @@ class _SessionOverlayState extends State<SessionOverlay> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.accentColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -266,7 +272,10 @@ class _SessionOverlayState extends State<SessionOverlay> {
                   GestureDetector(
                     onTap: widget.onTogglePause,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.pillBackground,
                         borderRadius: BorderRadius.circular(12),
@@ -275,18 +284,23 @@ class _SessionOverlayState extends State<SessionOverlay> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            session.isPaused ? LucideIcons.pause : LucideIcons.timer,
+                            session.isPaused
+                                ? LucideIcons.pause
+                                : LucideIcons.timer,
                             size: 13,
                             color: theme.secondaryText,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            _formatTime(session.elapsedSeconds),
-                            style: TextStyle(
-                              fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: theme.primaryText,
+                          ValueListenableBuilder<int>(
+                            valueListenable: session.elapsedSecondsListenable,
+                            builder: (context, elapsedSeconds, child) => Text(
+                              _formatTime(elapsedSeconds),
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: theme.primaryText,
+                              ),
                             ),
                           ),
                         ],
@@ -310,9 +324,13 @@ class _SessionOverlayState extends State<SessionOverlay> {
                         ),
                       ),
                       child: Icon(
-                        session.isSpotlightActive ? LucideIcons.eyeOff : LucideIcons.eye,
+                        session.isSpotlightActive
+                            ? LucideIcons.eyeOff
+                            : LucideIcons.eye,
                         size: 14,
-                        color: session.isSpotlightActive ? theme.accentColor : theme.secondaryText,
+                        color: session.isSpotlightActive
+                            ? theme.accentColor
+                            : theme.secondaryText,
                       ),
                     ),
                   ),
@@ -401,7 +419,10 @@ class _SessionOverlayState extends State<SessionOverlay> {
                       GestureDetector(
                         onTap: widget.onRepTap,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.accentColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
@@ -418,13 +439,17 @@ class _SessionOverlayState extends State<SessionOverlay> {
                                   color: theme.accentColor,
                                 ),
                               ),
-                              if (session.currentPhase == SessionPhase.sabaq && session.plan != null)
+                              if (session.currentPhase == SessionPhase.sabaq &&
+                                  session.plan != null)
                                 Text(
                                   '/${session.plan!.sabaqRepetitionTarget}',
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 12,
-                                    color: theme.accentColor.withValues(alpha: 0.7),
+                                    color: theme.accentColor.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -434,7 +459,8 @@ class _SessionOverlayState extends State<SessionOverlay> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (session.isGuidedMode && session.currentStep != null) ...[
+                          if (session.isGuidedMode &&
+                              session.currentStep != null) ...[
                             _ActionButton(
                               icon: LucideIcons.chevronLeft,
                               theme: theme,
@@ -443,11 +469,12 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             const SizedBox(width: 12),
                             _buildBigAddRepButton(theme, session),
                             const SizedBox(width: 12),
-                            if (session.currentStepIndex < (session.currentRecipe?.steps.length ?? 1) - 1)
+                            if (session.currentStepIndex <
+                                (session.currentRecipe?.steps.length ?? 1) - 1)
                               _ActionButton(
-                                  icon: LucideIcons.chevronRight,
-                                  theme: theme,
-                                  onTap: () => session.nextStep(),
+                                icon: LucideIcons.chevronRight,
+                                theme: theme,
+                                onTap: () => session.nextStep(),
                               )
                             else
                               _ActionButton(
@@ -598,12 +625,15 @@ class _SessionOverlayState extends State<SessionOverlay> {
                             color: theme.pillBackground,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: _chip(
-                            theme,
-                            icon: session.isPaused
-                                ? LucideIcons.pause
-                                : LucideIcons.timer,
-                            label: _formatTime(session.elapsedSeconds),
+                          child: ValueListenableBuilder<int>(
+                            valueListenable: session.elapsedSecondsListenable,
+                            builder: (context, elapsedSeconds, child) => _chip(
+                              theme,
+                              icon: session.isPaused
+                                  ? LucideIcons.pause
+                                  : LucideIcons.timer,
+                              label: _formatTime(elapsedSeconds),
+                            ),
                           ),
                         ),
                       ),
@@ -750,7 +780,9 @@ class _SessionOverlayState extends State<SessionOverlay> {
     final recipe = session.currentRecipe!;
     final l10n = AppLocalizations.of(context)!;
     final totalSteps = recipe.steps.length;
-    final unitLabel = step.unit == StepUnit.minutes ? l10n.sessionMin : l10n.sessionTimes;
+    final unitLabel = step.unit == StepUnit.minutes
+        ? l10n.sessionMin
+        : l10n.sessionTimes;
 
     return Container(
       width: double.infinity,
@@ -984,7 +1016,9 @@ class _TopPhaseBar extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: session.isSpotlightActive
                                 ? theme.accentColor.withValues(alpha: 0.15)
-                                : theme.scaffoldBackground.withValues(alpha: 0.5),
+                                : theme.scaffoldBackground.withValues(
+                                    alpha: 0.5,
+                                  ),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: session.isSpotlightActive
@@ -993,9 +1027,13 @@ class _TopPhaseBar extends StatelessWidget {
                             ),
                           ),
                           child: Icon(
-                            session.isSpotlightActive ? LucideIcons.eyeOff : LucideIcons.eye,
+                            session.isSpotlightActive
+                                ? LucideIcons.eyeOff
+                                : LucideIcons.eye,
                             size: 14,
-                            color: session.isSpotlightActive ? theme.accentColor : theme.secondaryText,
+                            color: session.isSpotlightActive
+                                ? theme.accentColor
+                                : theme.secondaryText,
                           ),
                         ),
                       ),
@@ -1131,4 +1169,3 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-

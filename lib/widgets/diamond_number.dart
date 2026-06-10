@@ -102,10 +102,7 @@ class DiamondNumber extends StatelessWidget {
               height: innerSize,
               decoration: BoxDecoration(
                 color: fillColor,
-                border: Border.all(
-                  color: borderColor,
-                  width: borderWidth,
-                ),
+                border: Border.all(color: borderColor, width: borderWidth),
                 borderRadius: BorderRadius.circular(borderRadius),
               ),
             ),

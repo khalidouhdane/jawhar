@@ -91,7 +91,10 @@ class WebAppSidebar extends StatelessWidget {
                   onTap: () => nav.setTab(i),
                   child: Container(
                     height: 50,
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: isActive
                           ? theme.accentColor.withValues(alpha: 0.08)
@@ -117,7 +120,9 @@ class WebAppSidebar extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 14,
-                            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                            fontWeight: isActive
+                                ? FontWeight.w600
+                                : FontWeight.w500,
                             color: color,
                           ),
                         ),
@@ -137,7 +142,11 @@ class WebAppSidebar extends StatelessWidget {
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: theme.accentColor.withValues(alpha: 0.1),
-                  child: Icon(LucideIcons.user, color: theme.accentColor, size: 18),
+                  child: Icon(
+                    LucideIcons.user,
+                    color: theme.accentColor,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

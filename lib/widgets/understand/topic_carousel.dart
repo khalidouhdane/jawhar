@@ -72,9 +72,7 @@ class _TopicCard extends StatelessWidget {
   void _openTopicDetail(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => TopicDetailScreen(topic: topic),
-      ),
+      MaterialPageRoute(builder: (_) => TopicDetailScreen(topic: topic)),
     );
   }
 

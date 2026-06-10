@@ -39,194 +39,204 @@ class _SearchSheetState extends State<SearchSheet> {
         top: false,
         child: Column(
           children: [
-          Container(
-            width: 48,
-            height: 6,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: theme.sheetDragHandle,
-              borderRadius: BorderRadius.circular(3),
+            Container(
+              width: 48,
+              height: 6,
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: theme.sheetDragHandle,
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l!.searchTitle,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: theme.accentColor,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: widget.onClose,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          LucideIcons.x,
-                          size: 18,
-                          color: theme.mutedText,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l!.searchTitle,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: theme.accentColor,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  autofocus: true,
-                  onChanged: (value) => setState(() => searchQuery = value),
-                  style: TextStyle(color: theme.primaryText),
-                  decoration: InputDecoration(
-                    hintText: l.searchHint,
-                    hintStyle: TextStyle(color: theme.mutedText, fontSize: 14),
-                    prefixIcon: Icon(
-                      LucideIcons.search,
-                      size: 18,
-                      color: theme.mutedText,
-                    ),
-                    filled: true,
-                    fillColor: theme.inputFill,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Consumer<QuranReadingProvider>(
-              builder: (context, readingProvider, child) {
-                if (readingProvider.chapters.isEmpty) {
-                  return Center(
-                    child: CircularProgressIndicator(color: theme.accentColor),
-                  );
-                }
-
-                var chapters = readingProvider.chapters;
-                if (searchQuery.isNotEmpty) {
-                  chapters = chapters
-                      .where(
-                        (c) =>
-                            c.nameSimple.toLowerCase().contains(
-                              searchQuery.toLowerCase(),
-                            ) ||
-                            c.nameArabic.contains(searchQuery) ||
-                            c.id.toString() == searchQuery,
-                      )
-                      .toList();
-                }
-
-                if (chapters.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          LucideIcons.search,
-                          size: 48,
-                          color: theme.dividerColor,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          l.searchNoResults,
-                          style: TextStyle(
+                      GestureDetector(
+                        onTap: widget.onClose,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            LucideIcons.x,
+                            size: 18,
                             color: theme.mutedText,
-                            fontSize: 14,
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    autofocus: true,
+                    onChanged: (value) => setState(() => searchQuery = value),
+                    style: TextStyle(color: theme.primaryText),
+                    decoration: InputDecoration(
+                      hintText: l.searchHint,
+                      hintStyle: TextStyle(
+                        color: theme.mutedText,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        LucideIcons.search,
+                        size: 18,
+                        color: theme.mutedText,
+                      ),
+                      filled: true,
+                      fillColor: theme.inputFill,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: chapters.length,
-                  itemBuilder: (context, index) {
-                    final surah = chapters[index];
-                    // Navigate to the surah's first page
-                    // Each surah's pages can be roughly estimated;
-                    // for now, use surah.id as a page reference
-                    // The Quran API provides page numbers per verse
-
-                    return ListTile(
-                      onTap: () {
-                        // Navigate to surah — use page lookup
-                        // For simplicity, compute starting page from chapter
-                        // This is approximate; a full solution would need a chapter->page map
-                        widget.onPageSelected(_getFirstPage(surah.id));
-                      },
-                      leading: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Transform.rotate(
-                              angle: 0.785398, // 45 degrees
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: theme.accentColor.withValues(alpha: 0.3),
-                                    width: 1.2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ),
-                            Text(
-                              surah.id.toString(),
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: theme.accentColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      title: Text(
-                        surah.nameSimple,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: theme.primaryText,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "${surah.versesCount} ${l.navAyahs}",
-                        style: TextStyle(fontSize: 12, color: theme.mutedText),
-                      ),
-                      trailing: Text(
-                        surah.nameArabic,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: theme.mutedText,
-                        ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Consumer<QuranReadingProvider>(
+                builder: (context, readingProvider, child) {
+                  if (readingProvider.chapters.isEmpty) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: theme.accentColor,
                       ),
                     );
-                  },
-                );
-              },
+                  }
+
+                  var chapters = readingProvider.chapters;
+                  if (searchQuery.isNotEmpty) {
+                    chapters = chapters
+                        .where(
+                          (c) =>
+                              c.nameSimple.toLowerCase().contains(
+                                searchQuery.toLowerCase(),
+                              ) ||
+                              c.nameArabic.contains(searchQuery) ||
+                              c.id.toString() == searchQuery,
+                        )
+                        .toList();
+                  }
+
+                  if (chapters.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.search,
+                            size: 48,
+                            color: theme.dividerColor,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            l.searchNoResults,
+                            style: TextStyle(
+                              color: theme.mutedText,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: chapters.length,
+                    itemBuilder: (context, index) {
+                      final surah = chapters[index];
+                      // Navigate to the surah's first page
+                      // Each surah's pages can be roughly estimated;
+                      // for now, use surah.id as a page reference
+                      // The Quran API provides page numbers per verse
+
+                      return ListTile(
+                        onTap: () {
+                          // Navigate to surah — use page lookup
+                          // For simplicity, compute starting page from chapter
+                          // This is approximate; a full solution would need a chapter->page map
+                          widget.onPageSelected(_getFirstPage(surah.id));
+                        },
+                        leading: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Transform.rotate(
+                                angle: 0.785398, // 45 degrees
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: theme.accentColor.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      width: 1.2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                surah.id.toString(),
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.accentColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        title: Text(
+                          surah.nameSimple,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                        subtitle: Text(
+                          "${surah.versesCount} ${l.navAyahs}",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.mutedText,
+                          ),
+                        ),
+                        trailing: Text(
+                          surah.nameArabic,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: theme.mutedText,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   /// Approximate first page for each chapter (first 30 chapters)
   /// Falls back to chapter number for unknown chapters

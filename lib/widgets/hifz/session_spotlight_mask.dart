@@ -24,7 +24,7 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  
+
   Offset? _touchOffset;
   double _pressure = 0.5;
   int? _activePointerId;
@@ -37,7 +37,9 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 150), // Grow speed
-      reverseDuration: const Duration(milliseconds: 350), // Slow smooth fade out
+      reverseDuration: const Duration(
+        milliseconds: 350,
+      ), // Slow smooth fade out
     );
 
     _animation = CurvedAnimation(
@@ -86,7 +88,7 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
       // If event.size is 0.0 (unsupported), fallback to 0.5 default
       rawPressure = event.size > 0.0 ? event.size.clamp(0.1, 1.0) : 0.5;
     } else if (event.kind == PointerDeviceKind.stylus ||
-               event.kind == PointerDeviceKind.invertedStylus) {
+        event.kind == PointerDeviceKind.invertedStylus) {
       // Stylus devices support high-precision analog pressure up to 1.0
       rawPressure = rawPressure.clamp(0.1, 1.0);
     } else if (rawPressure <= 0.0 || rawPressure == 1.0) {
@@ -100,7 +102,8 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
     });
 
     // Check status != forward to allow interrupting reverse animations cleanly
-    if (_controller.status != AnimationStatus.forward && _controller.value < 1.0) {
+    if (_controller.status != AnimationStatus.forward &&
+        _controller.value < 1.0) {
       _controller.forward();
     }
   }
@@ -136,11 +139,7 @@ class _SessionSpotlightMaskState extends State<SessionSpotlightMask>
       children: [
         // Disable interaction with the underlying text canvas when masked.
         // Wrap child in a RepaintBoundary to isolate repaint and avoid heavy CPU text paints.
-        IgnorePointer(
-          child: RepaintBoundary(
-            child: widget.child,
-          ),
-        ),
+        IgnorePointer(child: RepaintBoundary(child: widget.child)),
 
         // Intercept all touches on top of the mask
         Positioned.fill(
@@ -207,7 +206,7 @@ class MaskPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    
+
     // Save canvas layer to support alpha blend modes
     canvas.saveLayer(rect, Paint());
 
@@ -222,11 +221,14 @@ class MaskPainter extends CustomPainter {
       final double maxRadius = maxDimension * 1.5;
 
       // Normalize pressure from [0.1, 1.0] range to [0.0, 1.0]
-      final double normalizedPressure = ((pressure - 0.1) / 0.9).clamp(0.0, 1.0);
-      
+      final double normalizedPressure = ((pressure - 0.1) / 0.9).clamp(
+        0.0,
+        1.0,
+      );
+
       // Apply sensitivity scaling
       final double p = (normalizedPressure * sensitivity).clamp(0.0, 1.0);
-      
+
       // Compute scaling factor based on the selected curve type
       double targetRadius;
       switch (curveType) {

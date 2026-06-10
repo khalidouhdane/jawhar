@@ -133,7 +133,11 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
                   MutashabihatStatus.needsPractice,
                 ),
                 const SizedBox(width: 8),
-                _filterChip(theme, AppLocalizations.of(context)!.pracMastered, MutashabihatStatus.mastered),
+                _filterChip(
+                  theme,
+                  AppLocalizations.of(context)!.pracMastered,
+                  MutashabihatStatus.mastered,
+                ),
               ],
             ),
           ),
@@ -344,7 +348,11 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  VerseRefFormatter.format(verseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
+                  VerseRefFormatter.format(
+                    verseKey,
+                    locale: AppLocalizations.of(context)!.localeName,
+                    tier: VerseRefFormat.compact,
+                  ),
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,
                     fontSize: 12,
@@ -559,6 +567,3 @@ class _MutashabihatScreenState extends State<MutashabihatScreen> {
     }
   }
 }
-
-
-

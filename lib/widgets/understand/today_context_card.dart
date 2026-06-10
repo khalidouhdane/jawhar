@@ -51,10 +51,7 @@ class TodayContextCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusLg),
-        border: Border.all(
-          color: theme.dividerColor,
-          width: 1.0,
-        ),
+        border: Border.all(color: theme.dividerColor, width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -65,9 +62,7 @@ class TodayContextCard extends StatelessWidget {
             top: 0,
             bottom: 0,
             width: 4,
-            child: Container(
-              color: accentColor,
-            ),
+            child: Container(color: accentColor),
           ),
           // Main Content
           Padding(
@@ -86,7 +81,11 @@ class TodayContextCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(theme.radiusLg),
                       ),
                       child: Center(
-                        child: Icon(LucideIcons.sparkles, size: 16, color: accentColor),
+                        child: Icon(
+                          LucideIcons.sparkles,
+                          size: 16,
+                          color: accentColor,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -122,7 +121,10 @@ class TodayContextCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.dividerColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(theme.radiusLg),
@@ -171,7 +173,8 @@ class TodayContextCard extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PageUnderstandingScreen(sabaqPage: sabaqPage),
+                      builder: (_) =>
+                          PageUnderstandingScreen(sabaqPage: sabaqPage),
                     ),
                   ),
                   theme: theme,
@@ -218,9 +221,7 @@ class _ActionChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(theme.radiusMd),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(
-              color: borderColor,
-            ),
+            border: Border.all(color: borderColor),
             borderRadius: BorderRadius.circular(theme.radiusMd),
             boxShadow: isPrimary ? theme.shadowRing : null,
           ),
@@ -228,11 +229,7 @@ class _ActionChip extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 14,
-                color: fgColor,
-              ),
+              Icon(icon, size: 14, color: fgColor),
               const SizedBox(width: 6),
               Text(
                 label,

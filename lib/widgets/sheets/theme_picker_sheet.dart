@@ -22,7 +22,7 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
 
   Widget _buildSpotlightSettings(ThemeProvider theme, AppLocalizations l) {
     final isDualZone = theme.spotlightCurveType == SpotlightCurveType.dualZone;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,11 +36,7 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                LucideIcons.info,
-                size: 18,
-                color: theme.accentColor,
-              ),
+              Icon(LucideIcons.info, size: 18, color: theme.accentColor),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -80,7 +76,8 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                   l.themeSpotlightCurveLinear,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.linear
+                    fontWeight:
+                        theme.spotlightCurveType == SpotlightCurveType.linear
                         ? FontWeight.w600
                         : FontWeight.w400,
                     color: theme.primaryText,
@@ -93,7 +90,8 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                   l.themeSpotlightCurveQuadratic,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.quadratic
+                    fontWeight:
+                        theme.spotlightCurveType == SpotlightCurveType.quadratic
                         ? FontWeight.w600
                         : FontWeight.w400,
                     color: theme.primaryText,
@@ -106,7 +104,8 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                   l.themeSpotlightCurveQuartic,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.quartic
+                    fontWeight:
+                        theme.spotlightCurveType == SpotlightCurveType.quartic
                         ? FontWeight.w600
                         : FontWeight.w400,
                     color: theme.primaryText,
@@ -119,7 +118,8 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                   l.themeSpotlightCurveDualZone,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: theme.spotlightCurveType == SpotlightCurveType.dualZone
+                    fontWeight:
+                        theme.spotlightCurveType == SpotlightCurveType.dualZone
                         ? FontWeight.w600
                         : FontWeight.w400,
                     color: theme.primaryText,
@@ -156,7 +156,7 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                 onChanged: (v) => theme.setSpotlightMinRadius(v),
                 theme: theme,
               ),
-              
+
               AnimatedCrossFade(
                 duration: const Duration(milliseconds: 250),
                 crossFadeState: isDualZone
@@ -258,7 +258,9 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _activeTab == 0 ? l!.themeTabAppearance : l!.themeTabSpotlight,
+                    _activeTab == 0
+                        ? l!.themeTabAppearance
+                        : l!.themeTabSpotlight,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -293,7 +295,9 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                         l.themeTabAppearance,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: _activeTab == 0 ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: _activeTab == 0
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                           color: theme.primaryText,
                         ),
                       ),
@@ -304,7 +308,9 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
                         l.themeTabSpotlight,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: _activeTab == 1 ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: _activeTab == 1
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                           color: theme.primaryText,
                         ),
                       ),
@@ -320,478 +326,484 @@ class _ThemePickerSheetState extends State<ThemePickerSheet> {
               const SizedBox(height: 24),
               if (_activeTab == 0) ...[
                 Row(
-                children: [
-                  _buildThemeOption(
-                    context: context,
-                    theme: theme,
-                    label: l.themeLight,
-                    targetTheme: AppTheme.light,
-                    bgColor: Colors.white,
-                    textColor: const Color(0xFF171717),
-                    icon: LucideIcons.sun,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildThemeOption(
-                    context: context,
-                    theme: theme,
-                    label: l.themeDark,
-                    targetTheme: AppTheme.dark,
-                    bgColor: const Color(0xFF000000),
-                    textColor: const Color(0xFFEDEDED),
-                    icon: LucideIcons.moon,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              // ── Fit Screen Height Toggle ──
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  borderRadius: BorderRadius.circular(16),
+                  children: [
+                    _buildThemeOption(
+                      context: context,
+                      theme: theme,
+                      label: l.themeLight,
+                      targetTheme: AppTheme.light,
+                      bgColor: Colors.white,
+                      textColor: const Color(0xFF171717),
+                      icon: LucideIcons.sun,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildThemeOption(
+                      context: context,
+                      theme: theme,
+                      label: l.themeDark,
+                      targetTheme: AppTheme.dark,
+                      bgColor: const Color(0xFF000000),
+                      textColor: const Color(0xFFEDEDED),
+                      icon: LucideIcons.moon,
+                    ),
+                  ],
                 ),
-                child: SwitchListTile(
-                  title: Text(
-                    l.themeFitScreen,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontWeight: FontWeight.w500,
-                      color: theme.primaryText,
-                    ),
-                  ),
-                  subtitle: Text(
-                    l.themeFitScreenDesc,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 12,
-                      color: theme.mutedText,
-                    ),
-                  ),
-                  value: theme.fitScreenHeight,
-                  onChanged: (v) => theme.setFitScreenHeight(v),
-                  activeThumbColor: theme.accentColor,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(
+                const SizedBox(height: 28),
+                // ── Fit Screen Height Toggle ──
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.pillBackground,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // ── Manual Typography Controls ──
-              Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Font Size Control ──
-                      Expanded(
-                        child: IgnorePointer(
-                          ignoring: theme.fitScreenHeight,
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 200),
-                            opacity: theme.fitScreenHeight ? 0.4 : 1.0,
-                            child: _DebouncedSliderControl(
-                              label: l.themeFontSize,
-                              initialValue: theme.quranFontSize,
-                              min: 14,
-                              max: 40,
-                              step: 1,
-                              displayFormat: (v) => v.round().toString(),
-                              onChanged: (v) {
-                                if (!theme.fitScreenHeight) {
-                                  theme.setQuranFontSize(v);
-                                }
-                              },
-                              theme: theme,
-                            ),
-                          ),
-                        ),
+                  child: SwitchListTile(
+                    title: Text(
+                      l.themeFitScreen,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontWeight: FontWeight.w500,
+                        color: theme.primaryText,
                       ),
-                      const SizedBox(width: 16),
-                      // ── Line Height Control ──
-                      Expanded(
-                        child: _DebouncedSliderControl(
-                          label: l.themeLineSpacing,
-                          initialValue: theme.quranLineHeight,
-                          min: 1.4,
-                          max: 3.6,
-                          step: 0.1,
-                          displayFormat: (v) => v.toStringAsFixed(1),
-                          onChanged: (v) {
-                            theme.setQuranLineHeight(v);
-                          },
-                          theme: theme,
-                        ),
+                    ),
+                    subtitle: Text(
+                      l.themeFitScreenDesc,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 12,
+                        color: theme.mutedText,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // ── Text Alignment & Content Alignment ──
-              Row(
-                children: [
-                  Expanded(
-                    child: _AlignmentSelector<QuranTextAlign>(
-                      label: l.themeTextAlign,
-                      icon1: Icons.format_align_right,
-                      icon2: Icons.format_align_center,
-                      icon3: Icons.format_align_justify,
-                      value1: QuranTextAlign.right,
-                      value2: QuranTextAlign.center,
-                      value3: QuranTextAlign.justify,
-                      groupValue: theme.quranTextAlign,
-                      onChanged: (v) => theme.setQuranTextAlign(v),
-                      theme: theme,
+                    ),
+                    value: theme.fitScreenHeight,
+                    onChanged: (v) => theme.setFitScreenHeight(v),
+                    activeThumbColor: theme.accentColor,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _AlignmentSelector<QuranContentAlignment>(
-                      label: l.themeContentAlign,
-                      icon1: Icons.vertical_align_top,
-                      icon2: Icons.vertical_align_center,
-                      icon3: Icons.vertical_align_bottom,
-                      value1: QuranContentAlignment.top,
-                      value2: QuranContentAlignment.center,
-                      value3: QuranContentAlignment.bottom,
-                      groupValue: theme.contentAlignment,
-                      onChanged: (v) => theme.setContentAlignment(v),
-                      theme: theme,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // ── Group 1: Overlay Typography ──
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 28),
+
+                // ── Manual Typography Controls ──
+                Column(
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          LucideIcons.type,
-                          size: 16,
-                          color: theme.accentColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l.themeOverlayTypo,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: theme.primaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _DebouncedSliderControl(
-                      label: l.themeFontSize,
-                      initialValue: theme.overlayFontSize,
-                      min: 10,
-                      max: 24,
-                      step: 1,
-                      displayFormat: (v) => v.round().toString(),
-                      onChanged: (v) => theme.setOverlayFontSize(v),
-                      theme: theme,
-                    ),
-                    const SizedBox(height: 12),
-                    _DebouncedSliderControl(
-                      label: l.themeOpacity,
-                      initialValue: theme.overlayOpacity,
-                      min: 0.1,
-                      max: 1.0,
-                      step: 0.05,
-                      displayFormat: (v) => '${(v * 100).round()}%',
-                      onChanged: (v) => theme.setOverlayOpacity(v),
-                      theme: theme,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Group 2: Overlay Indicators ──
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          LucideIcons.layoutTemplate,
-                          size: 16,
-                          color: theme.accentColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l.themeOverlayIndicators,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: theme.primaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l.themeAlternateInfo,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: theme.primaryText,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 24,
-                          child: Switch.adaptive(
-                            value: theme.dynamicPageInfoEnabled,
-                            activeTrackColor: theme.accentColor,
-                            onChanged: (v) =>
-                                theme.setDynamicPageInfoEnabled(v),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l.themeShowJuz,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: theme.primaryText,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 24,
-                          child: Switch.adaptive(
-                            value: theme.showJuzInfo,
-                            activeTrackColor: theme.accentColor,
-                            onChanged: (v) => theme.setShowHizbInfo(v),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l.themeShowBookIcon,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: theme.primaryText,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 24,
-                          child: Switch.adaptive(
-                            value: theme.showBookIconIndicator,
-                            activeTrackColor: theme.accentColor,
-                            onChanged: (v) => theme.setShowBookIconIndicator(v),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Group 3: Page Shadow Effects ──
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.pillBackground,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              LucideIcons.bookOpen,
-                              size: 16,
-                              color: theme.accentColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              l.themePageShadow,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: theme.primaryText,
+                        // ── Font Size Control ──
+                        Expanded(
+                          child: IgnorePointer(
+                            ignoring: theme.fitScreenHeight,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: theme.fitScreenHeight ? 0.4 : 1.0,
+                              child: _DebouncedSliderControl(
+                                label: l.themeFontSize,
+                                initialValue: theme.quranFontSize,
+                                min: 14,
+                                max: 40,
+                                step: 1,
+                                displayFormat: (v) => v.round().toString(),
+                                onChanged: (v) {
+                                  if (!theme.fitScreenHeight) {
+                                    theme.setQuranFontSize(v);
+                                  }
+                                },
+                                theme: theme,
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                        SizedBox(
-                          height: 28,
-                          child: Switch.adaptive(
-                            value: theme.spineEffectEnabled,
-                            activeTrackColor: theme.accentColor,
-                            onChanged: (v) => theme.setSpineEffectEnabled(v),
+                        const SizedBox(width: 16),
+                        // ── Line Height Control ──
+                        Expanded(
+                          child: _DebouncedSliderControl(
+                            label: l.themeLineSpacing,
+                            initialValue: theme.quranLineHeight,
+                            min: 1.4,
+                            max: 3.6,
+                            step: 0.1,
+                            displayFormat: (v) => v.toStringAsFixed(1),
+                            onChanged: (v) {
+                              theme.setQuranLineHeight(v);
+                            },
+                            theme: theme,
                           ),
                         ),
                       ],
                     ),
-                    AnimatedCrossFade(
-                      duration: const Duration(milliseconds: 250),
-                      crossFadeState: theme.spineEffectEnabled
-                          ? CrossFadeState.showFirst
-                          : CrossFadeState.showSecond,
-                      firstChild: Column(
+                  ],
+                ),
+                const SizedBox(height: 28),
+
+                // ── Text Alignment & Content Alignment ──
+                Row(
+                  children: [
+                    Expanded(
+                      child: _AlignmentSelector<QuranTextAlign>(
+                        label: l.themeTextAlign,
+                        icon1: Icons.format_align_right,
+                        icon2: Icons.format_align_center,
+                        icon3: Icons.format_align_justify,
+                        value1: QuranTextAlign.right,
+                        value2: QuranTextAlign.center,
+                        value3: QuranTextAlign.justify,
+                        groupValue: theme.quranTextAlign,
+                        onChanged: (v) => theme.setQuranTextAlign(v),
+                        theme: theme,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _AlignmentSelector<QuranContentAlignment>(
+                        label: l.themeContentAlign,
+                        icon1: Icons.vertical_align_top,
+                        icon2: Icons.vertical_align_center,
+                        icon3: Icons.vertical_align_bottom,
+                        value1: QuranContentAlignment.top,
+                        value2: QuranContentAlignment.center,
+                        value3: QuranContentAlignment.bottom,
+                        groupValue: theme.contentAlignment,
+                        onChanged: (v) => theme.setContentAlignment(v),
+                        theme: theme,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+
+                // ── Group 1: Overlay Typography ──
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.pillBackground,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          const SizedBox(height: 16),
-                          // ── Indicator Style ──
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              // During sheet open/close animation the width
-                              // can be 0, which makes the segmented control
-                              // produce negative child widths. Skip rendering
-                              // until the sheet has a usable width.
-                              if (constraints.maxWidth < 50) {
-                                return const SizedBox.shrink();
-                              }
-                              return SizedBox(
-                                width: double.infinity,
-                                child: ExcludeSemantics(
-                                  child:
-                                      CupertinoSlidingSegmentedControl<
-                                        PageIndicatorEffect
-                                      >(
-                                        groupValue: theme.pageIndicatorEffect,
-                                        backgroundColor: Colors.black
-                                            .withValues(alpha: 0.05),
-                                        thumbColor: theme.canvasBackground,
-                                        children: {
-                                          PageIndicatorEffect.center: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 8,
-                                            ),
-                                            child: Text(
-                                              l.themeCenterSpine,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight:
-                                                    theme.pageIndicatorEffect ==
-                                                        PageIndicatorEffect
-                                                            .center
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w400,
-                                                color: theme.primaryText,
-                                              ),
-                                            ),
-                                          ),
-                                          PageIndicatorEffect.edge: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 8,
-                                            ),
-                                            child: Text(
-                                              l.themeOuterEdge,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight:
-                                                    theme.pageIndicatorEffect ==
-                                                        PageIndicatorEffect.edge
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w400,
-                                                color: theme.primaryText,
-                                              ),
-                                            ),
-                                          ),
-                                        },
-                                        onValueChanged: (v) {
-                                          if (v != null) {
-                                            theme.setPageIndicatorEffect(v);
-                                          }
-                                        },
-                                      ),
-                                ),
-                              );
-                            },
+                          Icon(
+                            LucideIcons.type,
+                            size: 16,
+                            color: theme.accentColor,
                           ),
-                          const SizedBox(height: 20),
-                          _DebouncedSliderControl(
-                            label: l.themeIntensity,
-                            initialValue: theme.spineEffectIntensity,
-                            min: 0.0,
-                            max: 0.20,
-                            step: 0.01,
-                            displayFormat: (v) => (v * 100).round().toString(),
-                            onChanged: (v) => theme.setSpineEffectIntensity(v),
-                            theme: theme,
-                          ),
-                          const SizedBox(height: 12),
-                          _DebouncedSliderControl(
-                            label:
-                                theme.pageIndicatorEffect ==
-                                    PageIndicatorEffect.center
-                                ? l.themeSpineWidth
-                                : l.themeEdgeWidth,
-                            initialValue: theme.spineEffectWidth,
-                            min: 5,
-                            max: 60,
-                            step: 1,
-                            displayFormat: (v) => '${v.round()}',
-                            onChanged: (v) => theme.setSpineEffectWidth(v),
-                            theme: theme,
-                          ),
-                          const SizedBox(height: 12),
-                          _DebouncedSliderControl(
-                            label:
-                                theme.pageIndicatorEffect ==
-                                    PageIndicatorEffect.center
-                                ? l.themeSpinePadding
-                                : l.themeEdgePadding,
-                            initialValue: theme.spineEffectPadding,
-                            min: 0,
-                            max: 16,
-                            step: 1,
-                            displayFormat: (v) => '${v.round()}',
-                            onChanged: (v) => theme.setSpineEffectPadding(v),
-                            theme: theme,
+                          const SizedBox(width: 8),
+                          Text(
+                            l.themeOverlayTypo,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: theme.primaryText,
+                            ),
                           ),
                         ],
                       ),
-                      secondChild: const SizedBox.shrink(),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      _DebouncedSliderControl(
+                        label: l.themeFontSize,
+                        initialValue: theme.overlayFontSize,
+                        min: 10,
+                        max: 24,
+                        step: 1,
+                        displayFormat: (v) => v.round().toString(),
+                        onChanged: (v) => theme.setOverlayFontSize(v),
+                        theme: theme,
+                      ),
+                      const SizedBox(height: 12),
+                      _DebouncedSliderControl(
+                        label: l.themeOpacity,
+                        initialValue: theme.overlayOpacity,
+                        min: 0.1,
+                        max: 1.0,
+                        step: 0.05,
+                        displayFormat: (v) => '${(v * 100).round()}%',
+                        onChanged: (v) => theme.setOverlayOpacity(v),
+                        theme: theme,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-            ] else ...[
-              _buildSpotlightSettings(theme, l),
-              const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
+                // ── Group 2: Overlay Indicators ──
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.pillBackground,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.layoutTemplate,
+                            size: 16,
+                            color: theme.accentColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l.themeOverlayIndicators,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l.themeAlternateInfo,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 24,
+                            child: Switch.adaptive(
+                              value: theme.dynamicPageInfoEnabled,
+                              activeTrackColor: theme.accentColor,
+                              onChanged: (v) =>
+                                  theme.setDynamicPageInfoEnabled(v),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l.themeShowJuz,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 24,
+                            child: Switch.adaptive(
+                              value: theme.showJuzInfo,
+                              activeTrackColor: theme.accentColor,
+                              onChanged: (v) => theme.setShowHizbInfo(v),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l.themeShowBookIcon,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.primaryText,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 24,
+                            child: Switch.adaptive(
+                              value: theme.showBookIconIndicator,
+                              activeTrackColor: theme.accentColor,
+                              onChanged: (v) =>
+                                  theme.setShowBookIconIndicator(v),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ── Group 3: Page Shadow Effects ──
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.pillBackground,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.bookOpen,
+                                size: 16,
+                                color: theme.accentColor,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l.themePageShadow,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.primaryText,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 28,
+                            child: Switch.adaptive(
+                              value: theme.spineEffectEnabled,
+                              activeTrackColor: theme.accentColor,
+                              onChanged: (v) => theme.setSpineEffectEnabled(v),
+                            ),
+                          ),
+                        ],
+                      ),
+                      AnimatedCrossFade(
+                        duration: const Duration(milliseconds: 250),
+                        crossFadeState: theme.spineEffectEnabled
+                            ? CrossFadeState.showFirst
+                            : CrossFadeState.showSecond,
+                        firstChild: Column(
+                          children: [
+                            const SizedBox(height: 16),
+                            // ── Indicator Style ──
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                // During sheet open/close animation the width
+                                // can be 0, which makes the segmented control
+                                // produce negative child widths. Skip rendering
+                                // until the sheet has a usable width.
+                                if (constraints.maxWidth < 50) {
+                                  return const SizedBox.shrink();
+                                }
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: ExcludeSemantics(
+                                    child:
+                                        CupertinoSlidingSegmentedControl<
+                                          PageIndicatorEffect
+                                        >(
+                                          groupValue: theme.pageIndicatorEffect,
+                                          backgroundColor: Colors.black
+                                              .withValues(alpha: 0.05),
+                                          thumbColor: theme.canvasBackground,
+                                          children: {
+                                            PageIndicatorEffect.center: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 8,
+                                                  ),
+                                              child: Text(
+                                                l.themeCenterSpine,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight:
+                                                      theme.pageIndicatorEffect ==
+                                                          PageIndicatorEffect
+                                                              .center
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w400,
+                                                  color: theme.primaryText,
+                                                ),
+                                              ),
+                                            ),
+                                            PageIndicatorEffect.edge: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 8,
+                                                  ),
+                                              child: Text(
+                                                l.themeOuterEdge,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight:
+                                                      theme.pageIndicatorEffect ==
+                                                          PageIndicatorEffect
+                                                              .edge
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w400,
+                                                  color: theme.primaryText,
+                                                ),
+                                              ),
+                                            ),
+                                          },
+                                          onValueChanged: (v) {
+                                            if (v != null) {
+                                              theme.setPageIndicatorEffect(v);
+                                            }
+                                          },
+                                        ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            _DebouncedSliderControl(
+                              label: l.themeIntensity,
+                              initialValue: theme.spineEffectIntensity,
+                              min: 0.0,
+                              max: 0.20,
+                              step: 0.01,
+                              displayFormat: (v) =>
+                                  (v * 100).round().toString(),
+                              onChanged: (v) =>
+                                  theme.setSpineEffectIntensity(v),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 12),
+                            _DebouncedSliderControl(
+                              label:
+                                  theme.pageIndicatorEffect ==
+                                      PageIndicatorEffect.center
+                                  ? l.themeSpineWidth
+                                  : l.themeEdgeWidth,
+                              initialValue: theme.spineEffectWidth,
+                              min: 5,
+                              max: 60,
+                              step: 1,
+                              displayFormat: (v) => '${v.round()}',
+                              onChanged: (v) => theme.setSpineEffectWidth(v),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 12),
+                            _DebouncedSliderControl(
+                              label:
+                                  theme.pageIndicatorEffect ==
+                                      PageIndicatorEffect.center
+                                  ? l.themeSpinePadding
+                                  : l.themeEdgePadding,
+                              initialValue: theme.spineEffectPadding,
+                              min: 0,
+                              max: 16,
+                              step: 1,
+                              displayFormat: (v) => '${v.round()}',
+                              onChanged: (v) => theme.setSpineEffectPadding(v),
+                              theme: theme,
+                            ),
+                          ],
+                        ),
+                        secondChild: const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ] else ...[
+                _buildSpotlightSettings(theme, l),
+                const SizedBox(height: 24),
+              ],
             ],
-          ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildThemeOption({
     required BuildContext context,

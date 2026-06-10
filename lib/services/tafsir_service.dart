@@ -85,7 +85,9 @@ class TafsirService {
   Future<void> _loadBundledTranslations() async {
     if (_bundledEnglish == null) {
       try {
-        final enData = await rootBundle.loadString('assets/data/translations/en_85.json');
+        final enData = await rootBundle.loadString(
+          'assets/data/translations/en_85.json',
+        );
         final Map<String, dynamic> enMap = json.decode(enData);
         _bundledEnglish = enMap.map((k, v) => MapEntry(k, v.toString()));
       } catch (e) {
@@ -95,7 +97,9 @@ class TafsirService {
     }
     if (_bundledArabic == null) {
       try {
-        final arData = await rootBundle.loadString('assets/data/translations/ar_16.json');
+        final arData = await rootBundle.loadString(
+          'assets/data/translations/ar_16.json',
+        );
         final Map<String, dynamic> arMap = json.decode(arData);
         _bundledArabic = arMap.map((k, v) => MapEntry(k, v.toString()));
       } catch (e) {
@@ -304,11 +308,7 @@ class TafsirService {
       await _loadBundledTranslations();
       final text = _bundledArabic?[verseKey];
       if (text != null) {
-        return VerseText(
-          verseKey: verseKey,
-          text: text,
-          resourceId: tafsirId,
-        );
+        return VerseText(verseKey: verseKey, text: text, resourceId: tafsirId);
       }
     }
 
@@ -336,8 +336,9 @@ class TafsirService {
 
         final tafsirs = verse['tafsirs'] as List<dynamic>?;
         if (tafsirs != null && tafsirs.isNotEmpty) {
-          final text =
-              _formatTafsirHtml(tafsirs.first['text'] as String? ?? '');
+          final text = _formatTafsirHtml(
+            tafsirs.first['text'] as String? ?? '',
+          );
           final result = VerseText(
             verseKey: verseKey,
             text: text,

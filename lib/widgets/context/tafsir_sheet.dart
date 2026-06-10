@@ -350,8 +350,9 @@ class _TafsirTextViewState extends State<_TafsirTextView> {
                       height: 1.8,
                       color: theme.primaryText,
                     ),
-              textDirection:
-                  widget.isArabic ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: widget.isArabic
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
             ),
           ),
           // Expand/collapse toggle for long text
@@ -361,7 +362,9 @@ class _TafsirTextViewState extends State<_TafsirTextView> {
               child: GestureDetector(
                 onTap: () => setState(() => _isExpanded = !_isExpanded),
                 child: Text(
-                  _isExpanded ? AppLocalizations.of(context)!.tafsirShowLess : AppLocalizations.of(context)!.tafsirReadMore,
+                  _isExpanded
+                      ? AppLocalizations.of(context)!.tafsirShowLess
+                      : AppLocalizations.of(context)!.tafsirReadMore,
                   style: GoogleFonts.ibmPlexSansArabic(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -376,8 +379,11 @@ class _TafsirTextViewState extends State<_TafsirTextView> {
               padding: const EdgeInsets.only(top: 16),
               child: Row(
                 children: [
-                  Icon(Icons.auto_stories_outlined,
-                      size: 13, color: theme.mutedText),
+                  Icon(
+                    Icons.auto_stories_outlined,
+                    size: 13,
+                    color: theme.mutedText,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     widget.sourceName!,

@@ -122,10 +122,18 @@ class _TopicSectionCardState extends State<TopicSectionCard>
     final surahInfo = allSurahs[section.surahId - 1];
     final surahName = isArabic ? surahInfo.nameArabic : surahInfo.nameSimple;
 
-    final borderColor = isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
-    final surfaceColor = isDark ? GeistTokens.darkSurface : GeistTokens.lightSurface;
-    final primaryColor = isDark ? GeistTokens.darkPrimary : GeistTokens.lightPrimary;
-    final secondaryColor = isDark ? GeistTokens.darkSecondary : GeistTokens.lightSecondary;
+    final borderColor = isDark
+        ? GeistTokens.darkDivider
+        : GeistTokens.lightDivider;
+    final surfaceColor = isDark
+        ? GeistTokens.darkSurface
+        : GeistTokens.lightSurface;
+    final primaryColor = isDark
+        ? GeistTokens.darkPrimary
+        : GeistTokens.lightPrimary;
+    final secondaryColor = isDark
+        ? GeistTokens.darkSecondary
+        : GeistTokens.lightSecondary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -178,7 +186,10 @@ class _TopicSectionCardState extends State<TopicSectionCard>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          l10n.topicVerseRange(section.startVerse, section.endVerse),
+                          l10n.topicVerseRange(
+                            section.startVerse,
+                            section.endVerse,
+                          ),
                           style: TextStyle(
                             fontFamily: 'Geist',
                             fontSize: 12,
@@ -254,8 +265,16 @@ class _TopicSectionCardState extends State<TopicSectionCard>
                   const SizedBox(height: 8),
 
                   // Key verses list
-                  ...section.keyVerseKeys.map((key) => _buildVerseItem(
-                        key, primaryColor, secondaryColor, borderColor, isArabic, l10n)),
+                  ...section.keyVerseKeys.map(
+                    (key) => _buildVerseItem(
+                      key,
+                      primaryColor,
+                      secondaryColor,
+                      borderColor,
+                      isArabic,
+                      l10n,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -283,7 +302,8 @@ class _TopicSectionCardState extends State<TopicSectionCard>
 
     // Translation (loaded async)
     final translation = _translations[verseKey];
-    final isLoading = _isLoadingTranslations && !_translations.containsKey(verseKey);
+    final isLoading =
+        _isLoadingTranslations && !_translations.containsKey(verseKey);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -298,7 +318,11 @@ class _TopicSectionCardState extends State<TopicSectionCard>
         children: [
           // Verse key label
           Text(
-            VerseRefFormatter.format(verseKey, locale: l10n.localeName, tier: VerseRefFormat.compact),
+            VerseRefFormatter.format(
+              verseKey,
+              locale: l10n.localeName,
+              tier: VerseRefFormat.compact,
+            ),
             style: TextStyle(
               fontFamily: 'GeistMono',
               fontSize: 11,
@@ -363,13 +387,15 @@ class _TopicSectionCardState extends State<TopicSectionCard>
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ReadingScreen(
-                      initialPage: page,
-                    ),
+                    builder: (_) => ReadingScreen(initialPage: page),
                   ),
                 );
               },
-              icon: Icon(LucideIcons.bookOpen, size: 14, color: widget.accentColor),
+              icon: Icon(
+                LucideIcons.bookOpen,
+                size: 14,
+                color: widget.accentColor,
+              ),
               label: Text(
                 l10n.topicReadInMushaf,
                 style: TextStyle(
@@ -381,8 +407,8 @@ class _TopicSectionCardState extends State<TopicSectionCard>
               ),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: borderColor.withValues(alpha: 0.5)),
-                backgroundColor: isDark 
-                    ? widget.accentColor.withValues(alpha: 0.05) 
+                backgroundColor: isDark
+                    ? widget.accentColor.withValues(alpha: 0.05)
                     : widget.accentColor.withValues(alpha: 0.03),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(GeistTokens.radiusMd),
@@ -402,10 +428,7 @@ class _TopicSectionCardState extends State<TopicSectionCard>
         2,
         (i) => Container(
           height: 12,
-          margin: EdgeInsets.only(
-            bottom: 4,
-            right: i == 1 ? 60 : 0,
-          ),
+          margin: EdgeInsets.only(bottom: 4, right: i == 1 ? 60 : 0),
           decoration: BoxDecoration(
             color: borderColor.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),

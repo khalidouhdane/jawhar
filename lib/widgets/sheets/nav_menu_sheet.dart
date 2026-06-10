@@ -55,128 +55,128 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         top: false,
         child: Column(
           children: [
-          Container(
-            width: 48,
-            height: 6,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: theme.sheetDragHandle,
-              borderRadius: BorderRadius.circular(3),
+            Container(
+              width: 48,
+              height: 6,
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: theme.sheetDragHandle,
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l!.navIndex,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: theme.accentColor,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: widget.onClose,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          LucideIcons.x,
-                          size: 18,
-                          color: theme.mutedText,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l!.navIndex,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: theme.accentColor,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: theme.pillBackground,
-                    borderRadius: BorderRadius.circular(30),
+                      GestureDetector(
+                        onTap: widget.onClose,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            LucideIcons.x,
+                            size: 18,
+                            color: theme.mutedText,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Row(
-                    children:
-                        [
-                          {'label': l.navTabSurah, 'key': 'surah'},
-                          {'label': l.navTabJuz, 'key': 'juz'},
-                          {'label': l.navTabBookmarks, 'key': 'bookmarks'},
-                        ].map((tab) {
-                          final tabKey = tab['key']!;
-                          final isSelected = activeTab == tabKey;
-                          return Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => activeTab = tabKey),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeOutCubic,
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? theme.primaryText
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: isSelected
-                                      ? theme.shadowCard
-                                      : null,
-                                ),
-                                child: Text(
-                                  tab['label']!,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: theme.pillBackground,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children:
+                          [
+                            {'label': l.navTabSurah, 'key': 'surah'},
+                            {'label': l.navTabJuz, 'key': 'juz'},
+                            {'label': l.navTabBookmarks, 'key': 'bookmarks'},
+                          ].map((tab) {
+                            final tabKey = tab['key']!;
+                            final isSelected = activeTab == tabKey;
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () => setState(() => activeTab = tabKey),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeOutCubic,
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
                                     color: isSelected
-                                        ? theme.scaffoldBackground
-                                        : theme.chipUnselectedText,
+                                        ? theme.primaryText
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(30),
+                                    boxShadow: isSelected
+                                        ? theme.shadowCard
+                                        : null,
+                                  ),
+                                  child: Text(
+                                    tab['label']!,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected
+                                          ? theme.scaffoldBackground
+                                          : theme.chipUnselectedText,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (activeTab == 'surah')
-                  TextField(
-                    onChanged: (v) => setState(() => searchQuery = v),
-                    style: TextStyle(color: theme.primaryText),
-                    decoration: InputDecoration(
-                      hintText: l.navSearchHint,
-                      hintStyle: TextStyle(
-                        color: theme.mutedText,
-                        fontSize: 14,
-                      ),
-                      prefixIcon: Icon(
-                        LucideIcons.search,
-                        size: 18,
-                        color: theme.mutedText,
-                      ),
-                      filled: true,
-                      fillColor: theme.inputFill,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
+                            );
+                          }).toList(),
                     ),
                   ),
-                const SizedBox(height: 16),
-              ],
+                  const SizedBox(height: 16),
+                  if (activeTab == 'surah')
+                    TextField(
+                      onChanged: (v) => setState(() => searchQuery = v),
+                      style: TextStyle(color: theme.primaryText),
+                      decoration: InputDecoration(
+                        hintText: l.navSearchHint,
+                        hintStyle: TextStyle(
+                          color: theme.mutedText,
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          LucideIcons.search,
+                          size: 18,
+                          color: theme.mutedText,
+                        ),
+                        filled: true,
+                        fillColor: theme.inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-          ),
-          Expanded(child: _buildTabContent(theme, l)),
-        ],
+            Expanded(child: _buildTabContent(theme, l)),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTabContent(ThemeProvider theme, AppLocalizations l) {
     if (activeTab == 'surah') return _buildSurahList(theme, l);
@@ -186,9 +186,36 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
 
   int _getJuzForPage(int page) {
     const juzPages = [
-      1, 22, 42, 62, 82, 102, 121, 142, 162, 182, 
-      201, 222, 242, 262, 282, 302, 322, 342, 362, 382, 
-      402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+      1,
+      22,
+      42,
+      62,
+      82,
+      102,
+      121,
+      142,
+      162,
+      182,
+      201,
+      222,
+      242,
+      262,
+      282,
+      302,
+      322,
+      342,
+      362,
+      382,
+      402,
+      422,
+      442,
+      462,
+      482,
+      502,
+      522,
+      542,
+      562,
+      582,
     ];
     for (int i = juzPages.length - 1; i >= 0; i--) {
       if (page >= juzPages[i]) {
@@ -205,9 +232,36 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
         final currentJuz = _getJuzForPage(currentPage);
 
         const juzPages = [
-          1, 22, 42, 62, 82, 102, 121, 142, 162, 182, 
-          201, 222, 242, 262, 282, 302, 322, 342, 362, 382, 
-          402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+          1,
+          22,
+          42,
+          62,
+          82,
+          102,
+          121,
+          142,
+          162,
+          182,
+          201,
+          222,
+          242,
+          262,
+          282,
+          302,
+          322,
+          342,
+          362,
+          382,
+          402,
+          422,
+          442,
+          462,
+          482,
+          502,
+          522,
+          542,
+          562,
+          582,
         ];
 
         return ListView.builder(
@@ -262,9 +316,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: isCurrent
-                              ? Colors.white
-                              : theme.accentColor,
+                          color: isCurrent ? Colors.white : theme.accentColor,
                         ),
                       ),
                     ],
@@ -380,9 +432,7 @@ class _NavMenuSheetState extends State<NavMenuSheet> {
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: isCurrent
-                              ? Colors.white
-                              : theme.accentColor,
+                          color: isCurrent ? Colors.white : theme.accentColor,
                         ),
                       ),
                     ],

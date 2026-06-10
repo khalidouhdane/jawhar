@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/utils/id_generator.dart';
 import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
@@ -163,7 +164,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     }
     computedAge = computedAge.clamp(7, 100);
     final profile = MemoryProfile(
-      id: _existingProfileId ?? '${now.millisecondsSinceEpoch}',
+      id: _existingProfileId ?? IdGenerator.uuidV4(),
       name: _name.trim(),
       avatarIndex: _avatarIndex,
       createdAt: _existingCreatedAt ?? now,
@@ -197,16 +198,20 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     if (mounted) {
       final storage = context.read<LocalStorageService>();
       final readingProvider = context.read<QuranReadingProvider>();
-      final reciterMatch = readingProvider.reciters.where((r) => r.id == _selectedReciterId).firstOrNull;
+      final reciterMatch = readingProvider.reciters
+          .where((r) => r.id == _selectedReciterId)
+          .firstOrNull;
       if (reciterMatch != null) {
         storage.saveDefaultReciter(
           id: reciterMatch.id,
           name: reciterMatch.reciterName,
-          apiSource: reciterMatch.apiSource == ApiSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
+          apiSource: reciterMatch.apiSource == ApiSource.mp3Quran
+              ? 'mp3Quran'
+              : 'quranDotCom',
           serverUrl: reciterMatch.serverUrl,
           moshafId: reciterMatch.moshafId,
         );
-        
+
         final audioProvider = context.read<AudioProvider>();
         audioProvider.setReciter(
           reciterMatch.id,
@@ -219,15 +224,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         // Fallback for offline/unloaded state
         final isArabic = Localizations.localeOf(context).languageCode == 'ar';
         final reciterName = isArabic
-            ? (Reciter.arabicNamesById[_selectedReciterId] ?? 'قارئ $_selectedReciterId')
+            ? (Reciter.arabicNamesById[_selectedReciterId] ??
+                  'قارئ $_selectedReciterId')
             : 'Reciter $_selectedReciterId';
-            
+
         storage.saveDefaultReciter(
           id: _selectedReciterId,
           name: reciterName,
           apiSource: 'quranDotCom',
         );
-        
+
         final audioProvider = context.read<AudioProvider>();
         audioProvider.setReciter(
           _selectedReciterId,
@@ -985,11 +991,15 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                           duration: const Duration(milliseconds: 200),
                           height: 56,
                           decoration: BoxDecoration(
-                            color: isActive ? theme.primaryText : theme.cardColor,
+                            color: isActive
+                                ? theme.primaryText
+                                : theme.cardColor,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.primaryText.withValues(alpha: 0.08),
+                                color: theme.primaryText.withValues(
+                                  alpha: 0.08,
+                                ),
                                 blurRadius: 0,
                                 spreadRadius: 1,
                               ),
@@ -1222,7 +1232,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           final fullUrl = audioUrl.startsWith('http')
               ? audioUrl
               : 'https://audio.qurancdn.com/$audioUrl';
-          final finalUrl = Platform.isWindows ? AudioProxyServer().proxyUrl(fullUrl) : fullUrl;
+          final finalUrl = Platform.isWindows
+              ? AudioProxyServer().proxyUrl(fullUrl)
+              : fullUrl;
           await _samplePlayer.play(UrlSource(finalUrl));
           // Stop after 10 seconds for a short preview
           Future.delayed(const Duration(seconds: 10), () {
@@ -1479,177 +1491,186 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-          const SizedBox(height: 16),
-          // Avatar + Name
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: theme.accentColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-              border: Border.all(color: theme.accentColor, width: 2),
-            ),
-            child: Center(
-              child: Icon(
-                IconResolver.avatarIcons[_avatarIndex],
-                size: 36,
-                color: theme.accentColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _name.trim(),
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // â”€â”€ 2-Axis Memory Profile â”€â”€
-          _buildProfileChart(theme),
-          const SizedBox(height: 16),
-
-          // â”€â”€ Your Plan â”€â”€
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.assessYourPlan,
-                  style: TextStyle(
-                    fontFamily: GeistTypography.primaryFontFamily,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: theme.primaryText,
+              const SizedBox(height: 16),
+              // Avatar + Name
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: theme.accentColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: theme.accentColor, width: 2),
+                ),
+                child: Center(
+                  child: Icon(
+                    IconResolver.avatarIcons[_avatarIndex],
+                    size: 36,
+                    color: theme.accentColor,
                   ),
                 ),
-                const SizedBox(height: 16),
-                _paramRow(
-                  theme,
-                  LucideIcons.cake,
-                  'Age',
-                  '${MemoryProfile.calculateAge(_birthday)} (${_ageGroup.name})',
-                ),
-                const SizedBox(height: 10),
-                _paramRow(
-                  theme,
-                  LucideIcons.sprout,
-                  'Experience',
-                  _hifzExperience.name,
-                ),
-                const SizedBox(height: 10),
-                _paramRow(
-                  theme,
-                  LucideIcons.calendarDays,
-                  AppLocalizations.of(context)!.assessActiveDays,
-                  '${_activeDays.length}/7 days',
-                ),
-                const SizedBox(height: 10),
-                _paramRow(theme, LucideIcons.zap, 'Pace', _pacePreference.name),
-                const SizedBox(height: 10),
-                _paramRow(
-                  theme,
-                  LucideIcons.bookOpen,
-                  AppLocalizations.of(context)!.assessDailyNew,
-                  load,
-                ),
-                const SizedBox(height: 10),
-                _paramRow(
-                  theme,
-                  LucideIcons.repeat,
-                  AppLocalizations.of(context)!.assessTargetReps,
-                  _targetRepsDescription(),
-                ),
-                const SizedBox(height: 10),
-                _paramRow(
-                  theme,
-                  LucideIcons.clock,
-                  AppLocalizations.of(context)!.assessTimeSplit,
-                  timeSplit,
-                ),
-                const SizedBox(height: 10),
-                _paramRow(
-                  theme,
-                  LucideIcons.mapPin,
-                  AppLocalizations.of(context)!.assessStartingAt,
-                  'Page $_startingPage',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // â”€â”€ Estimated Timeline â”€â”€
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.accentColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: theme.accentColor.withValues(alpha: 0.2),
               ),
-            ),
-            child: Row(
-              children: [
-                Icon(LucideIcons.target, size: 22, color: theme.accentColor),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.assessEstTimeline,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: theme.accentColor,
-                        ),
+              const SizedBox(height: 12),
+              Text(
+                _name.trim(),
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: theme.primaryText,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // â”€â”€ 2-Axis Memory Profile â”€â”€
+              _buildProfileChart(theme),
+              const SizedBox(height: 16),
+
+              // â”€â”€ Your Plan â”€â”€
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: theme.dividerColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.assessYourPlan,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: theme.primaryText,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        timeline,
-                        style: TextStyle(
-                          fontFamily: GeistTypography.primaryFontFamily,
-                          fontSize: 12,
-                          color: theme.accentColor.withValues(alpha: 0.8),
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
+                    ),
+                    const SizedBox(height: 16),
+                    _paramRow(
+                      theme,
+                      LucideIcons.cake,
+                      'Age',
+                      '${MemoryProfile.calculateAge(_birthday)} (${_ageGroup.name})',
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.sprout,
+                      'Experience',
+                      _hifzExperience.name,
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.calendarDays,
+                      AppLocalizations.of(context)!.assessActiveDays,
+                      '${_activeDays.length}/7 days',
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.zap,
+                      'Pace',
+                      _pacePreference.name,
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.bookOpen,
+                      AppLocalizations.of(context)!.assessDailyNew,
+                      load,
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.repeat,
+                      AppLocalizations.of(context)!.assessTargetReps,
+                      _targetRepsDescription(),
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.clock,
+                      AppLocalizations.of(context)!.assessTimeSplit,
+                      timeSplit,
+                    ),
+                    const SizedBox(height: 10),
+                    _paramRow(
+                      theme,
+                      LucideIcons.mapPin,
+                      AppLocalizations.of(context)!.assessStartingAt,
+                      'Page $_startingPage',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // â”€â”€ Estimated Timeline â”€â”€
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.accentColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: theme.accentColor.withValues(alpha: 0.2),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+                child: Row(
+                  children: [
+                    Icon(
+                      LucideIcons.target,
+                      size: 22,
+                      color: theme.accentColor,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.assessEstTimeline,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: theme.accentColor,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            timeline,
+                            style: TextStyle(
+                              fontFamily: GeistTypography.primaryFontFamily,
+                              fontSize: 12,
+                              color: theme.accentColor.withValues(alpha: 0.8),
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
 
-          // â”€â”€ Start Button â”€â”€
-          SizedBox(
-            width: double.infinity,
-            child: GeistButton(
-              onPressed: _createProfile,
-              label: AppLocalizations.of(context)!.assessStartJourney,
-              type: GeistButtonType.primary,
-              size: GeistButtonSize.large,
-            ),
+              // â”€â”€ Start Button â”€â”€
+              SizedBox(
+                width: double.infinity,
+                child: GeistButton(
+                  onPressed: _createProfile,
+                  label: AppLocalizations.of(context)!.assessStartJourney,
+                  type: GeistButtonType.primary,
+                  size: GeistButtonSize.large,
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
           ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    ),
+        ),
       ),
     );
   }
@@ -2017,59 +2038,59 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          const SizedBox(height: 24),
-          // Icon
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: theme.accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, size: 24, color: theme.accentColor),
+              const SizedBox(height: 24),
+              // Icon
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: theme.accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, size: 24, color: theme.accentColor),
+              ),
+              const SizedBox(height: 20),
+              // Title
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: theme.primaryText,
+                  letterSpacing: -0.3,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: GeistTypography.primaryFontFamily,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: theme.secondaryText,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              // Content
+              child,
+              const SizedBox(height: 32),
+              // Continue button
+              SizedBox(
+                width: double.infinity,
+                child: GeistButton(
+                  onPressed: canProceed ? _nextPage : null,
+                  label: AppLocalizations.of(context)!.assessContinue,
+                  type: GeistButtonType.primary,
+                  size: GeistButtonSize.large,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-          const SizedBox(height: 20),
-          // Title
-          Text(
-            title,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
-              letterSpacing: -0.3,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: theme.secondaryText,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 28),
-          // Content
-          child,
-          const SizedBox(height: 32),
-          // Continue button
-          SizedBox(
-            width: double.infinity,
-            child: GeistButton(
-              onPressed: canProceed ? _nextPage : null,
-              label: AppLocalizations.of(context)!.assessContinue,
-              type: GeistButtonType.primary,
-              size: GeistButtonSize.large,
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    ),
+        ),
       ),
     );
   }

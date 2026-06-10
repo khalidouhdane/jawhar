@@ -63,7 +63,11 @@ class SurahIntroCard extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final isArabic = AppLocalizations.of(context)!.localeName == 'ar';
     final l10n = AppLocalizations.of(context)!;
-    final intro = data ?? (isArabic ? surahIntroductionsAr[surahId] : surahIntroductions[surahId]);
+    final intro =
+        data ??
+        (isArabic
+            ? surahIntroductionsAr[surahId]
+            : surahIntroductions[surahId]);
 
     if (intro == null) {
       return const SizedBox.shrink();
@@ -129,7 +133,9 @@ class SurahIntroCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _Badge(
-                      label: isMeccan ? l10n.undSurahMeccan : l10n.undSurahMedinan,
+                      label: isMeccan
+                          ? l10n.undSurahMeccan
+                          : l10n.undSurahMedinan,
                       icon: isMeccan
                           ? Icons.mosque_outlined
                           : Icons.location_city_outlined,
@@ -669,7 +675,6 @@ const Map<int, SurahIntroData> surahIntroductions = {
   ),
 };
 
-
 const Map<int, SurahIntroData> surahIntroductionsAr = {
   1: SurahIntroData(
     id: 1,
@@ -707,12 +712,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 200,
     summary:
         'تناقش قصة آل عمران (والد مريم)، وميلاد عيسى، وغزوة أحد. تتناول العقيدة المسيحية وتؤكد على وحدة الرسالة الإلهية.',
-    keyThemes: [
-      'حوار الأديان',
-      'غزوة أحد',
-      'الثبات',
-      'عائلة مريم',
-    ],
+    keyThemes: ['حوار الأديان', 'غزوة أحد', 'الثبات', 'عائلة مريم'],
   ),
   4: SurahIntroData(
     id: 4,
@@ -739,12 +739,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 120,
     summary:
         'من أواخر السور نزولاً. سميت نسبة إلى المائدة التي طلبها حواريو عيسى. تؤكد على الوفاء بالعهود واكتمال رسالة الإسلام.',
-    keyThemes: [
-      'الوفاء بالعهود',
-      'أحكام الطعام',
-      'اكتمال الدين',
-      'العدل',
-    ],
+    keyThemes: ['الوفاء بالعهود', 'أحكام الطعام', 'اكتمال الدين', 'العدل'],
   ),
   6: SurahIntroData(
     id: 6,
@@ -755,12 +750,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 165,
     summary:
         'سورة مكية عظيمة نزلت جملة واحدة. تؤسس للتوحيد، وتدحض الشرك، وتقدم أدلة على وجود الله ووحدانيته من خلال الآيات في الطبيعة.',
-    keyThemes: [
-      'التوحيد',
-      'آيات الله في الخلق',
-      'دحض الشرك',
-      'النبوة',
-    ],
+    keyThemes: ['التوحيد', 'آيات الله في الخلق', 'دحض الشرك', 'النبوة'],
   ),
   7: SurahIntroData(
     id: 7,
@@ -771,12 +761,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 206,
     summary:
         'تروي قصص الأنبياء السابقين — آدم، نوح، هود، صالح، لوط، شعيب، وموسى. سميت نسبة إلى الحاجز المرتفع بين الجنة والنار يوم القيامة.',
-    keyThemes: [
-      'قصص الأنبياء',
-      'عواقب التكذيب',
-      'يوم القيامة',
-      'قصة آدم',
-    ],
+    keyThemes: ['قصص الأنبياء', 'عواقب التكذيب', 'يوم القيامة', 'قصة آدم'],
   ),
   8: SurahIntroData(
     id: 8,
@@ -803,12 +788,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 129,
     summary:
         'السورة الوحيدة التي لا تبدأ بالبسملة. تتناول المعاهدات مع المشركين، والمنافقين في المدينة، وغزوة تبوك. تؤكد على التوبة الصادقة.',
-    keyThemes: [
-      'التوبة',
-      'المنافقون',
-      'غزوة تبوك',
-      'نقض العهود',
-    ],
+    keyThemes: ['التوبة', 'المنافقون', 'غزوة تبوك', 'نقض العهود'],
   ),
   10: SurahIntroData(
     id: 10,
@@ -819,12 +799,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 109,
     summary:
         'سميت باسم النبي يونس الذي تاب قومه بشكل استثنائي فنجوا من العذاب. تناقش طبيعة الوحي، وحرية الإرادة، وعواقب قبول الحق أو رفضه.',
-    keyThemes: [
-      'الوحي',
-      'النبي يونس',
-      'حرية الإرادة',
-      'رحمة التوبة',
-    ],
+    keyThemes: ['الوحي', 'النبي يونس', 'حرية الإرادة', 'رحمة التوبة'],
   ),
   11: SurahIntroData(
     id: 11,
@@ -878,12 +853,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 52,
     summary:
         'سميت باسم النبي إبراهيم ودعائه عندما أسكن عائلته في مكة. تقارن بين الشكر والجحود، والنور والظلمات.',
-    keyThemes: [
-      'دعاء إبراهيم',
-      'الشكر',
-      'النور والظلمات',
-      'النبوة',
-    ],
+    keyThemes: ['دعاء إبراهيم', 'الشكر', 'النور والظلمات', 'النبوة'],
   ),
   15: SurahIntroData(
     id: 15,
@@ -894,12 +864,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 99,
     summary:
         'سميت باسم المنطقة الصخرية التي سكنها قوم ثمود. تناقش خلق الإنسان والجن، وقصة إبليس، وهلاك الأمم السابقة.',
-    keyThemes: [
-      'خلق آدم',
-      'قصة إبليس',
-      'الأمم المهلكة',
-      'حفظ القرآن',
-    ],
+    keyThemes: ['خلق آدم', 'قصة إبليس', 'الأمم المهلكة', 'حفظ القرآن'],
   ),
   16: SurahIntroData(
     id: 16,
@@ -910,12 +875,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 128,
     summary:
         'سميت باسم النحل، الذي يُعرض كآية من آيات حكمة الله الإبداعية. تسرد النعم والآيات في الطبيعة — من المطر والمحاصيل إلى الحيوانات والبحر.',
-    keyThemes: [
-      'نعم الله',
-      'آيات الطبيعة',
-      'النحل',
-      'الشكر',
-    ],
+    keyThemes: ['نعم الله', 'آيات الطبيعة', 'النحل', 'الشكر'],
   ),
   17: SurahIntroData(
     id: 17,
@@ -942,12 +902,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 110,
     summary:
         'تحتوي على أربع قصص عظيمة: أصحاب الكهف، وصاحب الجنتين، وموسى والخضر، وذي القرنين. يُستحب قراءتها كل يوم جمعة.',
-    keyThemes: [
-      'فتنة الدين',
-      'فتنة المال',
-      'فتنة العلم',
-      'فتنة السلطة',
-    ],
+    keyThemes: ['فتنة الدين', 'فتنة المال', 'فتنة العلم', 'فتنة السلطة'],
   ),
   19: SurahIntroData(
     id: 19,
@@ -974,12 +929,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 135,
     summary:
         'تبدأ بحروف مقطعة. تحتوي على التفصيل الأوفى لقصة النبي موسى — من ندائه عند الشجرة المباركة إلى مواجهة فرعون والسامري.',
-    keyThemes: [
-      'قصة موسى',
-      'فرعون',
-      'الشجرة المباركة',
-      'آدم في الجنة',
-    ],
+    keyThemes: ['قصة موسى', 'فرعون', 'الشجرة المباركة', 'آدم في الجنة'],
   ),
   36: SurahIntroData(
     id: 36,
@@ -990,12 +940,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 83,
     summary:
         'تُسمى "قلب القرآن". تتناول القضايا الأساسية للتوحيد، والنبوة، والبعث من خلال أمثال قوية وآيات في الطبيعة.',
-    keyThemes: [
-      'البعث',
-      'آيات الخلق',
-      'قصة أصحاب القرية',
-      'قلب القرآن',
-    ],
+    keyThemes: ['البعث', 'آيات الخلق', 'قصة أصحاب القرية', 'قلب القرآن'],
   ),
   55: SurahIntroData(
     id: 55,
@@ -1006,12 +951,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 78,
     summary:
         'سورة الجمال. تسرد نعم الله مع التكرار المستمر لآية "فبأي آلاء ربكما تكذبان" — موجهة للإنس والجن معاً.',
-    keyThemes: [
-      'نعم الله',
-      'الآية المكررة',
-      'وصف الجنة',
-      'التوازن في الخلق',
-    ],
+    keyThemes: ['نعم الله', 'الآية المكررة', 'وصف الجنة', 'التوازن في الخلق'],
   ),
   67: SurahIntroData(
     id: 67,
@@ -1022,11 +962,7 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 30,
     summary:
         'تُسمى أيضاً "المنجية". أوصى النبي ﷺ بقراءتها كل ليلة. تتناول قدرة الله في خلق السماوات والأرض، ومصير المنكرين.',
-    keyThemes: [
-      'سيادة الله',
-      'خلق السماوات',
-      'النجاة من العذاب',
-    ],
+    keyThemes: ['سيادة الله', 'خلق السماوات', 'النجاة من العذاب'],
   ),
   112: SurahIntroData(
     id: 112,
@@ -1059,10 +995,6 @@ const Map<int, SurahIntroData> surahIntroductionsAr = {
     versesCount: 6,
     summary:
         'آخر سورة في القرآن. الاستعاذة بالله من وساوس الشيطان — التهديد الروحي الداخلي. تقترن مع الفلق للحماية الشاملة.',
-    keyThemes: [
-      'الاستعاذة',
-      'وساوس الشيطان',
-      'الحماية الروحية',
-    ],
+    keyThemes: ['الاستعاذة', 'وساوس الشيطان', 'الحماية الروحية'],
   ),
 };

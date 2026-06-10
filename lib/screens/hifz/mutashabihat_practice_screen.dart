@@ -188,7 +188,12 @@ class _MutashabihatPracticeScreenState
             AppLocalizations.of(context)!.pracSpotDiff,
           ),
           const SizedBox(width: 8),
-          _modeChip(theme, _PracticeMode.context, LucideIcons.link, AppLocalizations.of(context)!.pracContext),
+          _modeChip(
+            theme,
+            _PracticeMode.context,
+            LucideIcons.link,
+            AppLocalizations.of(context)!.pracContext,
+          ),
           const SizedBox(width: 8),
           _modeChip(
             theme,
@@ -259,8 +264,14 @@ class _MutashabihatPracticeScreenState
         : _getVerseText(mutVerse.verseKey);
     final srcSurahId = int.tryParse(group.sourceVerseKey.split(':').first) ?? 1;
     final mutSurahId = int.tryParse(mutVerse.verseKey.split(':').first) ?? 1;
-    final srcName = VerseRefFormatter.surahName(srcSurahId, AppLocalizations.of(context)!.localeName);
-    final mutName = VerseRefFormatter.surahName(mutSurahId, AppLocalizations.of(context)!.localeName);
+    final srcName = VerseRefFormatter.surahName(
+      srcSurahId,
+      AppLocalizations.of(context)!.localeName,
+    );
+    final mutName = VerseRefFormatter.surahName(
+      mutSurahId,
+      AppLocalizations.of(context)!.localeName,
+    );
     final srcWords = group.uniqueWords['src'] ?? [];
     final mutWords = group.uniqueWords['mut'] ?? [];
 
@@ -269,7 +280,11 @@ class _MutashabihatPracticeScreenState
         // Source verse
         _verseBlock(
           theme,
-          label: VerseRefFormatter.format(group.sourceVerseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
+          label: VerseRefFormatter.format(
+            group.sourceVerseKey,
+            locale: AppLocalizations.of(context)!.localeName,
+            tier: VerseRefFormat.compact,
+          ),
           text: srcText,
           highlightWords: srcWords,
           highlightColor: const Color(0xFF3B82F6),
@@ -279,7 +294,11 @@ class _MutashabihatPracticeScreenState
         // Similar verse (hidden until revealed)
         _verseBlock(
           theme,
-          label: VerseRefFormatter.format(mutVerse.verseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
+          label: VerseRefFormatter.format(
+            mutVerse.verseKey,
+            locale: AppLocalizations.of(context)!.localeName,
+            tier: VerseRefFormat.compact,
+          ),
           text: mutText,
           highlightWords: mutWords,
           highlightColor: const Color(0xFFF59E0B),
@@ -390,7 +409,10 @@ class _MutashabihatPracticeScreenState
         ? group.sourceText
         : _getVerseText(group.sourceVerseKey);
     final srcSurahId = int.tryParse(group.sourceVerseKey.split(':').first) ?? 1;
-    final srcName = VerseRefFormatter.surahName(srcSurahId, AppLocalizations.of(context)!.localeName);
+    final srcName = VerseRefFormatter.surahName(
+      srcSurahId,
+      AppLocalizations.of(context)!.localeName,
+    );
 
     return Column(
       children: [
@@ -464,19 +486,27 @@ class _MutashabihatPracticeScreenState
 
         // Compare with source
         if (!_isRevealed)
-          _actionButton(theme, AppLocalizations.of(context)!.pracShowOriginal(srcName), () {
-            setState(() {
-              _isRevealed = true;
-              _totalAttempted++;
-              _correctCount++;
-            });
-          })
+          _actionButton(
+            theme,
+            AppLocalizations.of(context)!.pracShowOriginal(srcName),
+            () {
+              setState(() {
+                _isRevealed = true;
+                _totalAttempted++;
+                _correctCount++;
+              });
+            },
+          )
         else
           Column(
             children: [
               _verseBlock(
                 theme,
-                label: VerseRefFormatter.format(group.sourceVerseKey, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
+                label: VerseRefFormatter.format(
+                  group.sourceVerseKey,
+                  locale: AppLocalizations.of(context)!.localeName,
+                  tier: VerseRefFormat.compact,
+                ),
                 text: srcText,
                 highlightWords: group.uniqueWords['src'] ?? [],
                 highlightColor: const Color(0xFF3B82F6),
@@ -500,8 +530,14 @@ class _MutashabihatPracticeScreenState
     final srcSurahId = int.tryParse(group.sourceVerseKey.split(':').first) ?? 1;
     final mutVerse = group.similarVerses.first;
     final mutSurahId = int.tryParse(mutVerse.verseKey.split(':').first) ?? 1;
-    final srcName = VerseRefFormatter.surahName(srcSurahId, AppLocalizations.of(context)!.localeName);
-    final mutName = VerseRefFormatter.surahName(mutSurahId, AppLocalizations.of(context)!.localeName);
+    final srcName = VerseRefFormatter.surahName(
+      srcSurahId,
+      AppLocalizations.of(context)!.localeName,
+    );
+    final mutName = VerseRefFormatter.surahName(
+      mutSurahId,
+      AppLocalizations.of(context)!.localeName,
+    );
 
     if (srcWords.isEmpty && mutWords.isEmpty) {
       // No unique words — skip
@@ -910,5 +946,3 @@ class _MutashabihatPracticeScreenState
     );
   }
 }
-
-

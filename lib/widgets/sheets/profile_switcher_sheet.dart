@@ -46,204 +46,233 @@ class ProfileSwitcherSheet extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.dividerColor,
-                borderRadius: BorderRadius.circular(2),
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l.homeSwitchProfile,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
+            const SizedBox(height: 16),
+            Text(
+              l.homeSwitchProfile,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: theme.primaryText,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Flexible(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ...profiles.map((p) {
-                    final isActive = p.id == profileProvider.activeProfile?.id;
-                    return GestureDetector(
-                      onTap: () async {
-                        if (!isActive) {
-                          final planProvider = context.read<PlanProvider>();
-                          final analyticsProvider = context.read<AnalyticsProvider>();
-                          final flashcardProvider = context.read<FlashcardProvider>();
-                          final audioProvider = context.read<AudioProvider>();
-                          final readingProvider = context.read<QuranReadingProvider>();
-                          final storage = context.read<LocalStorageService>();
+            const SizedBox(height: 12),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...profiles.map((p) {
+                      final isActive =
+                          p.id == profileProvider.activeProfile?.id;
+                      return GestureDetector(
+                        onTap: () async {
+                          if (!isActive) {
+                            final planProvider = context.read<PlanProvider>();
+                            final analyticsProvider = context
+                                .read<AnalyticsProvider>();
+                            final flashcardProvider = context
+                                .read<FlashcardProvider>();
+                            final audioProvider = context.read<AudioProvider>();
+                            final readingProvider = context
+                                .read<QuranReadingProvider>();
+                            final storage = context.read<LocalStorageService>();
 
-                          final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+                            final isArabic =
+                                Localizations.localeOf(context).languageCode ==
+                                'ar';
 
-                          await profileProvider.switchProfile(p.id);
-                          
-                          // Sync default reciter from profile
-                          final defaultId = p.defaultReciterId;
-                          final defaultSource = p.defaultReciterSource;
-                          
-                          final match = readingProvider.reciters.where((r) => r.id == defaultId).firstOrNull;
-                          if (match != null) {
-                            storage.saveDefaultReciter(
-                              id: match.id,
-                              name: match.reciterName,
-                              apiSource: match.apiSource == ApiSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
-                              serverUrl: match.serverUrl,
-                              moshafId: match.moshafId,
-                            );
-                            audioProvider.setReciter(
-                              match.id,
-                              name: match.reciterName,
-                              apiSource: match.apiSource,
-                              serverUrl: match.serverUrl,
-                              moshafId: match.moshafId,
-                            );
-                          } else {
-                            final reciterName = isArabic
-                                ? (Reciter.arabicNamesById[defaultId] ?? 'قارئ $defaultId')
-                                : 'Reciter $defaultId';
-                            storage.saveDefaultReciter(
-                              id: defaultId,
-                              name: reciterName,
-                              apiSource: defaultSource == ReciterSource.mp3Quran ? 'mp3Quran' : 'quranDotCom',
-                            );
-                            audioProvider.setReciter(
-                              defaultId,
-                              name: reciterName,
-                              apiSource: defaultSource == ReciterSource.mp3Quran ? ApiSource.mp3Quran : ApiSource.quranDotCom,
-                            );
+                            await profileProvider.switchProfile(p.id);
+
+                            // Sync default reciter from profile
+                            final defaultId = p.defaultReciterId;
+                            final defaultSource = p.defaultReciterSource;
+
+                            final match = readingProvider.reciters
+                                .where((r) => r.id == defaultId)
+                                .firstOrNull;
+                            if (match != null) {
+                              storage.saveDefaultReciter(
+                                id: match.id,
+                                name: match.reciterName,
+                                apiSource: match.apiSource == ApiSource.mp3Quran
+                                    ? 'mp3Quran'
+                                    : 'quranDotCom',
+                                serverUrl: match.serverUrl,
+                                moshafId: match.moshafId,
+                              );
+                              audioProvider.setReciter(
+                                match.id,
+                                name: match.reciterName,
+                                apiSource: match.apiSource,
+                                serverUrl: match.serverUrl,
+                                moshafId: match.moshafId,
+                              );
+                            } else {
+                              final reciterName = isArabic
+                                  ? (Reciter.arabicNamesById[defaultId] ??
+                                        'قارئ $defaultId')
+                                  : 'Reciter $defaultId';
+                              storage.saveDefaultReciter(
+                                id: defaultId,
+                                name: reciterName,
+                                apiSource:
+                                    defaultSource == ReciterSource.mp3Quran
+                                    ? 'mp3Quran'
+                                    : 'quranDotCom',
+                              );
+                              audioProvider.setReciter(
+                                defaultId,
+                                name: reciterName,
+                                apiSource:
+                                    defaultSource == ReciterSource.mp3Quran
+                                    ? ApiSource.mp3Quran
+                                    : ApiSource.quranDotCom,
+                              );
+                            }
+
+                            planProvider.clearPlan();
+                            await planProvider.loadOrGeneratePlan(p);
+                            await analyticsProvider.loadAnalytics(p);
+                            await flashcardProvider.loadDueCards(p.id);
                           }
-
-                          planProvider.clearPlan();
-                          await planProvider.loadOrGeneratePlan(p);
-                          await analyticsProvider.loadAnalytics(p);
-                          await flashcardProvider.loadDueCards(p.id);
-                        }
-                        if (context.mounted) Navigator.of(context).pop();
+                          if (context.mounted) Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? theme.accentColor.withValues(alpha: 0.1)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(theme.radiusLg),
+                            border: Border.all(
+                              color: isActive
+                                  ? theme.accentColor.withValues(alpha: 0.3)
+                                  : theme.dividerColor,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                IconResolver.avatarIcons[p.avatarIndex.clamp(
+                                  0,
+                                  7,
+                                )],
+                                size: 24,
+                                color: isActive
+                                    ? theme.accentColor
+                                    : theme.secondaryText,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  p.name,
+                                  style: TextStyle(
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
+                                    fontSize: 15,
+                                    fontWeight: isActive
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: theme.primaryText,
+                                  ),
+                                ),
+                              ),
+                              if (isActive)
+                                Icon(
+                                  LucideIcons.check,
+                                  size: 18,
+                                  color: theme.accentColor,
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 4),
+                    // Add new profile
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AssessmentScreen(),
+                          ),
+                        ).then((_) {
+                          if (context.mounted) {
+                            final activeProfile = context
+                                .read<HifzProfileProvider>()
+                                .activeProfile;
+                            if (activeProfile != null) {
+                              context.read<PlanProvider>().loadOrGeneratePlan(
+                                activeProfile,
+                              );
+                              context.read<AnalyticsProvider>().loadAnalytics(
+                                activeProfile,
+                              );
+                              context.read<FlashcardProvider>().loadDueCards(
+                                activeProfile.id,
+                              );
+                            }
+                          }
+                        });
                       },
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: isActive
-                              ? theme.accentColor.withValues(alpha: 0.1)
-                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(theme.radiusLg),
-                          border: Border.all(
-                            color: isActive
-                                ? theme.accentColor.withValues(alpha: 0.3)
-                                : theme.dividerColor,
-                          ),
+                          boxShadow: theme.shadowCard,
                         ),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              IconResolver.avatarIcons[p.avatarIndex.clamp(0, 7)],
-                              size: 24,
-                              color: isActive
-                                  ? theme.accentColor
-                                  : theme.secondaryText,
+                              LucideIcons.plus,
+                              size: 16,
+                              color: theme.secondaryText,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                p.name,
-                                style: TextStyle(
-                                  fontFamily: GeistTypography.primaryFontFamily,
-                                  fontSize: 15,
-                                  fontWeight: isActive
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: theme.primaryText,
-                                ),
+                            const SizedBox(width: 8),
+                            Text(
+                              l.homeCreateProfile,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: theme.secondaryText,
                               ),
                             ),
-                            if (isActive)
-                              Icon(
-                                LucideIcons.check,
-                                size: 18,
-                                color: theme.accentColor,
-                              ),
                           ],
                         ),
                       ),
-                    );
-                  }),
-                  const SizedBox(height: 4),
-                  // Add new profile
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AssessmentScreen(),
-                        ),
-                      ).then((_) {
-                        if (context.mounted) {
-                          final activeProfile = context.read<HifzProfileProvider>().activeProfile;
-                          if (activeProfile != null) {
-                            context.read<PlanProvider>().loadOrGeneratePlan(activeProfile);
-                            context.read<AnalyticsProvider>().loadAnalytics(activeProfile);
-                            context.read<FlashcardProvider>().loadDueCards(activeProfile.id);
-                          }
-                        }
-                      });
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(theme.radiusLg),
-                        boxShadow: theme.shadowCard,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.plus,
-                            size: 16,
-                            color: theme.secondaryText,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            l.homeCreateProfile,
-                            style: TextStyle(
-                              fontFamily: GeistTypography.primaryFontFamily,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: theme.secondaryText,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-        ],
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

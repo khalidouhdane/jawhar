@@ -515,7 +515,11 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            VerseRefFormatter.format(key, locale: AppLocalizations.of(context)!.localeName, tier: VerseRefFormat.compact),
+            VerseRefFormatter.format(
+              key,
+              locale: AppLocalizations.of(context)!.localeName,
+              tier: VerseRefFormat.compact,
+            ),
             style: TextStyle(
               fontFamily: GeistTypography.primaryFontFamily,
               fontSize: 10,

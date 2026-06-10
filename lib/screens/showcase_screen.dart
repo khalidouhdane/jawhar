@@ -166,24 +166,30 @@ class _ShowcaseScreenState extends State<ShowcaseScreen>
                         title: l10n.onboardingReadTitle,
                         subtitle: l10n.onboardingReadDesc,
                         mockupStack: const ScreenshotMockupStack(
-                          foregroundImg: 'assets/images/screenshots/mushaf_audio_playing.png',
-                          backgroundImg: 'assets/images/screenshots/read_index_home.png',
+                          foregroundImg:
+                              'assets/images/screenshots/mushaf_audio_playing.png',
+                          backgroundImg:
+                              'assets/images/screenshots/read_index_home.png',
                         ),
                       ),
                       _ShowcaseSlide(
                         title: l10n.onboardingUnderstandTitle,
                         subtitle: l10n.onboardingUnderstandDesc,
                         mockupStack: const ScreenshotMockupStack(
-                          foregroundImg: 'assets/images/screenshots/tafsir_sheet_brief.png',
-                          backgroundImg: 'assets/images/screenshots/understand_index_home.png',
+                          foregroundImg:
+                              'assets/images/screenshots/tafsir_sheet_brief.png',
+                          backgroundImg:
+                              'assets/images/screenshots/understand_index_home.png',
                         ),
                       ),
                       _ShowcaseSlide(
                         title: l10n.onboardingMemorizeTitle,
                         subtitle: l10n.onboardingMemorizeDesc,
                         mockupStack: const ScreenshotMockupStack(
-                          foregroundImg: 'assets/images/screenshots/hifz_dashboard_today_plan.png',
-                          backgroundImg: 'assets/images/screenshots/practice_home_flashcards.png',
+                          foregroundImg:
+                              'assets/images/screenshots/hifz_dashboard_today_plan.png',
+                          backgroundImg:
+                              'assets/images/screenshots/practice_home_flashcards.png',
                         ),
                       ),
                     ],
@@ -277,11 +283,7 @@ class _ShowcaseSlide extends StatelessWidget {
       child: Column(
         children: [
           // ── Responsive Mockup Area ──
-          Expanded(
-            child: Center(
-              child: mockupStack,
-            ),
-          ),
+          Expanded(child: Center(child: mockupStack)),
 
           const SizedBox(height: 24),
 
@@ -349,7 +351,9 @@ class PhoneFrame extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(6.0), // Elegant, uniform inner bezel padding
+      padding: const EdgeInsets.all(
+        6.0,
+      ), // Elegant, uniform inner bezel padding
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Container(
@@ -386,7 +390,7 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final theme = context.watch<ThemeProvider>();
-    
+
     // Maximize height based on screen size while reserving spacing
     final stackWidth = size.width * 0.8;
     final stackHeight = size.height * 0.46;
@@ -396,10 +400,11 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
     // Total horizontal reduction = 2 * (3.5 + 6.0) = 19.0.
     // Total vertical reduction = 2 * (3.5 + 6.0) = 19.0.
     // Inner screenshot aspect ratio = (cardWidth - 19.0) / (cardHeight - 19.0) = 0.46225.
-    
+
     // Constraints:
     final maxCardHeight = stackHeight * 0.95;
-    final maxCardWidth = stackWidth * 0.75; // Leave 25% for stack offset and padding
+    final maxCardWidth =
+        stackWidth * 0.75; // Leave 25% for stack offset and padding
 
     // 1. Estimate cardHeight based on height constraint
     double cardHeight = maxCardHeight;
@@ -413,10 +418,15 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
 
     // Calculate margins to center the offset stack within the container
     final double stackSpan = cardWidth + stackWidth * 0.22;
-    final double horizontalPadding = ((stackWidth - stackSpan) / 2).clamp(0.0, stackWidth);
+    final double horizontalPadding = ((stackWidth - stackSpan) / 2).clamp(
+      0.0,
+      stackWidth,
+    );
 
-    final leftOffsetForeground = horizontalPadding + (_isSwapped ? 0.0 : stackWidth * 0.22);
-    final leftOffsetBackground = horizontalPadding + (_isSwapped ? stackWidth * 0.22 : 0.0);
+    final leftOffsetForeground =
+        horizontalPadding + (_isSwapped ? 0.0 : stackWidth * 0.22);
+    final leftOffsetBackground =
+        horizontalPadding + (_isSwapped ? stackWidth * 0.22 : 0.0);
 
     final topOffsetForeground = stackHeight * 0.02;
     final topOffsetBackground = stackHeight * 0.12;
@@ -435,7 +445,13 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
           opacity: _isSwapped ? 0.6 : 1.0,
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
-          child: _buildCard(widget.foregroundImg, cardWidth, cardHeight, isForeground: !_isSwapped, theme: theme),
+          child: _buildCard(
+            widget.foregroundImg,
+            cardWidth,
+            cardHeight,
+            isForeground: !_isSwapped,
+            theme: theme,
+          ),
         ),
       ),
     );
@@ -454,7 +470,13 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
           opacity: _isSwapped ? 1.0 : 0.6,
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
-          child: _buildCard(widget.backgroundImg, cardWidth, cardHeight, isForeground: _isSwapped, theme: theme),
+          child: _buildCard(
+            widget.backgroundImg,
+            cardWidth,
+            cardHeight,
+            isForeground: _isSwapped,
+            theme: theme,
+          ),
         ),
       ),
     );
@@ -477,7 +499,13 @@ class _ScreenshotMockupStackState extends State<ScreenshotMockupStack> {
     );
   }
 
-  Widget _buildCard(String assetPath, double width, double height, {required bool isForeground, required ThemeProvider theme}) {
+  Widget _buildCard(
+    String assetPath,
+    double width,
+    double height, {
+    required bool isForeground,
+    required ThemeProvider theme,
+  }) {
     return SizedBox(
       width: width,
       height: height,

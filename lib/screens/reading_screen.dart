@@ -114,9 +114,7 @@ class _MobileReadingViewState extends State<MobileReadingView> {
     _pageReadTimer?.cancel();
     _audioProvider.removeListener(_onAudioChanged);
     _pageController.dispose();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(_themeProvider.systemOverlayStyle);
     super.dispose();
   }
@@ -948,9 +946,20 @@ class QuranPageState extends State<QuranPage>
     int index,
     String verseKey,
     ThemeProvider theme,
-    Map<String, VerseText> translations,
-  ) {
+    Map<String, VerseText> translations, {
+    int attempt = 0,
+  }) {
     if (!mounted) return;
+
+    // Cap retries (~1s at 50ms each) so a never-arriving measurement/controller
+    // cannot spin a Future.delayed chain forever.
+    if (attempt > 20) {
+      AppLogger.warn(
+        'TafsirScroll',
+        'Mobile Scroll index $index ($verseKey): giving up after $attempt attempts',
+      );
+      return;
+    }
 
     final activeVerseKey = context.read<AudioProvider>().activeVerseKey;
     final highlightKey = context.read<ContextProvider>().highlightVerseKey;
@@ -960,7 +969,13 @@ class QuranPageState extends State<QuranPage>
     if (!_tafsirScrollController.hasClients) {
       Future.delayed(
         const Duration(milliseconds: 50),
-        () => _scrollToVerse(index, verseKey, theme, translations),
+        () => _scrollToVerse(
+          index,
+          verseKey,
+          theme,
+          translations,
+          attempt: attempt + 1,
+        ),
       );
       return;
     }
@@ -981,7 +996,13 @@ class QuranPageState extends State<QuranPage>
       );
       Future.delayed(
         const Duration(milliseconds: 50),
-        () => _scrollToVerse(index, verseKey, theme, translations),
+        () => _scrollToVerse(
+          index,
+          verseKey,
+          theme,
+          translations,
+          attempt: attempt + 1,
+        ),
       );
       return;
     }

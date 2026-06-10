@@ -36,7 +36,8 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
     final statusCounts = await db.getPageStatusCounts(profile.id);
     if (mounted) {
       setState(() {
-        _pagesMemorized = (statusCounts[PageStatus.memorized] ?? 0) +
+        _pagesMemorized =
+            (statusCounts[PageStatus.memorized] ?? 0) +
             (statusCounts[PageStatus.learning] ?? 0) +
             (statusCounts[PageStatus.reviewing] ?? 0);
         _loadingStats = false;

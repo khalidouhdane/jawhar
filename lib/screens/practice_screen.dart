@@ -74,63 +74,65 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     ),
                   ),
 
-              // ── Mixed Review Hero ──
-              _buildMixedHero(theme, fc),
-              const SizedBox(height: 16),
+                  // ── Mixed Review Hero ──
+                  _buildMixedHero(theme, fc),
+                  const SizedBox(height: 16),
 
-              // ── Type Category Grid ──
-              _buildCategoryGrid(theme, fc),
-              const SizedBox(height: 20),
+                  // ── Type Category Grid ──
+                  _buildCategoryGrid(theme, fc),
+                  const SizedBox(height: 20),
 
-              // ── Quick Stats (Only if profile exists and has progress) ──
-              if (profile.hasActiveProfile && fc.totalCards > 0) ...[
-                _buildStatsRow(theme, fc),
-                const SizedBox(height: 24),
-              ],
+                  // ── Quick Stats (Only if profile exists and has progress) ──
+                  if (profile.hasActiveProfile && fc.totalCards > 0) ...[
+                    _buildStatsRow(theme, fc),
+                    const SizedBox(height: 24),
+                  ],
 
-              // ── Regenerate (Only if profile exists) ──
-              if (profile.hasActiveProfile)
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      final p = context.read<HifzProfileProvider>();
-                      if (p.hasActiveProfile) {
-                        context.read<FlashcardProvider>().forceRegenerate(
-                          p.activeProfile!.id,
-                        );
-                      }
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          LucideIcons.refreshCw,
-                          size: 12,
-                          color: theme.mutedText,
+                  // ── Regenerate (Only if profile exists) ──
+                  if (profile.hasActiveProfile)
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          final p = context.read<HifzProfileProvider>();
+                          if (p.hasActiveProfile) {
+                            context.read<FlashcardProvider>().forceRegenerate(
+                              p.activeProfile!.id,
+                            );
+                          }
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.refreshCw,
+                              size: 12,
+                              color: theme.mutedText,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              AppLocalizations.of(context)!.pracRegenCards,
+                              style: TextStyle(
+                                fontFamily: GeistTypography.primaryFontFamily,
+                                fontSize: 12,
+                                color: theme.mutedText,
+                                decoration: TextDecoration.underline,
+                                decorationColor: theme.mutedText.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          AppLocalizations.of(context)!.pracRegenCards,
-                          style: TextStyle(
-                            fontFamily: GeistTypography.primaryFontFamily,
-                            fontSize: 12,
-                            color: theme.mutedText,
-                            decoration: TextDecoration.underline,
-                            decorationColor: theme.mutedText.withValues(alpha: 0.4),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 
   // ═══════════════════════════════════════
@@ -145,17 +147,16 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     // Use pillarMemorize (Ship Red) for the memory/practice accent color
     final baseAccent = SemanticColors.pillarMemorize.fg(theme.isDark);
-    final accentColor = (hasDue || !hasProfile) ? baseAccent : baseAccent.withValues(alpha: 0.4);
+    final accentColor = (hasDue || !hasProfile)
+        ? baseAccent
+        : baseAccent.withValues(alpha: 0.4);
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(theme.radiusXl),
-        border: Border.all(
-          color: theme.dividerColor,
-          width: 1.0,
-        ),
+        border: Border.all(color: theme.dividerColor, width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -166,9 +167,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             top: 0,
             bottom: 0,
             width: 4,
-            child: Container(
-              color: accentColor,
-            ),
+            child: Container(color: accentColor),
           ),
           // Main content with InkWell for tapping
           Material(
@@ -202,12 +201,17 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         children: [
                           Text(
                             !hasProfile
-                                ? (AppLocalizations.of(context)!.localeName == 'ar'
-                                    ? 'مراجعة عشوائية (تجربة)'
-                                    : 'Mixed Sandbox Review')
+                                ? (AppLocalizations.of(context)!.localeName ==
+                                          'ar'
+                                      ? 'مراجعة عشوائية (تجربة)'
+                                      : 'Mixed Sandbox Review')
                                 : (hasDue
-                                    ? AppLocalizations.of(context)!.pracMixedReview
-                                    : AppLocalizations.of(context)!.pracAllCaughtUp),
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.pracMixedReview
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.pracAllCaughtUp),
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 17,
@@ -218,12 +222,20 @@ class _PracticeScreenState extends State<PracticeScreen> {
                           const SizedBox(height: 2),
                           Text(
                             !hasProfile
-                                ? (AppLocalizations.of(context)!.localeName == 'ar'
-                                    ? 'تدرب على بطاقات عشوائية دون الحاجة لإنشاء ملف.'
-                                    : 'Practice with random cards without creating a profile.')
+                                ? (AppLocalizations.of(context)!.localeName ==
+                                          'ar'
+                                      ? 'تدرب على بطاقات عشوائية دون الحاجة لإنشاء ملف.'
+                                      : 'Practice with random cards without creating a profile.')
                                 : (hasDue
-                                    ? AppLocalizations.of(context)!.pracMixedReviewSubtitle(totalDue, fc.estimatedMinutes)
-                                    : AppLocalizations.of(context)!.pracNoFlashcards),
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.pracMixedReviewSubtitle(
+                                          totalDue,
+                                          fc.estimatedMinutes,
+                                        )
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.pracNoFlashcards),
                             style: TextStyle(
                               fontFamily: GeistTypography.primaryFontFamily,
                               fontSize: 12,
@@ -663,5 +675,4 @@ class _PracticeScreenState extends State<PracticeScreen> {
       ),
     );
   }
-
 }

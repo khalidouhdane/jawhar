@@ -159,14 +159,6 @@ class _SessionScreenState extends State<SessionScreen> {
   Widget _buildActiveView(ThemeProvider theme, SessionProvider session) {
     final l10n = AppLocalizations.of(context)!;
     final isCountdown = session.targetSeconds > 0;
-    final isOvertime = session.isOvertime;
-    final displaySeconds = isCountdown
-        ? (isOvertime
-              ? session.elapsedSeconds - session.targetSeconds
-              : session.remainingSeconds)
-        : session.elapsedSeconds;
-    final timerPrefix = isOvertime ? '+' : '';
-    final timerColor = isOvertime ? const Color(0xFFF59E0B) : theme.primaryText;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -291,15 +283,31 @@ class _SessionScreenState extends State<SessionScreen> {
               if (isCountdown) const SizedBox(width: 24),
               Column(
                 children: [
-                  Text(
-                    '$timerPrefix${_formatTime(displaySeconds)}',
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 56,
-                      fontWeight: FontWeight.w200,
-                      color: timerColor,
-                      letterSpacing: 2,
-                    ),
+                  ValueListenableBuilder<int>(
+                    valueListenable: session.elapsedSecondsListenable,
+                    builder: (context, elapsedSeconds, child) {
+                      final isOvertime =
+                          session.targetSeconds > 0 &&
+                          elapsedSeconds > session.targetSeconds;
+                      final displaySeconds = session.targetSeconds > 0
+                          ? (isOvertime
+                                ? elapsedSeconds - session.targetSeconds
+                                : session.targetSeconds - elapsedSeconds)
+                          : elapsedSeconds;
+                      return Text(
+                        '${isOvertime ? '+' : ''}'
+                        '${_formatTime(displaySeconds)}',
+                        style: TextStyle(
+                          fontFamily: GeistTypography.primaryFontFamily,
+                          fontSize: 56,
+                          fontWeight: FontWeight.w200,
+                          color: isOvertime
+                              ? const Color(0xFFF59E0B)
+                              : theme.primaryText,
+                          letterSpacing: 2,
+                        ),
+                      );
+                    },
                   ),
                   if (session.isPaused)
                     Padding(
@@ -484,20 +492,21 @@ class _SessionScreenState extends State<SessionScreen> {
       case SessionPhase.sabaq:
         final plan = session.plan;
         final lineInfo = plan?.sabaqStartVerse != null
-            ? AppLocalizations.of(context)!.sessionFromVerse(plan!.sabaqStartVerse!)
+            ? AppLocalizations.of(
+                context,
+              )!.sessionFromVerse(plan!.sabaqStartVerse!)
             : AppLocalizations.of(context)!.planPageLines(
                 plan?.sabaqPage ?? 0,
                 plan?.sabaqLineStart ?? 1,
                 plan?.sabaqLineEnd ?? 15,
               );
-        return AppLocalizations.of(context)!.sessionPageAndInfo(
-          plan?.sabaqPage.toString() ?? "?",
-          lineInfo,
-        );
+        return AppLocalizations.of(
+          context,
+        )!.sessionPageAndInfo(plan?.sabaqPage.toString() ?? "?", lineInfo);
       case SessionPhase.sabqi:
-        return AppLocalizations.of(context)!.sessionPagesToReview(
-          session.plan?.sabqiPages.length ?? 0,
-        );
+        return AppLocalizations.of(
+          context,
+        )!.sessionPagesToReview(session.plan?.sabqiPages.length ?? 0);
       case SessionPhase.manzil:
         return AppLocalizations.of(context)!.sessionJuzAndPages(
           session.plan?.manzilJuz.toString() ?? "?",
@@ -546,53 +555,53 @@ class _SessionScreenState extends State<SessionScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Text(
-            AppLocalizations.of(context)!.sessionHowDidItGo,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
+            Text(
+              AppLocalizations.of(context)!.sessionHowDidItGo,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: theme.primaryText,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.sessionRatePerformance(
-              _getPhaseLabel(context, session.currentPhase).toLowerCase(),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.sessionRatePerformance(
+                _getPhaseLabel(context, session.currentPhase).toLowerCase(),
+              ),
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 14,
+                color: theme.secondaryText,
+              ),
             ),
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 14,
-              color: theme.secondaryText,
+            const SizedBox(height: 32),
+            _assessmentOption(
+              theme,
+              LucideIcons.dumbbell,
+              AppLocalizations.of(context)!.sessionAssessmentStrong,
+              AppLocalizations.of(context)!.sessionAssessmentStrongDesc,
+              () => session.submitAssessment(SelfAssessment.strong),
             ),
-          ),
-          const SizedBox(height: 32),
-          _assessmentOption(
-            theme,
-            LucideIcons.dumbbell,
-            AppLocalizations.of(context)!.sessionAssessmentStrong,
-            AppLocalizations.of(context)!.sessionAssessmentStrongDesc,
-            () => session.submitAssessment(SelfAssessment.strong),
-          ),
-          const SizedBox(height: 12),
-          _assessmentOption(
-            theme,
-            LucideIcons.helpCircle,
-            AppLocalizations.of(context)!.sessionAssessmentOkay,
-            AppLocalizations.of(context)!.sessionAssessmentOkayDesc,
-            () => session.submitAssessment(SelfAssessment.okay),
-          ),
-          const SizedBox(height: 12),
-          _assessmentOption(
-            theme,
-            LucideIcons.alertCircle,
-            AppLocalizations.of(context)!.sessionAssessmentNeedsWork,
-            AppLocalizations.of(context)!.sessionAssessmentNeedsWorkDesc,
-            () => session.submitAssessment(SelfAssessment.needsWork),
-          ),
-        ],
+            const SizedBox(height: 12),
+            _assessmentOption(
+              theme,
+              LucideIcons.helpCircle,
+              AppLocalizations.of(context)!.sessionAssessmentOkay,
+              AppLocalizations.of(context)!.sessionAssessmentOkayDesc,
+              () => session.submitAssessment(SelfAssessment.okay),
+            ),
+            const SizedBox(height: 12),
+            _assessmentOption(
+              theme,
+              LucideIcons.alertCircle,
+              AppLocalizations.of(context)!.sessionAssessmentNeedsWork,
+              AppLocalizations.of(context)!.sessionAssessmentNeedsWorkDesc,
+              () => session.submitAssessment(SelfAssessment.needsWork),
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -619,61 +628,61 @@ class _SessionScreenState extends State<SessionScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Text(
-            AppLocalizations.of(context)!.coverageHowMuch,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
+            Text(
+              AppLocalizations.of(context)!.coverageHowMuch,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: theme.primaryText,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(
-              context,
-            )!.coveragePlanned(sabaqPage.toString(), lineInfo),
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 14,
-              color: theme.secondaryText,
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(
+                context,
+              )!.coveragePlanned(sabaqPage.toString(), lineInfo),
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 14,
+                color: theme.secondaryText,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // Option 1: Full page (all planned lines)
-          _coverageOption(
-            theme,
-            LucideIcons.checkCircle2,
-            AppLocalizations.of(context)!.coverageAllLines,
-            AppLocalizations.of(
-              context,
-            )!.coverageAllLinesDesc(sabaqPage.toString(), lineInfo),
-            () => session.setActualCoverage([sabaqPage]),
-          ),
-          const SizedBox(height: 12),
+            // Option 1: Full page (all planned lines)
+            _coverageOption(
+              theme,
+              LucideIcons.checkCircle2,
+              AppLocalizations.of(context)!.coverageAllLines,
+              AppLocalizations.of(
+                context,
+              )!.coverageAllLinesDesc(sabaqPage.toString(), lineInfo),
+              () => session.setActualCoverage([sabaqPage]),
+            ),
+            const SizedBox(height: 12),
 
-          // Option 2: Partial page (CE-9 with verse picker)
-          _coverageOption(
-            theme,
-            LucideIcons.fileText,
-            AppLocalizations.of(context)!.coveragePartOfPage,
-            AppLocalizations.of(context)!.coveragePartOfPageDesc,
-            () => _showVerseRangePicker(theme, session, sabaqPage),
-          ),
-          const SizedBox(height: 12),
+            // Option 2: Partial page (CE-9 with verse picker)
+            _coverageOption(
+              theme,
+              LucideIcons.fileText,
+              AppLocalizations.of(context)!.coveragePartOfPage,
+              AppLocalizations.of(context)!.coveragePartOfPageDesc,
+              () => _showVerseRangePicker(theme, session, sabaqPage),
+            ),
+            const SizedBox(height: 12),
 
-          // Option 3: More than planned
-          _coverageOption(
-            theme,
-            LucideIcons.library,
-            AppLocalizations.of(context)!.coverageMoreThanPlanned,
-            AppLocalizations.of(context)!.coverageMoreThanPlannedDesc,
-            () => _showPageRangePicker(theme, session, sabaqPage),
-          ),
-        ],
+            // Option 3: More than planned
+            _coverageOption(
+              theme,
+              LucideIcons.library,
+              AppLocalizations.of(context)!.coverageMoreThanPlanned,
+              AppLocalizations.of(context)!.coverageMoreThanPlannedDesc,
+              () => _showPageRangePicker(theme, session, sabaqPage),
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -761,11 +770,9 @@ class _SessionScreenState extends State<SessionScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    AppLocalizations.of(context)!.coveragePageXtoY(
-                      sabaqPage,
-                      _coverageEndPage,
-                      pageCount,
-                    ),
+                    AppLocalizations.of(
+                      context,
+                    )!.coveragePageXtoY(sabaqPage, _coverageEndPage, pageCount),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 13,
@@ -779,7 +786,9 @@ class _SessionScreenState extends State<SessionScreen> {
                     max: (sabaqPage + 10).toDouble().clamp(1, 604),
                     divisions: 10,
                     activeColor: theme.accentColor,
-                    label: AppLocalizations.of(context)!.coveragePageX(_coverageEndPage),
+                    label: AppLocalizations.of(
+                      context,
+                    )!.coveragePageX(_coverageEndPage),
                     onChanged: (v) => setSheetState(
                       () => _coverageEndPage = v.round().clamp(1, 604),
                     ),
@@ -796,7 +805,9 @@ class _SessionScreenState extends State<SessionScreen> {
                         Navigator.of(ctx).pop();
                         session.setActualCoverage(pages);
                       },
-                      label: AppLocalizations.of(context)!.coverageConfirmPages(pageCount),
+                      label: AppLocalizations.of(
+                        context,
+                      )!.coverageConfirmPages(pageCount),
                       type: GeistButtonType.primary,
                       size: GeistButtonSize.large,
                     ),
@@ -843,7 +854,9 @@ class _SessionScreenState extends State<SessionScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    AppLocalizations.of(context)!.coverageVersesCoveredOnPage(sabaqPage),
+                    AppLocalizations.of(
+                      context,
+                    )!.coverageVersesCoveredOnPage(sabaqPage),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 16,
@@ -854,11 +867,15 @@ class _SessionScreenState extends State<SessionScreen> {
                   const SizedBox(height: 4),
                   Text(
                     startVerse > 1
-                        ? AppLocalizations.of(context)!.coverageVersesOnPageStartFrom(
+                        ? AppLocalizations.of(
+                            context,
+                          )!.coverageVersesOnPageStartFrom(
                             _totalVersesOnPage,
                             startVerse,
                           )
-                        : AppLocalizations.of(context)!.coverageVersesOnPage(_totalVersesOnPage),
+                        : AppLocalizations.of(
+                            context,
+                          )!.coverageVersesOnPage(_totalVersesOnPage),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
@@ -895,7 +912,9 @@ class _SessionScreenState extends State<SessionScreen> {
                     max: _totalVersesOnPage.toDouble(),
                     divisions: (_totalVersesOnPage - startVerse).clamp(1, 100),
                     activeColor: theme.accentColor,
-                    label: AppLocalizations.of(context)!.coverageVerseX(_lastVerseLearned),
+                    label: AppLocalizations.of(
+                      context,
+                    )!.coverageVerseX(_lastVerseLearned),
                     onChanged: (v) =>
                         setSheetState(() => _lastVerseLearned = v.round()),
                   ),
@@ -903,7 +922,11 @@ class _SessionScreenState extends State<SessionScreen> {
                   Text(
                     _lastVerseLearned >= _totalVersesOnPage
                         ? AppLocalizations.of(context)!.coverageFullPageCovered
-                        : AppLocalizations.of(context)!.coverageNextTimeStartsFromVerse(_lastVerseLearned + 1),
+                        : AppLocalizations.of(
+                            context,
+                          )!.coverageNextTimeStartsFromVerse(
+                            _lastVerseLearned + 1,
+                          ),
                     style: TextStyle(
                       fontFamily: GeistTypography.primaryFontFamily,
                       fontSize: 12,
@@ -929,8 +952,15 @@ class _SessionScreenState extends State<SessionScreen> {
                         }
                       },
                       label: startVerse > 1
-                          ? AppLocalizations.of(context)!.coverageConfirmVersesXtoY(startVerse, _lastVerseLearned)
-                          : AppLocalizations.of(context)!.coverageConfirmVerseXtoY(_lastVerseLearned),
+                          ? AppLocalizations.of(
+                              context,
+                            )!.coverageConfirmVersesXtoY(
+                              startVerse,
+                              _lastVerseLearned,
+                            )
+                          : AppLocalizations.of(
+                              context,
+                            )!.coverageConfirmVerseXtoY(_lastVerseLearned),
                       type: GeistButtonType.primary,
                       size: GeistButtonSize.large,
                     ),
@@ -1008,212 +1038,215 @@ class _SessionScreenState extends State<SessionScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Icon(LucideIcons.partyPopper, size: 64, color: theme.accentColor),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.completeSessionComplete,
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: theme.primaryText,
+            Icon(LucideIcons.partyPopper, size: 64, color: theme.accentColor),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context)!.completeSessionComplete,
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: theme.primaryText,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _getCompletionMessage(),
-            style: TextStyle(
-              fontFamily: GeistTypography.primaryFontFamily,
-              fontSize: 14,
-              color: theme.secondaryText,
+            const SizedBox(height: 8),
+            Text(
+              _getCompletionMessage(),
+              style: TextStyle(
+                fontFamily: GeistTypography.primaryFontFamily,
+                fontSize: 14,
+                color: theme.secondaryText,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // Summary
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Column(
-              children: [
-                _summaryRow(
-                  theme,
-                  LucideIcons.clock,
-                  AppLocalizations.of(context)!.completeTimeSpent,
-                  _formatTime(session.elapsedSeconds),
-                ),
-                const SizedBox(height: 12),
-                _summaryRow(
-                  theme,
-                  LucideIcons.rotateCcw,
-                  AppLocalizations.of(context)!.completeTotalReps,
-                  '${session.totalRepCount}',
-                ),
-                if (session.sabaqAssessment != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: _summaryRow(
+            // Summary
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: theme.dividerColor),
+              ),
+              child: Column(
+                children: [
+                  ValueListenableBuilder<int>(
+                    valueListenable: session.elapsedSecondsListenable,
+                    builder: (context, elapsedSeconds, child) => _summaryRow(
                       theme,
-                      LucideIcons.bookOpen,
-                      AppLocalizations.of(context)!.planPhaseSabaq,
-                      _assessmentLabel(session.sabaqAssessment!),
+                      LucideIcons.clock,
+                      AppLocalizations.of(context)!.completeTimeSpent,
+                      _formatTime(elapsedSeconds),
                     ),
                   ),
-                if (session.sabqiAssessment != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: _summaryRow(
-                      theme,
-                      LucideIcons.repeat,
-                      AppLocalizations.of(context)!.planPhaseSabqi,
-                      _assessmentLabel(session.sabqiAssessment!),
-                    ),
+                  const SizedBox(height: 12),
+                  _summaryRow(
+                    theme,
+                    LucideIcons.rotateCcw,
+                    AppLocalizations.of(context)!.completeTotalReps,
+                    '${session.totalRepCount}',
                   ),
-                if (session.manzilAssessment != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: _summaryRow(
-                      theme,
-                      LucideIcons.library,
-                      AppLocalizations.of(context)!.planPhaseManzil,
-                      _assessmentLabel(session.manzilAssessment!),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Tomorrow's preview
-          FutureBuilder<String?>(
-            future: _getTomorrowPreview(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data != null) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: theme.accentColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.accentColor.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        LucideIcons.sunrise,
-                        size: 20,
-                        color: theme.accentColor,
+                  if (session.sabaqAssessment != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: _summaryRow(
+                        theme,
+                        LucideIcons.bookOpen,
+                        AppLocalizations.of(context)!.planPhaseSabaq,
+                        _assessmentLabel(session.sabaqAssessment!),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocalizations.of(
-                                context,
-                              )!.completeTomorrowsPreview,
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: theme.accentColor,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              snapshot.data!,
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 12,
-                                color: theme.secondaryText,
-                              ),
-                            ),
-                          ],
+                    ),
+                  if (session.sabqiAssessment != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: _summaryRow(
+                        theme,
+                        LucideIcons.repeat,
+                        AppLocalizations.of(context)!.planPhaseSabqi,
+                        _assessmentLabel(session.sabqiAssessment!),
+                      ),
+                    ),
+                  if (session.manzilAssessment != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: _summaryRow(
+                        theme,
+                        LucideIcons.library,
+                        AppLocalizations.of(context)!.planPhaseManzil,
+                        _assessmentLabel(session.manzilAssessment!),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Tomorrow's preview
+            FutureBuilder<String?>(
+              future: _getTomorrowPreview(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.accentColor.withValues(alpha: 0.15),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.sunrise,
+                          size: 20,
+                          color: theme.accentColor,
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.completeTomorrowsPreview,
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.accentColor,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                snapshot.data!,
+                                style: TextStyle(
+                                  fontFamily: GeistTypography.primaryFontFamily,
+                                  fontSize: 12,
+                                  color: theme.secondaryText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+
+            // Practice Flashcards CTA (Phase 2)
+            Builder(
+              builder: (_) {
+                final fc = context.read<FlashcardProvider>();
+                final due = fc.dueCardCount;
+                if (due <= 0) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: GeistButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const FlashcardReviewScreen(),
+                          ),
+                        );
+                      },
+                      label: AppLocalizations.of(
+                        context,
+                      )!.completePracticeFlashcards(due),
+                      prefix: Icon(
+                        LucideIcons.layers,
+                        size: 16,
+                        color: theme.primaryText,
                       ),
-                    ],
+                      type: GeistButtonType.secondary,
+                      size: GeistButtonSize.large,
+                    ),
                   ),
                 );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-
-          // Practice Flashcards CTA (Phase 2)
-          Builder(
-            builder: (_) {
-              final fc = context.read<FlashcardProvider>();
-              final due = fc.dueCardCount;
-              if (due <= 0) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: GeistButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const FlashcardReviewScreen(),
-                        ),
-                      );
-                    },
-                    label: AppLocalizations.of(
-                      context,
-                    )!.completePracticeFlashcards(due),
-                    prefix: Icon(
-                      LucideIcons.layers,
-                      size: 16,
-                      color: theme.primaryText,
-                    ),
-                    type: GeistButtonType.secondary,
-                    size: GeistButtonSize.large,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          // Back to Dashboard
-          SizedBox(
-            width: double.infinity,
-            child: GeistButton(
-              onPressed: () async {
-                await session.completeSession();
-                // Phase 1.9: Smart-skip today's notification
-                if (mounted) {
-                  context.read<NotificationProvider>().onSessionCompleted();
-                }
-                // Mark the CURRENT plan as completed first,
-                // then regenerate so the next session picks up
-                // the advanced page/line range.
-                if (mounted) {
-                  final profile = context.read<HifzProfileProvider>();
-                  final planProvider = context.read<PlanProvider>();
-                  await planProvider.completePlan();
-                  if (profile.activeProfile != null) {
-                    await planProvider.regeneratePlan(profile.activeProfile!);
-                  }
-                  await profile.refresh();
-                  if (mounted) Navigator.of(context).pop();
-                }
               },
-              label: AppLocalizations.of(context)!.completeBackToDashboard,
-              type: GeistButtonType.primary,
-              size: GeistButtonSize.large,
             ),
-          ),
-        ],
+
+            // Back to Dashboard
+            SizedBox(
+              width: double.infinity,
+              child: GeistButton(
+                onPressed: () async {
+                  await session.completeSession();
+                  // Phase 1.9: Smart-skip today's notification
+                  if (mounted) {
+                    context.read<NotificationProvider>().onSessionCompleted();
+                  }
+                  // Mark the CURRENT plan as completed first,
+                  // then regenerate so the next session picks up
+                  // the advanced page/line range.
+                  if (mounted) {
+                    final profile = context.read<HifzProfileProvider>();
+                    final planProvider = context.read<PlanProvider>();
+                    await planProvider.completePlan();
+                    if (profile.activeProfile != null) {
+                      await planProvider.regeneratePlan(profile.activeProfile!);
+                    }
+                    await profile.refresh();
+                    if (mounted) Navigator.of(context).pop();
+                  }
+                },
+                label: AppLocalizations.of(context)!.completeBackToDashboard,
+                type: GeistButtonType.primary,
+                size: GeistButtonSize.large,
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -1360,5 +1393,3 @@ class _SessionScreenState extends State<SessionScreen> {
     }
   }
 }
-
-

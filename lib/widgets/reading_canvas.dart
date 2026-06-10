@@ -134,6 +134,10 @@ class ReadingCanvasState extends State<ReadingCanvas> {
     return _verseKeys.putIfAbsent(verseId, () => GlobalKey());
   }
 
+  void _toggleVerseSelection(int verseId) {
+    widget.onVerseSelected(widget.selectedVerseId == verseId ? null : verseId);
+  }
+
   List<InlineSpan> _buildSpans(
     ThemeProvider theme,
     String? activeVerseKey,
@@ -185,7 +189,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
         // ── Warsh mode: render full verse text as a single TextSpan ──
         final recognizer = LongPressGestureRecognizer()
           ..onLongPress = () {
-            widget.onVerseSelected(isSelected ? null : verse.id);
+            _toggleVerseSelection(verse.id);
           };
         _recognizers.add(recognizer);
 
@@ -223,7 +227,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
               padding: const EdgeInsets.symmetric(horizontal: 2),
               child: GestureDetector(
                 onLongPress: () {
-                  widget.onVerseSelected(isSelected ? null : verse.id);
+                  _toggleVerseSelection(verse.id);
                 },
                 child: marker,
               ),
@@ -256,7 +260,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: GestureDetector(
                     onLongPress: () {
-                      widget.onVerseSelected(isSelected ? null : verse.id);
+                      _toggleVerseSelection(verse.id);
                     },
                     child: marker,
                   ),
@@ -267,7 +271,7 @@ class ReadingCanvasState extends State<ReadingCanvas> {
             final text = wi == 0 ? word.textUthmani : ' ${word.textUthmani}';
             final recognizer = LongPressGestureRecognizer()
               ..onLongPress = () {
-                widget.onVerseSelected(isSelected ? null : verse.id);
+                _toggleVerseSelection(verse.id);
               };
             _recognizers.add(recognizer);
 
@@ -356,8 +360,9 @@ class ReadingCanvasState extends State<ReadingCanvas> {
                           : 32.0;
 
                       // Constrain calculations to 680px width to scale correctly on wider tablets/web layouts
-                      final effectiveMaxWidth =
-                          constraints.maxWidth > 680.0 ? 680.0 : constraints.maxWidth;
+                      final effectiveMaxWidth = constraints.maxWidth > 680.0
+                          ? 680.0
+                          : constraints.maxWidth;
                       final availableWidth =
                           effectiveMaxWidth - paddingLeft - paddingRight;
                       // Subtract a small safe zone margin (20px) to ensure text never touches the fade gradients
@@ -591,10 +596,7 @@ class _VerseMarker extends StatelessWidget {
               height: innerSize,
               decoration: BoxDecoration(
                 color: fillColor,
-                border: Border.all(
-                  color: borderColor,
-                  width: 1.0,
-                ),
+                border: Border.all(color: borderColor, width: 1.0),
                 borderRadius: BorderRadius.circular(2.5),
               ),
             ),
@@ -672,11 +674,8 @@ class _ContextualMenu extends StatelessWidget {
                 final l = AppLocalizations.of(context);
                 Clipboard.setData(
                   ClipboardData(
-                    text: '$_verseText\n[${VerseRefFormatter.format(
-                      verse.verseKey,
-                      locale: l?.localeName ?? 'en',
-                      tier: VerseRefFormat.full,
-                    )}]',
+                    text:
+                        '$_verseText\n[${VerseRefFormatter.format(verse.verseKey, locale: l?.localeName ?? 'en', tier: VerseRefFormat.full)}]',
                   ),
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -740,11 +739,8 @@ class _ContextualMenu extends StatelessWidget {
                 final l = AppLocalizations.of(context);
                 Clipboard.setData(
                   ClipboardData(
-                    text: '$_verseText\n\n— ${VerseRefFormatter.format(
-                      verse.verseKey,
-                      locale: l?.localeName ?? 'en',
-                      tier: VerseRefFormat.full,
-                    )}',
+                    text:
+                        '$_verseText\n\n— ${VerseRefFormatter.format(verse.verseKey, locale: l?.localeName ?? 'en', tier: VerseRefFormat.full)}',
                   ),
                 );
                 ScaffoldMessenger.of(context).showSnackBar(

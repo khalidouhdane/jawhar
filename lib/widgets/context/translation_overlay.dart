@@ -112,7 +112,8 @@ class TranslationOverlay extends StatelessWidget {
         ExcludeSemantics(
           child: Text(
             text,
-            textDirection: AppLocalizations.of(context)!.localeName.startsWith('ar')
+            textDirection:
+                AppLocalizations.of(context)!.localeName.startsWith('ar')
                 ? TextDirection.rtl
                 : TextDirection.ltr,
             style: AppLocalizations.of(context)!.localeName.startsWith('ar')

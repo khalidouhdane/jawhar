@@ -72,7 +72,8 @@ class _UnderstandScreenState extends State<UnderstandScreen> {
         initialChildSize: 0.65,
         maxChildSize: 1.0,
         minChildSize: 0.3,
-        builder: (_, controller) => SurahDetailSheet(surah: surah, scrollController: controller),
+        builder: (_, controller) =>
+            SurahDetailSheet(surah: surah, scrollController: controller),
       ),
     );
   }
@@ -372,8 +373,8 @@ class _SurahTile extends StatelessWidget {
 
               const SizedBox(width: 8),
               DirectionalIcon(
-                icon: LucideIcons.chevronRight, 
-                size: 16, 
+                icon: LucideIcons.chevronRight,
+                size: 16,
                 color: theme.mutedText.withValues(alpha: 0.5),
               ),
             ],

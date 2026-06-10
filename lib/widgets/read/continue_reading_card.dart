@@ -39,7 +39,10 @@ class ContinueReadingCard extends StatelessWidget {
     final lastReadPage = lastRead.page;
     final surah = _surahInfoForPage(lastReadPage);
 
-    final displaySurahName = VerseRefFormatter.surahName(surah.id, l10n.localeName);
+    final displaySurahName = VerseRefFormatter.surahName(
+      surah.id,
+      l10n.localeName,
+    );
 
     final surahStart = surah.startPage;
     final surahEnd = surah.id < 114 ? surahStartPages[surah.id + 1] - 1 : 604;
@@ -67,11 +70,7 @@ class ContinueReadingCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    LucideIcons.bookOpen,
-                    size: 16,
-                    color: theme.mutedText,
-                  ),
+                  Icon(LucideIcons.bookOpen, size: 16, color: theme.mutedText),
                   const SizedBox(width: 8),
                   Text(
                     l10n.homeContinue.toUpperCase(),

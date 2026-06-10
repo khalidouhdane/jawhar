@@ -35,7 +35,8 @@ class TopNavBar extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
 
     return Container(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.only(
             top: MediaQuery.paddingOf(context).top > 0
                 ? MediaQuery.paddingOf(context).top + 16
@@ -44,10 +45,13 @@ class TopNavBar extends StatelessWidget {
             left: 16,
             right: 16,
           ),
-      decoration: decoration ??
+      decoration:
+          decoration ??
           BoxDecoration(
             color: theme.navBarBackground,
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
             boxShadow: theme.shadowRing,
           ),
       child: Row(
@@ -138,6 +142,7 @@ class TopLeftNavBar extends StatelessWidget {
       ],
     );
   }
+
   Widget _buildModeToggle({
     required BuildContext context,
     required String svgPath,
@@ -235,16 +240,13 @@ class TopRightNavBar extends StatelessWidget {
               color: theme.iconColor,
             ),
           ),
-        if (onThemeTapped != null && (onNavMenuTapped != null || onBookmarkTapped != null))
+        if (onThemeTapped != null &&
+            (onNavMenuTapped != null || onBookmarkTapped != null))
           const SizedBox(width: 16),
         if (onNavMenuTapped != null)
           GestureDetector(
             onTap: onNavMenuTapped,
-            child: Icon(
-              LucideIcons.search,
-              size: 24,
-              color: theme.iconColor,
-            ),
+            child: Icon(LucideIcons.search, size: 24, color: theme.iconColor),
           ),
         if (onNavMenuTapped != null && onBookmarkTapped != null)
           const SizedBox(width: 16),

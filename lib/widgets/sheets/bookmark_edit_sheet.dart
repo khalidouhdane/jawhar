@@ -116,7 +116,11 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                 const SizedBox(width: 6),
                 Text(
                   bm.type == BookmarkType.verse
-                      ? VerseRefFormatter.format(bm.verseKey!, locale: l.localeName, tier: VerseRefFormat.standard)
+                      ? VerseRefFormatter.format(
+                          bm.verseKey!,
+                          locale: l.localeName,
+                          tier: VerseRefFormat.standard,
+                        )
                       : '${l.navPage} ${bm.pageNumber} · ${bm.surahName}',
                   style: TextStyle(
                     fontFamily: GeistTypography.primaryFontFamily,

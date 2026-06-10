@@ -38,10 +38,7 @@ class UnderstandingSpotlight extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(theme.radiusLg),
-          border: Border.all(
-            color: theme.dividerColor,
-            width: 1.0,
-          ),
+          border: Border.all(color: theme.dividerColor, width: 1.0),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -52,9 +49,7 @@ class UnderstandingSpotlight extends StatelessWidget {
               top: 0,
               bottom: 0,
               width: 4,
-              child: Container(
-                color: accentColor,
-              ),
+              child: Container(color: accentColor),
             ),
             // Main Content
             Padding(
@@ -103,7 +98,9 @@ class UnderstandingSpotlight extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          isArabic ? "فهم الصفحة اليوم" : "Explore Today's Page",
+                          isArabic
+                              ? "فهم الصفحة اليوم"
+                              : "Explore Today's Page",
                           style: TextStyle(
                             fontFamily: GeistTypography.primaryFontFamily,
                             fontSize: 12,

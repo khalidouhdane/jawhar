@@ -42,7 +42,10 @@ class ProgressStrip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 12,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -51,7 +54,9 @@ class ProgressStrip extends StatelessWidget {
                           theme: theme,
                           icon: LucideIcons.flame,
                           count: '$streakDays',
-                          label: AppLocalizations.of(context)!.progressActiveDays(streakDays),
+                          label: AppLocalizations.of(
+                            context,
+                          )!.progressActiveDays(streakDays),
                         ),
                       ),
                       Container(
@@ -65,7 +70,9 @@ class ProgressStrip extends StatelessWidget {
                           theme: theme,
                           icon: LucideIcons.bookOpen,
                           count: '$memorizedPages',
-                          label: AppLocalizations.of(context)!.progressLegendMemorized,
+                          label: AppLocalizations.of(
+                            context,
+                          )!.progressLegendMemorized,
                         ),
                       ),
                       Container(
@@ -79,19 +86,22 @@ class ProgressStrip extends StatelessWidget {
                           theme: theme,
                           icon: LucideIcons.history,
                           count: '$sessionCount',
-                          label: AppLocalizations.of(context)!.progressSessionsCount(sessionCount),
+                          label: AppLocalizations.of(
+                            context,
+                          )!.progressSessionsCount(sessionCount),
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.dividerColor.withValues(alpha: 0.1),
-                    border: Border(
-                      top: BorderSide(color: theme.dividerColor),
-                    ),
+                    border: Border(top: BorderSide(color: theme.dividerColor)),
                   ),
                   child: Row(
                     children: [
@@ -130,11 +140,7 @@ class ProgressStrip extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: theme.accentColor,
-        ),
+        Icon(icon, size: 20, color: theme.accentColor),
         const SizedBox(height: 6),
         Text(
           count,

@@ -28,9 +28,15 @@ class TopicDetailScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final content = topicContentRegistry[topic.id];
 
-    final primaryColor = isDark ? GeistTokens.darkPrimary : GeistTokens.lightPrimary;
-    final secondaryColor = isDark ? GeistTokens.darkSecondary : GeistTokens.lightSecondary;
-    final scaffoldColor = isDark ? GeistTokens.darkScaffold : GeistTokens.lightScaffold;
+    final primaryColor = isDark
+        ? GeistTokens.darkPrimary
+        : GeistTokens.lightPrimary;
+    final secondaryColor = isDark
+        ? GeistTokens.darkSecondary
+        : GeistTokens.lightSecondary;
+    final scaffoldColor = isDark
+        ? GeistTokens.darkScaffold
+        : GeistTokens.lightScaffold;
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -39,7 +45,11 @@ class TopicDetailScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: DirectionalIcon(icon: LucideIcons.arrowLeft, size: 20, color: primaryColor),
+          icon: DirectionalIcon(
+            icon: LucideIcons.arrowLeft,
+            size: 20,
+            color: primaryColor,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -60,15 +70,37 @@ class TopicDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Hero Section ──
-            _buildHero(context, l10n, isArabic, isDark, primaryColor, secondaryColor),
+            _buildHero(
+              context,
+              l10n,
+              isArabic,
+              isDark,
+              primaryColor,
+              secondaryColor,
+            ),
 
             const SizedBox(height: 24),
 
             // ── Content ──
             if (content != null)
-              _buildCuratedContent(context, content, l10n, isArabic, isDark, primaryColor, secondaryColor)
+              _buildCuratedContent(
+                context,
+                content,
+                l10n,
+                isArabic,
+                isDark,
+                primaryColor,
+                secondaryColor,
+              )
             else
-              _buildFallbackContent(context, l10n, isArabic, isDark, primaryColor, secondaryColor),
+              _buildFallbackContent(
+                context,
+                l10n,
+                isArabic,
+                isDark,
+                primaryColor,
+                secondaryColor,
+              ),
           ],
         ),
       ),
@@ -84,7 +116,9 @@ class TopicDetailScreen extends StatelessWidget {
     Color primaryColor,
     Color secondaryColor,
   ) {
-    final borderColor = isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
+    final borderColor = isDark
+        ? GeistTokens.darkDivider
+        : GeistTokens.lightDivider;
 
     return Column(
       children: [
@@ -97,11 +131,7 @@ class TopicDetailScreen extends StatelessWidget {
               color: topic.color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(GeistTokens.radiusXl),
             ),
-            child: Icon(
-              topic.icon,
-              size: 24,
-              color: topic.color,
-            ),
+            child: Icon(topic.icon, size: 24, color: topic.color),
           ),
         ),
         const SizedBox(height: 16),
@@ -187,7 +217,9 @@ class TopicDetailScreen extends StatelessWidget {
     Color primaryColor,
     Color secondaryColor,
   ) {
-    final borderColor = isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
+    final borderColor = isDark
+        ? GeistTokens.darkDivider
+        : GeistTokens.lightDivider;
     final allExpanded = content.sections.length <= 3;
 
     return Column(
@@ -248,8 +280,12 @@ class TopicDetailScreen extends StatelessWidget {
     Color primaryColor,
     Color secondaryColor,
   ) {
-    final borderColor = isDark ? GeistTokens.darkDivider : GeistTokens.lightDivider;
-    final surfaceColor = isDark ? GeistTokens.darkSurface : GeistTokens.lightSurface;
+    final borderColor = isDark
+        ? GeistTokens.darkDivider
+        : GeistTokens.lightDivider;
+    final surfaceColor = isDark
+        ? GeistTokens.darkSurface
+        : GeistTokens.lightSurface;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +334,16 @@ class TopicDetailScreen extends StatelessWidget {
         const SizedBox(height: 12),
 
         ...topic.surahIds.map(
-          (id) => _buildSurahRow(context, id, isArabic, isDark, surfaceColor, primaryColor, secondaryColor, borderColor),
+          (id) => _buildSurahRow(
+            context,
+            id,
+            isArabic,
+            isDark,
+            surfaceColor,
+            primaryColor,
+            secondaryColor,
+            borderColor,
+          ),
         ),
       ],
     );
@@ -373,7 +418,11 @@ class TopicDetailScreen extends StatelessWidget {
             color: secondaryColor,
           ),
         ),
-        trailing: DirectionalIcon(icon: LucideIcons.chevronRight, size: 16, color: secondaryColor),
+        trailing: DirectionalIcon(
+          icon: LucideIcons.chevronRight,
+          size: 16,
+          color: secondaryColor,
+        ),
         onTap: () {
           Navigator.push(
             context,

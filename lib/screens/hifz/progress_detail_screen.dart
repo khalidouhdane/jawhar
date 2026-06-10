@@ -174,7 +174,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
     final pct = total > 0 ? (total / 604 * 100).toStringAsFixed(1) : '0.0';
 
     final l = AppLocalizations.of(context)!;
-    
+
     // CE-5.1: Estimated completion
     final remaining = 604 - total;
     String estCompletion = '--';
@@ -438,13 +438,31 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _legendItem(theme, theme.primaryText, AppLocalizations.of(context)!.progressLegendMemorized),
+                        _legendItem(
+                          theme,
+                          theme.primaryText,
+                          AppLocalizations.of(context)!.progressLegendMemorized,
+                        ),
                         const SizedBox(width: 8),
-                        _legendItem(theme, theme.dividerColor, AppLocalizations.of(context)!.progressLegendLearning),
+                        _legendItem(
+                          theme,
+                          theme.dividerColor,
+                          AppLocalizations.of(context)!.progressLegendLearning,
+                        ),
                         const SizedBox(width: 8),
-                        _legendItem(theme, theme.secondaryText, AppLocalizations.of(context)!.progressLegendReviewing),
+                        _legendItem(
+                          theme,
+                          theme.secondaryText,
+                          AppLocalizations.of(context)!.progressLegendReviewing,
+                        ),
                         const SizedBox(width: 8),
-                        _legendItem(theme, theme.dividerColor.withValues(alpha: 0.2), AppLocalizations.of(context)!.progressLegendNotStarted),
+                        _legendItem(
+                          theme,
+                          theme.dividerColor.withValues(alpha: 0.2),
+                          AppLocalizations.of(
+                            context,
+                          )!.progressLegendNotStarted,
+                        ),
                       ],
                     ),
                   ],
@@ -532,7 +550,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
     if (_allProgress == null) {
       return Center(child: CircularProgressIndicator(color: theme.accentColor));
     }
-    
+
     final l = AppLocalizations.of(context)!;
     final isAr = AppLocalizations.of(context)!.localeName == 'ar';
 
@@ -606,7 +624,10 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen>
                       Text(
                         pageCount == 1
                             ? l.progressPageRangeSingle(startPage)
-                            : l.progressPageRangeMultiple(startPage, effectiveEndPage),
+                            : l.progressPageRangeMultiple(
+                                startPage,
+                                effectiveEndPage,
+                              ),
                         style: TextStyle(
                           fontFamily: GeistTypography.primaryFontFamily,
                           fontSize: 10,

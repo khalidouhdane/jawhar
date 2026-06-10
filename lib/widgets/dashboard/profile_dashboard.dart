@@ -54,13 +54,15 @@ class ProfileDashboard extends StatelessWidget {
         final streakData = (data?[1] as StreakData?) ?? const StreakData();
         final sessions = (data?[2] as List<SessionRecord>?) ?? [];
 
-        final memorizedCount = (counts[PageStatus.memorized] ?? 0) +
+        final memorizedCount =
+            (counts[PageStatus.memorized] ?? 0) +
             (counts[PageStatus.learning] ?? 0) +
             (counts[PageStatus.reviewing] ?? 0);
         final streakDays = streakData.totalActiveDays;
         final sessionCount = sessions.length;
 
-        final hasProgress = streakDays > 0 || memorizedCount > 0 || sessionCount > 0;
+        final hasProgress =
+            streakDays > 0 || memorizedCount > 0 || sessionCount > 0;
 
         final progressStrip = Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -119,10 +121,7 @@ class ProfileDashboard extends StatelessWidget {
             ),
 
             // 3. Redesigned Progress Strip dynamically placed at top if user has progress
-            if (hasProgress) ...[
-              progressStrip,
-              const SizedBox(height: 16),
-            ],
+            if (hasProgress) ...[progressStrip, const SizedBox(height: 16)],
 
             // 4. Continue Reading
             const Padding(
@@ -140,10 +139,7 @@ class ProfileDashboard extends StatelessWidget {
             const SizedBox(height: 20),
 
             // 7. Progress Strip at bottom if user does not have progress
-            if (!hasProgress) ...[
-              progressStrip,
-              const SizedBox(height: 24),
-            ],
+            if (!hasProgress) ...[progressStrip, const SizedBox(height: 24)],
 
             // 8. Understanding Spotlight (Only if plan has sabaq)
             if (plan != null && plan.sabaqPage > 0) ...[
@@ -204,7 +200,11 @@ class ProfileDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildRestDayCard(BuildContext context, ThemeProvider theme, VoidCallback onStartSession) {
+  Widget _buildRestDayCard(
+    BuildContext context,
+    ThemeProvider theme,
+    VoidCallback onStartSession,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
@@ -451,4 +451,3 @@ class _RestDayAction extends StatelessWidget {
     );
   }
 }
-

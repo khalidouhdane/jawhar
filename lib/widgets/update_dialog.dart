@@ -83,14 +83,13 @@ class UpdateDialog extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            theme.cardColor,
-            theme.accentLight,
-          ],
+          colors: [theme.cardColor, theme.accentLight],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(theme.radiusXl)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(theme.radiusXl),
+        ),
       ),
       child: Column(
         children: [
@@ -141,7 +140,8 @@ class UpdateDialog extends StatelessWidget {
     ThemeProvider theme,
     AppLocalizations l,
   ) {
-    final showReleaseNotes = provider.updateInfo != null &&
+    final showReleaseNotes =
+        provider.updateInfo != null &&
         provider.updateInfo!.releaseNotes.isNotEmpty &&
         provider.status != UpdateStatus.downloading;
 
@@ -189,7 +189,8 @@ class UpdateDialog extends StatelessWidget {
             _downloadProgress(context, provider, theme, l),
           ],
           // Error details
-          if (provider.status == UpdateStatus.error && provider.errorMessage != null) ...[
+          if (provider.status == UpdateStatus.error &&
+              provider.errorMessage != null) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
@@ -316,8 +317,8 @@ class UpdateDialog extends StatelessWidget {
               label: isDownloading
                   ? l.updateDownloading
                   : isError
-                      ? (AppLocalizations.of(context)?.retry ?? "Retry")
-                      : (isReadyToInstall ? l.updateInstall : l.updateNow),
+                  ? (AppLocalizations.of(context)?.retry ?? "Retry")
+                  : (isReadyToInstall ? l.updateInstall : l.updateNow),
               type: GeistButtonType.primary,
               size: GeistButtonSize.large,
               isLoading: isDownloading,
@@ -335,10 +336,7 @@ class _DiamondSpinner extends StatefulWidget {
   final double progress;
   final UpdateStatus status;
 
-  const _DiamondSpinner({
-    required this.progress,
-    required this.status,
-  });
+  const _DiamondSpinner({required this.progress, required this.status});
 
   @override
   State<_DiamondSpinner> createState() => _DiamondSpinnerState();
@@ -445,7 +443,9 @@ class _DiamondSpinnerState extends State<_DiamondSpinner>
                     height: 52,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: isError ? Colors.red.shade400 : theme.primaryText,
+                        color: isError
+                            ? Colors.red.shade400
+                            : theme.primaryText,
                         width: 2.5,
                       ),
                       borderRadius: BorderRadius.circular(8),

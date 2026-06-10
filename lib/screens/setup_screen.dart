@@ -126,7 +126,9 @@ class _SetupScreenState extends State<SetupScreen>
         } else {
           setState(() {
             _isSigningIn = false;
-            _signInError = AppLocalizations.of(context)!.onboardingSignInCancelled;
+            _signInError = AppLocalizations.of(
+              context,
+            )!.onboardingSignInCancelled;
           });
         }
       }

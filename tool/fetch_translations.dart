@@ -23,26 +23,38 @@ String stripHtml(String html) {
       .trim();
 }
 
-Future<void> fetchResource(int resourceId, String resourceType, String outputFile, String token, String clientId) async {
+Future<void> fetchResource(
+  int resourceId,
+  String resourceType,
+  String outputFile,
+  String token,
+  String clientId,
+) async {
   print('Fetching $resourceType $resourceId...');
   final results = <String, String>{};
-  
+
   final futures = <Future<void>>[];
-  
+
   for (int page = 1; page <= 604; page++) {
     futures.add(() async {
-      final uri = Uri.parse('$baseUrl/verses/by_page/$page?$resourceType=$resourceId&per_page=50');
-      
+      final uri = Uri.parse(
+        '$baseUrl/verses/by_page/$page?$resourceType=$resourceId&per_page=50',
+      );
+
       bool success = false;
       for (int attempt = 0; attempt < 15; attempt++) {
         // Fresh client per request to avoid BoringSSL caching errors on Windows
         final client = HttpClient();
         try {
-          final request = await client.getUrl(uri).timeout(const Duration(seconds: 15));
+          final request = await client
+              .getUrl(uri)
+              .timeout(const Duration(seconds: 15));
           request.headers.add('x-auth-token', token);
           request.headers.add('x-client-id', clientId);
-          
-          final response = await request.close().timeout(const Duration(seconds: 15));
+
+          final response = await request.close().timeout(
+            const Duration(seconds: 15),
+          );
           if (response.statusCode == 200) {
             final responseBody = await response.transform(utf8.decoder).join();
             final data = json.decode(responseBody);
@@ -72,28 +84,29 @@ Future<void> fetchResource(int resourceId, String resourceType, String outputFil
         print('Failed completely for page $page');
       }
     }());
-    
+
     if (page % 5 == 0 || page == 604) {
       await Future.wait(futures);
       futures.clear();
       print('Completed $page/604 pages for $resourceId...');
     }
   }
-  
-  final sortedKeys = results.keys.toList()..sort((a, b) {
-    final pa = a.split(':');
-    final pb = b.split(':');
-    final ca = int.parse(pa[0]);
-    final cb = int.parse(pb[0]);
-    if (ca != cb) return ca.compareTo(cb);
-    return int.parse(pa[1]).compareTo(int.parse(pb[1]));
-  });
-  
+
+  final sortedKeys = results.keys.toList()
+    ..sort((a, b) {
+      final pa = a.split(':');
+      final pb = b.split(':');
+      final ca = int.parse(pa[0]);
+      final cb = int.parse(pb[0]);
+      if (ca != cb) return ca.compareTo(cb);
+      return int.parse(pa[1]).compareTo(int.parse(pb[1]));
+    });
+
   final sortedResults = <String, String>{};
   for (final key in sortedKeys) {
     sortedResults[key] = results[key]!;
   }
-  
+
   final file = File(outputFile);
   await file.create(recursive: true);
   await file.writeAsString(json.encode(sortedResults));
@@ -117,17 +130,20 @@ void main() async {
     print('Error: .env file not found.');
     return;
   }
-  
+
   print('Authenticating...');
   final authUri = Uri.parse('https://oauth2.quran.foundation/oauth2/token');
   final authStr = base64Encode(utf8.encode('$clientId:$clientSecret'));
   String token = '';
-  
+
   for (int attempt = 0; attempt < 10; attempt++) {
     final authClient = HttpClient();
     try {
       final authRequest = await authClient.postUrl(authUri);
-      authRequest.headers.add('Content-Type', 'application/x-www-form-urlencoded');
+      authRequest.headers.add(
+        'Content-Type',
+        'application/x-www-form-urlencoded',
+      );
       authRequest.headers.add('Authorization', 'Basic $authStr');
       authRequest.write('grant_type=client_credentials&scope=content');
       final authResponse = await authRequest.close();
@@ -144,16 +160,22 @@ void main() async {
       authClient.close(force: true);
     }
   }
-  
+
   if (token.isEmpty) {
     print('Failed to authenticate.');
     return;
   }
   print('Authenticated successfully.');
-  
+
   final targetDir = 'assets/data/translations';
-  await fetchResource(85, 'translations', '$targetDir/en_85.json', token, clientId);
+  await fetchResource(
+    85,
+    'translations',
+    '$targetDir/en_85.json',
+    token,
+    clientId,
+  );
   await fetchResource(16, 'tafsirs', '$targetDir/ar_16.json', token, clientId);
-  
+
   exit(0);
 }

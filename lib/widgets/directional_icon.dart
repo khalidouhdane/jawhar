@@ -34,11 +34,6 @@ class DirectionalIcon extends StatelessWidget {
         ),
       );
     }
-    return Icon(
-      icon,
-      size: size,
-      color: color,
-      semanticLabel: semanticLabel,
-    );
+    return Icon(icon, size: size, color: color, semanticLabel: semanticLabel);
   }
 }

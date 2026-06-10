@@ -104,12 +104,12 @@ class _SessionReadingViewState extends State<SessionReadingView> {
   void _loadPageVerses() {
     final readingProvider = context.read<QuranReadingProvider>();
     final isTablet = MediaQuery.sizeOf(context).width > 768;
-    
+
     if (isTablet) {
       final spread = TabletLayoutMath.pageToSpread(widget.pageNumber);
       final rightPage = TabletLayoutMath.spreadToRightPage(spread);
       final leftPage = TabletLayoutMath.spreadToLeftPage(spread);
-      
+
       setState(() {
         _rightPageNumber = rightPage;
         _verses = readingProvider.getPageVerses(rightPage);
@@ -132,7 +132,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
 
   Widget _buildQuranContent(ThemeProvider theme) {
     final isTablet = _leftPageVerses != null && _leftPageNumber != null;
-    
+
     if (!isTablet) {
       return ReadingCanvas(
         verses: _verses!,
@@ -148,7 +148,7 @@ class _SessionReadingViewState extends State<SessionReadingView> {
         },
       );
     }
-    
+
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Row(
@@ -169,10 +169,10 @@ class _SessionReadingViewState extends State<SessionReadingView> {
               },
             ),
           ),
-          
+
           // Spine Divider
           _buildSpineDivider(theme),
-          
+
           // Right Page Canvas
           Expanded(
             child: ReadingCanvas(
@@ -206,16 +206,15 @@ class _SessionReadingViewState extends State<SessionReadingView> {
               begin: Alignment.centerRight,
               end: Alignment.centerLeft,
               colors: [
-                Colors.black.withValues(alpha: theme.spineEffectIntensity * 0.15),
+                Colors.black.withValues(
+                  alpha: theme.spineEffectIntensity * 0.15,
+                ),
                 Colors.black.withValues(alpha: 0.0),
               ],
             ),
           ),
         ),
-        Container(
-          width: 1.5,
-          color: theme.dividerColor.withValues(alpha: 0.5),
-        ),
+        Container(width: 1.5, color: theme.dividerColor.withValues(alpha: 0.5)),
         Container(
           width: 12,
           decoration: BoxDecoration(
@@ -223,7 +222,9 @@ class _SessionReadingViewState extends State<SessionReadingView> {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Colors.black.withValues(alpha: theme.spineEffectIntensity * 0.15),
+                Colors.black.withValues(
+                  alpha: theme.spineEffectIntensity * 0.15,
+                ),
                 Colors.black.withValues(alpha: 0.0),
               ],
             ),

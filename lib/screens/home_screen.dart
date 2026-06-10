@@ -210,10 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_ayahText != null && _ayahRef != null) {
-      return AyahOfDayCard(
-        verseKey: _ayahRef!,
-        arabicText: _ayahText!,
-      );
+      return AyahOfDayCard(verseKey: _ayahRef!, arabicText: _ayahText!);
     }
 
     return Container(

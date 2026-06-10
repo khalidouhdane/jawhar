@@ -62,22 +62,29 @@ void main() {
       expect(find.text('Card Content'), findsOneWidget);
     });
 
-    testWidgets('Should slide to Offset.zero when isFullScreen is false (LTR)', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(
-          child: const Text('Card Content'),
-          alignment: AlignmentDirectional.topStart,
-          slideOffset: const Offset(-1.2, -1.2),
-          isFullScreen: false,
-          textDirection: TextDirection.ltr,
-        ),
-      );
+    testWidgets(
+      'Should slide to Offset.zero when isFullScreen is false (LTR)',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            child: const Text('Card Content'),
+            alignment: AlignmentDirectional.topStart,
+            slideOffset: const Offset(-1.2, -1.2),
+            isFullScreen: false,
+            textDirection: TextDirection.ltr,
+          ),
+        );
 
-      final AnimatedSlide slideWidget = tester.widget(find.byType(AnimatedSlide));
-      expect(slideWidget.offset, Offset.zero);
-    });
+        final AnimatedSlide slideWidget = tester.widget(
+          find.byType(AnimatedSlide),
+        );
+        expect(slideWidget.offset, Offset.zero);
+      },
+    );
 
-    testWidgets('Should slide to slideOffset when isFullScreen is true (LTR)', (WidgetTester tester) async {
+    testWidgets('Should slide to slideOffset when isFullScreen is true (LTR)', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         buildTestWidget(
           child: const Text('Card Content'),
@@ -88,36 +95,42 @@ void main() {
         ),
       );
 
-      final AnimatedSlide slideWidget = tester.widget(find.byType(AnimatedSlide));
+      final AnimatedSlide slideWidget = tester.widget(
+        find.byType(AnimatedSlide),
+      );
       expect(slideWidget.offset, const Offset(-1.2, -1.2));
     });
 
-    testWidgets('Should mirror horizontal slideOffset when in RTL mode and isFullScreen is true', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(
-          child: const Text('Card Content'),
-          alignment: AlignmentDirectional.topStart,
-          slideOffset: const Offset(-1.2, -1.2),
-          isFullScreen: true,
-          textDirection: TextDirection.rtl,
-        ),
-      );
+    testWidgets(
+      'Should mirror horizontal slideOffset when in RTL mode and isFullScreen is true',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            child: const Text('Card Content'),
+            alignment: AlignmentDirectional.topStart,
+            slideOffset: const Offset(-1.2, -1.2),
+            isFullScreen: true,
+            textDirection: TextDirection.rtl,
+          ),
+        );
 
-      final AnimatedSlide slideWidget = tester.widget(find.byType(AnimatedSlide));
-      // -1.2 * -1.0 = 1.2
-      expect(slideWidget.offset, const Offset(1.2, -1.2));
-    });
+        final AnimatedSlide slideWidget = tester.widget(
+          find.byType(AnimatedSlide),
+        );
+        // -1.2 * -1.0 = 1.2
+        expect(slideWidget.offset, const Offset(1.2, -1.2));
+      },
+    );
 
-    testWidgets('TopLeftNavBar should render read/tafsir options', (WidgetTester tester) async {
+    testWidgets('TopLeftNavBar should render read/tafsir options', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         ChangeNotifierProvider<ThemeProvider>(
           create: (_) => MockThemeProvider(),
           child: MaterialApp(
             home: Scaffold(
-              body: TopLeftNavBar(
-                readMode: 'read',
-                onReadModeChanged: (v) {},
-              ),
+              body: TopLeftNavBar(readMode: 'read', onReadModeChanged: (v) {}),
             ),
           ),
         ),
@@ -126,24 +139,27 @@ void main() {
       expect(find.byType(TopLeftNavBar), findsOneWidget);
     });
 
-    testWidgets('TopRightNavBar should render theme, search, bookmark buttons', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ChangeNotifierProvider<ThemeProvider>(
-          create: (_) => MockThemeProvider(),
-          child: const MaterialApp(
-            home: Scaffold(
-              body: TopRightNavBar(
-                isBookmarked: true,
-                onThemeTapped: null,
-                onNavMenuTapped: null,
-                onBookmarkTapped: null,
+    testWidgets(
+      'TopRightNavBar should render theme, search, bookmark buttons',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          ChangeNotifierProvider<ThemeProvider>(
+            create: (_) => MockThemeProvider(),
+            child: const MaterialApp(
+              home: Scaffold(
+                body: TopRightNavBar(
+                  isBookmarked: true,
+                  onThemeTapped: null,
+                  onNavMenuTapped: null,
+                  onBookmarkTapped: null,
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(TopRightNavBar), findsOneWidget);
-    });
+        expect(find.byType(TopRightNavBar), findsOneWidget);
+      },
+    );
   });
 }
