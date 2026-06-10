@@ -5,6 +5,7 @@ import 'package:quran_app/providers/hifz_profile_provider.dart';
 import 'package:quran_app/providers/theme_provider.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/l10n/app_localizations.dart';
+import 'package:quran_app/widgets/now_playing_pill.dart';
 import 'package:quran_app/widgets/sheets/profile_switcher_sheet.dart';
 
 class AppHeader extends StatelessWidget {
@@ -73,6 +74,8 @@ class AppHeader extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Global now-playing control — renders nothing while idle.
+            const NowPlayingPill(),
             if (action != null) ...[action!, const SizedBox(width: 12)],
             // Avatar
             GestureDetector(

@@ -100,64 +100,75 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                   ),
                   child: AppHeader(
                     title: l!.readTitle,
-                    action: GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (ctx) => ExcludeSemantics(
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                top: MediaQuery.of(ctx).size.height * 0.1,
-                              ),
-                              child: DefaultTextStyle(
-                                style: const TextStyle(fontFamily: 'Inter'),
-                                child: ReciterMenuSheet(
-                                  onClose: () => Navigator.pop(ctx),
+                    // While audio plays, the global now-playing pill takes
+                    // over — hide the reciter selector to avoid two pills.
+                    action: audioProvider.activeVerseKey != null
+                        ? null
+                        : GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (ctx) => ExcludeSemantics(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      top: MediaQuery.of(ctx).size.height * 0.1,
+                                    ),
+                                    child: DefaultTextStyle(
+                                      style: const TextStyle(
+                                        fontFamily: 'Inter',
+                                      ),
+                                      child: ReciterMenuSheet(
+                                        onClose: () => Navigator.pop(ctx),
+                                      ),
+                                    ),
+                                  ),
                                 ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.accentColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.headphones,
+                                    size: 14,
+                                    color: theme.accentColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    audioProvider.reciterName.split(' ').first,
+                                    style: TextStyle(
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.accentColor,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.accentColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              LucideIcons.headphones,
-                              size: 14,
-                              color: theme.accentColor,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              audioProvider.reciterName.split(' ').first,
-                              style: TextStyle(
-                                fontFamily: GeistTypography.primaryFontFamily,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: theme.accentColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ),
                 ),
 
                 // ── Personalized Hub ──
+                // NestedScrollView coordinates the hub/search header with the
+                // inner surah/juz/hizb lists: over-scrolling at the top of a
+                // list hands the drag back to the header instead of trapping
+                // the user inside the list.
                 Expanded(
-                  child: CustomScrollView(
-                    slivers: [
+                  child: NestedScrollView(
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -177,7 +188,9 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                         child: Column(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Container(
                                 height: 44,
                                 decoration: BoxDecoration(
@@ -189,14 +202,16 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                                 child: TextField(
                                   focusNode: _searchFocusNode,
                                   style: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 14,
                                     color: theme.primaryText,
                                   ),
                                   decoration: InputDecoration(
                                     hintText: l.readSearchHint,
                                     hintStyle: TextStyle(
-                                      fontFamily: GeistTypography.primaryFontFamily,
+                                      fontFamily:
+                                          GeistTypography.primaryFontFamily,
                                       fontSize: 14,
                                       color: theme.mutedText,
                                     ),
@@ -217,7 +232,9 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                             ),
                             const SizedBox(height: 16),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Container(
                                 height: 36,
                                 decoration: BoxDecoration(
@@ -239,12 +256,14 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                                   labelColor: theme.scaffoldBackground,
                                   unselectedLabelColor: theme.mutedText,
                                   labelStyle: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   unselectedLabelStyle: TextStyle(
-                                    fontFamily: GeistTypography.primaryFontFamily,
+                                    fontFamily:
+                                        GeistTypography.primaryFontFamily,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -260,19 +279,16 @@ class _ReadIndexScreenState extends State<ReadIndexScreen>
                           ],
                         ),
                       ),
-
-                      // ── Tab Content (Lists) ──
-                      SliverFillRemaining(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            _buildSurahList(chapters, theme),
-                            _buildJuzList(chapters, theme),
-                            _buildHizbList(chapters, theme),
-                          ],
-                        ),
-                      ),
                     ],
+                    // ── Tab Content (Lists) ──
+                    body: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildSurahList(chapters, theme),
+                        _buildJuzList(chapters, theme),
+                        _buildHizbList(chapters, theme),
+                      ],
+                    ),
                   ),
                 ),
               ],
