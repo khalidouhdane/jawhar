@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,6 +28,8 @@ class CloudSyncService extends ChangeNotifier {
   SyncStatus _status = SyncStatus.idle;
   DateTime? _lastSyncTime;
   String? _lastError;
+  bool _syncOperationActive = false;
+  bool _disposed = false;
 
   SyncStatus get status => _status;
   DateTime? get lastSyncTime => _lastSyncTime;
@@ -55,7 +59,8 @@ class CloudSyncService extends ChangeNotifier {
   /// 3. If no: push local SQLite → Firestore
   /// 4. If both exist: cloud wins for profile/settings, merge progress
   Future<void> performInitialSync(String uid) async {
-    if (isSyncing) return;
+    if (_syncOperationActive) return;
+    _syncOperationActive = true;
     _setStatus(SyncStatus.syncing);
     _lastError = null;
 
@@ -103,12 +108,15 @@ class CloudSyncService extends ChangeNotifier {
       AppLogger.info('Sync', '[SYNC] Initial sync error: $e');
       _lastError = e.toString();
       _setStatus(SyncStatus.error);
+    } finally {
+      _syncOperationActive = false;
     }
   }
 
   /// Manual full sync with retry — pushes everything to cloud.
   Future<void> syncAll(String uid) async {
-    if (isSyncing) return;
+    if (_syncOperationActive) return;
+    _syncOperationActive = true;
     _setStatus(SyncStatus.syncing);
     _lastError = null;
 
@@ -127,10 +135,13 @@ class CloudSyncService extends ChangeNotifier {
       AppLogger.info('Sync', '[SYNC] Full sync error: $e');
       _lastError = e.toString();
       _setStatus(SyncStatus.error);
+    } finally {
+      _syncOperationActive = false;
     }
   }
 
   /// Retry wrapper with exponential backoff (3 attempts, 1s → 2s → 4s).
+  /// Non-recoverable errors are not retried.
   Future<T> _withRetry<T>(
     Future<T> Function() fn, {
     int maxAttempts = 3,
@@ -141,6 +152,13 @@ class CloudSyncService extends ChangeNotifier {
         return await fn();
       } catch (e) {
         attempt++;
+        if (!_isRecoverableError(e)) {
+          AppLogger.info(
+            'Sync',
+            '[SYNC] Non-recoverable error, not retrying: ${e.runtimeType}',
+          );
+          rethrow; // Let the top-level catch handle status transition
+        }
         if (attempt >= maxAttempts) rethrow;
         final delay = Duration(seconds: 1 << (attempt - 1)); // 1s, 2s, 4s
         AppLogger.info(
@@ -152,6 +170,23 @@ class CloudSyncService extends ChangeNotifier {
     }
   }
 
+  /// Classifies whether an error is likely transient (retryable).
+  bool _isRecoverableError(Object e) {
+    if (e is FirebaseException) {
+      switch (e.code) {
+        case 'unavailable':
+        case 'deadline-exceeded':
+        case 'resource-exhausted':
+        case 'aborted':
+        case 'internal':
+          return true;
+        default:
+          return false;
+      }
+    }
+    return e is TimeoutException;
+  }
+
   // ════════════════════════════════════════════
   // PUSH: Local → Cloud (fire-and-forget)
   // ════════════════════════════════════════════
@@ -159,44 +194,20 @@ class CloudSyncService extends ChangeNotifier {
   /// Push the full local profile to Firestore.
   Future<void> syncProfile(String uid, MemoryProfile profile) async {
     try {
-      await _userDoc(uid).set({
-        ...profile.toMap(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _writeProfile(uid, profile);
       AppLogger.info('Sync', '[SYNC] Profile pushed');
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Profile push error: $e');
+      _recordBackgroundError('Profile push', e);
     }
   }
 
   /// Push settings (SharedPreferences values) to Firestore.
   Future<void> syncSettings(String uid) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final storage = LocalStorageService(prefs);
-
-      final settings = <String, dynamic>{
-        'rewaya': storage.savedRewaya,
-        'readingMode': storage.savedReadingMode,
-        'centerLock': storage.savedCenterLock,
-        'autoScrollSpeed': storage.savedAutoScrollSpeed,
-        'lastReadPage': prefs.getInt('last_read_page'),
-        'lastReadSurah': prefs.getString('last_read_surah'),
-        'lastReadVerseKey': prefs.getString('last_read_verse_key'),
-        'onboardingComplete': storage.hasCompletedOnboarding,
-        'bookmarks': storage.getBookmarks(),
-        'bookmarkCollections': storage.getCollections(),
-        'werdConfig': prefs.getString('werd_config'),
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      await _userDoc(uid)
-          .collection('meta')
-          .doc('settings')
-          .set(settings, SetOptions(merge: true));
+      await _writeSettings(uid);
       AppLogger.info('Sync', '[SYNC] Settings pushed');
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Settings push error: $e');
+      _recordBackgroundError('Settings push', e);
     }
   }
 
@@ -212,10 +223,7 @@ class CloudSyncService extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      AppLogger.info(
-        'Sync',
-        '[SYNC] Progress push error for page $pageNumber: $e',
-      );
+      _recordBackgroundError('Progress push for page $pageNumber', e);
     }
   }
 
@@ -227,7 +235,7 @@ class CloudSyncService extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Session push error: $e');
+      _recordBackgroundError('Session push', e);
     }
   }
 
@@ -239,21 +247,60 @@ class CloudSyncService extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Plan push error: $e');
+      _recordBackgroundError('Plan push', e);
     }
   }
 
   /// Push streak data.
   Future<void> syncStreak(String uid, StreakData streak) async {
     try {
-      await _userDoc(uid).collection('meta').doc('streak').set({
-        'totalActiveDays': streak.totalActiveDays,
-        'lastActiveDate': streak.lastActiveDate?.toIso8601String(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _writeStreak(uid, streak);
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Streak push error: $e');
+      _recordBackgroundError('Streak push', e);
     }
+  }
+
+  Future<void> _writeProfile(String uid, MemoryProfile profile) {
+    return _userDoc(uid).set({
+      ...profile.toMap(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> _writeSettings(String uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    final storage = LocalStorageService(prefs);
+    final settings = <String, dynamic>{
+      'rewaya': storage.savedRewaya,
+      'readingMode': storage.savedReadingMode,
+      'centerLock': storage.savedCenterLock,
+      'autoScrollSpeed': storage.savedAutoScrollSpeed,
+      'lastReadPage': prefs.getInt('last_read_page'),
+      'lastReadSurah': prefs.getString('last_read_surah'),
+      'lastReadVerseKey': prefs.getString('last_read_verse_key'),
+      'onboardingComplete': storage.hasCompletedOnboarding,
+      'bookmarks': storage.getBookmarks(),
+      'bookmarkCollections': storage.getCollections(),
+      'werdConfig': prefs.getString('werd_config'),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    await _userDoc(
+      uid,
+    ).collection('meta').doc('settings').set(settings, SetOptions(merge: true));
+  }
+
+  Future<void> _writeStreak(String uid, StreakData streak) {
+    return _userDoc(uid).collection('meta').doc('streak').set({
+      'totalActiveDays': streak.totalActiveDays,
+      'lastActiveDate': streak.lastActiveDate?.toIso8601String(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  void _recordBackgroundError(String operation, Object error) {
+    AppLogger.info('Sync', '[SYNC] $operation error: $error');
+    _lastError = error.toString();
+    _setStatus(SyncStatus.error);
   }
 
   // ════════════════════════════════════════════
@@ -341,11 +388,20 @@ class CloudSyncService extends ChangeNotifier {
       final data = doc.data();
       data.remove('updatedAt');
       final db = await _db.database;
-      await db.insert(
-        'page_progress',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      try {
+        // Validate/normalize through the model before persisting locally.
+        final progress = PageProgress.fromMap(data);
+        await db.insert(
+          'page_progress',
+          progress.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      } catch (e) {
+        AppLogger.warn(
+          'Sync',
+          '[SYNC] Skipping malformed progress record ${doc.id}: $e',
+        );
+      }
     }
     AppLogger.info(
       'Sync',
@@ -358,11 +414,19 @@ class CloudSyncService extends ChangeNotifier {
       final data = doc.data();
       data.remove('createdAt');
       final db = await _db.database;
-      await db.insert(
-        'session_history',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.ignore,
-      );
+      try {
+        final session = SessionRecord.fromMap(data);
+        await db.insert(
+          'session_history',
+          session.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      } catch (e) {
+        AppLogger.warn(
+          'Sync',
+          '[SYNC] Skipping malformed session record ${doc.id}: $e',
+        );
+      }
     }
     AppLogger.info(
       'Sync',
@@ -375,11 +439,19 @@ class CloudSyncService extends ChangeNotifier {
       final data = doc.data();
       data.remove('createdAt');
       final db = await _db.database;
-      await db.insert(
-        'daily_plans',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.ignore,
-      );
+      try {
+        final plan = DailyPlan.fromMap(data);
+        await db.insert(
+          'daily_plans',
+          plan.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      } catch (e) {
+        AppLogger.warn(
+          'Sync',
+          '[SYNC] Skipping malformed plan record ${doc.id}: $e',
+        );
+      }
     }
     AppLogger.info(
       'Sync',
@@ -389,15 +461,15 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push all local data to Firestore.
   Future<void> _pushAllToCloud(String uid, MemoryProfile profile) async {
-    // 1. Push profile
-    await syncProfile(uid, profile);
+    // 1. Push profile (direct write — propagates errors)
+    await _writeProfile(uid, profile);
 
-    // 2. Push settings
-    await syncSettings(uid);
+    // 2. Push settings (direct write — propagates errors)
+    await _writeSettings(uid);
 
-    // 3. Push streak
+    // 3. Push streak (direct write — propagates errors)
     final streak = await _db.getStreak(profile.id);
-    await syncStreak(uid, streak);
+    await _writeStreak(uid, streak);
 
     // 4. Push all page progress
     final db = await _db.database;
@@ -465,24 +537,29 @@ class CloudSyncService extends ChangeNotifier {
       '[SYNC] Pushed ${cardRows.length} flashcard records',
     );
 
-    // 8. Push flashcard reviews
-    final reviewRows = await db.query('flashcard_reviews');
-    // Filter reviews for cards belonging to this profile
-    final profileCardIds = cardRows.map((r) => r['id']).toSet();
-    final profileReviews = reviewRows
-        .where((r) => profileCardIds.contains(r['card_id']))
-        .toList();
-    for (final row in profileReviews) {
-      final reviewId = '${row['card_id']}_${row['reviewed_at']}';
-      await _userDoc(uid).collection('flashcard_reviews').doc(reviewId).set({
-        ...row,
-        'syncedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+    // 8. Push flashcard reviews (parameterized query)
+    if (cardRows.isNotEmpty) {
+      final reviewRows = await db.rawQuery(
+        '''
+        SELECT reviews.*
+        FROM flashcard_reviews AS reviews
+        INNER JOIN flashcards AS cards ON cards.id = reviews.card_id
+        WHERE cards.profile_id = ?
+        ''',
+        [profile.id],
+      );
+      for (final row in reviewRows) {
+        final reviewId = row['id'] as String;
+        await _userDoc(uid).collection('flashcard_reviews').doc(reviewId).set({
+          ...row,
+          'syncedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+      AppLogger.info(
+        'Sync',
+        '[SYNC] Pushed ${reviewRows.length} flashcard review records',
+      );
     }
-    AppLogger.info(
-      'Sync',
-      '[SYNC] Pushed ${profileReviews.length} flashcard review records',
-    );
   }
 
   /// Merge local and cloud data.
@@ -505,7 +582,7 @@ class CloudSyncService extends ChangeNotifier {
           '[SYNC] Cloud profile parse error, keeping local: $e',
         );
         // If cloud data is corrupted, push local
-        await syncProfile(uid, localProfile);
+        await _writeProfile(uid, localProfile);
       }
     }
 
@@ -528,7 +605,7 @@ class CloudSyncService extends ChangeNotifier {
       AppLogger.info('Sync', '[SYNC] Settings merged (cloud wins)');
     } else {
       // No cloud settings — push local
-      await syncSettings(uid);
+      await _writeSettings(uid);
     }
 
     // Merge progress: higher status wins, sum review counts
@@ -626,9 +703,9 @@ class CloudSyncService extends ChangeNotifier {
         totalActiveDays: maxDays,
         lastActiveDate: localStreak.lastActiveDate,
       );
-      await syncStreak(uid, mergedStreak);
+      await _writeStreak(uid, mergedStreak);
     } else {
-      await syncStreak(uid, localStreak);
+      await _writeStreak(uid, localStreak);
     }
   }
 
@@ -684,21 +761,33 @@ class CloudSyncService extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Flashcard push error: $e');
+      _recordBackgroundError('Flashcard push', e);
     }
   }
 
   /// Push a flashcard review.
   Future<void> syncFlashcardReview(String uid, FlashcardReview review) async {
     try {
-      final reviewId =
-          '${review.cardId}_${review.reviewedAt.toIso8601String()}';
+      final reviewId = review.id;
       await _userDoc(uid).collection('flashcard_reviews').doc(reviewId).set({
         ...review.toMap(),
         'syncedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      AppLogger.info('Sync', '[SYNC] Flashcard review push error: $e');
+      _recordBackgroundError('Flashcard review push', e);
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
     }
   }
 }

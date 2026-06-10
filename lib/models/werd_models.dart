@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:quran_app/utils/persisted_data_parser.dart';
 
 /// Mode for defining the daily werd.
 enum WerdMode {
@@ -75,12 +76,19 @@ class WerdConfig {
 
   factory WerdConfig.fromJson(Map<String, dynamic> json) {
     return WerdConfig(
-      mode: WerdMode.values[json['mode'] as int],
+      mode: PersistedDataParser.enumValue(
+        WerdMode.values,
+        json['mode'],
+        fallback: WerdMode.fixedRange,
+      ),
       startPage: json['startPage'] as int,
       endPage: json['endPage'] as int,
       pagesPerDay: json['pagesPerDay'] as int,
       pagesReadToday: json['pagesReadToday'] as int? ?? 0,
-      lastResetDate: DateTime.parse(json['lastResetDate'] as String),
+      lastResetDate: PersistedDataParser.requiredDate(
+        json['lastResetDate'],
+        field: 'werd.lastResetDate',
+      ),
       isEnabled: json['isEnabled'] as bool? ?? true,
     );
   }

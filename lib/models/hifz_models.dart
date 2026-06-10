@@ -1,6 +1,8 @@
 // ── Hifz Program Data Models ──
 // All enums and data classes for the memorization framework.
 
+import 'package:quran_app/utils/persisted_data_parser.dart';
+
 // ── Enums ──
 
 /// Age group — affects session length, daily load ceiling, and UI tone.
@@ -215,47 +217,92 @@ class MemoryProfile {
     // Handle backward compatibility: old ageGroup index 2 was 'adult',
     // in the new 7-value enum index 2 is 'youngAdult' — map old 'adult' (2) to new 'youngAdult' (2)
     // which is a reasonable default for existing users.
-    final ageGroupIndex = (map['ageGroup'] as int?) ?? 2;
-    final safeAgeGroupIndex = ageGroupIndex.clamp(
-      0,
-      AgeGroup.values.length - 1,
-    );
-
     return MemoryProfile(
       id: map['id'] as String,
       name: map['name'] as String,
-      avatarIndex: map['avatarIndex'] as int? ?? 0,
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      birthday: map['birthday'] != null
-          ? DateTime.tryParse(map['birthday'] as String)
-          : null,
-      age: map['age'] as int? ?? 25,
-      ageGroup: AgeGroup.values[safeAgeGroupIndex],
-      encodingSpeed: EncodingSpeed.values[(map['encodingSpeed'] as int?) ?? 1],
-      retentionStrength:
-          RetentionStrength.values[(map['retentionStrength'] as int?) ?? 1],
-      learningPreference:
-          LearningPreference.values[(map['learningPreference'] as int?) ?? 0],
-      dailyTimeMinutes: map['dailyTimeMinutes'] as int? ?? 30,
-      preferredTimeOfDay:
-          StudyTimeOfDay.values[(map['preferredTimeOfDay'] as int?) ?? 0],
-      goal: HifzGoal.values[(map['goal'] as int?) ?? 0],
-      goalDetails: (map['goalDetails'] as String?)?.isNotEmpty == true
-          ? (map['goalDetails'] as String).split(',').map(int.parse).toList()
-          : [],
-      defaultReciterId: map['defaultReciterId'] as int? ?? 7,
-      defaultReciterSource:
-          ReciterSource.values[(map['defaultReciterSource'] as int?) ?? 0],
-      startingPage: map['startingPage'] as int? ?? 582,
-      startDate: DateTime.parse(map['startDate'] as String),
-      isActive: (map['isActive'] as int?) == 1,
-      activeDays: (map['activeDays'] as String?)?.isNotEmpty == true
-          ? (map['activeDays'] as String).split(',').map(int.parse).toList()
-          : [0, 1, 2, 3, 4, 5, 6],
-      pacePreference:
-          PacePreference.values[(map['pacePreference'] as int?) ?? 1],
-      hifzExperience:
-          HifzExperience.values[(map['hifzExperience'] as int?) ?? 0],
+      avatarIndex: PersistedDataParser.intValue(
+        map['avatarIndex'],
+        fallback: 0,
+      ),
+      createdAt: PersistedDataParser.requiredDate(
+        map['createdAt'],
+        field: 'profile.createdAt',
+      ),
+      birthday: PersistedDataParser.nullableDate(map['birthday']),
+      age: PersistedDataParser.intValue(map['age'], fallback: 25),
+      ageGroup: PersistedDataParser.enumValue(
+        AgeGroup.values,
+        map['ageGroup'],
+        fallback: AgeGroup.youngAdult,
+      ),
+      encodingSpeed: PersistedDataParser.enumValue(
+        EncodingSpeed.values,
+        map['encodingSpeed'],
+        fallback: EncodingSpeed.moderate,
+      ),
+      retentionStrength: PersistedDataParser.enumValue(
+        RetentionStrength.values,
+        map['retentionStrength'],
+        fallback: RetentionStrength.moderate,
+      ),
+      learningPreference: PersistedDataParser.enumValue(
+        LearningPreference.values,
+        map['learningPreference'],
+        fallback: LearningPreference.visual,
+      ),
+      dailyTimeMinutes: PersistedDataParser.intValue(
+        map['dailyTimeMinutes'],
+        fallback: 30,
+      ).clamp(5, 480),
+      preferredTimeOfDay: PersistedDataParser.enumValue(
+        StudyTimeOfDay.values,
+        map['preferredTimeOfDay'],
+        fallback: StudyTimeOfDay.fajr,
+      ),
+      goal: PersistedDataParser.enumValue(
+        HifzGoal.values,
+        map['goal'],
+        fallback: HifzGoal.fullQuran,
+      ),
+      goalDetails: PersistedDataParser.intList(
+        map['goalDetails'],
+        minimum: 1,
+        maximum: 114,
+      ),
+      defaultReciterId: PersistedDataParser.intValue(
+        map['defaultReciterId'],
+        fallback: 7,
+      ),
+      defaultReciterSource: PersistedDataParser.enumValue(
+        ReciterSource.values,
+        map['defaultReciterSource'],
+        fallback: ReciterSource.quranDotCom,
+      ),
+      startingPage: PersistedDataParser.intValue(
+        map['startingPage'],
+        fallback: 582,
+      ).clamp(1, 604),
+      startDate: PersistedDataParser.requiredDate(
+        map['startDate'],
+        field: 'profile.startDate',
+      ),
+      isActive: PersistedDataParser.intValue(map['isActive'], fallback: 0) == 1,
+      activeDays: PersistedDataParser.intList(
+        map['activeDays'],
+        minimum: 0,
+        maximum: 6,
+        fallback: const [0, 1, 2, 3, 4, 5, 6],
+      ),
+      pacePreference: PersistedDataParser.enumValue(
+        PacePreference.values,
+        map['pacePreference'],
+        fallback: PacePreference.steady,
+      ),
+      hifzExperience: PersistedDataParser.enumValue(
+        HifzExperience.values,
+        map['hifzExperience'],
+        fallback: HifzExperience.fresh,
+      ),
     );
   }
 }
@@ -295,16 +342,22 @@ class PageProgress {
 
   factory PageProgress.fromMap(Map<String, dynamic> map) {
     return PageProgress(
-      pageNumber: map['pageNumber'] as int,
+      pageNumber: PersistedDataParser.intValue(
+        map['pageNumber'],
+        fallback: 1,
+      ).clamp(1, 604),
       profileId: map['profileId'] as String,
-      status: PageStatus.values[(map['status'] as int?) ?? 0],
-      lastReviewedAt: map['lastReviewedAt'] != null
-          ? DateTime.parse(map['lastReviewedAt'] as String)
-          : null,
-      reviewCount: map['reviewCount'] as int? ?? 0,
-      memorizedAt: map['memorizedAt'] != null
-          ? DateTime.parse(map['memorizedAt'] as String)
-          : null,
+      status: PersistedDataParser.enumValue(
+        PageStatus.values,
+        map['status'],
+        fallback: PageStatus.notStarted,
+      ),
+      lastReviewedAt: PersistedDataParser.nullableDate(map['lastReviewedAt']),
+      reviewCount: PersistedDataParser.intValue(
+        map['reviewCount'],
+        fallback: 0,
+      ),
+      memorizedAt: PersistedDataParser.nullableDate(map['memorizedAt']),
       lastVerseLearned: map['lastVerseLearned'] as int?,
       totalVersesOnPage: map['totalVersesOnPage'] as int?,
     );
@@ -464,23 +517,54 @@ class DailyPlan {
     return DailyPlan(
       id: map['id'] as String,
       profileId: map['profileId'] as String,
-      date: DateTime.parse(map['date'] as String),
-      sabaqPage: map['sabaqPage'] as int,
-      sabaqLineStart: map['sabaqLineStart'] as int? ?? 1,
-      sabaqLineEnd: map['sabaqLineEnd'] as int? ?? 15,
-      sabaqTargetMinutes: map['sabaqTargetMinutes'] as int? ?? 25,
-      sabaqRepetitionTarget: map['sabaqRepetitionTarget'] as int? ?? 10,
+      date: PersistedDataParser.requiredDate(
+        map['date'],
+        field: 'daily_plan.date',
+      ),
+      sabaqPage: PersistedDataParser.intValue(
+        map['sabaqPage'],
+        fallback: 1,
+      ).clamp(1, 604),
+      sabaqLineStart: PersistedDataParser.intValue(
+        map['sabaqLineStart'],
+        fallback: 1,
+      ),
+      sabaqLineEnd: PersistedDataParser.intValue(
+        map['sabaqLineEnd'],
+        fallback: 15,
+      ),
+      sabaqTargetMinutes: PersistedDataParser.intValue(
+        map['sabaqTargetMinutes'],
+        fallback: 25,
+      ),
+      sabaqRepetitionTarget: PersistedDataParser.intValue(
+        map['sabaqRepetitionTarget'],
+        fallback: 10,
+      ),
       sabaqStartVerse: map['sabaqStartVerse'] as int?,
-      sabqiPages: (map['sabqiPages'] as String?)?.isNotEmpty == true
-          ? (map['sabqiPages'] as String).split(',').map(int.parse).toList()
-          : [],
-      sabqiTargetMinutes: map['sabqiTargetMinutes'] as int? ?? 15,
-      manzilJuz: map['manzilJuz'] as int? ?? 30,
-      manzilPages: (map['manzilPages'] as String?)?.isNotEmpty == true
-          ? (map['manzilPages'] as String).split(',').map(int.parse).toList()
-          : [],
-      manzilRotationDay: map['manzilRotationDay'] as int? ?? 1,
-      manzilTargetMinutes: map['manzilTargetMinutes'] as int? ?? 15,
+      sabqiPages: PersistedDataParser.intList(
+        map['sabqiPages'],
+        minimum: 1,
+        maximum: 604,
+      ),
+      sabqiTargetMinutes: PersistedDataParser.intValue(
+        map['sabqiTargetMinutes'],
+        fallback: 15,
+      ),
+      manzilJuz: PersistedDataParser.intValue(map['manzilJuz'], fallback: 30),
+      manzilPages: PersistedDataParser.intList(
+        map['manzilPages'],
+        minimum: 1,
+        maximum: 604,
+      ),
+      manzilRotationDay: PersistedDataParser.intValue(
+        map['manzilRotationDay'],
+        fallback: 1,
+      ),
+      manzilTargetMinutes: PersistedDataParser.intValue(
+        map['manzilTargetMinutes'],
+        fallback: 15,
+      ),
       sabaqDoneOffline: (map['sabaqDoneOffline'] as int?) == 1,
       sabqiDoneOffline: (map['sabqiDoneOffline'] as int?) == 1,
       manzilDoneOffline: (map['manzilDoneOffline'] as int?) == 1,
@@ -552,27 +636,49 @@ class SessionRecord {
     return SessionRecord(
       id: map['id'] as String,
       profileId: map['profileId'] as String,
-      date: DateTime.parse(map['date'] as String),
-      durationMinutes: map['durationMinutes'] as int,
+      date: PersistedDataParser.requiredDate(
+        map['date'],
+        field: 'session.date',
+      ),
+      durationMinutes: PersistedDataParser.intValue(
+        map['durationMinutes'],
+        fallback: 0,
+      ).clamp(0, 100000),
       sabaqCompleted: (map['sabaqCompleted'] as int?) == 1,
       sabqiCompleted: (map['sabqiCompleted'] as int?) == 1,
       manzilCompleted: (map['manzilCompleted'] as int?) == 1,
-      sabaqAssessment: map['sabaqAssessment'] != null
-          ? SelfAssessment.values[map['sabaqAssessment'] as int]
-          : null,
-      sabqiAssessment: map['sabqiAssessment'] != null
-          ? SelfAssessment.values[map['sabqiAssessment'] as int]
-          : null,
-      manzilAssessment: map['manzilAssessment'] != null
-          ? SelfAssessment.values[map['manzilAssessment'] as int]
-          : null,
+      sabaqAssessment: map['sabaqAssessment'] == null
+          ? null
+          : PersistedDataParser.enumValue(
+              SelfAssessment.values,
+              map['sabaqAssessment'],
+              fallback: SelfAssessment.okay,
+            ),
+      sabqiAssessment: map['sabqiAssessment'] == null
+          ? null
+          : PersistedDataParser.enumValue(
+              SelfAssessment.values,
+              map['sabqiAssessment'],
+              fallback: SelfAssessment.okay,
+            ),
+      manzilAssessment: map['manzilAssessment'] == null
+          ? null
+          : PersistedDataParser.enumValue(
+              SelfAssessment.values,
+              map['manzilAssessment'],
+              fallback: SelfAssessment.okay,
+            ),
       sabaqPage: map['sabaqPage'] as int?,
-      sabqiPages: (map['sabqiPages'] as String?)?.isNotEmpty == true
-          ? (map['sabqiPages'] as String).split(',').map(int.parse).toList()
-          : [],
-      manzilPages: (map['manzilPages'] as String?)?.isNotEmpty == true
-          ? (map['manzilPages'] as String).split(',').map(int.parse).toList()
-          : [],
+      sabqiPages: PersistedDataParser.intList(
+        map['sabqiPages'],
+        minimum: 1,
+        maximum: 604,
+      ),
+      manzilPages: PersistedDataParser.intList(
+        map['manzilPages'],
+        minimum: 1,
+        maximum: 604,
+      ),
       repCount: map['repCount'] as int? ?? 0,
     );
   }

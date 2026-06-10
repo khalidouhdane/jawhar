@@ -5,6 +5,7 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/services/db_factory.dart';
+import 'package:quran_app/utils/persisted_data_parser.dart';
 
 /// Central SQLite database service for the Hifz program.
 /// Manages profiles, page progress, session history, daily plans,
@@ -392,7 +393,11 @@ class HifzDatabaseService {
     );
     final counts = <PageStatus, int>{};
     for (final row in results) {
-      final status = PageStatus.values[row['status'] as int];
+      final status = PersistedDataParser.enumValue(
+        PageStatus.values,
+        row['status'],
+        fallback: PageStatus.notStarted,
+      );
       counts[status] = row['count'] as int;
     }
     return counts;
@@ -524,7 +529,7 @@ class HifzDatabaseService {
     return StreakData(
       totalActiveDays: row['totalActiveDays'] as int? ?? 0,
       lastActiveDate: row['lastActiveDate'] != null
-          ? DateTime.parse(row['lastActiveDate'] as String)
+          ? DateTime.tryParse(row['lastActiveDate'] as String)
           : null,
     );
   }
@@ -568,15 +573,17 @@ class HifzDatabaseService {
       streak.lastActiveDate!.day,
     );
 
-    // If all days are active, simple diff
+    // If all days are active, simple diff. Today is excluded — the user may
+    // simply not have studied yet.
     if (activeDays.length >= 7) {
-      return todayDate.difference(lastDate).inDays;
+      final missed = todayDate.difference(lastDate).inDays - 1;
+      return missed < 0 ? 0 : missed;
     }
 
-    // Count only active days between lastDate and today (exclusive of lastDate, inclusive of today)
+    // Count only active days between lastDate and today (exclusive of both)
     int missedActiveDays = 0;
     DateTime d = lastDate.add(const Duration(days: 1));
-    while (d.isBefore(todayDate) || d.isAtSameMomentAs(todayDate)) {
+    while (d.isBefore(todayDate)) {
       final dayIndex = d.weekday - 1; // 0=Mon..6=Sun
       if (activeDays.contains(dayIndex)) {
         missedActiveDays++;
@@ -788,7 +795,11 @@ class HifzDatabaseService {
     for (final row in results) {
       final count = row['count'] as int;
       total += count;
-      final rating = FlashcardRating.values[row['rating'] as int];
+      final rating = PersistedDataParser.enumValue(
+        FlashcardRating.values,
+        row['rating'],
+        fallback: FlashcardRating.strong,
+      );
       if (rating == FlashcardRating.strong || rating == FlashcardRating.ok) {
         correct += count;
       }

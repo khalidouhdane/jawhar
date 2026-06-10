@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:quran_app/utils/persisted_data_parser.dart';
 
 // ── Flashcard & Mutashabihat Data Models ──
 
@@ -100,18 +101,26 @@ class Flashcard {
 
   factory Flashcard.fromMap(Map<String, dynamic> m) => Flashcard(
     id: m['id'],
-    type: FlashcardType.values[m['type']],
+    type: PersistedDataParser.enumValue(
+      FlashcardType.values,
+      m['type'],
+      fallback: FlashcardType.nextVerse,
+    ),
     profileId: m['profile_id'],
     verseKey: m['verse_key'],
     questionData: jsonDecode(m['question_data'] ?? '{}'),
     answerData: jsonDecode(m['answer_data'] ?? '{}'),
-    interval: (m['interval'] as num).toDouble(),
-    easeFactor: (m['ease_factor'] as num).toDouble(),
-    dueDate: DateTime.parse(m['due_date']),
-    lastReviewedAt: m['last_reviewed_at'] != null
-        ? DateTime.parse(m['last_reviewed_at'])
-        : null,
-    reviewCount: m['review_count'] ?? 0,
+    interval: PersistedDataParser.doubleValue(m['interval'], fallback: 1),
+    easeFactor: PersistedDataParser.doubleValue(
+      m['ease_factor'],
+      fallback: 2.5,
+    ),
+    dueDate: PersistedDataParser.requiredDate(
+      m['due_date'],
+      field: 'flashcard.due_date',
+    ),
+    lastReviewedAt: PersistedDataParser.nullableDate(m['last_reviewed_at']),
+    reviewCount: PersistedDataParser.intValue(m['review_count'], fallback: 0),
   );
 }
 
@@ -139,8 +148,15 @@ class FlashcardReview {
   factory FlashcardReview.fromMap(Map<String, dynamic> m) => FlashcardReview(
     id: m['id'],
     cardId: m['card_id'],
-    rating: FlashcardRating.values[m['rating']],
-    reviewedAt: DateTime.parse(m['reviewed_at']),
+    rating: PersistedDataParser.enumValue(
+      FlashcardRating.values,
+      m['rating'],
+      fallback: FlashcardRating.strong,
+    ),
+    reviewedAt: PersistedDataParser.requiredDate(
+      m['reviewed_at'],
+      field: 'flashcard_review.reviewed_at',
+    ),
   );
 }
 
@@ -207,10 +223,18 @@ class MutashabihatGroup {
       uniqueWords: wordsRaw.map(
         (k, v) => MapEntry(k, (v as List).map((e) => e.toString()).toList()),
       ),
-      category: MutashabihatCategory.values[(m['category'] ?? 0) as int],
+      category: PersistedDataParser.enumValue(
+        MutashabihatCategory.values,
+        m['category'],
+        fallback: MutashabihatCategory.wordSwap,
+      ),
       difficulty: m['difficulty'] ?? 'medium',
       needsContext: m['needs_context'] == 1,
-      userStatus: MutashabihatStatus.values[(m['user_status'] ?? 0) as int],
+      userStatus: PersistedDataParser.enumValue(
+        MutashabihatStatus.values,
+        m['user_status'],
+        fallback: MutashabihatStatus.notStudied,
+      ),
     );
   }
 }

@@ -94,8 +94,10 @@ class LocalStorageService {
   /// Getters for default reciter details.
   int? get defaultReciterId => _prefs.getInt(_keyDefaultReciterId);
   String? get defaultReciterName => _prefs.getString(_keyDefaultReciterName);
-  String? get defaultReciterApiSource => _prefs.getString(_keyDefaultReciterApiSource);
-  String? get defaultReciterServerUrl => _prefs.getString(_keyDefaultReciterServerUrl);
+  String? get defaultReciterApiSource =>
+      _prefs.getString(_keyDefaultReciterApiSource);
+  String? get defaultReciterServerUrl =>
+      _prefs.getString(_keyDefaultReciterServerUrl);
   int? get defaultReciterMoshafId => _prefs.getInt(_keyDefaultReciterMoshafId);
 
   // ── Onboarding ──
