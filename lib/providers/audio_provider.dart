@@ -40,6 +40,8 @@ class AudioProvider extends ChangeNotifier {
   final ja.AudioPlayer _player = ja.AudioPlayer(
     useProxyForRequestHeaders: false,
   );
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+  bool _disposed = false;
 
   int _audioOffsetMs = 0;
   int get audioOffsetMs => _audioOffsetMs;
@@ -72,6 +74,12 @@ class AudioProvider extends ChangeNotifier {
 
   bool get _shouldProxy => Platform.isWindows;
 
+  Future<void> initProxy() async {
+    if (_shouldProxy) {
+      await AudioProxyServer().start();
+    }
+  }
+
   /// Reference to the media notification handler.
   QuranAudioHandler? _audioHandler;
 
@@ -82,13 +90,12 @@ class AudioProvider extends ChangeNotifier {
     handler.onPause = () => togglePlay();
     handler.onSkipToNext = () => skipToNextVerse();
     handler.onSkipToPrevious = () => skipToPreviousVerse();
-    handler.onSeek = (pos) => _player.seek(pos);
-    handler.onStop = () async {
-      await _player.stop();
-      _activeVerseKey = null;
-      _isPlaying = false;
-      notifyListeners();
+    handler.onSeek = (pos) async {
+      if (_activeVerseKey == null) return;
+      final gen = _generation;
+      await _seekIfCurrent(pos, gen);
     };
+    handler.onStop = () => stop();
   }
 
   bool _isPlaying = false;
@@ -172,117 +179,127 @@ class AudioProvider extends ChangeNotifier {
   final Map<String, _ChapterAudioData> _chapterCache = {};
 
   AudioProvider() {
-    _loadSavedOffset();
-    if (_shouldProxy) {
-      AudioProxyServer().start();
-    }
+    unawaited(_loadSavedOffset());
 
-    _player.playerStateStream.listen((state) {
-      if (_isSeeking) return;
-      final playing =
-          state.playing &&
-          state.processingState != ja.ProcessingState.completed;
-      if (_isPlaying != playing) {
-        _isPlaying = playing;
-        _syncNotificationState();
-        notifyListeners();
-      }
-    });
-
-    _player.positionStream.listen((position) {
-      _currentPosition = position;
-
-      // While seeking to a target verse, don't let intermediate positions
-      // override _activeVerseKey — this prevents the wrong-verse flash.
-      if (_isSeeking) {
-        notifyListeners();
-        return;
-      }
-
-      if (_seekLockVerseKey != null && _seekLockUntilMs != null) {
-        if (position.inMilliseconds < _seekLockUntilMs!) {
-          if (_activeVerseKey != _seekLockVerseKey) {
-            _activeVerseKey = _seekLockVerseKey;
-            _syncNotificationMetadata();
-          }
-          notifyListeners();
-          return;
-        }
-        _seekLockVerseKey = null;
-        _seekLockUntilMs = null;
-      }
-
-      if (_isIsolated && _isolatedEndTimeMs != null) {
-        final posMs = position.inMilliseconds;
-        if (posMs >= _isolatedEndTimeMs!) {
-          _player.pause();
-          _isIsolated = false;
-          _isolatedEndTimeMs = null;
-          _isPlaying = false;
-          _activeVerseKey = null;
+    _subscriptions.add(
+      _player.playerStateStream.listen((state) {
+        if (_isSeeking) return;
+        final playing =
+            state.playing &&
+            state.processingState != ja.ProcessingState.completed;
+        if (_isPlaying != playing) {
+          _isPlaying = playing;
           _syncNotificationState();
           notifyListeners();
+        }
+      }),
+    );
+
+    _subscriptions.add(
+      _player.positionStream.listen((position) {
+        _currentPosition = position;
+
+        // While seeking to a target verse, don't let intermediate positions
+        // override _activeVerseKey — this prevents the wrong-verse flash.
+        if (_isSeeking) {
+          notifyListeners();
           return;
         }
-      }
 
-      // Update active verse based on current position using timing data
-      if (_verseTimings.isNotEmpty) {
-        final posMs = position.inMilliseconds - _audioOffsetMs;
+        if (_seekLockVerseKey != null && _seekLockUntilMs != null) {
+          if (position.inMilliseconds < _seekLockUntilMs!) {
+            if (_activeVerseKey != _seekLockVerseKey) {
+              _activeVerseKey = _seekLockVerseKey;
+              _syncNotificationMetadata();
+            }
+            notifyListeners();
+            return;
+          }
+          _seekLockVerseKey = null;
+          _seekLockUntilMs = null;
+        }
 
-        String? newKey;
-
-        // Reverse scan: find the last timing whose start is <= current position
-        for (int i = _verseTimings.length - 1; i >= 0; i--) {
-          final t = _verseTimings[i];
-          if (posMs >= t.firstSegmentMs) {
-            newKey = t.verseKey;
-            break;
+        if (_isIsolated && _isolatedEndTimeMs != null) {
+          final posMs = position.inMilliseconds;
+          if (posMs >= _isolatedEndTimeMs!) {
+            unawaited(_player.pause());
+            _isIsolated = false;
+            _isolatedEndTimeMs = null;
+            _isPlaying = false;
+            _activeVerseKey = null;
+            _syncNotificationState();
+            notifyListeners();
+            return;
           }
         }
 
-        if (newKey != null && newKey != _activeVerseKey) {
-          final oldKey = _activeVerseKey;
-          _activeVerseKey = newKey;
+        // Update active verse based on current position using timing data
+        if (_verseTimings.isNotEmpty) {
+          final posMs = position.inMilliseconds - _audioOffsetMs;
 
-          _syncNotificationMetadata();
+          String? newKey;
 
-          // Handle repeat mode when verse changes
-          _handleRepeat(oldKey, newKey, posMs);
+          // Reverse scan: find the last timing whose start is <= current position
+          for (int i = _verseTimings.length - 1; i >= 0; i--) {
+            final t = _verseTimings[i];
+            if (posMs >= t.firstSegmentMs) {
+              newKey = t.verseKey;
+              break;
+            }
+          }
+
+          if (newKey != null && newKey != _activeVerseKey) {
+            final oldKey = _activeVerseKey;
+            _activeVerseKey = newKey;
+
+            _syncNotificationMetadata();
+
+            // Handle repeat mode when verse changes
+            unawaited(_handleRepeat(oldKey, newKey, posMs));
+          }
         }
-      }
 
-      notifyListeners();
-    });
+        notifyListeners();
+      }),
+    );
 
-    _player.durationStream.listen((duration) {
-      if (duration == null) return;
-      _totalDuration = duration;
-      final shift = _applyBismillahCorrectionIfNeeded(duration);
-      if (shift != null) {
-        // Shift playhead to match the corrected timeline
-        Future<void>(() {
+    _subscriptions.add(
+      _player.durationStream.listen((duration) {
+        if (duration == null) return;
+        _totalDuration = duration;
+        final shift = _applyBismillahCorrectionIfNeeded(duration);
+        if (shift != null) {
+          // Shift playhead to match the corrected timeline
+          final gen = _generation;
           final newPos = _player.position + Duration(milliseconds: shift);
-          _player.seek(newPos < Duration.zero ? Duration.zero : newPos);
-        });
-      }
-      notifyListeners();
-    });
+          unawaited(
+            _seekIfCurrent(
+              newPos < Duration.zero ? Duration.zero : newPos,
+              gen,
+            ),
+          );
+        }
+        notifyListeners();
+      }),
+    );
 
-    _player.processingStateStream.listen((state) {
-      if (state != ja.ProcessingState.completed) return;
-      if (_isSeeking) return;
-      _activeVerseKey = null;
-      _isPlaying = false;
-      _isIsolated = false;
-      _isolatedEndTimeMs = null;
-      _syncNotificationState();
-      notifyListeners();
-    });
+    _subscriptions.add(
+      _player.processingStateStream.listen((state) {
+        if (state != ja.ProcessingState.completed) return;
+        if (_isSeeking) return;
+        _activeVerseKey = null;
+        _isPlaying = false;
+        _isIsolated = false;
+        _isolatedEndTimeMs = null;
+        _syncNotificationState();
+        notifyListeners();
+      }),
+    );
   }
 
   /// Handle repeat logic when the active verse changes
-  void _handleRepeat(String? oldKey, String newKey, int posMs) {
+  Future<void> _handleRepeat(String? oldKey, String newKey, int posMs) async {
+    final gen = _generation;
     if (_repeatMode == AudioRepeatMode.repeatVerse && oldKey != null) {
       // Repeat single verse: re-seek to the old verse's start
       final oldTiming = _findTiming(oldKey);
@@ -290,9 +307,8 @@ class AudioProvider extends ChangeNotifier {
         if (_repeatCount == 0 || _currentRepeatIteration < _repeatCount - 1) {
           _currentRepeatIteration++;
           _activeVerseKey = oldKey;
-          _player.seek(
-            Duration(milliseconds: oldTiming.firstSegmentMs + _audioOffsetMs),
-          );
+          final seekPosMs = oldTiming.firstSegmentMs + _audioOffsetMs;
+          await _seekIfCurrent(Duration(milliseconds: seekPosMs), gen);
           return;
         } else {
           // Exhausted repeats, reset and continue
@@ -310,11 +326,8 @@ class AudioProvider extends ChangeNotifier {
           final startTiming = _findTiming(_repeatRangeStart!);
           if (startTiming != null) {
             _activeVerseKey = _repeatRangeStart;
-            _player.seek(
-              Duration(
-                milliseconds: startTiming.firstSegmentMs + _audioOffsetMs,
-              ),
-            );
+            final rangeSeekPosMs = startTiming.firstSegmentMs + _audioOffsetMs;
+            await _seekIfCurrent(Duration(milliseconds: rangeSeekPosMs), gen);
             return;
           }
         } else {
@@ -322,6 +335,12 @@ class AudioProvider extends ChangeNotifier {
         }
       }
     }
+  }
+
+  Future<bool> _seekIfCurrent(Duration position, int generation) async {
+    if (_disposed || generation != _generation) return false;
+    await _player.seek(position);
+    return !_disposed && generation == _generation;
   }
 
   void updateReciterName(String newName) {
@@ -342,6 +361,7 @@ class AudioProvider extends ChangeNotifier {
 
     // Cancel any in-flight operation
     final gen = ++_generation;
+    _currentRepeatIteration = 0;
     _reciterId = reciterId;
     _apiSource = apiSource;
     _serverUrl = serverUrl;
@@ -546,26 +566,42 @@ class AudioProvider extends ChangeNotifier {
             _moshafId ?? _reciterId,
             chapterNumber,
           );
-          timings = timingData.map((t) {
-            final verseKey = '$chapterNumber:${t['ayah']}';
-            // MP3Quran returns times in milliseconds
-            int timestampFrom = (t['start_time'] as num).toInt();
-            int timestampTo = (t['end_time'] as num).toInt();
-
-            // Apply end-time override if defined.
-            final overrideKey = '$_reciterId:$verseKey';
-            timestampTo += _timingEndOverrides[overrideKey] ?? 0;
-
-            final duration = timestampTo - timestampFrom;
-
-            return _VerseTiming(
-              verseKey: verseKey,
-              timestampFrom: timestampFrom,
-              timestampTo: timestampTo,
-              duration: duration,
-              firstSegmentMs: timestampFrom,
-            );
-          }).toList();
+          final parsedTimings = <_VerseTiming>[];
+          for (final t in timingData) {
+            try {
+              final ayah = t['ayah'];
+              if (ayah == null) continue;
+              final verseKey = '$chapterNumber:$ayah';
+              int timestampFrom = (t['start_time'] as num).toInt();
+              int timestampTo = (t['end_time'] as num).toInt();
+              if (timestampFrom < 0 ||
+                  timestampTo < 0 ||
+                  timestampTo < timestampFrom) {
+                continue;
+              }
+              final overrideKey = '$_reciterId:$verseKey';
+              timestampTo += _timingEndOverrides[overrideKey] ?? 0;
+              final duration = timestampTo - timestampFrom;
+              parsedTimings.add(
+                _VerseTiming(
+                  verseKey: verseKey,
+                  timestampFrom: timestampFrom,
+                  timestampTo: timestampTo,
+                  duration: duration,
+                  firstSegmentMs: timestampFrom,
+                ),
+              );
+            } catch (e) {
+              AppLogger.warn(
+                'Audio',
+                '[MP3Quran] Skipping malformed timing entry: $e',
+              );
+            }
+          }
+          parsedTimings.sort(
+            (a, b) => a.timestampFrom.compareTo(b.timestampFrom),
+          );
+          timings = parsedTimings;
         } catch (e) {
           AppLogger.info(
             'Audio',
@@ -595,36 +631,57 @@ class AudioProvider extends ChangeNotifier {
         final audioUrl = audioFile['audio_url'] as String;
         final timestamps = audioFile['timestamps'] as List? ?? [];
 
-        final timings = timestamps.map((t) {
-          final verseKey = t['verse_key'] as String;
-          int timestampFrom = (t['timestamp_from'] as num).toInt();
-          int timestampTo = (t['timestamp_to'] as num).toInt();
-          final duration = (t['duration'] as num).toInt();
+        // Parse each timing entry independently so one malformed entry cannot
+        // discard the whole chapter's timings (verse highlighting + repeat).
+        final parsedTimings = <_VerseTiming>[];
+        for (final t in timestamps) {
+          try {
+            final verseKey = t['verse_key'] as String;
+            int timestampFrom = (t['timestamp_from'] as num).toInt();
+            int timestampTo = (t['timestamp_to'] as num).toInt();
+            final duration = (t['duration'] as num).toInt();
+            if (timestampFrom < 0 ||
+                timestampTo < 0 ||
+                timestampTo < timestampFrom) {
+              continue;
+            }
 
-          // Apply end-time override if defined.
-          final overrideKey = '$_reciterId:$verseKey';
-          timestampTo += _timingEndOverrides[overrideKey] ?? 0;
+            // Apply end-time override if defined.
+            final overrideKey = '$_reciterId:$verseKey';
+            timestampTo += _timingEndOverrides[overrideKey] ?? 0;
 
-          int firstSegmentMs = timestampFrom;
-          final segments = t['segments'] as List?;
-          if (segments != null && segments.isNotEmpty) {
-            final firstSegment = segments.first;
-            if (firstSegment is List && firstSegment.length >= 2) {
-              final segmentStart = firstSegment[1];
-              if (segmentStart is num) {
-                firstSegmentMs = segmentStart.toInt();
+            int firstSegmentMs = timestampFrom;
+            final segments = t['segments'] as List?;
+            if (segments != null && segments.isNotEmpty) {
+              final firstSegment = segments.first;
+              if (firstSegment is List && firstSegment.length >= 2) {
+                final segmentStart = firstSegment[1];
+                if (segmentStart is num) {
+                  firstSegmentMs = segmentStart.toInt();
+                }
               }
             }
-          }
 
-          return _VerseTiming(
-            verseKey: verseKey,
-            timestampFrom: timestampFrom,
-            timestampTo: timestampTo,
-            duration: duration,
-            firstSegmentMs: firstSegmentMs,
-          );
-        }).toList();
+            parsedTimings.add(
+              _VerseTiming(
+                verseKey: verseKey,
+                timestampFrom: timestampFrom,
+                timestampTo: timestampTo,
+                duration: duration,
+                firstSegmentMs: firstSegmentMs,
+              ),
+            );
+          } catch (e) {
+            AppLogger.warn(
+              'Audio',
+              '[Quran.com] Skipping malformed timing entry: $e',
+            );
+          }
+        }
+        parsedTimings.sort(
+          (a, b) => a.timestampFrom.compareTo(b.timestampFrom),
+        );
+        final timings = parsedTimings;
 
         // ── Diagnostic: Log timing accuracy for first 10 verses ──
         AppLogger.info(
@@ -639,13 +696,6 @@ class AudioProvider extends ChangeNotifier {
           final t = timings[i];
           final delta = t.timestampFrom - t.firstSegmentMs;
           final gap = i > 0 ? t.firstSegmentMs - timings[i - 1].timestampTo : 0;
-          // Also check raw segment data
-          final rawT = timestamps[i];
-          final segs = rawT['segments'] as List?;
-          final segCount = segs?.length ?? 0;
-          final seg0 = segs != null && segs.isNotEmpty
-              ? segs[0].toString()
-              : 'none';
           AppLogger.info(
             'AudioSync',
             '│ ${t.verseKey.padRight(8)} '
@@ -653,9 +703,7 @@ class AudioProvider extends ChangeNotifier {
                 'firstSeg=${t.firstSegmentMs}ms  '
                 'delta=${delta}ms  '
                 'tsTo=${t.timestampTo}ms  '
-                'gap=${gap}ms  '
-                'segs=$segCount  '
-                'seg0=$seg0',
+                'gap=${gap}ms',
           );
         }
         AppLogger.info('AudioSync', '└─── END TIMING DIAGNOSTIC ───');
@@ -686,6 +734,7 @@ class AudioProvider extends ChangeNotifier {
 
     // Cancel any in-flight operation
     final gen = ++_generation;
+    _currentRepeatIteration = 0;
 
     _isIsolated = false;
     _isolatedEndTimeMs = null;
@@ -800,6 +849,7 @@ class AudioProvider extends ChangeNotifier {
   Future<void> playSingleVerseIsolated(String verseKey) async {
     // Cancel any in-flight operation
     final gen = ++_generation;
+    _currentRepeatIteration = 0;
 
     _isSeeking = true;
     _isLoading = true;
@@ -896,6 +946,20 @@ class AudioProvider extends ChangeNotifier {
     } else {
       await _startPlayback();
     }
+  }
+
+  /// Stops playback entirely and clears the active verse.
+  Future<void> stop() async {
+    ++_generation; // Cancel any in-flight seek/load
+    _isIsolated = false;
+    _isolatedEndTimeMs = null;
+    _currentRepeatIteration = 0;
+    await _player.stop();
+    _activeVerseKey = null;
+    _isPlaying = false;
+    _isSeeking = false;
+    _syncNotificationState();
+    notifyListeners();
   }
 
   // ── Media notification sync helpers ──────────────────────────
@@ -1120,11 +1184,25 @@ class AudioProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    if (_shouldProxy) {
-      AudioProxyServer().stop();
+    if (_disposed) return;
+    _disposed = true;
+    _generation++;
+    for (final subscription in _subscriptions) {
+      unawaited(subscription.cancel());
     }
-    _player.dispose();
+    _subscriptions.clear();
+    if (_shouldProxy) {
+      unawaited(AudioProxyServer().shutdown());
+    }
+    unawaited(_player.dispose());
     super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
   }
 }
 

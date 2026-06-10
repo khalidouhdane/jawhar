@@ -71,16 +71,20 @@ class AudioPlayerBridge extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
         curve: Curves.fastOutSlowIn,
-        margin: margin ?? EdgeInsets.only(
-          bottom: isExpanded ? 24 : 16,
-          left: isExpanded ? 16 : 24,
-          right: isExpanded ? 16 : 24,
-        ),
-        decoration: decoration ?? BoxDecoration(
-          color: theme.playerBackground,
-          borderRadius: BorderRadius.circular(isExpanded ? 24 : 34),
-          boxShadow: theme.shadowCardFull,
-        ),
+        margin:
+            margin ??
+            EdgeInsets.only(
+              bottom: isExpanded ? 24 : 16,
+              left: isExpanded ? 16 : 24,
+              right: isExpanded ? 16 : 24,
+            ),
+        decoration:
+            decoration ??
+            BoxDecoration(
+              color: theme.playerBackground,
+              borderRadius: BorderRadius.circular(isExpanded ? 24 : 34),
+              boxShadow: theme.shadowCardFull,
+            ),
         clipBehavior: Clip.hardEdge,
         child: AnimatedSize(
           duration: const Duration(milliseconds: 400),
@@ -239,7 +243,10 @@ class AudioPlayerBridge extends StatelessWidget {
                                           textDirection: TextDirection.ltr,
                                           child: Text(
                                             reciterName.isNotEmpty
-                                                ? reciterName.trim().characters.first
+                                                ? reciterName
+                                                      .trim()
+                                                      .characters
+                                                      .first
                                                 : '?',
                                             style: TextStyle(
                                               color: theme.mutedText,
@@ -294,10 +301,7 @@ class AudioPlayerBridge extends StatelessWidget {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        );
+                        return FadeTransition(opacity: animation, child: child);
                       },
                       child: !isExpanded
                           ? Row(
@@ -392,7 +396,8 @@ class AudioPlayerBridge extends StatelessWidget {
                                         child: Icon(
                                           LucideIcons.repeat,
                                           size: 20,
-                                          color: repeatMode != AudioRepeatMode.none
+                                          color:
+                                              repeatMode != AudioRepeatMode.none
                                               ? theme.accentColor
                                               : theme.primaryText,
                                         ),
@@ -402,23 +407,29 @@ class AudioPlayerBridge extends StatelessWidget {
                                           top: -4,
                                           right: -4,
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                            ),
                                             constraints: const BoxConstraints(
                                               minWidth: 16,
                                               minHeight: 16,
                                             ),
                                             decoration: BoxDecoration(
                                               color: theme.accentColor,
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             alignment: Alignment.center,
                                             child: Text(
-                                              repeatCount == 0 ? '∞' : '$repeatCount',
+                                              repeatCount == 0
+                                                  ? '∞'
+                                                  : '$repeatCount',
                                               style: TextStyle(
                                                 color: theme.scaffoldBackground,
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                fontFamily: GeistTypography.primaryFontFamily,
+                                                fontFamily: GeistTypography
+                                                    .primaryFontFamily,
                                               ),
                                             ),
                                           ),
@@ -482,11 +493,17 @@ class AudioPlayerBridge extends StatelessWidget {
 
         return GestureDetector(
           onHorizontalDragUpdate: (details) {
-            final newProgress = (details.localPosition.dx / width).clamp(0.0, 1.0);
+            final newProgress = (details.localPosition.dx / width).clamp(
+              0.0,
+              1.0,
+            );
             onSeek(newProgress);
           },
           onTapDown: (details) {
-            final newProgress = (details.localPosition.dx / width).clamp(0.0, 1.0);
+            final newProgress = (details.localPosition.dx / width).clamp(
+              0.0,
+              1.0,
+            );
             onSeek(newProgress);
           },
           child: Container(
