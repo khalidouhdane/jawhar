@@ -15,6 +15,18 @@ enum UpdateStatus {
 class UpdateProvider extends ChangeNotifier {
   final UpdateService _service = UpdateService();
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   UpdateStatus _status = UpdateStatus.idle;
   UpdateStatus get status => _status;
 
@@ -31,28 +43,30 @@ class UpdateProvider extends ChangeNotifier {
   /// Returns `true` if an update is available.
   Future<bool> checkForUpdate() async {
     _status = UpdateStatus.checking;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _updateInfo = await _service.checkForUpdate();
       if (_updateInfo != null) {
-        final isDownloaded = await _service.isUpdateDownloaded(_updateInfo!.version);
+        final isDownloaded = await _service.isUpdateDownloaded(
+          _updateInfo!.version,
+        );
         if (isDownloaded) {
           _status = UpdateStatus.readyToInstall;
         } else {
           _status = UpdateStatus.available;
         }
-        notifyListeners();
+        _safeNotify();
         return true;
       } else {
         _status = UpdateStatus.idle;
-        notifyListeners();
+        _safeNotify();
         return false;
       }
     } catch (e) {
       _status = UpdateStatus.error;
       _errorMessage = e.toString();
-      notifyListeners();
+      _safeNotify();
       return false;
     }
   }
@@ -61,11 +75,13 @@ class UpdateProvider extends ChangeNotifier {
   Future<void> downloadAndInstall() async {
     if (_updateInfo == null || _updateInfo!.apkDownloadUrl.isEmpty) return;
 
-    final isDownloaded = await _service.isUpdateDownloaded(_updateInfo!.version);
+    final isDownloaded = await _service.isUpdateDownloaded(
+      _updateInfo!.version,
+    );
     if (!isDownloaded) {
       _status = UpdateStatus.downloading;
       _downloadProgress = 0.0;
-      notifyListeners();
+      _safeNotify();
     }
 
     try {
@@ -74,15 +90,15 @@ class UpdateProvider extends ChangeNotifier {
         _updateInfo!.version,
         onProgress: (progress) {
           _downloadProgress = progress;
-          notifyListeners();
+          _safeNotify();
         },
       );
       _status = UpdateStatus.readyToInstall;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       _status = UpdateStatus.error;
       _errorMessage = e.toString();
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -90,6 +106,6 @@ class UpdateProvider extends ChangeNotifier {
   void dismiss() {
     _status = UpdateStatus.idle;
     _updateInfo = null;
-    notifyListeners();
+    _safeNotify();
   }
 }

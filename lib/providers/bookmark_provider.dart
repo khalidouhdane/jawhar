@@ -46,6 +46,19 @@ class BookmarkProvider extends ChangeNotifier {
     _load();
   }
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _highlightTimer?.cancel();
+    super.dispose();
+  }
+
   // ── Bookmark Getters ──
 
   List<Bookmark> get bookmarks => List.unmodifiable(_bookmarks);
@@ -66,10 +79,10 @@ class BookmarkProvider extends ChangeNotifier {
   }) {
     _highlightTimer?.cancel();
     _highlightVerseKey = verseKey;
-    notifyListeners();
+    _safeNotify();
     _highlightTimer = Timer(duration, () {
       _highlightVerseKey = null;
-      notifyListeners();
+      _safeNotify();
     });
   }
 
@@ -305,7 +318,9 @@ class BookmarkProvider extends ChangeNotifier {
 
     for (final b in bks) {
       if (b.type == BookmarkType.verse) {
-        final isAr = b.surahName.codeUnits.any((char) => char >= 0x0600 && char <= 0x06FF);
+        final isAr = b.surahName.codeUnits.any(
+          (char) => char >= 0x0600 && char <= 0x06FF,
+        );
         final formattedRef = VerseRefFormatter.format(
           b.verseKey ?? '',
           locale: isAr ? 'ar' : 'en',

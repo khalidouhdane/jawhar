@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
@@ -31,9 +33,18 @@ class PlanProvider extends ChangeNotifier {
   String? _aiReasoning;
   AiProgress _aiProgress = AiProgress.idle;
 
+  int _planGen = 0;
+  bool _disposed = false;
+
   PlanProvider(this._db, this._auth, this._sync, {AIPlanService? aiPlanService})
     : _planService = PlanGenerationService(_db),
       _aiService = aiPlanService;
+
+  bool _isCurrent(int generation) => !_disposed && generation == _planGen;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
 
   // ── Getters ──
 
@@ -72,16 +83,18 @@ class PlanProvider extends ChangeNotifier {
     MemoryProfile profile, {
     bool forceRegenerate = false,
   }) async {
+    final gen = ++_planGen;
     _isLoading = true;
     _hasError = false;
-    notifyListeners();
+    if (!_isCurrent(gen)) return;
+    _safeNotify();
 
     // Check rest day
     _isRestDay = isTodayRestDay(profile);
     if (_isRestDay && !forceRegenerate) {
       _todayPlan = null;
       _isLoading = false;
-      notifyListeners();
+      if (_isCurrent(gen)) _safeNotify();
       return;
     }
 
@@ -90,15 +103,17 @@ class PlanProvider extends ChangeNotifier {
       bool aiSuccess = false;
       if (_aiService != null && !forceRegenerate) {
         try {
-          aiSuccess = await _tryAIPlanGeneration(profile);
+          aiSuccess = await _tryAIPlanGeneration(profile, gen);
+          if (!_isCurrent(gen)) return;
           if (!aiSuccess) {
             _aiProgress = AiProgress.fallback;
-            notifyListeners();
+            _safeNotify();
           }
         } catch (e) {
           AppLogger.info('Plan', 'AI plan generation failed, falling back: $e');
+          if (!_isCurrent(gen)) return;
           _aiProgress = AiProgress.fallback;
-          notifyListeners();
+          _safeNotify();
         }
       }
 
@@ -108,6 +123,7 @@ class PlanProvider extends ChangeNotifier {
           profile,
           forceRegenerate: forceRegenerate,
         );
+        if (!_isCurrent(gen)) return;
         _isAiGenerated = false;
         _aiReasoning = null;
         _todayRecipes = [];
@@ -120,6 +136,7 @@ class PlanProvider extends ChangeNotifier {
         } catch (e) {
           AppLogger.info('Plan', '[AI] Recipe DB load failed: $e');
         }
+        if (!_isCurrent(gen)) return;
 
         // No stored recipes? Generate and save defaults.
         if (_todayRecipes.isEmpty) {
@@ -131,6 +148,7 @@ class PlanProvider extends ChangeNotifier {
           } catch (e) {
             AppLogger.info('Plan', '[AI] Recipe DB save failed: $e');
           }
+          if (!_isCurrent(gen)) return;
         }
       }
 
@@ -139,13 +157,15 @@ class PlanProvider extends ChangeNotifier {
         profile.id,
         DateTime.now(),
       );
+      if (!_isCurrent(gen)) return;
     } catch (e) {
       AppLogger.info('Plan', 'Plan generation error: $e');
       _hasError = true;
     }
 
+    if (!_isCurrent(gen)) return;
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Force-regenerate today's plan (after completing a session).
@@ -156,33 +176,39 @@ class PlanProvider extends ChangeNotifier {
 
     // Cloud sync (fire-and-forget)
     if (_auth.isSignedIn && _todayPlan != null) {
-      _sync.syncPlan(_auth.uid!, _todayPlan!);
+      unawaited(_sync.syncPlan(_auth.uid!, _todayPlan!));
     }
   }
 
   /// Generate a fresh extra session plan (CE-2).
   /// Called when the user wants to do more after completing today's plan.
   Future<void> generateExtraSession(MemoryProfile profile) async {
+    final generation = ++_planGen;
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       // Force-create a new plan from current progress
-      _todayPlan = await _planService.generateTodayPlan(
+      final plan = await _planService.generateTodayPlan(
         profile,
         forceRegenerate: true,
       );
+      if (!_isCurrent(generation)) return;
+      _todayPlan = plan;
       // Mark it as not completed (it's a fresh session)
       if (_todayPlan != null) {
         _todayPlan = _todayPlan!.copyWith(isCompleted: false);
         await _db.updateDailyPlan(_todayPlan!);
+        if (!_isCurrent(generation)) return;
       }
     } catch (e) {
       AppLogger.info('Plan', 'Extra session generation error: $e');
     }
 
-    _isLoading = false;
-    notifyListeners();
+    if (_isCurrent(generation)) {
+      _isLoading = false;
+      _safeNotify();
+    }
   }
 
   // ── Plan modifications ──
@@ -238,9 +264,13 @@ class PlanProvider extends ChangeNotifier {
   // ── AI Plan Generation ──
 
   /// Try to generate a plan using AI. Returns true if successful.
-  Future<bool> _tryAIPlanGeneration(MemoryProfile profile) async {
+  Future<bool> _tryAIPlanGeneration(
+    MemoryProfile profile,
+    int generation,
+  ) async {
     // Check if plan already exists for today
     final existing = await _db.getTodayPlan(profile.id);
+    if (!_isCurrent(generation)) return false;
     if (existing != null) {
       _todayPlan = existing;
       _isAiGenerated = existing.isAiGenerated;
@@ -251,11 +281,13 @@ class PlanProvider extends ChangeNotifier {
 
     // Step 1: Analyzing progress
     _aiProgress = AiProgress.analyzing;
-    notifyListeners();
+    _safeNotify();
 
     // Build progress snapshot for AI context
     final allProgress = await _db.getAllPageProgress(profile.id);
+    if (!_isCurrent(generation)) return false;
     final sessions = await _db.getSessionHistory(profile.id, limit: 10);
+    if (!_isCurrent(generation)) return false;
     final recentSessions = sessions
         .map(
           (s) => {
@@ -281,7 +313,7 @@ class PlanProvider extends ChangeNotifier {
 
     // Step 2: Generating plan via AI
     _aiProgress = AiProgress.generating;
-    notifyListeners();
+    _safeNotify();
 
     // Call AI
     final rawResult = await _aiService!.generatePlan(
@@ -289,10 +321,11 @@ class PlanProvider extends ChangeNotifier {
       progressSnapshot: progressSnapshot,
       recentSessions: recentSessions,
     );
+    if (!_isCurrent(generation)) return false;
 
     // Step 3: Validating result
     _aiProgress = AiProgress.validating;
-    notifyListeners();
+    _safeNotify();
 
     // Validate
     final validated = AIPlanValidator.validate(rawResult);
@@ -304,8 +337,7 @@ class PlanProvider extends ChangeNotifier {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final planId =
-        '${profile.id}_${today.toIso8601String()}_ai_${now.millisecondsSinceEpoch}';
+    final planId = '${profile.id}_${today.toIso8601String()}';
 
     // Extract pages first to determine if phases should be active
     final sabqiPages = (sabqi['pages'] as List<dynamic>?)?.cast<int>() ?? [];
@@ -375,6 +407,7 @@ class PlanProvider extends ChangeNotifier {
 
     // Save plan
     await _db.saveDailyPlan(plan);
+    if (!_isCurrent(generation)) return false;
 
     // Parse and save recipes if present
     final recipesRaw = validated['recipes'] as Map<String, dynamic>? ?? {};
@@ -393,6 +426,7 @@ class PlanProvider extends ChangeNotifier {
       }
       try {
         await _db.saveRecipes(_todayRecipes);
+        if (!_isCurrent(generation)) return false;
       } catch (e) {
         AppLogger.info('Plan', '[AI] AI recipe save failed: $e');
       }
@@ -403,5 +437,19 @@ class PlanProvider extends ChangeNotifier {
     _aiReasoning = reasoning;
     _aiProgress = AiProgress.done;
     return true;
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _planGen++;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
   }
 }

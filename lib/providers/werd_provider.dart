@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/werd_models.dart';
 import 'package:quran_app/services/local_storage_service.dart';
@@ -50,18 +52,20 @@ class WerdProvider extends ChangeNotifier {
     // QF User API sync (fire-and-forget)
     final qfApi = _qfApi;
     if (qfApi != null && qfApi.isAvailable) {
-      qfApi
-          .createGoal(
-            type: 'pages',
-            target: newConfig.todayTarget,
-            period: 'daily',
-          )
-          .then((_) {
-            AppLogger.info(
-              'Werd',
-              '[QF_SYNC] Goal synced: ${newConfig.todayTarget} pages/day',
-            );
-          });
+      unawaited(
+        qfApi
+            .createGoal(
+              type: 'pages',
+              target: newConfig.todayTarget,
+              period: 'daily',
+            )
+            .then((_) {
+              AppLogger.info(
+                'Werd',
+                '[QF_SYNC] Goal synced: ${newConfig.todayTarget} pages/day',
+              );
+            }),
+      );
     }
   }
 

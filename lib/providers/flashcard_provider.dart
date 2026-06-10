@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/services/auth_service.dart';
@@ -6,6 +8,7 @@ import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/srs_engine.dart';
 import 'package:quran_app/services/card_generation_service.dart';
 import 'package:quran_app/utils/app_logger.dart';
+import 'package:quran_app/utils/id_generator.dart';
 
 /// State management for flashcard review sessions.
 class FlashcardProvider extends ChangeNotifier {
@@ -36,6 +39,18 @@ class FlashcardProvider extends ChangeNotifier {
 
   FlashcardProvider(this._db, this._auth, this._sync);
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   // ── Getters ──
 
   List<Flashcard> get dueCards => _dueCards;
@@ -61,7 +76,7 @@ class FlashcardProvider extends ChangeNotifier {
   bool get lastWeakWasMutashabihat => _lastWeakWasMutashabihat;
   void clearMutashabihatFlag() {
     _lastWeakWasMutashabihat = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Get due count for a specific card type.
@@ -79,7 +94,7 @@ class FlashcardProvider extends ChangeNotifier {
   /// Load due cards for a profile and optionally generate new ones.
   Future<void> loadDueCards(String profileId, {bool generate = true}) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       if (generate) {
@@ -122,7 +137,7 @@ class FlashcardProvider extends ChangeNotifier {
       _dueCards = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -130,7 +145,7 @@ class FlashcardProvider extends ChangeNotifier {
   /// type = null means mixed (all types).
   Future<void> loadDueCardsByType(String profileId, FlashcardType? type) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _dueCards = await _db.getDueFlashcardsByType(profileId, type);
@@ -150,14 +165,14 @@ class FlashcardProvider extends ChangeNotifier {
       _dueCards = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
   /// Load playful cards for sandbox mode (no DB saves, just random practice).
   Future<void> loadPlayfulCards(String profileId, FlashcardType? type) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final gen = CardGenerationService(_db);
@@ -178,7 +193,7 @@ class FlashcardProvider extends ChangeNotifier {
       _dueCards = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -208,7 +223,7 @@ class FlashcardProvider extends ChangeNotifier {
   /// Force-clear all flashcards and regenerate from scratch.
   Future<void> forceRegenerate(String profileId) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       AppLogger.info(
@@ -223,7 +238,7 @@ class FlashcardProvider extends ChangeNotifier {
         '[FlashcardProvider] Force regenerate error: $e',
       );
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -232,13 +247,13 @@ class FlashcardProvider extends ChangeNotifier {
     _stats = await _db.getFlashcardStats(profileId);
     _accuracy = await _db.getFlashcardAccuracy(profileId);
     _statsByType = await _db.getFlashcardStatsByType(profileId);
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Reveal the current card's answer.
   void reveal() {
     _isRevealed = true;
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Rate the current card and advance to the next one.
@@ -253,17 +268,17 @@ class FlashcardProvider extends ChangeNotifier {
 
       // Save review event
       final review = FlashcardReview(
-        id: '${currentCard!.id}_${DateTime.now().millisecondsSinceEpoch}',
+        id: IdGenerator.uuidV4(),
         cardId: currentCard!.id,
         rating: rating,
-        reviewedAt: DateTime.now(),
+        reviewedAt: DateTime.now().toUtc(),
       );
       await _db.saveFlashcardReview(review);
 
       // Cloud sync (fire-and-forget)
       if (_auth.isSignedIn) {
-        _sync.syncFlashcard(_auth.uid!, updated);
-        _sync.syncFlashcardReview(_auth.uid!, review);
+        unawaited(_sync.syncFlashcard(_auth.uid!, updated));
+        unawaited(_sync.syncFlashcardReview(_auth.uid!, review));
       }
     }
 
@@ -296,7 +311,7 @@ class FlashcardProvider extends ChangeNotifier {
       _lastWeakWasMutashabihat = false;
     }
 
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Check if a verse key has associated mutashabihat groups.
@@ -304,7 +319,7 @@ class FlashcardProvider extends ChangeNotifier {
     try {
       final groups = await _db.getMutashabihatForVerse(verseKey);
       _lastWeakWasMutashabihat = groups.isNotEmpty;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       AppLogger.info(
         'Flashcard',
@@ -318,7 +333,7 @@ class FlashcardProvider extends ChangeNotifier {
   void skip() {
     _currentIndex++;
     _isRevealed = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Reset session stats.

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
@@ -41,6 +42,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quran_app/firebase_options.dart';
 import 'package:quran_app/services/auth_service.dart';
+import 'package:quran_app/services/auth_sync_coordinator.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:quran_app/services/qf_user_api_service.dart';
@@ -54,8 +56,21 @@ import 'package:quran_app/services/native_init.dart'
     if (dart.library.js_interop) 'package:quran_app/services/native_init_web.dart'
     as native_init;
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await _runAppGuarded();
+}
+
+Future<void> _runAppGuarded() async {
+  try {
+    await _bootstrap();
+  } catch (error, stackTrace) {
+    debugPrint('Application startup failed: $error\n$stackTrace');
+    runApp(StartupFailureApp(error: error, onRetry: _runAppGuarded));
+  }
+}
+
+Future<void> _bootstrap() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   GoogleFonts.config.allowRuntimeFetching = false;
 
@@ -72,14 +87,19 @@ void main() async {
   // Initialize native-only services (SQLite FFI, AudioSession, AudioService, push notifs)
   // On web this is a no-op via conditional import
   await native_init.initNativePlatform(audioProvider, pushNotifService);
+  await audioProvider.initProxy();
 
   // Initialize Hifz database
   final hifzDb = HifzDatabaseService();
   // Trigger DB creation/migration early
   await hifzDb.database;
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize Firebase (guarded so a startup retry doesn't hit duplicate-app)
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   // Initialize auth service
   final authService = AuthService();
@@ -87,13 +107,6 @@ void main() async {
 
   // Initialize cloud sync service
   final cloudSyncService = CloudSyncService(hifzDb);
-
-  // Auto-sync on sign-in
-  authService.addListener(() {
-    if (authService.isSignedIn && authService.uid != null) {
-      cloudSyncService.performInitialSync(authService.uid!);
-    }
-  });
 
   // Initialize QF User Auth (OAuth2 PKCE) — loads stored tokens
   final qfUserAuth = QfUserAuthService();
@@ -103,11 +116,11 @@ void main() async {
   final qfUserApi = QfUserApiService(qfUserAuth);
 
   // Import mutashabihat dataset if needed (non-blocking)
-  MutashabihatImportService(hifzDb).importIfNeeded();
+  unawaited(MutashabihatImportService(hifzDb).importIfNeeded());
 
   // Import asbab al-nuzul dataset if needed (non-blocking)
   final asbabService = AsbabNuzulService();
-  asbabService.importIfNeeded();
+  unawaited(asbabService.importIfNeeded());
 
   // Determine initial language from saved or system locale
   final savedLocale = prefs.getString('app_locale');
@@ -118,14 +131,17 @@ void main() async {
   final savedReciterId = storageService.defaultReciterId;
   if (savedReciterId != null) {
     final name = storageService.defaultReciterName ?? '';
-    final apiSourceStr = storageService.defaultReciterApiSource ?? 'quranDotCom';
+    final apiSourceStr =
+        storageService.defaultReciterApiSource ?? 'quranDotCom';
     final serverUrl = storageService.defaultReciterServerUrl;
     final moshafId = storageService.defaultReciterMoshafId;
-    
+
     audioProvider.setReciter(
       savedReciterId,
       name: name,
-      apiSource: apiSourceStr == 'mp3Quran' ? ApiSource.mp3Quran : ApiSource.quranDotCom,
+      apiSource: apiSourceStr == 'mp3Quran'
+          ? ApiSource.mp3Quran
+          : ApiSource.quranDotCom,
       serverUrl: serverUrl,
       moshafId: moshafId,
     );
@@ -135,36 +151,47 @@ void main() async {
     if (activeProfile != null) {
       final profileReciterId = activeProfile.defaultReciterId;
       final profileReciterSource = activeProfile.defaultReciterSource;
-      
+
       String reciterName = '';
       if (profileReciterSource == ReciterSource.mp3Quran) {
         if (profileReciterId == 16) {
-          reciterName = initialLang == 'ar' ? 'العيون الكوشي' : 'Al Ayoun Al Koushi';
+          reciterName = initialLang == 'ar'
+              ? 'العيون الكوشي'
+              : 'Al Ayoun Al Koushi';
         } else {
           reciterName = 'Reciter $profileReciterId';
         }
       } else {
-        reciterName = initialLang == 'ar' 
-            ? (Reciter.arabicNamesById[profileReciterId] ?? 'قارئ $profileReciterId') 
+        reciterName = initialLang == 'ar'
+            ? (Reciter.arabicNamesById[profileReciterId] ??
+                  'قارئ $profileReciterId')
             : 'Reciter $profileReciterId';
       }
-      
+
       audioProvider.setReciter(
         profileReciterId,
         name: reciterName,
-        apiSource: profileReciterSource == ReciterSource.mp3Quran ? ApiSource.mp3Quran : ApiSource.quranDotCom,
-        serverUrl: profileReciterSource == ReciterSource.mp3Quran && profileReciterId == 16 
-            ? "https://server11.mp3quran.net/koshi/" 
+        apiSource: profileReciterSource == ReciterSource.mp3Quran
+            ? ApiSource.mp3Quran
+            : ApiSource.quranDotCom,
+        serverUrl:
+            profileReciterSource == ReciterSource.mp3Quran &&
+                profileReciterId == 16
+            ? "https://server11.mp3quran.net/koshi/"
             : null,
-        moshafId: profileReciterSource == ReciterSource.mp3Quran && profileReciterId == 16 
-            ? 16 
+        moshafId:
+            profileReciterSource == ReciterSource.mp3Quran &&
+                profileReciterId == 16
+            ? 16
             : null,
       );
     } else {
       // Fallback to default rewaya reciter
       if (storageService.savedRewaya == 2) {
         // Warsh: Al Ayoun Al Koushi
-        final name = initialLang == 'ar' ? 'العيون الكوشي' : 'Al Ayoun Al Koushi';
+        final name = initialLang == 'ar'
+            ? 'العيون الكوشي'
+            : 'Al Ayoun Al Koushi';
         audioProvider.setReciter(
           16,
           name: name,
@@ -201,11 +228,7 @@ void main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = const String.fromEnvironment(
-        'SENTRY_DSN',
-        defaultValue:
-            'https://8baf4d34321edd20db58050f76b24bbe@o4511200061816832.ingest.de.sentry.io/4511200063258704',
-      );
+      options.dsn = const String.fromEnvironment('SENTRY_DSN');
       // Disable performance tracing in debug — was 1.0 (100%), caused
       // significant CPU overhead by tracing every UI operation.
       options.tracesSampleRate = kReleaseMode ? 0.2 : 0.0;
@@ -336,6 +359,11 @@ void main() async {
               ChangeNotifierProvider.value(value: cloudSyncService),
               ChangeNotifierProvider.value(value: qfUserAuth),
               Provider.value(value: qfUserApi),
+              Provider(
+                create: (_) =>
+                    AuthSyncCoordinator(authService, cloudSyncService),
+                dispose: (_, coordinator) => coordinator.dispose(),
+              ),
             ],
             child: const QuranApp(),
           ),
@@ -343,6 +371,73 @@ void main() async {
       );
     },
   );
+}
+
+class StartupFailureApp extends StatelessWidget {
+  final Object error;
+  final Future<void> Function()? onRetry;
+
+  const StartupFailureApp({super.key, required this.error, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ar';
+    final title = isArabic ? 'تعذّر تشغيل جوهر' : 'Jawhar could not start';
+    final message = isArabic
+        ? 'حدث خطأ أثناء بدء التطبيق. حاول مرة أخرى، وإذا استمرت المشكلة '
+              'فأعد تشغيل التطبيق.'
+        : 'Something went wrong while starting the app. Try again; if the '
+              'problem continues, restart the app.';
+    final retryLabel = isArabic ? 'إعادة المحاولة' : 'Retry';
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(message, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    Text(
+                      error.toString(),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                    if (onRetry != null) ...[
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: () => unawaited(onRetry!()),
+                        icon: const Icon(Icons.refresh),
+                        label: Text(retryLabel),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class QuranApp extends StatelessWidget {
@@ -363,42 +458,42 @@ class QuranApp extends StatelessWidget {
               child: DevicePreview.appBuilder(context, child),
             );
           },
-            title: 'Jawhar',
-            debugShowCheckedModeBanner: false,
-            locale: localeProvider.locale,
-            supportedLocales: const [Locale('en'), Locale('ar')],
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
+          title: 'Jawhar',
+          debugShowCheckedModeBanner: false,
+          locale: localeProvider.locale,
+          supportedLocales: const [Locale('en'), Locale('ar')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
 
-            theme: ThemeData(
-              textTheme: GoogleFonts.geistTextTheme(),
-              useMaterial3: true,
-              primaryColor: themeProvider.accentColor,
-              scaffoldBackgroundColor: themeProvider.scaffoldBackground,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF1A454E),
-                primary: themeProvider.accentColor,
-                brightness: themeProvider.isDark
-                    ? Brightness.dark
-                    : Brightness.light,
-              ),
+          theme: ThemeData(
+            textTheme: GoogleFonts.geistTextTheme(),
+            useMaterial3: true,
+            primaryColor: themeProvider.accentColor,
+            scaffoldBackgroundColor: themeProvider.scaffoldBackground,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1A454E),
+              primary: themeProvider.accentColor,
+              brightness: themeProvider.isDark
+                  ? Brightness.dark
+                  : Brightness.light,
             ),
-            scrollBehavior: const MaterialScrollBehavior().copyWith(
-              dragDevices: {
-                PointerDeviceKind.mouse,
-                PointerDeviceKind.touch,
-                PointerDeviceKind.stylus,
-                PointerDeviceKind.trackpad,
-              },
-            ),
+          ),
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.touch,
+              PointerDeviceKind.stylus,
+              PointerDeviceKind.trackpad,
+            },
+          ),
 
-            home: const SplashScreen(),
-          );
-        },
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

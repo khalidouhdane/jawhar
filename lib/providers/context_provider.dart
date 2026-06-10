@@ -59,6 +59,7 @@ class ContextProvider extends ChangeNotifier {
   VerseText? get activeDetailedTafsir => _activeDetailedTafsir;
   List<String>? get activeAsbabNuzul => _activeAsbabNuzul;
   AsbabNuzulEntry? get activeAsbabEntry => _activeAsbabEntry;
+
   /// Get translations for a specific page from cache.
   Map<String, VerseText> getPageTranslations(int pageNumber) {
     return _pageTranslationCache[pageNumber] ?? {};
@@ -66,7 +67,8 @@ class ContextProvider extends ChangeNotifier {
 
   String? get highlightVerseKey => _highlightVerseKey;
 
-  bool get isLoadingTranslation => _isLoadingTranslation || _loadingPages.isNotEmpty;
+  bool get isLoadingTranslation =>
+      _isLoadingTranslation || _loadingPages.isNotEmpty;
   bool get isLoadingBriefTafsir => _isLoadingBriefTafsir;
   bool get isLoadingDetailedTafsir => _isLoadingDetailedTafsir;
   String? get error => _error;
@@ -209,7 +211,8 @@ class ContextProvider extends ChangeNotifier {
   /// Load translations for all verses on a page (batch).
   Future<void> loadPageTranslations(int pageNumber) async {
     // Skip if already cached or already loading
-    if (_pageTranslationCache.containsKey(pageNumber) || _loadingPages.contains(pageNumber)) {
+    if (_pageTranslationCache.containsKey(pageNumber) ||
+        _loadingPages.contains(pageNumber)) {
       return;
     }
 
@@ -246,7 +249,8 @@ class ContextProvider extends ChangeNotifier {
     ].where((p) => p >= 1 && p <= 604).toList();
 
     for (final page in pagesToPrefetch) {
-      if (!_pageTranslationCache.containsKey(page) && !_loadingPages.contains(page)) {
+      if (!_pageTranslationCache.containsKey(page) &&
+          !_loadingPages.contains(page)) {
         _loadingPages.add(page);
         try {
           final results = await _tafsirService.getTranslationsForPage(

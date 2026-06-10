@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/auth_service.dart';
@@ -19,13 +21,22 @@ class HifzProfileProvider extends ChangeNotifier {
   StreakData _streakData = const StreakData();
   bool _isLoading = true;
 
+  int _profileGen = 0;
+  bool _disposed = false;
+
   HifzProfileProvider(
     this._db,
     this._auth,
     this._sync, {
     QfUserApiService? qfApi,
   }) : _qfApi = qfApi {
-    _init();
+    unawaited(_init());
+  }
+
+  bool _isCurrent(int generation) => !_disposed && generation == _profileGen;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
   }
 
   // ── Getters ──
@@ -51,100 +62,139 @@ class HifzProfileProvider extends ChangeNotifier {
   // ── Initialization ──
 
   Future<void> _init() async {
-    _allProfiles = await _db.getAllProfiles();
-    _activeProfile = await _db.getActiveProfile();
+    final generation = ++_profileGen;
+    try {
+      final profiles = await _db.getAllProfiles();
+      if (!_isCurrent(generation)) return;
+      var activeProfile = await _db.getActiveProfile();
+      if (!_isCurrent(generation)) return;
 
-    // Auto-recovery: if profiles exist but none is marked active,
-    // activate the first one. This handles edge cases where isActive
-    // was cleared by a failed operation (e.g. delete crashed mid-way).
-    if (_activeProfile == null && _allProfiles.isNotEmpty) {
-      await _db.switchProfile(_allProfiles.first.id);
-      _activeProfile = _allProfiles.first;
-    }
+      if (activeProfile == null && profiles.isNotEmpty) {
+        await _db.switchProfile(profiles.first.id);
+        if (!_isCurrent(generation)) return;
+        activeProfile = profiles.first;
+      }
 
-    if (_activeProfile != null) {
-      _streakData = await _db.getStreak(_activeProfile!.id);
+      var streak = const StreakData();
+      if (activeProfile != null) {
+        streak = await _db.getStreak(activeProfile.id);
+        if (!_isCurrent(generation)) return;
+      }
+
+      _allProfiles = profiles;
+      _activeProfile = activeProfile;
+      _streakData = streak;
+    } catch (error) {
+      AppLogger.info('HifzProfile', 'Profile initialization failed: $error');
+    } finally {
+      if (_isCurrent(generation)) {
+        _isLoading = false;
+        _safeNotify();
+      }
     }
-    _isLoading = false;
-    notifyListeners();
   }
 
   // ── Profile CRUD ──
 
   /// Create a new profile and set it as active.
   Future<void> createProfile(MemoryProfile profile) async {
+    final generation = ++_profileGen;
     await _db.createProfile(profile);
+    if (!_isCurrent(generation)) return;
+    final profiles = await _db.getAllProfiles();
+    if (!_isCurrent(generation)) return;
     _activeProfile = profile;
-    _allProfiles = await _db.getAllProfiles();
+    _allProfiles = profiles;
     _streakData = const StreakData();
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Switch to a different profile.
   Future<void> switchProfile(String profileId) async {
+    final gen = ++_profileGen;
     await _db.switchProfile(profileId);
+    if (gen != _profileGen) return;
     _activeProfile = await _db.getActiveProfile();
+    if (gen != _profileGen) return;
     if (_activeProfile != null) {
       _streakData = await _db.getStreak(_activeProfile!.id);
+      if (gen != _profileGen) return;
     }
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Update the active profile's settings.
   Future<void> updateProfile(MemoryProfile updatedProfile) async {
+    final generation = ++_profileGen;
     await _db.updateProfile(updatedProfile);
+    if (!_isCurrent(generation)) return;
+    final profiles = await _db.getAllProfiles();
+    if (!_isCurrent(generation)) return;
     if (_activeProfile?.id == updatedProfile.id) {
       _activeProfile = updatedProfile;
     }
-    _allProfiles = await _db.getAllProfiles();
-    notifyListeners();
+    _allProfiles = profiles;
+    _safeNotify();
 
     // Cloud sync (fire-and-forget)
     if (_auth.isSignedIn) {
-      _sync.syncProfile(_auth.uid!, updatedProfile);
+      unawaited(_sync.syncProfile(_auth.uid!, updatedProfile));
     }
   }
 
   /// Delete a profile. If it's the active one, try to activate another.
   Future<void> deleteProfile(String profileId) async {
+    final generation = ++_profileGen;
     await _db.deleteProfile(profileId);
-    _allProfiles = await _db.getAllProfiles();
+    if (!_isCurrent(generation)) return;
+    final profiles = await _db.getAllProfiles();
+    if (!_isCurrent(generation)) return;
+    _allProfiles = profiles;
     if (_activeProfile?.id == profileId) {
       if (_allProfiles.isNotEmpty) {
         await _db.switchProfile(_allProfiles.first.id);
+        if (!_isCurrent(generation)) return;
         _activeProfile = _allProfiles.first;
         _streakData = await _db.getStreak(_activeProfile!.id);
+        if (!_isCurrent(generation)) return;
       } else {
         _activeProfile = null;
         _streakData = const StreakData();
       }
     }
-    notifyListeners();
+    _safeNotify();
   }
 
   // ── Streak ──
 
   /// Record today as an active day for the current profile.
   Future<void> recordActiveDay() async {
-    if (_activeProfile == null) return;
-    await _db.recordActiveDay(_activeProfile!.id);
-    _streakData = await _db.getStreak(_activeProfile!.id);
-    notifyListeners();
+    final profile = _activeProfile;
+    if (profile == null) return;
+    final generation = ++_profileGen;
+    await _db.recordActiveDay(profile.id);
+    if (!_isCurrent(generation)) return;
+    final streak = await _db.getStreak(profile.id);
+    if (!_isCurrent(generation)) return;
+    _streakData = streak;
+    _safeNotify();
 
     // Cloud sync (fire-and-forget)
     if (_auth.isSignedIn) {
-      _sync.syncStreak(_auth.uid!, _streakData);
+      unawaited(_sync.syncStreak(_auth.uid!, _streakData));
     }
 
     // QF User API sync (fire-and-forget)
     final qfApi = _qfApi;
     if (qfApi != null && qfApi.isAvailable) {
-      qfApi.recordStreakActivity().then((_) {
-        AppLogger.info(
-          'HifzProfile',
-          '[QF_SYNC] Streak activity recorded via HifzProfileProvider',
-        );
-      });
+      unawaited(
+        qfApi.recordStreakActivity().then((_) {
+          AppLogger.info(
+            'HifzProfile',
+            '[QF_SYNC] Streak activity recorded via HifzProfileProvider',
+          );
+        }),
+      );
     }
   }
 
@@ -161,11 +211,33 @@ class HifzProfileProvider extends ChangeNotifier {
 
   /// Refresh all data from the database.
   Future<void> refresh() async {
-    _allProfiles = await _db.getAllProfiles();
-    _activeProfile = await _db.getActiveProfile();
-    if (_activeProfile != null) {
-      _streakData = await _db.getStreak(_activeProfile!.id);
+    final generation = ++_profileGen;
+    final profiles = await _db.getAllProfiles();
+    if (!_isCurrent(generation)) return;
+    final activeProfile = await _db.getActiveProfile();
+    if (!_isCurrent(generation)) return;
+    var streak = const StreakData();
+    if (activeProfile != null) {
+      streak = await _db.getStreak(activeProfile.id);
+      if (!_isCurrent(generation)) return;
     }
-    notifyListeners();
+    _allProfiles = profiles;
+    _activeProfile = activeProfile;
+    _streakData = streak;
+    _safeNotify();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _profileGen++;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
   }
 }

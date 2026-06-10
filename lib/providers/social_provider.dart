@@ -29,7 +29,8 @@ class SocialProvider extends ChangeNotifier {
     _setGenerating(true);
     try {
       final statusCounts = await _db.getPageStatusCounts(profile.id);
-      final pagesMemorized = (statusCounts[PageStatus.memorized] ?? 0) +
+      final pagesMemorized =
+          (statusCounts[PageStatus.memorized] ?? 0) +
           (statusCounts[PageStatus.learning] ?? 0) +
           (statusCounts[PageStatus.reviewing] ?? 0);
 
@@ -57,7 +58,8 @@ class SocialProvider extends ChangeNotifier {
     _setGenerating(true);
     try {
       final statusCounts = await _db.getPageStatusCounts(profile.id);
-      final pagesMemorized = (statusCounts[PageStatus.memorized] ?? 0) +
+      final pagesMemorized =
+          (statusCounts[PageStatus.memorized] ?? 0) +
           (statusCounts[PageStatus.learning] ?? 0) +
           (statusCounts[PageStatus.reviewing] ?? 0);
 

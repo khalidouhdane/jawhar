@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -8,6 +10,7 @@ import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/card_generation_service.dart';
 import 'package:quran_app/services/qf_user_api_service.dart';
 import 'package:quran_app/utils/app_logger.dart';
+import 'package:quran_app/utils/id_generator.dart';
 
 /// Manages the active Hifz session state.
 /// Tracks timer, rep counts, phase progression, and self-assessments.
@@ -24,6 +27,7 @@ class SessionProvider extends ChangeNotifier {
 
   // Timer state (managed by the UI Stopwatch, not a Dart Timer)
   int _elapsedSeconds = 0;
+  final ValueNotifier<int> _elapsedSecondsNotifier = ValueNotifier(0);
   int _targetSeconds = 0; // Countdown target (0 = no countdown, count up)
   int _repCount = 0;
   int _totalSessionReps = 0; // Accumulated across all phases
@@ -59,6 +63,12 @@ class SessionProvider extends ChangeNotifier {
   SessionProvider(this._db, this._auth, this._sync, {QfUserApiService? qfApi})
     : _qfApi = qfApi;
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
   // ── Getters ──
 
   DailyPlan? get plan => _plan;
@@ -66,6 +76,7 @@ class SessionProvider extends ChangeNotifier {
   bool get isActive => _isActive;
   bool get isPaused => _isPaused;
   int get elapsedSeconds => _elapsedSeconds;
+  ValueNotifier<int> get elapsedSecondsListenable => _elapsedSecondsNotifier;
   int get targetSeconds => _targetSeconds;
   int get repCount => _repCount;
 
@@ -78,6 +89,7 @@ class SessionProvider extends ChangeNotifier {
   bool get showingAssessment => _showingAssessment;
   bool get showingCoverageDialog => _showingCoverageDialog;
   List<int> get actualPagesCovered => _actualPagesCovered;
+
   /// Whether the spotlight mask feature is currently active.
   bool get isSpotlightActive => _isSpotlightActive;
 
@@ -186,7 +198,7 @@ class SessionProvider extends ChangeNotifier {
     _plan = plan;
     _isActive = true;
     _isPaused = false;
-    _elapsedSeconds = 0;
+    _setElapsedSeconds(0);
     _targetSeconds = 0;
     _repCount = 0;
     _totalSessionReps = 0;
@@ -257,8 +269,7 @@ class SessionProvider extends ChangeNotifier {
   /// Increment elapsed time by 1 second (called from UI timer).
   void tick() {
     if (!_isActive || _isPaused) return;
-    _elapsedSeconds++;
-    notifyListeners();
+    _setElapsedSeconds(_elapsedSeconds + 1);
   }
 
   /// Count a repetition.
@@ -419,7 +430,7 @@ class SessionProvider extends ChangeNotifier {
     _stepRepCount = 0;
 
     // Reset timer for the new phase's allocated minutes
-    _elapsedSeconds = 0;
+    _setElapsedSeconds(0);
     if (_plan != null) {
       int phaseMinutes;
       switch (_currentPhase) {
@@ -451,9 +462,9 @@ class SessionProvider extends ChangeNotifier {
         : (_plan != null ? [_plan!.sabaqPage] : <int>[]);
 
     final record = SessionRecord(
-      id: '${_plan?.profileId}_${DateTime.now().millisecondsSinceEpoch}',
+      id: IdGenerator.uuidV4(),
       profileId: _plan?.profileId ?? '',
-      date: DateTime.now(),
+      date: DateTime.now().toUtc(),
       durationMinutes: (_elapsedSeconds / 60).ceil(),
       sabaqCompleted: _sabaqDone,
       sabqiCompleted: _sabqiDone,
@@ -483,7 +494,7 @@ class SessionProvider extends ChangeNotifier {
             pageNumber: page,
             profileId: _plan!.profileId,
             status: PageStatus.learning,
-            lastReviewedAt: DateTime.now(),
+            lastReviewedAt: DateTime.now().toUtc(),
             reviewCount: (prev?.reviewCount ?? 0) + 1,
             lastVerseLearned: isLastPage ? _lastVerseLearned : null,
             totalVersesOnPage: isLastPage ? _totalVersesOnPage : null,
@@ -502,7 +513,7 @@ class SessionProvider extends ChangeNotifier {
             pageNumber: page,
             profileId: _plan!.profileId,
             status: PageStatus.reviewing,
-            lastReviewedAt: DateTime.now(),
+            lastReviewedAt: DateTime.now().toUtc(),
             reviewCount: (prev?.reviewCount ?? 0) + 1,
           ),
         );
@@ -523,9 +534,9 @@ class SessionProvider extends ChangeNotifier {
             pageNumber: page,
             profileId: _plan!.profileId,
             status: newStatus,
-            lastReviewedAt: DateTime.now(),
+            lastReviewedAt: DateTime.now().toUtc(),
             reviewCount: (prev?.reviewCount ?? 0) + 1,
-            memorizedAt: isStrong ? DateTime.now() : prev?.memorizedAt,
+            memorizedAt: isStrong ? DateTime.now().toUtc() : prev?.memorizedAt,
           ),
         );
       }
@@ -558,14 +569,14 @@ class SessionProvider extends ChangeNotifier {
     // ── Cloud sync (fire-and-forget) ──
     if (_auth.isSignedIn && _plan != null) {
       final uid = _auth.uid!;
-      _sync.syncSession(uid, record);
-      _sync.syncStreak(uid, await _db.getStreak(_plan!.profileId));
+      unawaited(_sync.syncSession(uid, record));
+      unawaited(_sync.syncStreak(uid, await _db.getStreak(_plan!.profileId)));
       // Sync all progress pages involved
       final allProgress = await _db.getAllPageProgress(_plan!.profileId);
       for (final page in coveredPages) {
         final p = allProgress[page];
         if (p != null) {
-          _sync.syncProgress(uid, page, p.toMap());
+          unawaited(_sync.syncProgress(uid, page, p.toMap()));
         }
       }
     }
@@ -580,26 +591,30 @@ class SessionProvider extends ChangeNotifier {
       final endPage = coveredPages.isNotEmpty
           ? coveredPages.last
           : _plan!.sabaqPage;
-      qfApi
-          .createReadingSession(
-            startPage: startPage,
-            endPage: endPage,
-            durationSeconds: _elapsedSeconds,
-          )
-          .then((_) {
-            AppLogger.info(
-              'Session',
-              '[QF_SYNC] Reading session recorded: pages $startPage-$endPage',
-            );
-          });
+      unawaited(
+        qfApi
+            .createReadingSession(
+              startPage: startPage,
+              endPage: endPage,
+              durationSeconds: _elapsedSeconds,
+            )
+            .then((_) {
+              AppLogger.info(
+                'Session',
+                '[QF_SYNC] Reading session recorded: pages $startPage-$endPage',
+              );
+            }),
+      );
 
       // Record streak activity
-      qfApi.recordStreakActivity().then((_) {
-        AppLogger.info('Session', '[QF_SYNC] Streak activity recorded');
-      });
+      unawaited(
+        qfApi.recordStreakActivity().then((_) {
+          AppLogger.info('Session', '[QF_SYNC] Streak activity recorded');
+        }),
+      );
     }
 
-    notifyListeners();
+    _safeNotify();
     return record;
   }
 
@@ -608,7 +623,7 @@ class SessionProvider extends ChangeNotifier {
     _isActive = false;
     _isPaused = false;
     _plan = null;
-    _elapsedSeconds = 0;
+    _setElapsedSeconds(0);
     _targetSeconds = 0;
     _repCount = 0;
     _totalSessionReps = 0;
@@ -622,5 +637,24 @@ class SessionProvider extends ChangeNotifier {
     _currentStepIndex = 0;
     _stepRepCount = 0;
     notifyListeners();
+  }
+
+  void _setElapsedSeconds(int value) {
+    _elapsedSeconds = value;
+    _elapsedSecondsNotifier.value = value;
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _elapsedSecondsNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
   }
 }

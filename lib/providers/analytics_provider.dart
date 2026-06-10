@@ -3,10 +3,14 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/ai_calibration_service.dart';
 import 'package:quran_app/services/analytics_service.dart';
 import 'package:quran_app/services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Manages analytics state for the Hifz program.
 /// Generates weekly snapshots, adaptive suggestions, and pace data.
 class AnalyticsProvider extends ChangeNotifier {
+  static String _lastCalibrationKey(String profileId) =>
+      'last_ai_calibration_at_$profileId';
+
   final AnalyticsService _analyticsService;
   final NotificationService _notificationService;
   final AICalibrationService? _calibrationService;
@@ -24,6 +28,18 @@ class AnalyticsProvider extends ChangeNotifier {
     this._notificationService, {
     AICalibrationService? calibrationService,
   }) : _calibrationService = calibrationService;
+
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   // ── Getters ──
 
@@ -49,7 +65,7 @@ class AnalyticsProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final now = DateTime.now();
@@ -81,8 +97,16 @@ class AnalyticsProvider extends ChangeNotifier {
       _lastCalibrationWasAI = false;
 
       final calService = _calibrationService;
+      final prefs = await SharedPreferences.getInstance();
+      final calibrationKey = _lastCalibrationKey(profile.id);
+      final lastCalStr = prefs.getString(calibrationKey);
+      final lastCal = lastCalStr != null ? DateTime.tryParse(lastCalStr) : null;
+
       if (calService != null &&
-          calService.isCalibrationDue(totalSessionCount) &&
+          calService.isCalibrationDue(
+            totalSessionCount,
+            lastCalibrationDate: lastCal,
+          ) &&
           _currentWeek!.hasEnoughData) {
         // AI calibration
         final aiSuggestions = await calService.generateCalibration(
@@ -94,6 +118,10 @@ class AnalyticsProvider extends ChangeNotifier {
         if (aiSuggestions.isNotEmpty) {
           calibrationSuggestions = aiSuggestions;
           _lastCalibrationWasAI = true;
+          await prefs.setString(
+            calibrationKey,
+            DateTime.now().toUtc().toIso8601String(),
+          );
         } else {
           // AI returned empty or failed → deterministic fallback
           calibrationSuggestions = _analyticsService.generateSuggestions(
@@ -122,11 +150,11 @@ class AnalyticsProvider extends ChangeNotifier {
       _paceData = await _analyticsService.calculatePace(profile.id, profile);
 
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -144,7 +172,12 @@ class AnalyticsProvider extends ChangeNotifier {
     if (aiSuggestions.isNotEmpty) {
       _lastCalibrationWasAI = true;
       _mergeSuggestions(aiSuggestions);
-      notifyListeners();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _lastCalibrationKey(profile.id),
+        DateTime.now().toUtc().toIso8601String(),
+      );
+      _safeNotify();
     }
   }
 

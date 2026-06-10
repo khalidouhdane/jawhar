@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/services/local_storage_service.dart';
@@ -25,6 +27,20 @@ class QuranReadingProvider extends ChangeNotifier {
   final Mp3QuranService _mp3QuranService = Mp3QuranService();
   final WarshTextService _warshTextService = WarshTextService();
   final LocalStorageService? _storage;
+
+  bool _disposed = false;
+  Timer? _reciterLoadTimer;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _reciterLoadTimer?.cancel();
+    super.dispose();
+  }
 
   List<Verse> _verses = [];
   List<Chapter> _chapters = [];
@@ -65,7 +81,7 @@ class QuranReadingProvider extends ChangeNotifier {
     _chapters = _localService.getChapters(rewaya: rewaya);
     notifyListeners();
     if (rewaya == 2) {
-      _preloadWarshText();
+      unawaited(_preloadWarshText());
     }
     // Reload the current page to reflect new rewaya
     loadPage(_activePage);
@@ -75,10 +91,9 @@ class QuranReadingProvider extends ChangeNotifier {
   Future<void> _preloadWarshText() async {
     if (_warshTextService.isLoaded) return;
     await _warshTextService.preload();
-    // Notify so the canvas re-renders with Warsh text
     if (_selectedRewaya == 2) {
       _pageCache.clear();
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -93,7 +108,7 @@ class QuranReadingProvider extends ChangeNotifier {
     // Load persisted rewaya preference
     _selectedRewaya = storage?.savedRewaya ?? 1;
     if (_selectedRewaya == 2) {
-      _preloadWarshText();
+      unawaited(_preloadWarshText());
     }
 
     // ── OFFLINE-FIRST STARTUP ──
@@ -106,8 +121,10 @@ class QuranReadingProvider extends ChangeNotifier {
 
     // Reciters: only API call at startup (non-blocking, deferred)
     _isLoadingReciters = true;
-    Future.delayed(const Duration(milliseconds: 500), () {
-      loadReciters();
+    _reciterLoadTimer = Timer(const Duration(milliseconds: 500), () {
+      if (!_disposed) {
+        unawaited(loadReciters());
+      }
     });
   }
 
@@ -118,13 +135,13 @@ class QuranReadingProvider extends ChangeNotifier {
   void setLanguage(String language) {
     if (_language == language) return;
     _language = language;
-    loadReciters();
+    unawaited(loadReciters());
   }
 
   Future<void> loadReciters() async {
     _isLoadingReciters = true;
     _recitersError = '';
-    notifyListeners();
+    _safeNotify();
 
     try {
       _hafsReciters = await _apiService.getReciters(language: _language);
@@ -136,13 +153,15 @@ class QuranReadingProvider extends ChangeNotifier {
       } catch (e) {
         AppLogger.info('Reader', "Failed to load Warsh reciters: $e");
       }
+      if (_disposed) return;
       _isLoadingReciters = false;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
+      if (_disposed) return;
       _isLoadingReciters = false;
       _recitersError = e.toString();
       AppLogger.info('Reader', "Failed to load Hafs reciters: $e");
-      notifyListeners();
+      _safeNotify();
     }
   }
 
