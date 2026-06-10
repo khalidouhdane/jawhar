@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "556087735735-opeto68b6ka5t4dgvibv5oleuuf12k84.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alphafoundr.jawhar",
+            "certificate_hash": "7d338ce44b724cd8df5fe5b262423c1488e281a2"
+          }
+        },
+        {
           "client_id": "556087735735-smdngjan6nq6lmssodjt6jon6jq1ctn4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
