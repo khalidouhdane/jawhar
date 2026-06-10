@@ -1,0 +1,73 @@
+name: Quality Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Create .env file
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          test -n "$ENV_FILE" || { echo "ERROR: ENV_FILE secret is missing"; exit 1; }
+          printf '%s' "$ENV_FILE" > .env
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze lib test
+
+      - name: Test with Coverage
+        run: flutter test --dart-define-from-file=.env --coverage
+
+      - name: Enforce Coverage Threshold
+        run: dart run tool/check_coverage.dart coverage/lcov.info 5
+
+      - name: Install Functions Dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Build Functions
+        working-directory: functions
+        run: npm run build
+
+      - name: Lint Functions
+        working-directory: functions
+        run: npm run lint
+
+      - name: Test Functions Security
+        working-directory: functions
+        run: npm run test:unit
+
+      - name: Test Firestore Rules
+        working-directory: functions
+        run: npm run test:rules

@@ -54,7 +54,6 @@ app.*.map.json
 # Firebase
 functions/node_modules/
 functions/lib/
-functions/package-lock.json
 .firebase/
 
 # Vercel
@@ -64,6 +63,7 @@ functions/package-lock.json
 node_modules/
 package.json
 package-lock.json
+!functions/package-lock.json
 
 # Temp research files
 notebooks.json
@@ -80,6 +80,11 @@ AGENTS.md
 CLAUDE.md
 GEMINI.md
 docs/superpowers/
+skills-lock.json
+
+# Internal security review reports (public repo — keep local)
+docs/CODE_REVIEW_*.md
+docs/CODEX_CODE_REVIEW_*.md
 
 # Crash logs and debug data
 Crashes/
@@ -100,8 +105,5 @@ gen-l10n-error.txt
 analyze_output*.log
 flutter_*.log
 reciters.json
-
-# Test scaffolding (not ready)
-test/
 
 .vercel

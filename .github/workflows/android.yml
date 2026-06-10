@@ -32,16 +32,25 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Create .env file
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          test -n "$ENV_FILE" || { echo "ERROR: ENV_FILE secret is missing"; exit 1; }
+          printf '%s' "$ENV_FILE" > .env
+
+      - name: Run Tests with Coverage
+        run: flutter test --dart-define-from-file=.env --coverage
+
+      - name: Enforce Coverage Threshold
+        run: dart run tool/check_coverage.dart coverage/lcov.info 5
+
       - name: Decode Android Keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        if: env.ANDROID_KEYSTORE_BASE64 != ''
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
-
-      - name: Create .env file
-        run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is missing"; exit 1; }
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
 
       - name: Build APK & App Bundle
         env:
@@ -49,6 +58,9 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "ERROR: ANDROID_KEYSTORE_PASSWORD secret is missing"; exit 1; }
+          test -n "$ANDROID_KEY_ALIAS" || { echo "ERROR: ANDROID_KEY_ALIAS secret is missing"; exit 1; }
+          test -n "$ANDROID_KEY_PASSWORD" || { echo "ERROR: ANDROID_KEY_PASSWORD secret is missing"; exit 1; }
           flutter build apk --release --dart-define-from-file=.env
           flutter build appbundle --release --dart-define-from-file=.env
 

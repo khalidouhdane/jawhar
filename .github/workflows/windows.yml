@@ -27,9 +27,18 @@ jobs:
         run: flutter pub get
 
       - name: Create .env file
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          test -n "$ENV_FILE" || { echo "ERROR: ENV_FILE secret is missing"; exit 1; }
+          printf '%s' "$ENV_FILE" > .env
         shell: bash
+
+      - name: Run Tests with Coverage
+        run: flutter test --dart-define-from-file=.env --coverage
+
+      - name: Enforce Coverage Threshold
+        run: dart run tool/check_coverage.dart coverage/lcov.info 5
 
       - name: Enable Windows Build
         run: flutter config --enable-windows-desktop

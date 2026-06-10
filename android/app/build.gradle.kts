@@ -74,7 +74,10 @@ android {
             if (keystoreFile.exists() && !keystorePassword.isNullOrEmpty() && !keyAliasName.isNullOrEmpty() && !keyPasswordVal.isNullOrEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                signingConfig = signingConfigs.getByName("debug")
+                throw GradleException(
+                    "Release signing is not configured. Provide android/key.properties " +
+                        "or ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD."
+                )
             }
         }
     }
