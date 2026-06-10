@@ -7,12 +7,64 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:556087735735:android:b3d8266d65b5c7d5512432",
+        "mobilesdk_app_id": "1:556087735735:android:a1c43ec23234162a512432",
         "android_client_info": {
           "package_name": "com.alphafoundr.jawhar"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "556087735735-smdngjan6nq6lmssodjt6jon6jq1ctn4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alphafoundr.jawhar",
+            "certificate_hash": "a3660580e989fc63845e91849a73b50b6085976e"
+          }
+        },
+        {
+          "client_id": "556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9d4HJfmx3fGPto0L0zbQT3GHGJ8ecy40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "556087735735-p830tt489j0bl0bp8iruecoh72pqj6ek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.quranApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556087735735:android:b3d8266d65b5c7d5512432",
+        "android_client_info": {
+          "package_name": "com.example.quran_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556087735735-81ikmab29vchavo1429vl8mv519asc0n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quran_app",
+            "certificate_hash": "a3660580e989fc63845e91849a73b50b6085976e"
+          }
+        },
         {
           "client_id": "556087735735-infr9f13pfg17cpfgkvpb71olm1ppju2.apps.googleusercontent.com",
           "client_type": 3

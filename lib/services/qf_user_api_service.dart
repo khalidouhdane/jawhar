@@ -42,6 +42,7 @@ class QfUserApiService {
   Future<Map<String, dynamic>?> _get(
     String path, {
     Map<String, String>? queryParams,
+    bool hasRetried = false,
   }) async {
     final headers = await _getHeaders();
     if (headers == null) {
@@ -59,7 +60,7 @@ class QfUserApiService {
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
-      } else if (response.statusCode == 401) {
+      } else if (response.statusCode == 401 && !hasRetried) {
         AppLogger.info(
           'QfApi',
           '[QF_API] 401 on GET $path — token may be expired',
@@ -67,7 +68,7 @@ class QfUserApiService {
         // Try refresh and retry once
         final refreshed = await _authService.refreshAccessToken();
         if (refreshed) {
-          return _get(path, queryParams: queryParams);
+          return _get(path, queryParams: queryParams, hasRetried: true);
         }
         return null;
       } else {
@@ -87,6 +88,7 @@ class QfUserApiService {
   Future<Map<String, dynamic>?> _post(
     String path, {
     Map<String, dynamic>? body,
+    bool hasRetried = false,
   }) async {
     final headers = await _getHeaders();
     if (headers == null) {
@@ -109,14 +111,14 @@ class QfUserApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.body.isEmpty) return {};
         return jsonDecode(response.body) as Map<String, dynamic>;
-      } else if (response.statusCode == 401) {
+      } else if (response.statusCode == 401 && !hasRetried) {
         AppLogger.info(
           'QfApi',
           '[QF_API] 401 on POST $path — attempting refresh',
         );
         final refreshed = await _authService.refreshAccessToken();
         if (refreshed) {
-          return _post(path, body: body);
+          return _post(path, body: body, hasRetried: true);
         }
         return null;
       } else {

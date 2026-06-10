@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -18,6 +20,7 @@ class AuthService extends ChangeNotifier {
   User? _user;
   bool _isLoading = false;
   String? _error;
+  StreamSubscription<User?>? _authStateSubscription;
 
   /// Current Firebase user (null if signed out).
   User? get user => _user;
@@ -52,7 +55,10 @@ class AuthService extends ChangeNotifier {
 
   /// Initialize — listen for auth state changes and resolve web redirects.
   void init() {
-    _auth.authStateChanges().listen(_onAuthStateChanged);
+    _user = _auth.currentUser;
+    _authStateSubscription ??= _auth.authStateChanges().listen(
+      _onAuthStateChanged,
+    );
 
     if (kIsWeb) {
       // Must call getRedirectResult on web to finalize the signInWithRedirect flow
@@ -64,8 +70,14 @@ class AuthService extends ChangeNotifier {
           AppLogger.info('Auth', '[AUTH] Redirect result error: $e');
         }
       });
-
     }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_authStateSubscription?.cancel());
+    _authStateSubscription = null;
+    super.dispose();
   }
 
   void _onAuthStateChanged(User? user) {

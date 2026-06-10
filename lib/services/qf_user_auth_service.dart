@@ -6,6 +6,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:quran_app/utils/app_logger.dart';
 
 /// Handles OAuth2 Authorization Code + PKCE flow for Quran Foundation User APIs.
@@ -18,9 +20,11 @@ import 'package:quran_app/utils/app_logger.dart';
 /// 2. Opens the system browser to QF's consent screen
 /// 3. QF redirects back to localhost with an auth code
 /// 4. Exchanges the auth code + code_verifier for access + refresh + id tokens
-/// 5. Stores tokens in SharedPreferences
+/// 5. Stores tokens in secure storage (FlutterSecureStorage)
 /// 6. Returns access_token for User API calls
 class QfUserAuthService extends ChangeNotifier {
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
   // ── Credentials injected via --dart-define-from-file=.env ──
   static const _clientId = String.fromEnvironment('QURAN_PREPROD_CLIENT_ID');
   static const _clientSecret = String.fromEnvironment(
@@ -34,6 +38,8 @@ class QfUserAuthService extends ChangeNotifier {
       'https://prelive-oauth2.quran.foundation/oauth2/token';
   static const _revokeEndpoint =
       'https://prelive-oauth2.quran.foundation/oauth2/revoke';
+  static const _userInfoEndpoint =
+      'https://prelive-oauth2.quran.foundation/userinfo';
   // ignore: unused_field — kept for future production logout flow
   static const _logoutEndpoint =
       'https://prelive-oauth2.quran.foundation/oauth2/sessions/logout';
@@ -49,7 +55,7 @@ class QfUserAuthService extends ChangeNotifier {
   /// QF whitelisted http://localhost:3000/callback for our client.
   static const _loopbackPort = 3000;
 
-  // ── SharedPreferences keys ──
+  // ── SecureStorage keys ──
   static const _keyAccessToken = 'qf_access_token';
   static const _keyRefreshToken = 'qf_refresh_token';
   static const _keyIdToken = 'qf_id_token';
@@ -87,15 +93,23 @@ class QfUserAuthService extends ChangeNotifier {
 
   /// Initialize from stored tokens on app startup.
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _accessToken = prefs.getString(_keyAccessToken);
-    _refreshToken = prefs.getString(_keyRefreshToken);
-    _idToken = prefs.getString(_keyIdToken);
-    _userSub = prefs.getString(_keyUserSub);
+    // Read from secure storage first (new format)
+    _accessToken = await _secureStorage.read(key: _keyAccessToken);
+    _refreshToken = await _secureStorage.read(key: _keyRefreshToken);
+    _idToken = await _secureStorage.read(key: _keyIdToken);
+    _userSub = await _secureStorage.read(key: _keyUserSub);
 
-    final expiryMs = prefs.getInt(_keyTokenExpiry);
-    if (expiryMs != null) {
-      _tokenExpiry = DateTime.fromMillisecondsSinceEpoch(expiryMs);
+    final expiryStr = await _secureStorage.read(key: _keyTokenExpiry);
+    if (expiryStr != null) {
+      final expiryMs = int.tryParse(expiryStr);
+      if (expiryMs != null) {
+        _tokenExpiry = DateTime.fromMillisecondsSinceEpoch(expiryMs);
+      }
+    }
+
+    // Migrate from legacy SharedPreferences if secure storage is empty
+    if (_accessToken == null && _refreshToken == null && _idToken == null) {
+      await _migrateFromLegacyStorage();
     }
 
     if (_accessToken != null) {
@@ -108,11 +122,85 @@ class QfUserAuthService extends ChangeNotifier {
           'QfAuth',
           '[QF_AUTH] Token expired, attempting refresh...',
         );
-        await refreshAccessToken();
+        final refreshed = await refreshAccessToken();
+        if (!refreshed && _accessToken != null) {
+          await signOut();
+        }
+      } else if (_isTokenExpired) {
+        await signOut();
+      } else if (!_isTokenExpired) {
+        final verifiedSub = await _fetchVerifiedSubject(_accessToken!);
+        if (verifiedSub == null) {
+          AppLogger.info(
+            'QfAuth',
+            '[QF_AUTH] Stored session could not be verified; signing out.',
+          );
+          await signOut();
+        } else {
+          _userSub = verifiedSub;
+          await _secureStorage.write(key: _keyUserSub, value: verifiedSub);
+        }
       }
     }
 
     notifyListeners();
+  }
+
+  /// Migrate tokens from legacy SharedPreferences to secure storage.
+  Future<void> _migrateFromLegacyStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final legacyAccess = prefs.getString(_keyAccessToken);
+      final legacyRefresh = prefs.getString(_keyRefreshToken);
+      final legacyIdToken = prefs.getString(_keyIdToken);
+      final legacyUserSub = prefs.getString(_keyUserSub);
+      final legacyExpiryMs = prefs.getInt(_keyTokenExpiry);
+
+      if (legacyAccess == null && legacyRefresh == null) return;
+
+      // Copy to memory
+      _accessToken = legacyAccess;
+      _refreshToken = legacyRefresh;
+      _idToken = legacyIdToken;
+      _userSub = legacyUserSub;
+      if (legacyExpiryMs != null) {
+        _tokenExpiry = DateTime.fromMillisecondsSinceEpoch(legacyExpiryMs);
+      }
+
+      // Write to secure storage
+      if (legacyAccess != null) {
+        await _secureStorage.write(key: _keyAccessToken, value: legacyAccess);
+      }
+      if (legacyRefresh != null) {
+        await _secureStorage.write(key: _keyRefreshToken, value: legacyRefresh);
+      }
+      if (legacyIdToken != null) {
+        await _secureStorage.write(key: _keyIdToken, value: legacyIdToken);
+      }
+      if (legacyUserSub != null) {
+        await _secureStorage.write(key: _keyUserSub, value: legacyUserSub);
+      }
+      if (legacyExpiryMs != null) {
+        await _secureStorage.write(
+          key: _keyTokenExpiry,
+          value: legacyExpiryMs.toString(),
+        );
+      }
+
+      // Delete legacy keys only after successful secure write
+      await prefs.remove(_keyAccessToken);
+      await prefs.remove(_keyRefreshToken);
+      await prefs.remove(_keyIdToken);
+      await prefs.remove(_keyTokenExpiry);
+      await prefs.remove(_keyUserSub);
+
+      AppLogger.info('QfAuth', '[QF_AUTH] Migrated tokens to secure storage');
+    } catch (e) {
+      AppLogger.info(
+        'QfAuth',
+        '[QF_AUTH] Migration from legacy storage failed: $e',
+      );
+    }
   }
 
   /// Returns a valid access token, refreshing if needed.
@@ -273,12 +361,21 @@ class QfUserAuthService extends ChangeNotifier {
     _userSub = null;
 
     // Clear stored tokens
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyAccessToken);
-    await prefs.remove(_keyRefreshToken);
-    await prefs.remove(_keyIdToken);
-    await prefs.remove(_keyTokenExpiry);
-    await prefs.remove(_keyUserSub);
+    await _secureStorage.delete(key: _keyAccessToken);
+    await _secureStorage.delete(key: _keyRefreshToken);
+    await _secureStorage.delete(key: _keyIdToken);
+    await _secureStorage.delete(key: _keyTokenExpiry);
+    await _secureStorage.delete(key: _keyUserSub);
+
+    // Clean up legacy SharedPreferences keys
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyAccessToken);
+      await prefs.remove(_keyRefreshToken);
+      await prefs.remove(_keyIdToken);
+      await prefs.remove(_keyTokenExpiry);
+      await prefs.remove(_keyUserSub);
+    } catch (_) {}
 
     AppLogger.info('QfAuth', '[QF_AUTH] Signed out');
     notifyListeners();
@@ -493,48 +590,119 @@ try {
 
   /// Stores tokens from the OAuth2 token response.
   Future<void> _storeTokens(Map<String, dynamic> data) async {
-    _accessToken = data['access_token'] as String?;
+    final accessToken = data['access_token'] as String?;
+    if (accessToken == null || accessToken.isEmpty) {
+      throw const FormatException(
+        'Token response did not contain access_token',
+      );
+    }
+    final verifiedSub = await _fetchVerifiedSubject(accessToken);
+    if (verifiedSub == null) {
+      throw const FormatException(
+        'QF user identity could not be verified through userinfo',
+      );
+    }
+
+    _accessToken = accessToken;
     _refreshToken = data['refresh_token'] as String? ?? _refreshToken;
     _idToken = data['id_token'] as String?;
 
     final expiresIn = data['expires_in'] as int? ?? 3600;
     _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn));
 
-    // Extract sub from id_token (JWT payload)
+    _userSub = verifiedSub;
+
+    // Persist to secure storage
+    if (_accessToken != null) {
+      await _secureStorage.write(key: _keyAccessToken, value: _accessToken!);
+    }
+    if (_refreshToken != null) {
+      await _secureStorage.write(key: _keyRefreshToken, value: _refreshToken!);
+    }
     if (_idToken != null) {
-      _userSub = _extractSub(_idToken!);
+      await _secureStorage.write(key: _keyIdToken, value: _idToken!);
+    }
+    if (_tokenExpiry != null) {
+      await _secureStorage.write(
+        key: _keyTokenExpiry,
+        value: _tokenExpiry!.millisecondsSinceEpoch.toString(),
+      );
+    }
+    if (_userSub != null) {
+      await _secureStorage.write(key: _keyUserSub, value: _userSub!);
     }
 
-    // Persist to SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    if (_accessToken != null) prefs.setString(_keyAccessToken, _accessToken!);
-    if (_refreshToken != null) {
-      prefs.setString(_keyRefreshToken, _refreshToken!);
-    }
-    if (_idToken != null) prefs.setString(_keyIdToken, _idToken!);
-    if (_tokenExpiry != null) {
-      prefs.setInt(_keyTokenExpiry, _tokenExpiry!.millisecondsSinceEpoch);
-    }
-    if (_userSub != null) prefs.setString(_keyUserSub, _userSub!);
+    // Clean up legacy SharedPreferences keys after successful secure write
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyAccessToken);
+      await prefs.remove(_keyRefreshToken);
+      await prefs.remove(_keyIdToken);
+      await prefs.remove(_keyTokenExpiry);
+      await prefs.remove(_keyUserSub);
+    } catch (_) {}
 
     notifyListeners();
   }
 
-  /// Extracts the `sub` claim from a JWT id_token without full validation.
-  /// Note: JWT signature verification should be handled by a secure backend wrapper.
-  String? _extractSub(String jwt) {
+  /// Resolves the subject from the provider's authenticated OIDC userinfo
+  /// endpoint. This avoids trusting an unverified client-side JWT payload.
+  static Future<String?> _fetchVerifiedSubject(String accessToken) async {
+    if (Platform.isWindows) {
+      return _fetchVerifiedSubjectViaProcess(accessToken);
+    }
+
+    final client = HttpClient();
     try {
-      final parts = jwt.split('.');
-      if (parts.length != 3) return null;
-      final payload = utf8.decode(
-        base64Url.decode(base64Url.normalize(parts[1])),
+      final request = await client.getUrl(Uri.parse(_userInfoEndpoint));
+      request.headers.set(
+        HttpHeaders.authorizationHeader,
+        'Bearer $accessToken',
       );
-      final claims = jsonDecode(payload) as Map<String, dynamic>;
-      return claims['sub'] as String?;
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      if (response.statusCode != HttpStatus.ok) return null;
+      final claims = jsonDecode(body) as Map<String, dynamic>;
+      final subject = claims['sub'];
+      return subject is String && subject.isNotEmpty ? subject : null;
+    } catch (e) {
+      AppLogger.info('QfAuth', '[QF_AUTH] Userinfo verification failed: $e');
+      return null;
+    } finally {
+      client.close();
+    }
+  }
+
+  static Future<String?> _fetchVerifiedSubjectViaProcess(
+    String accessToken,
+  ) async {
+    final script =
+        '''
+try {
+  \$headers = @{ 'Authorization' = 'Bearer $accessToken' }
+  \$response = Invoke-WebRequest -Uri '$_userInfoEndpoint' -Method GET -Headers \$headers -UseBasicParsing
+  Write-Output \$response.Content
+} catch {
+  Write-Error \$_.Exception.Message
+  exit 1
+}
+''';
+    try {
+      final result = await Process.run('powershell', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        script,
+      ]);
+      if (result.exitCode != 0) return null;
+      final claims =
+          jsonDecode((result.stdout as String).trim()) as Map<String, dynamic>;
+      final subject = claims['sub'];
+      return subject is String && subject.isNotEmpty ? subject : null;
     } catch (e) {
       AppLogger.info(
         'QfAuth',
-        '[QF_AUTH] Failed to extract sub from id_token: $e',
+        '[QF_AUTH] Windows userinfo verification failed: $e',
       );
       return null;
     }
@@ -676,6 +844,16 @@ try {
       await Process.run('open', [url]);
     } else if (Platform.isLinux) {
       await Process.run('xdg-open', [url]);
+    } else {
+      // Android/iOS: open the external browser. The loopback redirect still
+      // works on-device because the in-app server listens on localhost.
+      final launched = await url_launcher.launchUrl(
+        Uri.parse(url),
+        mode: url_launcher.LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        throw StateError('Could not open the browser for QF sign-in');
+      }
     }
   }
 
