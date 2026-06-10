@@ -54,8 +54,7 @@ class PlanGenerationService {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final planId =
-        '${profile.id}_${today.toIso8601String()}_${now.millisecondsSinceEpoch}';
+    final planId = '${profile.id}_${today.toIso8601String()}';
 
     // ── Smart time redistribution ──
     // Always use the full daily budget. Redistribute unused phase time
@@ -247,7 +246,9 @@ class PlanGenerationService {
               (p) =>
                   p.status == PageStatus.learning &&
                   p.lastReviewedAt != null &&
-                  p.lastReviewedAt!.isAfter(cutoff),
+                  p.lastReviewedAt!.isAfter(cutoff) &&
+                  // Exclude future-dated progress (clock skew / multi-device sync).
+                  !p.lastReviewedAt!.isAfter(now),
             )
             .toList()
           ..sort(
@@ -272,7 +273,9 @@ class PlanGenerationService {
     }
 
     // Round-robin through rotation juz
-    final dayIndex = DateTime.now().difference(DateTime(2024, 1, 1)).inDays;
+    final now = DateTime.now();
+    final localToday = DateTime(now.year, now.month, now.day);
+    final dayIndex = localToday.difference(DateTime(2024, 1, 1)).inDays;
     final currentJuz = rotationJuz[dayIndex % rotationJuz.length];
 
     // Get pages for this juz (approximate: 20 pages per juz)

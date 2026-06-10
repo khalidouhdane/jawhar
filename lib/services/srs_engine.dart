@@ -5,8 +5,8 @@ import 'package:quran_app/models/flashcard_models.dart';
 /// Rating effects on interval:
 /// - Strong (instant recall): interval × 2.5
 /// - OK (recalled with effort): interval × 1.5
-/// - Weak (struggled): interval stays
-/// - Forgot (couldn't recall): reset to 1 day
+/// - Weak (struggled): reset to 1 day, ease decays
+/// - Forgot (couldn't recall): reset to 1 day, ease decays harder
 class SrsEngine {
   /// Calculate the next SRS state after a review.
   ///
@@ -26,7 +26,9 @@ class SrsEngine {
         // Ease factor stays the same
         break;
       case FlashcardRating.weak:
-        newInterval = card.interval; // Same interval
+        // Struggling cards come back tomorrow instead of staying stuck at
+        // their current (possibly long) interval.
+        newInterval = 1.0;
         newEase = (card.easeFactor - 0.1).clamp(1.3, 3.0);
         break;
       case FlashcardRating.forgot:
@@ -38,18 +40,19 @@ class SrsEngine {
     // Ensure minimum of 1 day, max of 180 days
     newInterval = newInterval.clamp(1.0, 180.0);
 
-    final now = DateTime.now();
+    final localNow = DateTime.now();
+    final reviewedAt = localNow.toUtc();
     final nextDue = DateTime(
-      now.year,
-      now.month,
-      now.day,
+      localNow.year,
+      localNow.month,
+      localNow.day,
     ).add(Duration(days: newInterval.round()));
 
     return card.copyWith(
       interval: newInterval,
       easeFactor: newEase,
       dueDate: nextDue,
-      lastReviewedAt: now,
+      lastReviewedAt: reviewedAt,
       reviewCount: card.reviewCount + 1,
     );
   }

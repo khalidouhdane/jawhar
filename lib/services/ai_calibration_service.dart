@@ -1,6 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/utils/app_logger.dart';
+import 'package:quran_app/utils/id_generator.dart';
 
 /// Generates AI-powered weekly calibration suggestions based on performance data.
 ///
@@ -16,9 +17,21 @@ class AICalibrationService {
   AICalibrationService();
 
   /// Check whether a calibration is due based on total session count.
-  bool isCalibrationDue(int totalSessionCount) {
-    return totalSessionCount > 0 &&
-        totalSessionCount % calibrationInterval == 0;
+  bool isCalibrationDue(
+    int totalSessionCount, {
+    DateTime? lastCalibrationDate,
+  }) {
+    if (totalSessionCount <= 0 ||
+        totalSessionCount % calibrationInterval != 0) {
+      return false;
+    }
+    if (lastCalibrationDate != null) {
+      final elapsed = DateTime.now().toUtc().difference(
+        lastCalibrationDate.toUtc(),
+      );
+      if (elapsed < const Duration(days: calibrationInterval)) return false;
+    }
+    return true;
   }
 
   /// Generate AI-powered calibration suggestions.
@@ -115,12 +128,12 @@ class AICalibrationService {
 
       suggestions.add(
         Suggestion(
-          id: 'ai_cal_${DateTime.now().millisecondsSinceEpoch}_${suggestions.length}',
+          id: IdGenerator.uuidV4(),
           type: type,
           iconKey: item['iconKey'] as String? ?? 'lightbulb',
           title: item['title'] as String? ?? 'Suggestion',
           message: item['message'] as String? ?? '',
-          createdAt: DateTime.now(),
+          createdAt: DateTime.now().toUtc(),
           data: {
             'reasoning': item['reasoning'] as String? ?? '',
             'source': 'ai_calibration',

@@ -286,8 +286,7 @@ class AIPlanValidator {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final planId =
-        '${profile.id}_${today.toIso8601String()}_ai_${now.millisecondsSinceEpoch}';
+    final planId = '${profile.id}_${today.toIso8601String()}';
 
     return DailyPlan(
       id: planId,
