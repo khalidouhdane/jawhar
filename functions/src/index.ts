@@ -1,11 +1,24 @@
 import * as functions from 'firebase-functions/v2';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { defineString } from 'firebase-functions/params';
+import {
+  hasCallableAuthentication,
+  isAllowedProxyUrl,
+  shouldForwardAuthHeaders,
+} from './security';
 
 // Optional: you can switch to defineSecret if using Firebase Secret Manager
 const GEMINI_API_KEY = defineString('GEMINI_API_KEY');
 
 const MODEL_NAME = 'gemini-3.1-pro-preview';
+function requireAuthentication(request: functions.https.CallableRequest) {
+  if (!hasCallableAuthentication(request.auth)) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'User must be authenticated.'
+    );
+  }
+}
 
 /**
  * Common helper to initialize the Gen AI client
@@ -30,11 +43,7 @@ export const generateDailyPlan = functions.https.onCall(
     enforceAppCheck: false, // Set to true if AppCheck is configured
   },
   async (request) => {
-    // 1. Verify Authentication (optional if app is meant to be offline/unauthed, 
-    //    but recommended to prevent public abuse)
-    // if (!request.auth) {
-    //   throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated.');
-    // }
+    requireAuthentication(request);
 
     const data = request.data;
     if (!data.context) {
@@ -86,6 +95,8 @@ export const generateCalibration = functions.https.onCall(
     enforceAppCheck: false,
   },
   async (request) => {
+    requireAuthentication(request);
+
     const data = request.data;
     if (!data.context) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing "context" in request data.');
@@ -143,25 +154,37 @@ export const quranApiProxy = functions.https.onRequest(
       return;
     }
 
+    if (request.method !== 'GET' && request.method !== 'POST') {
+      response.set('Allow', 'GET, POST, OPTIONS');
+      response.status(405).send('Method not allowed');
+      return;
+    }
+
     const targetUrl = request.query.url as string;
     if (!targetUrl) {
       response.status(400).send('Missing url parameter');
+      return;
+    }
+    if (!isAllowedProxyUrl(targetUrl)) {
+      response.status(403).send('Target URL is not allowed');
       return;
     }
 
     try {
       const headers: Record<string, string> = {};
       if (request.header('Content-Type')) headers['Content-Type'] = request.header('Content-Type')!;
-      if (request.header('Authorization')) headers['Authorization'] = request.header('Authorization')!;
-      if (request.header('x-auth-token')) headers['x-auth-token'] = request.header('x-auth-token')!;
-      if (request.header('x-client-id')) headers['x-client-id'] = request.header('x-client-id')!;
+      if (shouldForwardAuthHeaders(targetUrl)) {
+        if (request.header('Authorization')) headers['Authorization'] = request.header('Authorization')!;
+        if (request.header('x-auth-token')) headers['x-auth-token'] = request.header('x-auth-token')!;
+        if (request.header('x-client-id')) headers['x-client-id'] = request.header('x-client-id')!;
+      }
 
       const fetchOptions: RequestInit = {
         method: request.method,
         headers,
       };
 
-      if (request.method === 'POST' || request.method === 'PUT') {
+      if (request.method === 'POST') {
         fetchOptions.body = request.rawBody;
       }
 

@@ -2,19 +2,176 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
+    function ownsUserData(userId) {
+      return request.auth != null && request.auth.uid == userId;
     }
 
-    // Users can only access their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function validProgress() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'pageNumber',
+          'profileId',
+          'status',
+          'lastReviewedAt',
+          'reviewCount',
+          'memorizedAt',
+          'lastVerseLearned',
+          'totalVersesOnPage',
+          'updatedAt'
+        ])
+        && data.pageNumber is int
+        && data.pageNumber >= 1
+        && data.pageNumber <= 604
+        && data.profileId is string
+        && data.status is int
+        && data.status >= 0
+        && data.status <= 3
+        && data.reviewCount is int
+        && data.reviewCount >= 0;
+    }
 
-      // All subcollections under the user doc
-      match /{subcollection}/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+    function validFlashcardReview() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'id',
+          'card_id',
+          'rating',
+          'reviewed_at',
+          'syncedAt'
+        ])
+        && data.id is string
+        && data.card_id is string
+        && data.rating is int
+        && data.rating >= 0
+        && data.rating <= 3
+        && data.reviewed_at is string;
+    }
+
+    function validSession() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'id',
+          'profileId',
+          'date',
+          'durationMinutes',
+          'sabaqCompleted',
+          'sabqiCompleted',
+          'manzilCompleted',
+          'sabaqAssessment',
+          'sabqiAssessment',
+          'manzilAssessment',
+          'sabaqPage',
+          'sabqiPages',
+          'manzilPages',
+          'repCount',
+          'createdAt'
+        ])
+        && data.id is string
+        && data.profileId is string
+        && data.date is string
+        && data.durationMinutes is int
+        && data.durationMinutes >= 0
+        && (data.get('sabaqPage', null) == null || data.sabaqPage is int)
+        && (data.get('repCount', null) == null || data.repCount is int);
+    }
+
+    function validPlan() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'id',
+          'profileId',
+          'date',
+          'sabaqPage',
+          'sabaqLineStart',
+          'sabaqLineEnd',
+          'sabaqTargetMinutes',
+          'sabaqRepetitionTarget',
+          'sabaqStartVerse',
+          'sabqiPages',
+          'sabqiTargetMinutes',
+          'manzilJuz',
+          'manzilPages',
+          'manzilRotationDay',
+          'manzilTargetMinutes',
+          'sabaqDoneOffline',
+          'sabqiDoneOffline',
+          'manzilDoneOffline',
+          'isCompleted',
+          'isAiGenerated',
+          'aiReasoning',
+          'createdAt'
+        ])
+        && data.id is string
+        && data.profileId is string
+        && data.date is string
+        && data.sabaqPage is int
+        && (data.get('aiReasoning', null) == null || data.aiReasoning is string);
+    }
+
+    function validFlashcard() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'id',
+          'type',
+          'profile_id',
+          'verse_key',
+          'question_data',
+          'answer_data',
+          'interval',
+          'ease_factor',
+          'due_date',
+          'last_reviewed_at',
+          'review_count',
+          'updatedAt'
+        ])
+        && data.id is string
+        && data.profile_id is string
+        && data.verse_key is string
+        && data.type is int
+        && data.type >= 0
+        && data.due_date is string
+        && (data.get('interval', null) == null || data.interval is number)
+        && (data.get('ease_factor', null) == null
+          || data.ease_factor is number);
+    }
+
+    match /users/{userId} {
+      allow read, write: if ownsUserData(userId);
+
+      match /progress/{pageId} {
+        allow read, delete: if ownsUserData(userId);
+        allow create, update: if ownsUserData(userId) && validProgress();
       }
+
+      match /sessions/{sessionId} {
+        allow read, delete: if ownsUserData(userId);
+        allow create, update: if ownsUserData(userId) && validSession();
+      }
+
+      match /plans/{planId} {
+        allow read, delete: if ownsUserData(userId);
+        allow create, update: if ownsUserData(userId) && validPlan();
+      }
+
+      match /flashcards/{flashcardId} {
+        allow read, delete: if ownsUserData(userId);
+        allow create, update: if ownsUserData(userId) && validFlashcard();
+      }
+
+      match /flashcard_reviews/{reviewId} {
+        allow read, delete: if ownsUserData(userId);
+        allow create, update: if ownsUserData(userId)
+          && validFlashcardReview();
+      }
+
+      match /meta/{documentId} {
+        allow read, write: if ownsUserData(userId)
+          && documentId in ['settings', 'streak'];
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
