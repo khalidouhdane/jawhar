@@ -104,5 +104,5 @@ jobs:
           workload_identity_provider: projects/556087735735/locations/global/workloadIdentityPools/github-pool/providers/github-provider
           service_account: jawhar-deployer@quran-app-e5e86.iam.gserviceaccount.com
 
-      - name: Deploy Functions + Firestore Rules
-        run: ./functions/node_modules/.bin/firebase deploy --only functions,firestore:rules --project quran-app-e5e86 --non-interactive
+      - name: Deploy Functions + Firestore Rules + Indexes
+        run: ./functions/node_modules/.bin/firebase deploy --only functions,firestore:rules,firestore:indexes --project quran-app-e5e86 --non-interactive

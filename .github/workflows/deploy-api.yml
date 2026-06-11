@@ -1,0 +1,155 @@
+# Deploys jawhar-api (Dart shelf on Cloud Run) on changes to the server or to
+# hifz_core. Roadmap: docs/CLOUD_FIRST_MIGRATION_ROADMAP.md (Phase 2 task 10,
+# §10 pipeline 2). hifz_core is a trigger path on purpose: the server's
+# behavior lives in hifz_core, so a core-only change must redeploy the API or
+# client and server drift apart.
+#
+# Auth: Workload Identity Federation (no JSON keys), same pool/provider and
+# deployer SA as deploy-backend.yml:
+#   pool/provider: projects/556087735735/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+#   deployer SA:   jawhar-deployer@quran-app-e5e86.iam.gserviceaccount.com
+#     project roles: run.admin, cloudbuild.builds.editor, artifactregistry.writer,
+#                    storage.objectAdmin (Cloud Build staging bucket), plus
+#                    serviceusage.serviceUsageConsumer from Wave 1
+#     SA-level:      iam.serviceAccountUser on the default compute SA
+#                    (556087735735-compute@..., the service's runtime identity —
+#                    it already holds aiplatform.user + secretmanager access)
+#
+# GIT_SHA: `gcloud run deploy --source` cannot pass Docker build args, so the
+# Dockerfile's ARG GIT_SHA stays "unknown" in the image and the deploy sets the
+# runtime env var instead (runtime env overrides image ENV; /health reads env).
+# --update-env-vars (not --set-) so out-of-band vars like GEMINI_MODEL or
+# SENTRY_DSN survive deploys.
+#
+# Workspace note: server/api is a pub workspace member (root pubspec.yaml).
+# The Docker build context stays server/api alone — the Dockerfile strips the
+# `resolution: workspace` line and resolves standalone (no path deps), so
+# `--source server/api` below remains correct.
+#
+# Follow-up (out of scope here): post-deploy indexed-query smoke test against
+# real Firestore once authenticated read endpoints query the composite
+# indexes (§10 pipeline 2 — the emulator does not enforce them).
+
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - "packages/hifz_core/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Analyze + test hifz_core and server/api
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # The pub workspace root is the Flutter app, so resolving the members
+      # (hifz_core, server/api) requires the Flutter SDK; one root
+      # `flutter pub get` resolves every member.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Firestore emulator for the server contract tests
+      # (server/api/test/ai_quota_firestore_test.dart): they self-skip when
+      # FIRESTORE_EMULATOR_HOST is unset, so without the emulator this job
+      # would go green while exercising nothing (roadmap §10 pipeline 2).
+      - name: Setup Java (Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install firebase-tools (emulator runner)
+        # Pinned to the firebase-tools version in functions/package.json.
+        run: npm install -g firebase-tools@15.18.0
+
+      - name: Install Workspace Dependencies
+        run: flutter pub get
+
+      - name: Analyze hifz_core
+        working-directory: packages/hifz_core
+        run: dart analyze --fatal-infos
+
+      - name: Test hifz_core
+        working-directory: packages/hifz_core
+        run: dart test
+
+      - name: Analyze server/api
+        working-directory: server/api
+        run: dart analyze --fatal-infos
+
+      # emulators:exec boots the Firestore emulator from the repo-root
+      # firebase.json, exports FIRESTORE_EMULATOR_HOST to the child command,
+      # and tears the emulator down afterwards.
+      - name: Test server/api (with Firestore emulator)
+        run: firebase emulators:exec --only firestore --project quran-app-e5e86 "cd server/api && dart test"
+
+  deploy:
+    name: Deploy jawhar-api to Cloud Run
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: quran-app-e5e86
+          workload_identity_provider: projects/556087735735/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: jawhar-deployer@quran-app-e5e86.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: quran-app-e5e86
+
+      # Runtime identity: default compute SA (no --service-account flag) —
+      # verified to hold roles/aiplatform.user and Secret Manager access.
+      # allUsers invoker + in-code ID-token auth is the decided posture
+      # (roadmap §8 Phase 2 task 9).
+      - name: Deploy to Cloud Run (source build)
+        run: >-
+          gcloud run deploy jawhar-api
+          --source server/api
+          --region europe-southwest1
+          --project quran-app-e5e86
+          --allow-unauthenticated
+          --min-instances 0
+          --update-env-vars GIT_SHA=${{ github.sha }}
+          --quiet
+
+      # /health, not /healthz: Cloud Run's frontend swallows the literal
+      # path /healthz on *.run.app hosts (Google 404, never forwarded).
+      - name: Verify deployed SHA (/health)
+        run: |
+          URL="$(gcloud run services describe jawhar-api --region europe-southwest1 --project quran-app-e5e86 --format='value(status.url)')"
+          test -n "$URL" || { echo "ERROR: could not resolve jawhar-api URL"; exit 1; }
+          BODY="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 --retry-all-errors "$URL/health")"
+          echo "health: $BODY"
+          DEPLOYED_SHA="$(echo "$BODY" | jq -r '.gitSha')"
+          if [ "$DEPLOYED_SHA" != "$GITHUB_SHA" ]; then
+            echo "ERROR: deployed gitSha '$DEPLOYED_SHA' does not match pushed commit '$GITHUB_SHA'"
+            exit 1
+          fi
+          echo "Deployed SHA matches $GITHUB_SHA"
