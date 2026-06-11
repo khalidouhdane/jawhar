@@ -1,0 +1,8 @@
+.dart_tool/
+build/
+coverage/
+*.md
+test/
+tool/
+.gitignore
+Dockerfile

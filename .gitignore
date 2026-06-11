@@ -107,3 +107,6 @@ flutter_*.log
 reciters.json
 
 .vercel
+
+# Internal migration planning (contains account/billing identifiers)
+docs/CLOUD_FIRST_MIGRATION_ROADMAP.md
