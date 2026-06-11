@@ -1,16 +1,12 @@
 import * as functions from 'firebase-functions/v2';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { defineString } from 'firebase-functions/params';
-import {
-  hasCallableAuthentication,
-  isAllowedProxyUrl,
-  shouldForwardAuthHeaders,
-} from './security';
+import { GoogleGenAI } from '@google/genai';
+import { hasCallableAuthentication } from './security';
 
-// Optional: you can switch to defineSecret if using Firebase Secret Manager
-const GEMINI_API_KEY = defineString('GEMINI_API_KEY');
+// Vertex AI via the runtime service account (ADC) — no API key.
+// Model is config, not code: override with the GEMINI_MODEL env var.
+const MODEL_NAME = process.env.GEMINI_MODEL ?? 'gemini-3.5-flash';
+const VERTEX_LOCATION = process.env.VERTEX_LOCATION ?? 'global';
 
-const MODEL_NAME = 'gemini-3.1-pro-preview';
 function requireAuthentication(request: functions.https.CallableRequest) {
   if (!hasCallableAuthentication(request.auth)) {
     throw new functions.https.HttpsError(
@@ -21,17 +17,17 @@ function requireAuthentication(request: functions.https.CallableRequest) {
 }
 
 /**
- * Common helper to initialize the Gen AI client
+ * Common helper to initialize the Gen AI client (Vertex AI, ADC-authenticated)
  */
 function getAiClient() {
-  const apiKey = GEMINI_API_KEY.value();
-  if (!apiKey) {
+  const project = process.env.GCLOUD_PROJECT;
+  if (!project) {
     throw new functions.https.HttpsError(
       'failed-precondition',
-      'The function must be configured with a GEMINI_API_KEY.'
+      'GCLOUD_PROJECT is not set in the runtime environment.'
     );
   }
-  return new GoogleGenerativeAI(apiKey);
+  return new GoogleGenAI({ vertexai: true, project, location: VERTEX_LOCATION });
 }
 
 /**
@@ -62,18 +58,17 @@ export const generateDailyPlan = functions.https.onCall(
 
     try {
       const ai = getAiClient();
-      const model = ai.getGenerativeModel({
+      const response = await ai.models.generateContent({
         model: MODEL_NAME,
-        systemInstruction: systemPrompt || 'You are a Quran memorization (Hifz) planning assistant. Generate a daily plan based on the user\'s profile and progress. Return valid JSON only.',
-        generationConfig: {
+        contents: userMessage,
+        config: {
+          systemInstruction: systemPrompt || 'You are a Quran memorization (Hifz) planning assistant. Generate a daily plan based on the user\'s profile and progress. Return valid JSON only.',
           responseMimeType: 'application/json',
           temperature: 0.3,
-        }
+        },
       });
-      
-      const response = await model.generateContent(userMessage);
 
-      const text = response.response.text();
+      const text = response.text;
       if (!text || text.trim() === '') {
         throw new functions.https.HttpsError('internal', 'AI returned empty response.');
       }
@@ -108,18 +103,17 @@ export const generateCalibration = functions.https.onCall(
 
     try {
       const ai = getAiClient();
-      const model = ai.getGenerativeModel({
+      const response = await ai.models.generateContent({
         model: MODEL_NAME,
-        systemInstruction: systemPrompt || 'You are a Quran memorization (Hifz) coach analyzing a student\'s weekly performance.',
-        generationConfig: {
+        contents: userMessage,
+        config: {
+          systemInstruction: systemPrompt || 'You are a Quran memorization (Hifz) coach analyzing a student\'s weekly performance.',
           responseMimeType: 'application/json',
           temperature: 0.3,
-        }
+        },
       });
-      
-      const response = await model.generateContent(userMessage);
 
-      const text = response.response.text();
+      const text = response.text;
       if (!text || text.trim() === '') {
         throw new functions.https.HttpsError('internal', 'AI returned empty response.');
       }
@@ -128,82 +122,6 @@ export const generateCalibration = functions.https.onCall(
     } catch (error: any) {
       console.error('Error generating calibration:', error);
       throw new functions.https.HttpsError('internal', `AI generation failed: ${error.message}`);
-    }
-  }
-);
-
-/**
- * CORS Proxy for Web App
- * Bypasses CORS restrictions for Quran Foundation APIs.
- */
-export const quranApiProxy = functions.https.onRequest(
-  {
-    region: 'europe-west1',
-    cors: true,
-    invoker: 'public',
-  },
-  async (request, response) => {
-    // Set CORS headers
-    response.set('Access-Control-Allow-Origin', '*');
-    response.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    response.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, x-client-id');
-    response.set('Access-Control-Max-Age', '3600');
-
-    if (request.method === 'OPTIONS') {
-      response.status(204).send('');
-      return;
-    }
-
-    if (request.method !== 'GET' && request.method !== 'POST') {
-      response.set('Allow', 'GET, POST, OPTIONS');
-      response.status(405).send('Method not allowed');
-      return;
-    }
-
-    const targetUrl = request.query.url as string;
-    if (!targetUrl) {
-      response.status(400).send('Missing url parameter');
-      return;
-    }
-    if (!isAllowedProxyUrl(targetUrl)) {
-      response.status(403).send('Target URL is not allowed');
-      return;
-    }
-
-    try {
-      const headers: Record<string, string> = {};
-      if (request.header('Content-Type')) headers['Content-Type'] = request.header('Content-Type')!;
-      if (shouldForwardAuthHeaders(targetUrl)) {
-        if (request.header('Authorization')) headers['Authorization'] = request.header('Authorization')!;
-        if (request.header('x-auth-token')) headers['x-auth-token'] = request.header('x-auth-token')!;
-        if (request.header('x-client-id')) headers['x-client-id'] = request.header('x-client-id')!;
-      }
-
-      const fetchOptions: RequestInit = {
-        method: request.method,
-        headers,
-      };
-
-      if (request.method === 'POST') {
-        fetchOptions.body = request.rawBody;
-      }
-
-      const fetchResponse = await fetch(targetUrl, fetchOptions);
-      const data = await fetchResponse.arrayBuffer();
-      
-      fetchResponse.headers.forEach((value, key) => {
-        if (key.toLowerCase() !== 'access-control-allow-origin' && 
-            key.toLowerCase() !== 'content-encoding' && 
-            key.toLowerCase() !== 'content-length' &&
-            key.toLowerCase() !== 'transfer-encoding') {
-          response.set(key, value);
-        }
-      });
-
-      response.status(fetchResponse.status).send(Buffer.from(data));
-    } catch (error: any) {
-      console.error('Proxy Error:', error);
-      response.status(500).send(`Proxy Error: ${error.message}`);
     }
   }
 );
