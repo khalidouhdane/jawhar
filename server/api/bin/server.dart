@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:firebase_admin_sdk/firebase_admin_sdk.dart';
+import 'package:jawhar_api/ai/vertex_client.dart';
 import 'package:jawhar_api/app.dart';
 import 'package:jawhar_api/auth/admin_sdk_token_verifier.dart';
 import 'package:jawhar_api/config.dart';
 import 'package:jawhar_api/gateway/firestore_gateway.dart';
 import 'package:jawhar_api/observability/sentry.dart';
+import 'package:jawhar_api/quota/ai_quota.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 Future<void> main() async {
@@ -27,9 +29,16 @@ Future<void> main() async {
   );
   final gateway = FirestoreGateway.forApp(app);
 
+  // Vertex AI on the global endpoint via the runtime service account (ADC) —
+  // no API key anywhere (roadmap §4.4).
+  final vertex = VertexClient(projectId: config.projectId);
+  final aiQuota = FirestoreAiQuota(gateway, dailyLimit: config.aiDailyQuota);
+
   final handler = buildHandler(
     config: config,
     verifier: verifier,
+    vertex: vertex,
+    aiQuota: aiQuota,
     gateway: gateway,
   );
 
@@ -49,6 +58,7 @@ Future<void> main() async {
   // Graceful shutdown so Sentry can flush.
   ProcessSignal.sigterm.watch().listen((_) async {
     await server.close();
+    vertex.close();
     await closeSentry();
     await app.close();
     exit(0);

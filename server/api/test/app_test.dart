@@ -1,48 +1,39 @@
 import 'dart:convert';
 
-import 'package:jawhar_api/app.dart';
 import 'package:jawhar_api/config.dart';
-import 'package:jawhar_api/middleware/auth.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-import 'support/static_token_verifier.dart';
+import 'support/test_app.dart';
 
 void main() {
-  const config = Config(
-    gitSha: 'abc1234',
-    modelId: 'gemini-3.5-flash',
-    projectId: 'quran-app-e5e86',
-    port: 8080,
-  );
-
   late List<String> logLines;
   late Handler handler;
 
   setUp(() {
     logLines = [];
-    handler = buildHandler(
-      config: config,
-      verifier: StaticTokenVerifier({
-        'good-token': const VerifiedToken(uid: 'uid-123'),
-      }),
-      logSink: logLines.add,
-    );
+    handler = buildTestHandler(logSink: logLines.add);
   });
 
-  test('GET /healthz is public and returns status/gitSha/modelId', () async {
-    final response =
-        await handler(Request('GET', Uri.parse('http://localhost/healthz')));
-    expect(response.statusCode, 200);
-    expect(response.headers['content-type'], contains('application/json'));
-    final body =
-        jsonDecode(await response.readAsString()) as Map<String, dynamic>;
-    expect(body, {
-      'status': 'ok',
-      'gitSha': 'abc1234',
-      'modelId': 'gemini-3.5-flash',
+  // /health is the canonical public path (Cloud Run's frontend swallows
+  // /healthz on *.run.app hosts); /healthz stays as a local-only alias.
+  for (final path in ['/health', '/healthz']) {
+    test('GET $path is public and returns the §5 liveness shape', () async {
+      final response =
+          await handler(Request('GET', Uri.parse('http://localhost$path')));
+      expect(response.statusCode, 200);
+      expect(response.headers['content-type'], contains('application/json'));
+      final body =
+          jsonDecode(await response.readAsString()) as Map<String, dynamic>;
+      expect(body, {
+        'status': 'ok',
+        'gitSha': 'abc1234',
+        'modelId': 'gemini-3.5-flash',
+        'minSupportedBuild': 1,
+        'datasetEpoch': 'e1',
+      });
     });
-  });
+  }
 
   test('GET /v1/me/whoami without token -> 401', () async {
     final response = await handler(
@@ -100,16 +91,34 @@ void main() {
     expect(fromEmpty.projectId, 'quran-app-e5e86');
     expect(fromEmpty.port, 8080);
     expect(fromEmpty.sentryDsn, isNull);
+    expect(fromEmpty.minSupportedBuild, 1);
+    expect(fromEmpty.datasetEpoch, 'e1');
+    expect(fromEmpty.writePath, 'legacy');
+    expect(fromEmpty.aiDailyQuota, 10);
+    expect(fromEmpty.rateLimitBurst, 20);
+    expect(fromEmpty.rateLimitPerMinute, 60);
 
     final fromSet = Config.fromEnvironment(const {
       'GIT_SHA': 'deadbeef',
       'GEMINI_MODEL': 'gemini-x',
       'PORT': '9090',
       'SENTRY_DSN': 'https://k@o.ingest.sentry.io/1',
+      'MIN_SUPPORTED_BUILD': '23',
+      'DATASET_EPOCH': 'e2',
+      'WRITE_PATH': 'facts',
+      'AI_DAILY_QUOTA': '3',
+      'RATE_LIMIT_BURST': '5',
+      'RATE_LIMIT_PER_MINUTE': '12.5',
     });
     expect(fromSet.gitSha, 'deadbeef');
     expect(fromSet.modelId, 'gemini-x');
     expect(fromSet.port, 9090);
     expect(fromSet.sentryDsn, isNotNull);
+    expect(fromSet.minSupportedBuild, 23);
+    expect(fromSet.datasetEpoch, 'e2');
+    expect(fromSet.writePath, 'facts');
+    expect(fromSet.aiDailyQuota, 3);
+    expect(fromSet.rateLimitBurst, 5);
+    expect(fromSet.rateLimitPerMinute, 12.5);
   });
 }

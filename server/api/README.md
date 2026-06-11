@@ -1,7 +1,7 @@
 # jawhar-api
 
 Dart `shelf` service for Cloud Run (roadmap §3/§8 Phase 2). Wave 1 scaffold:
-`/healthz`, Firebase ID-token auth middleware (injectable `TokenVerifier`),
+`/health` (and `/healthz` for local use), Firebase ID-token auth middleware (injectable `TokenVerifier`),
 structured JSON logging, Sentry (no-op without DSN), `FirestoreGateway`
 (firebase_admin_sdk, sole Firestore access point), AOT Dockerfile.
 
@@ -10,8 +10,8 @@ structured JSON logging, Sentry (no-op without DSN), `FirestoreGateway`
 | Var | Meaning | Default |
 |---|---|---|
 | `PORT` | listen port (Cloud Run injects) | `8080` |
-| `GIT_SHA` | deployed git SHA surfaced by `/healthz` | `unknown` |
-| `GEMINI_MODEL` | model id surfaced by `/healthz`, used by Phase 3 AI handlers | `gemini-3.5-flash` |
+| `GIT_SHA` | deployed git SHA surfaced by `/health` | `unknown` |
+| `GEMINI_MODEL` | model id surfaced by `/health`, used by Phase 3 AI handlers | `gemini-3.5-flash` |
 | `GOOGLE_CLOUD_PROJECT` | project id / required token audience | `quran-app-e5e86` |
 | `SENTRY_DSN` | enables Sentry when set | unset → no-op |
 | `FIRESTORE_EMULATOR_HOST` | routes all Firestore traffic to the emulator, credential-free | unset → production + ADC |
@@ -22,7 +22,7 @@ structured JSON logging, Sentry (no-op without DSN), `FirestoreGateway`
 dart pub get
 dart analyze
 dart test
-dart run bin/server.dart   # http://localhost:8080/healthz
+dart run bin/server.dart   # http://localhost:8080/health
 ```
 
 Local emulator loop (roadmap §10): from the repo root,
@@ -62,4 +62,4 @@ once a human reauthenticates gcloud.
 - Add `server/api` to the root pub workspace (`workspace:` in the root
   `pubspec.yaml`) and switch this package to `resolution: workspace`.
 - `deploy-api.yml` CI workflow (Phase 2 task 10).
-- `minSupportedBuild` / `datasetEpoch` on `/healthz` arrive with Wave 2 state.
+- `minSupportedBuild` / `datasetEpoch` on `/health` arrive with Wave 2 state.

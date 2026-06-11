@@ -16,6 +16,12 @@ class Config {
     required this.projectId,
     required this.port,
     this.sentryDsn,
+    this.minSupportedBuild = 1,
+    this.datasetEpoch = 'e1',
+    this.writePath = 'legacy',
+    this.aiDailyQuota = 10,
+    this.rateLimitBurst = 20,
+    this.rateLimitPerMinute = 60,
   });
 
   factory Config.fromEnvironment([Map<String, String>? env]) {
@@ -26,6 +32,13 @@ class Config {
       projectId: _nonEmpty(e['GOOGLE_CLOUD_PROJECT']) ?? kDefaultProjectId,
       port: int.tryParse(e['PORT'] ?? '') ?? 8080,
       sentryDsn: _nonEmpty(e['SENTRY_DSN']),
+      minSupportedBuild: int.tryParse(e['MIN_SUPPORTED_BUILD'] ?? '') ?? 1,
+      datasetEpoch: _nonEmpty(e['DATASET_EPOCH']) ?? 'e1',
+      writePath: _nonEmpty(e['WRITE_PATH']) ?? 'legacy',
+      aiDailyQuota: int.tryParse(e['AI_DAILY_QUOTA'] ?? '') ?? 10,
+      rateLimitBurst: int.tryParse(e['RATE_LIMIT_BURST'] ?? '') ?? 20,
+      rateLimitPerMinute:
+          double.tryParse(e['RATE_LIMIT_PER_MINUTE'] ?? '') ?? 60,
     );
   }
 
@@ -43,6 +56,28 @@ class Config {
 
   /// Sentry DSN; when null, Sentry is a no-op (env SENTRY_DSN).
   final String? sentryDsn;
+
+  /// Builds below this number block SYNC ONLY, never the offline loop
+  /// (roadmap §5; env MIN_SUPPORTED_BUILD). Default 1 = no client blocked.
+  final int minSupportedBuild;
+
+  /// Server data-generation id (roadmap §5; env DATASET_EPOCH). Bumped only
+  /// through the tester reset protocol (§8).
+  final String datasetEpoch;
+
+  /// Phase 4 per-fleet write-path flag, plumbed now: `legacy` until the facts
+  /// write path ships (env WRITE_PATH).
+  final String writePath;
+
+  /// Per-uid daily AI quota shared by the AI endpoints
+  /// (env AI_DAILY_QUOTA, default 10/day).
+  final int aiDailyQuota;
+
+  /// Token-bucket burst size per uid (env RATE_LIMIT_BURST).
+  final int rateLimitBurst;
+
+  /// Token-bucket refill rate per uid (env RATE_LIMIT_PER_MINUTE).
+  final double rateLimitPerMinute;
 
   static String? _nonEmpty(String? v) => (v == null || v.isEmpty) ? null : v;
 }

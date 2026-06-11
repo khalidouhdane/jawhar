@@ -4,10 +4,13 @@ import 'package:shelf/shelf.dart';
 
 import '../config.dart';
 
-/// `GET /healthz` — liveness + deployed-SHA drift detection (roadmap §5 #1).
+/// `GET /health` (and `/healthz` for local use) — liveness + deployed-SHA
+/// drift detection (roadmap §5 #1):
+/// {status, gitSha, modelId, minSupportedBuild, datasetEpoch}.
 ///
-/// Wave 1 shape: {status, gitSha, modelId}. `minSupportedBuild` and
-/// `datasetEpoch` join in Wave 2 when they have real backing state.
+/// Public path is `/health`, not the roadmap's `/healthz`: Cloud Run's
+/// frontend swallows `/healthz` on *.run.app hosts (returns a Google 404
+/// without forwarding), verified live 2026-06-12.
 Handler healthzHandler(Config config) {
   return (Request request) {
     return Response.ok(
@@ -15,6 +18,8 @@ Handler healthzHandler(Config config) {
         'status': 'ok',
         'gitSha': config.gitSha,
         'modelId': config.modelId,
+        'minSupportedBuild': config.minSupportedBuild,
+        'datasetEpoch': config.datasetEpoch,
       }),
       headers: const {'content-type': 'application/json'},
     );

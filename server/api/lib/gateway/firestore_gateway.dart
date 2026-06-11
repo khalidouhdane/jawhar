@@ -50,14 +50,45 @@ class FirestoreGateway {
 
   /// Runs [updateFunction] inside a Firestore transaction. All reads must
   /// happen before writes (Firestore semantics). Retries are handled by the
-  /// underlying SDK.
+  /// underlying SDK, EXCEPT for one verified 0.5.x defect we patch here:
+  ///
+  /// When a transaction's COMMIT fails (observed deterministically on the
+  /// first-ever RPC of a process against the emulator), the SDK's
+  /// `_runTransactionOnce` rollback also throws — and that rollback error
+  /// ("Transaction is invalid or expired", invalid_argument) REPLACES the
+  /// original retryable error, defeating the SDK's own retry loop (its
+  /// retryable check looks for the production phrasing "transaction has
+  /// expired", which this is not). Probed evidence (tool/probe_tx_first.dart,
+  /// 2026-06-11): callback and reads complete, commit fails, NO writes are
+  /// applied — so retrying the whole transaction is safe and is exactly what
+  /// the SDK would do if the rollback didn't mask the error. The residual
+  /// commit-response-lost double-apply risk is the same one the SDK's own
+  /// retry accepts.
   Future<T> runTransaction<T>(
     Future<T> Function(GatewayTransaction tx) updateFunction,
-  ) {
-    return _db.runTransaction<T>(
-      (transaction) => updateFunction(GatewayTransaction._(_db, transaction)),
-    );
+  ) async {
+    const maxAttempts = 3;
+    Object? lastError;
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await _db.runTransaction<T>(
+          (transaction) =>
+              updateFunction(GatewayTransaction._(_db, transaction)),
+        );
+      } catch (e) {
+        lastError = e;
+        if (!_isMaskedRetryableTransactionError(e)) rethrow;
+      }
+    }
+    throw lastError!;
   }
+
+  /// Matches both observed variants of the same defect: "Transaction is
+  /// invalid or expired" (when the failed rollback masks the commit error)
+  /// and "Transaction is invalid or closed" (when the commit error surfaces
+  /// directly).
+  static bool _isMaskedRetryableTransactionError(Object e) =>
+      e.toString().toLowerCase().contains('transaction is invalid');
 }
 
 /// Narrow transactional surface handed to [FirestoreGateway.runTransaction]

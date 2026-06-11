@@ -27,6 +27,7 @@ environment:
 workspace:
   - packages/hifz_core
   - packages/lucide_icons
+  - server/api
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
