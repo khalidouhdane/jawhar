@@ -17,9 +17,11 @@ library;
 /// Whether AI plan/calibration calls should try the `/v1` API before the
 /// legacy Firebase callable (roadmap §8 Phase 3 task 5). Rollback is a
 /// rebuild with the flag off — the callables stay deployed during the soak.
+/// Default ON since 2026-06-12: the authenticated Android canary passed
+/// (health + bootstrap + plan:enhance round-trip verified in server logs).
 const bool kUseApiV1Ai = bool.fromEnvironment(
   'USE_API_V1_AI',
-  defaultValue: false,
+  defaultValue: true,
 );
 
 /// Base URL of the jawhar-api Cloud Run service, without a trailing slash
