@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: functions/package.json
           cache: npm
           cache-dependency-path: functions/package-lock.json
 
@@ -71,3 +71,44 @@ jobs:
       - name: Test Firestore Rules
         working-directory: functions
         run: npm run test:rules
+
+  # Pure-Dart workspace package gates (roadmap §10): hifz_core carries the
+  # corruption-class domain logic, so it gets its own 80% line-coverage
+  # floor while the app-wide floor stays 5%. No .env / dart-defines needed.
+  hifz-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # The pub workspace root is the Flutter app, so resolving any member
+      # requires the Flutter SDK — hifz_core itself stays pure Dart.
+      - name: Install Workspace Dependencies
+        run: flutter pub get
+
+      - name: Enforce Flutter-free hifz_core
+        run: |
+          if grep -rEn "^[[:space:]]*(import|export)[[:space:]]+'(package:(flutter|sqflite|firebase|cloud_|quran)|dart:ui)" packages/hifz_core/lib; then
+            echo "hifz_core must stay free of Flutter/sqflite/Firebase/quran imports (roadmap §6)"
+            exit 1
+          fi
+          echo "hifz_core is Flutter-free"
+
+      - name: Analyze hifz_core
+        working-directory: packages/hifz_core
+        run: dart analyze
+
+      - name: Test hifz_core with Coverage
+        working-directory: packages/hifz_core
+        run: dart run coverage:test_with_coverage
+
+      - name: Enforce hifz_core Coverage Threshold (80%)
+        run: >-
+          dart run tool/check_coverage.dart
+          packages/hifz_core/coverage/lcov.info 80 packages/hifz_core/lib

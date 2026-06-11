@@ -32,9 +32,12 @@ class _PreSessionScreenState extends State<PreSessionScreen> {
     super.initState();
     final plan = context.read<PlanProvider>().todayPlan;
     if (plan != null) {
-      _sabaqOffline = plan.sabaqDoneOffline;
-      _sabqiOffline = plan.sabqiDoneOffline;
-      _manzilOffline = plan.manzilDoneOffline;
+      // Derived: empty phases start checked-off (they render as
+      // _emptyPhaseCard), replacing the retired generation-time
+      // *DoneOffline auto-skip.
+      _sabaqOffline = plan.isSabaqDone;
+      _sabqiOffline = plan.isSabqiDone;
+      _manzilOffline = plan.isManzilDone;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

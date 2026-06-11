@@ -1,6 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:quran_app/models/hifz_models.dart';
-import 'package:quran_app/utils/persisted_data_parser.dart';
+import 'package:hifz_core/hifz_core.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('enum values fall back when persisted index is out of bounds', () {

@@ -1,0 +1,4 @@
+# Dart tooling and generated coverage output (root .gitignore anchors
+# its /coverage/ rule to the repo root, so the package needs its own).
+.dart_tool/
+coverage/

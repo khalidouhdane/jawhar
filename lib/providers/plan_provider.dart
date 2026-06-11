@@ -400,9 +400,8 @@ class PlanProvider extends ChangeNotifier {
       manzilTargetMinutes: manzilTargetMin,
       isAiGenerated: true,
       aiReasoning: reasoning,
-      // Auto-skip empty phases so they don't show in the session
-      sabqiDoneOffline: !hasSabqiContent,
-      manzilDoneOffline: !hasManzilContent,
+      // Empty phases auto-skip via DailyPlan.isSabqiDone / isManzilDone —
+      // the *DoneOffline flags are never set at generation time anymore.
     );
 
     // Save plan

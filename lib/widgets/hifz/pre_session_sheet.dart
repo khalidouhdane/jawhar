@@ -38,9 +38,11 @@ class _PreSessionSheetState extends State<PreSessionSheet> {
     super.initState();
     final plan = context.read<PlanProvider>().todayPlan;
     if (plan != null) {
-      _sabaqOffline = plan.sabaqDoneOffline;
-      _sabqiOffline = plan.sabqiDoneOffline;
-      _manzilOffline = plan.manzilDoneOffline;
+      // Derived: empty phases start checked-off (their rows aren't shown),
+      // replacing the retired generation-time *DoneOffline auto-skip.
+      _sabaqOffline = plan.isSabaqDone;
+      _sabqiOffline = plan.isSabqiDone;
+      _manzilOffline = plan.isManzilDone;
     }
   }
 

@@ -21,6 +21,13 @@ version: 1.8.2+23
 environment:
   sdk: ^3.11.0
 
+# Pub workspace (roadmap §4.10 / §6): the app stays at the repo root and the
+# vendored/shared packages resolve together. Members declare
+# `resolution: workspace` in their own pubspecs.
+workspace:
+  - packages/hifz_core
+  - packages/lucide_icons
+
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -36,7 +43,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  # Workspace members (constraints are satisfied by the workspace copies).
   lucide_icons: ^0.257.0
+  hifz_core: ^1.0.0
   google_fonts: ^8.0.2
   path_drawing: ^1.0.1
   http: ^1.6.0
@@ -145,8 +154,4 @@ flutter:
       fonts:
         - asset: assets/fonts/Amiri Quran-Regular.ttf
           weight: 400
-
-dependency_overrides:
-  lucide_icons:
-    path: ./packages/lucide_icons
 

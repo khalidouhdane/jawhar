@@ -1,6 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:quran_app/models/flashcard_models.dart';
-import 'package:quran_app/services/srs_engine.dart';
+import 'package:hifz_core/hifz_core.dart';
+import 'package:test/test.dart';
 
 void main() {
   Flashcard card({double interval = 2, double ease = 2.5}) => Flashcard(

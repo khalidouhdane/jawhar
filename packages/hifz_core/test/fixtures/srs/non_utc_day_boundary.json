@@ -1,0 +1,45 @@
+{
+  "description": "MANDATORY non-UTC fixture (roadmap section 10): a UTC+3 user reviewing late at night. Asserts the due-date day boundary is computed from the review's tzOffsetMinutes (the device's local midnight), NOT from the UTC day. Where folding by UTC would give a different (wrong) due date, `utcFoldDueDate` records it and the runner asserts the divergence.",
+  "card": {
+    "id": "card-2",
+    "type": 0,
+    "profile_id": "p1",
+    "verse_key": "3:21",
+    "question_data": "{}",
+    "answer_data": "{}",
+    "interval": 2.0,
+    "ease_factor": 2.5,
+    "due_date": "2026-01-01T00:00:00.000",
+    "last_reviewed_at": null,
+    "review_count": 0
+  },
+  "reviews": [
+    {
+      "comment": "23:30 local at UTC+3 = 20:30Z the same calendar day; local and UTC day agree here, pinning the boundary math itself.",
+      "rating": "strong",
+      "clockUtc": "2026-06-10T20:30:00Z",
+      "tzOffsetMinutes": 180,
+      "expected": {
+        "interval": 5.0,
+        "easeFactor": 2.6,
+        "reviewCount": 1,
+        "dueDate": "2026-06-15T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-10T20:30:00.000Z"
+      }
+    },
+    {
+      "comment": "01:30 local on 2026-06-11 at UTC+3 = 2026-06-10T22:30Z: the UTC day is still June 10, the user's day is June 11. UTC folding would shift the due date a day early.",
+      "rating": "ok",
+      "clockUtc": "2026-06-10T22:30:00Z",
+      "tzOffsetMinutes": 180,
+      "expected": {
+        "interval": 7.5,
+        "easeFactor": 2.6,
+        "reviewCount": 2,
+        "dueDate": "2026-06-19T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-10T22:30:00.000Z"
+      },
+      "utcFoldDueDate": "2026-06-18T00:00:00.000"
+    }
+  ]
+}

@@ -134,13 +134,13 @@ class SessionProvider extends ChangeNotifier {
 
   bool get isSessionComplete => _sabaqDone && _sabqiDone && _manzilDone;
 
-  /// Number of active (non-offline) phases in this session.
+  /// Number of active (non-offline, non-empty) phases in this session.
   int get activePhaseCount {
     int c = 0;
     if (_plan != null) {
-      if (!_plan!.sabaqDoneOffline) c++;
-      if (!_plan!.sabqiDoneOffline && _plan!.sabqiPages.isNotEmpty) c++;
-      if (!_plan!.manzilDoneOffline && _plan!.manzilPages.isNotEmpty) c++;
+      if (!_plan!.isSabaqDone) c++;
+      if (!_plan!.isSabqiDone) c++;
+      if (!_plan!.isManzilDone) c++;
     }
     return c;
   }
@@ -149,15 +149,15 @@ class SessionProvider extends ChangeNotifier {
   int get currentStepNumber {
     int step = 0;
     if (_plan != null) {
-      if (!_plan!.sabaqDoneOffline) {
+      if (!_plan!.isSabaqDone) {
         step++;
         if (_currentPhase == SessionPhase.sabaq) return step;
       }
-      if (!_plan!.sabqiDoneOffline && _plan!.sabqiPages.isNotEmpty) {
+      if (!_plan!.isSabqiDone) {
         step++;
         if (_currentPhase == SessionPhase.sabqi) return step;
       }
-      if (!_plan!.manzilDoneOffline && _plan!.manzilPages.isNotEmpty) {
+      if (!_plan!.isManzilDone) {
         step++;
         if (_currentPhase == SessionPhase.manzil) return step;
       }
@@ -205,9 +205,12 @@ class SessionProvider extends ChangeNotifier {
     _sabaqAssessment = null;
     _sabqiAssessment = null;
     _manzilAssessment = null;
-    _sabaqDone = plan.sabaqDoneOffline;
-    _sabqiDone = plan.sabqiDoneOffline;
-    _manzilDone = plan.manzilDoneOffline;
+    // Derived: a phase counts as already done when the user marked it
+    // offline OR it was generated empty (the retired generation-time
+    // auto-skip flags are replaced by these emptiness checks).
+    _sabaqDone = plan.isSabaqDone;
+    _sabqiDone = plan.isSabqiDone;
+    _manzilDone = plan.isManzilDone;
     _showingAssessment = false;
     _showingCoverageDialog = false;
     _isSpotlightActive = false;

@@ -1,0 +1,66 @@
+{
+  "description": "Basic SM-2 fold: strong -> ok -> weak -> forgot at UTC (tzOffsetMinutes 0). Pins exact interval/ease/dueDate/reviewCount after every review so client and server folds can never drift.",
+  "card": {
+    "id": "card-1",
+    "type": 0,
+    "profile_id": "p1",
+    "verse_key": "2:255",
+    "question_data": "{}",
+    "answer_data": "{}",
+    "interval": 2.0,
+    "ease_factor": 2.5,
+    "due_date": "2026-01-01T00:00:00.000",
+    "last_reviewed_at": null,
+    "review_count": 0
+  },
+  "reviews": [
+    {
+      "rating": "strong",
+      "clockUtc": "2026-06-10T12:00:00Z",
+      "tzOffsetMinutes": 0,
+      "expected": {
+        "interval": 5.0,
+        "easeFactor": 2.6,
+        "reviewCount": 1,
+        "dueDate": "2026-06-15T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-10T12:00:00.000Z"
+      }
+    },
+    {
+      "rating": "ok",
+      "clockUtc": "2026-06-12T05:30:00Z",
+      "tzOffsetMinutes": 0,
+      "expected": {
+        "interval": 7.5,
+        "easeFactor": 2.6,
+        "reviewCount": 2,
+        "dueDate": "2026-06-20T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-12T05:30:00.000Z"
+      }
+    },
+    {
+      "rating": "weak",
+      "clockUtc": "2026-06-19T22:10:00Z",
+      "tzOffsetMinutes": 0,
+      "expected": {
+        "interval": 1.0,
+        "easeFactor": 2.5,
+        "reviewCount": 3,
+        "dueDate": "2026-06-20T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-19T22:10:00.000Z"
+      }
+    },
+    {
+      "rating": "forgot",
+      "clockUtc": "2026-06-20T09:00:00Z",
+      "tzOffsetMinutes": 0,
+      "expected": {
+        "interval": 1.0,
+        "easeFactor": 2.3,
+        "reviewCount": 4,
+        "dueDate": "2026-06-21T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-20T09:00:00.000Z"
+      }
+    }
+  ]
+}

@@ -45,9 +45,7 @@ class ContextualStatus extends StatelessWidget {
           message = l.homeStatusDoneToday(
             profileProvider.streak.totalActiveDays,
           );
-        } else if (plan.sabaqDoneOffline &&
-            plan.sabqiDoneOffline &&
-            plan.manzilDoneOffline) {
+        } else if (plan.isSabaqDone && plan.isSabqiDone && plan.isManzilDone) {
           message = l.homeStatusReady;
         } else {
           // Normal state: Page X awaits · ~Y min

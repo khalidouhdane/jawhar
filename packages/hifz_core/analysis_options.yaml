@@ -1,0 +1,3 @@
+# Pure-Dart package: standard recommended lints (no Flutter lints here —
+# this package must never depend on Flutter).
+include: package:lints/recommended.yaml
