@@ -17,6 +17,7 @@ import 'package:quran_app/models/quran_models.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/local_storage_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/screens/api_debug_screen.dart';
 import 'package:quran_app/screens/splash_screen.dart';
 import 'package:quran_app/screens/reading_screen.dart';
 import 'package:quran_app/screens/hifz/assessment_screen.dart';
@@ -411,14 +412,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // ═══════════════════════════════════════════
         _buildSectionLabel(theme, l.profileAbout),
         const SizedBox(height: 8),
-        _buildSettingsTile(
-          theme,
-          icon: LucideIcons.info,
-          title: 'Jawhar',
-          subtitle: _appVersion.isNotEmpty
-              ? l.profileVersion.replaceAll('1.0.0', _appVersion)
-              : l.profileVersion,
-          showChevron: false,
+        // Long-press the version tile to open the hidden API debug screen
+        // (roadmap §10 — /healthz, bootstrap, AI canary).
+        GestureDetector(
+          onLongPress: () {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ApiDebugScreen()));
+          },
+          child: _buildSettingsTile(
+            theme,
+            icon: LucideIcons.info,
+            title: 'Jawhar',
+            subtitle: _appVersion.isNotEmpty
+                ? l.profileVersion.replaceAll('1.0.0', _appVersion)
+                : l.profileVersion,
+            showChevron: false,
+          ),
         ),
         const SizedBox(height: 6),
         _buildSettingsTile(

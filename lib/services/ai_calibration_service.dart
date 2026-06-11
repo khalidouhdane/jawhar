@@ -1,5 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:quran_app/config/api_config.dart';
 import 'package:quran_app/models/hifz_models.dart';
+import 'package:quran_app/services/ai_plan_service.dart' show AiCallableInvoker;
 import 'package:quran_app/utils/app_logger.dart';
 import 'package:quran_app/utils/id_generator.dart';
 
@@ -10,11 +17,32 @@ import 'package:quran_app/utils/id_generator.dart';
 /// existing deterministic suggestion engine on failure.
 ///
 /// **Trigger**: Called after every 7th completed session (configurable).
+///
+/// Transport selection mirrors [AIPlanService] (roadmap §8 Phase 3 task 5):
+/// with `kUseApiV1Ai` on and a base URL baked in, the call goes to
+/// `POST {base}/v1/me/calibration:run` with a Firebase ID token; ANY failure
+/// falls through to the legacy callable, then to the deterministic fallback.
 class AICalibrationService {
   /// Number of sessions between AI calibrations.
   static const int calibrationInterval = 7;
 
-  AICalibrationService();
+  final bool _useApiV1Ai;
+  final String _apiBaseUrl;
+  final http.Client? _httpClient;
+  final Future<String?> Function()? _idTokenProvider;
+  final AiCallableInvoker? _callableInvoker;
+
+  AICalibrationService({
+    bool? useApiV1Ai,
+    String? apiBaseUrl,
+    http.Client? httpClient,
+    Future<String?> Function()? idTokenProvider,
+    AiCallableInvoker? callableInvoker,
+  }) : _useApiV1Ai = useApiV1Ai ?? kUseApiV1Ai,
+       _apiBaseUrl = apiBaseUrl ?? kJawharApiBaseUrl,
+       _httpClient = httpClient,
+       _idTokenProvider = idTokenProvider,
+       _callableInvoker = callableInvoker;
 
   /// Check whether a calibration is due based on total session count.
   bool isCalibrationDue(
@@ -52,27 +80,114 @@ class AICalibrationService {
         totalSessions: totalSessionCount,
       );
 
-      final callable = FirebaseFunctions.instanceFor(
-        region: 'europe-west1',
-      ).httpsCallable('generateCalibration');
+      final payload = <String, dynamic>{
+        'context': contextMap,
+        'systemPrompt': _calibrationPrompt,
+      };
 
-      final result = await callable
-          .call<Map<Object?, Object?>>({
-            'context': contextMap,
-            'systemPrompt': _calibrationPrompt,
-          })
-          .timeout(const Duration(seconds: 20));
-
-      final data = result.data;
-      if (data.isEmpty) {
-        throw Exception('AI returned empty response.');
+      // Alternate transport: jawhar-api /v1, behind the compile-time flag.
+      // Any failure falls through to the callable below — the API path must
+      // never be worse than the callable path.
+      if (_useApiV1Ai && _apiBaseUrl.isNotEmpty) {
+        try {
+          final viaApi = await _postJsonAuthenticated(
+            path: '/v1/me/calibration:run',
+            payload: payload,
+          );
+          if (viaApi != null && viaApi.isNotEmpty) {
+            return _parseCalibrationResponse(viaApi);
+          }
+          AppLogger.warn('AICalib', 'API transport unusable, using callable.');
+        } catch (e) {
+          AppLogger.warn('AICalib', 'API transport failed, using callable: $e');
+        }
       }
 
-      final raw = Map<String, dynamic>.from(data);
+      final raw = await _invokeCallable(payload);
+      if (raw.isEmpty) {
+        throw Exception('AI returned empty response.');
+      }
       return _parseCalibrationResponse(raw);
     } catch (e) {
       AppLogger.info('AICalib', 'AI calibration failed, falling back: $e');
       return [];
+    }
+  }
+
+  /// Invoke the legacy callable (or the injected test double).
+  Future<Map<String, dynamic>> _invokeCallable(
+    Map<String, dynamic> payload,
+  ) async {
+    final invoker = _callableInvoker;
+    if (invoker != null) return invoker(payload);
+
+    final callable = FirebaseFunctions.instanceFor(
+      region: 'europe-west1',
+    ).httpsCallable('generateCalibration');
+
+    final result = await callable
+        .call<Map<Object?, Object?>>(payload)
+        .timeout(const Duration(seconds: 20));
+
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  /// POST [payload] to `{base}{path}` on jawhar-api with a Firebase ID
+  /// token. Returns the decoded JSON object, or `null` when the call cannot
+  /// be made / did not succeed (callers fall back to the callable).
+  Future<Map<String, dynamic>?> _postJsonAuthenticated({
+    required String path,
+    required Map<String, dynamic> payload,
+  }) async {
+    final token = await _getIdToken();
+    if (token == null || token.isEmpty) {
+      AppLogger.warn('AICalib', 'No Firebase ID token; skipping API path.');
+      return null;
+    }
+
+    final base = _apiBaseUrl.endsWith('/')
+        ? _apiBaseUrl.substring(0, _apiBaseUrl.length - 1)
+        : _apiBaseUrl;
+    final uri = Uri.parse('$base$path');
+
+    final client = _httpClient ?? http.Client();
+    try {
+      final response = await client
+          .post(
+            uri,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      if (response.statusCode != 200) {
+        AppLogger.warn(
+          'AICalib',
+          'API $path returned HTTP ${response.statusCode}; falling back.',
+        );
+        return null;
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) return null;
+      return decoded;
+    } finally {
+      if (_httpClient == null) client.close();
+    }
+  }
+
+  /// Current user's Firebase ID token, or `null` (signed out / auth error).
+  Future<String?> _getIdToken() async {
+    final provider = _idTokenProvider;
+    try {
+      if (provider != null) return await provider();
+      return await FirebaseAuth.instance.currentUser?.getIdToken();
+    } catch (e) {
+      AppLogger.warn('AICalib', 'Failed to get ID token: $e');
+      return null;
     }
   }
 
