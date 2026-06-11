@@ -1,0 +1,108 @@
+# Deploys Cloud Functions + Firestore rules on changes to the backend surface.
+# Roadmap: docs/CLOUD_FIRST_MIGRATION_ROADMAP.md (Phase 0 task 7, §10 pipeline 1).
+#
+# Auth: Workload Identity Federation (no JSON keys). One-time setup lives in the
+# GCP project quran-app-e5e86:
+#   pool/provider: projects/556087735735/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+#                  (OIDC issuer https://token.actions.githubusercontent.com,
+#                   attribute condition restricts to repository khalidouhdane/jawhar)
+#   deployer SA:   jawhar-deployer@quran-app-e5e86.iam.gserviceaccount.com
+#
+# DELETING A FUNCTION? Non-interactive deploys ABORT when a deployed function
+# disappears from source (firebase-tools 15.x, prompts.js:59-67). Before merging
+# a commit that removes a function, run ONE manual delete:
+#   firebase functions:delete <name> --project quran-app-e5e86 --force
+# Deliberately NO blanket --force on the deploy command below: --force would
+# auto-accept unrelated prompts, including automatic deletion of functions.
+
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "functions/**"
+      - "firestore.rules"
+      - "firestore.indexes.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Functions unit + rules tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Tracks engines.node in functions/package.json (Node 22 bump lands there).
+          node-version-file: functions/package.json
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Setup Java (Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Functions Dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Build Functions
+        working-directory: functions
+        run: npm run build
+
+      - name: Unit Tests
+        working-directory: functions
+        run: npm run test:unit
+
+      - name: Firestore Rules Tests (emulator)
+        working-directory: functions
+        run: npm run test:rules
+
+  deploy:
+    name: Deploy functions + Firestore rules
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: functions/package.json
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      # Needed for the firebase.json predeploy build hook and for the
+      # version-pinned firebase-tools devDependency used to deploy.
+      - name: Install Functions Dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: quran-app-e5e86
+          workload_identity_provider: projects/556087735735/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: jawhar-deployer@quran-app-e5e86.iam.gserviceaccount.com
+
+      - name: Deploy Functions + Firestore Rules
+        run: ./functions/node_modules/.bin/firebase deploy --only functions,firestore:rules --project quran-app-e5e86 --non-interactive
