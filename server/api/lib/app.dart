@@ -10,7 +10,9 @@ import 'handlers/bootstrap.dart';
 import 'handlers/calibration.dart';
 import 'handlers/healthz.dart';
 import 'handlers/plan_enhance.dart';
+import 'handlers/plan_get.dart';
 import 'middleware/auth.dart';
+import 'middleware/cors.dart';
 import 'middleware/rate_limit.dart';
 import 'middleware/request_logging.dart';
 import 'observability/sentry.dart';
@@ -19,16 +21,19 @@ import 'quota/ai_quota.dart';
 /// Builds the full shelf handler for jawhar-api.
 ///
 /// Pipeline (outermost first): JSON request logging -> Sentry capture ->
-/// router. `/healthz` is public; everything under `/v1/` sits behind
-/// [firebaseAuthMiddleware] with the injected [TokenVerifier], then the
-/// per-uid token-bucket [perUidRateLimit].
+/// CORS -> router. CORS sits OUTSIDE the router on purpose: browser
+/// preflights carry no Authorization header, so they must be answered before
+/// the `/v1` auth pipeline can 401 them. `/healthz` is public; everything
+/// under `/v1/` sits behind [firebaseAuthMiddleware] with the injected
+/// [TokenVerifier], then the per-uid token-bucket [perUidRateLimit].
 ///
 /// [vertex] and [aiQuota] are injectable so handler tests run with fakes;
 /// [rateLimiter] defaults to one built from [config] (tests inject a tiny or
-/// pre-drained one). [gateway] is accepted so the composition root is in
-/// place for the Phase 4+ handlers; the current routes do not read Firestore
-/// directly (the Firestore-backed [AiQuota] is constructed from it in
-/// `bin/server.dart`).
+/// pre-drained one). [gateway] backs `GET /v1/me/plan` (and the
+/// Firestore-backed [AiQuota] constructed from it in `bin/server.dart`);
+/// when null — Firestore-less unit-test composition — the plan route is not
+/// registered and answers 404. [nowUtc] is the plan handler's clock,
+/// injectable for the date-boundary contract tests.
 Handler buildHandler({
   required Config config,
   required TokenVerifier verifier,
@@ -37,6 +42,7 @@ Handler buildHandler({
   FirestoreGateway? gateway,
   TokenBucketRateLimiter? rateLimiter,
   LogSink? logSink,
+  DateTime Function()? nowUtc,
 }) {
   final planEnhance = planEnhanceHandler(
     config: config,
@@ -63,6 +69,10 @@ Handler buildHandler({
     // Canonical roadmap route (§5 #9) plus the bare alias.
     ..post('/me/calibration:run', calibration)
     ..post('/me/calibration', calibration);
+  if (gateway != null) {
+    // §5 #3 — get-or-create deterministic daily plan (no inline AI).
+    v1.get('/me/plan', planGetHandler(gateway: gateway, nowUtc: nowUtc));
+  }
 
   final limiter = rateLimiter ??
       TokenBucketRateLimiter(
@@ -89,6 +99,7 @@ Handler buildHandler({
   return const Pipeline()
       .addMiddleware(jsonRequestLogger(sink: logSink))
       .addMiddleware(sentryMiddleware())
+      .addMiddleware(corsMiddleware(CorsPolicy(config.corsAllowedOrigins)))
       .addHandler(root.call);
 }
 

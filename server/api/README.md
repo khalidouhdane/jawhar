@@ -14,6 +14,7 @@ structured JSON logging, Sentry (no-op without DSN), `FirestoreGateway`
 | `GEMINI_MODEL` | model id surfaced by `/health`, used by Phase 3 AI handlers | `gemini-3.5-flash` |
 | `GOOGLE_CLOUD_PROJECT` | project id / required token audience | `quran-app-e5e86` |
 | `SENTRY_DSN` | enables Sentry when set | unset → no-op |
+| `CORS_ALLOWED_ORIGINS` | comma-separated CORS allow-list; entries are exact origins or `scheme://host:*` any-port wildcards; setting it REPLACES the default (localhost entries included) | Vercel web app + `http://localhost:*` + `http://127.0.0.1:*` |
 | `FIRESTORE_EMULATOR_HOST` | routes all Firestore traffic to the emulator, credential-free | unset → production + ADC |
 
 ## Develop

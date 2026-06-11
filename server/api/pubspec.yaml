@@ -18,6 +18,9 @@ dependencies:
   # VertexClient: ADC bearer tokens (metadata server on Cloud Run, gcloud ADC
   # locally) for the aiplatform.googleapis.com REST endpoint.
   googleapis_auth: ^2.0.0
+  # Shared domain core (pub-workspace member): GET /v1/me/plan runs the EXACT
+  # deterministic PlanGenerator the client runs offline (roadmap §3/§7.4).
+  hifz_core: ^1.0.0
   http: ^1.2.0
   sentry: ^9.0.0
   shelf: ^1.4.0

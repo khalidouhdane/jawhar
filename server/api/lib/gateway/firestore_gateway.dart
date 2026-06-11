@@ -48,6 +48,39 @@ class FirestoreGateway {
         .set(data, options: merge ? const fs.SetOptions.merge() : null);
   }
 
+  /// Runs a query against the collection at [collectionPath]: equality
+  /// filters from [whereEquals] (ANDed), optional [orderBy]/[descending],
+  /// optional [limit]. Returns `(id, data)` per matching document.
+  ///
+  /// Index reality check (roadmap §8 Phase 2 task 7): combining equality
+  /// filters with an orderBy needs a COMPOSITE index in production
+  /// (firestore.indexes.json — e.g. plans `(profileId, date, revision DESC)`)
+  /// while the emulator executes the same query without one, so a green
+  /// emulator suite proves nothing about indexes. Keep every such query shape
+  /// mirrored in firestore.indexes.json.
+  ///
+  /// Note Firestore orderBy semantics: documents MISSING the orderBy field
+  /// are excluded from results entirely (relevant for legacy revision-less
+  /// plan docs — handlers that care must fall back to a direct [getDoc]).
+  Future<List<({String id, Map<String, dynamic> data})>> query(
+    String collectionPath, {
+    Map<String, Object?> whereEquals = const {},
+    String? orderBy,
+    bool descending = false,
+    int? limit,
+  }) async {
+    fs.Query<fs.DocumentData> q = _db.collection(collectionPath);
+    for (final entry in whereEquals.entries) {
+      q = q.where(entry.key, fs.WhereFilter.equal, entry.value);
+    }
+    if (orderBy != null) q = q.orderBy(orderBy, descending: descending);
+    if (limit != null) q = q.limit(limit);
+    final snapshot = await q.get();
+    return [
+      for (final doc in snapshot.docs) (id: doc.id, data: doc.data()),
+    ];
+  }
+
   /// Runs [updateFunction] inside a Firestore transaction. All reads must
   /// happen before writes (Firestore semantics). Retries are handled by the
   /// underlying SDK, EXCEPT for one verified 0.5.x defect we patch here:

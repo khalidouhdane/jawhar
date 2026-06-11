@@ -8,6 +8,16 @@ const String kDefaultGeminiModel = 'gemini-3.5-flash';
 /// The Firebase project this service belongs to (token audience).
 const String kDefaultProjectId = 'quran-app-e5e86';
 
+/// Default CORS allow-list when CORS_ALLOWED_ORIGINS is not set: the
+/// production web app (Vercel) plus local Flutter-web dev servers, which
+/// bind a RANDOM localhost port per `flutter run` (hence the `:*` port
+/// wildcard — see [Config.corsAllowedOrigins] for the entry syntax).
+const List<String> kDefaultCorsAllowedOrigins = [
+  'https://website-lilac-phi-50.vercel.app',
+  'http://localhost:*',
+  'http://127.0.0.1:*',
+];
+
 /// Immutable server configuration, read once from the environment at startup.
 class Config {
   const Config({
@@ -22,6 +32,7 @@ class Config {
     this.aiDailyQuota = 10,
     this.rateLimitBurst = 20,
     this.rateLimitPerMinute = 60,
+    this.corsAllowedOrigins = kDefaultCorsAllowedOrigins,
   });
 
   factory Config.fromEnvironment([Map<String, String>? env]) {
@@ -39,6 +50,7 @@ class Config {
       rateLimitBurst: int.tryParse(e['RATE_LIMIT_BURST'] ?? '') ?? 20,
       rateLimitPerMinute:
           double.tryParse(e['RATE_LIMIT_PER_MINUTE'] ?? '') ?? 60,
+      corsAllowedOrigins: _originList(e['CORS_ALLOWED_ORIGINS']),
     );
   }
 
@@ -79,5 +91,20 @@ class Config {
   /// Token-bucket refill rate per uid (env RATE_LIMIT_PER_MINUTE).
   final double rateLimitPerMinute;
 
+  /// CORS allow-list (env CORS_ALLOWED_ORIGINS, comma-separated; default
+  /// [kDefaultCorsAllowedOrigins] — setting the env var REPLACES the default
+  /// list, localhost entries included). Each entry is either an exact origin
+  /// (`https://app.example`) or a scheme+host with an any-port wildcard
+  /// (`http://localhost:*`). Enforced by `middleware/cors.dart`.
+  final List<String> corsAllowedOrigins;
+
   static String? _nonEmpty(String? v) => (v == null || v.isEmpty) ? null : v;
+
+  static List<String> _originList(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return kDefaultCorsAllowedOrigins;
+    return [
+      for (final entry in raw.split(','))
+        if (entry.trim().isNotEmpty) entry.trim(),
+    ];
+  }
 }
