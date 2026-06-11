@@ -150,6 +150,7 @@ export default function Footer() {
               <Link href="/#difference" className={styles.footerLink}>Why Jawhar</Link>
               <Link href="/privacy" className={styles.footerLink}>Privacy Policy</Link>
               <Link href="/terms" className={styles.footerLink}>Terms of Service</Link>
+              <Link href="/account-deletion" className={styles.footerLink}>Account Deletion</Link>
             </div>
           </div>
         </div>
