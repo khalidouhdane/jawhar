@@ -9,6 +9,7 @@ library;
 export 'src/analytics/analytics_calculators.dart';
 export 'src/derivation/plan_derivation.dart';
 export 'src/derivation/progress_derivation.dart';
+export 'src/derivation/rotation_derivation.dart';
 export 'src/derivation/srs_fold.dart';
 export 'src/derivation/streak_derivation.dart';
 export 'src/dto/api_error.dart';

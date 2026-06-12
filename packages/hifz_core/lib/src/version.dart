@@ -4,4 +4,4 @@
 /// `X-Client-Core-Version` header on every `/v1` mutation (roadmap §5),
 /// so the server can log client/server algorithm skew.
 /// Keep in sync with `packages/hifz_core/pubspec.yaml`.
-const String hifzCoreVersion = '1.1.0';
+const String hifzCoreVersion = '1.2.0';

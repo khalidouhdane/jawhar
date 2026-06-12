@@ -29,6 +29,8 @@ enum PlanOrigin { server, client }
 abstract final class FactBounds {
   static const int minPage = 1;
   static const int maxPage = 604;
+  static const int minJuz = 1;
+  static const int maxJuz = 30;
   static const int minTzOffsetMinutes = -720; // UTC-12:00
   static const int maxTzOffsetMinutes = 840; // UTC+14:00
   static const int maxDurationMinutes = 100000; // SessionRecord.fromMap clamp
@@ -63,7 +65,7 @@ sealed class Fact {
   const Fact({required this.id, required this.coreVersion});
 
   /// Wire discriminator: `session` | `review` | `cardCreated` |
-  /// `planGenerated`.
+  /// `planGenerated` | `rotationChanged`.
   String get kind;
 
   Map<String, dynamic> toJson();
@@ -82,6 +84,8 @@ sealed class Fact {
         return CardCreatedFact.fromJson(json);
       case PlanGeneratedFact.kindValue:
         return PlanGeneratedFact.fromJson(json);
+      case RotationChangedFact.kindValue:
+        return RotationChangedFact.fromJson(json);
       default:
         throw FormatException('Unknown fact kind "$kind"');
     }
@@ -535,6 +539,82 @@ final class PlanGeneratedFact extends Fact {
     ..remove('sabqiDoneOffline')
     ..remove('manzilDoneOffline')
     ..remove('isCompleted');
+}
+
+/// A manzil-rotation edit (roadmap §8 Phase 5 task 4). The rotation list
+/// moves from device-local SQLite (`manzil_rotation` table) into
+/// server-owned state under `users/{uid}/meta/manzil_rotation`, keyed by
+/// `profileId`.
+///
+/// Transport decision (documented per the Phase 5 mandate): §5 prescribes
+/// PUT snapshots only for settings/profiles and is silent on the rotation's
+/// transport, so rotation edits ride the FACTS route — they queue offline
+/// like everything else, replay for free under the `(uid, fact.id)` upsert,
+/// and stay auditable in the durable facts log.
+///
+/// Semantics: the fact carries the FULL rotation list for one profile
+/// (snapshot, not add/remove deltas — order matters: the generator
+/// round-robins `rotationJuz[dayIndex % length]`). Reconciliation is
+/// last-write-wins per `profileId` ordered by (`changedAtUtc`, `id`) — see
+/// `RotationDerivation.fold`. A rotation change deliberately does NOT
+/// regenerate the current plan revision: on-device, `getRotationJuz` is
+/// read at generation time only, so the next generation (tomorrow's
+/// get-or-create or the post-session regeneration) picks it up — the
+/// server matches that exactly.
+final class RotationChangedFact extends Fact {
+  static const String kindValue = 'rotationChanged';
+
+  final String profileId;
+
+  /// The full rotation list (juz numbers 1–30, distinct, order preserved).
+  /// Empty means "rotation cleared".
+  final List<int> juz;
+
+  /// UTC instant of the edit — the LWW ordering key.
+  final DateTime changedAtUtc;
+
+  const RotationChangedFact({
+    required super.id,
+    required super.coreVersion,
+    required this.profileId,
+    required this.juz,
+    required this.changedAtUtc,
+  });
+
+  @override
+  String get kind => kindValue;
+
+  factory RotationChangedFact.fromJson(Map<String, dynamic> json) {
+    final juz = WireCodec.requireIntList(
+      json,
+      'juz',
+      min: FactBounds.minJuz,
+      max: FactBounds.maxJuz,
+      maxLength: FactBounds.maxJuz,
+    );
+    if (juz.toSet().length != juz.length) {
+      throw const FormatException(
+        'Invalid "juz": rotation entries must be distinct',
+      );
+    }
+    return RotationChangedFact(
+      id: WireCodec.requireUuid(json, 'id'),
+      coreVersion: WireCodec.requireString(json, 'coreVersion'),
+      profileId: WireCodec.requireId(json, 'profileId'),
+      juz: juz,
+      changedAtUtc: WireCodec.requireUtcInstant(json, 'changedAtUtc'),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'kind': kindValue,
+    'id': id,
+    'coreVersion': coreVersion,
+    'profileId': profileId,
+    'juz': juz,
+    'changedAtUtc': WireCodec.encodeUtcInstant(changedAtUtc),
+  };
 }
 
 /// The `POST /v1/me/facts` request body: `{"facts": [...]}` in outbox

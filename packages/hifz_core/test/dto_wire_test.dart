@@ -351,6 +351,71 @@ void main() {
     });
   });
 
+  group('RotationChangedFact', () {
+    final rotationJson = <String, dynamic>{
+      'kind': 'rotationChanged',
+      'id': '44444444-4444-4444-8444-444444444444',
+      'coreVersion': '1.2.0',
+      'profileId': 'p1',
+      'juz': [1, 2, 30],
+      'changedAtUtc': '2026-06-10T19:30:00.000Z',
+    };
+
+    test('round-trips the Phase 5 wire shape', () {
+      final fact = Fact.fromJson(roundTrip(rotationJson)) as RotationChangedFact;
+      expect(fact.profileId, 'p1');
+      expect(fact.juz, [1, 2, 30]);
+      expect(fact.changedAtUtc, DateTime.utc(2026, 6, 10, 19, 30));
+      expect(roundTrip(fact.toJson()), rotationJson);
+    });
+
+    test('accepts an empty list (rotation cleared)', () {
+      final fact =
+          Fact.fromJson({...rotationJson, 'juz': <int>[]})
+              as RotationChangedFact;
+      expect(fact.juz, isEmpty);
+    });
+
+    test('rejects malformed input strictly', () {
+      // Juz bounds 1–30.
+      expect(
+        () => Fact.fromJson({...rotationJson, 'juz': [0]}),
+        throwsFormatException,
+      );
+      expect(
+        () => Fact.fromJson({...rotationJson, 'juz': [31]}),
+        throwsFormatException,
+      );
+      // Duplicates: a rotation is a set.
+      expect(
+        () => Fact.fromJson({...rotationJson, 'juz': [3, 3]}),
+        throwsFormatException,
+      );
+      // Missing list (no allowMissing — the snapshot must be explicit).
+      expect(
+        () => Fact.fromJson({...rotationJson}..remove('juz')),
+        throwsFormatException,
+      );
+      // Naive instant on a *Utc field.
+      expect(
+        () => Fact.fromJson(
+          {...rotationJson, 'changedAtUtc': '2026-06-10T19:30:00.000'},
+        ),
+        throwsFormatException,
+      );
+      // Path-unsafe profileId.
+      expect(
+        () => Fact.fromJson({...rotationJson, 'profileId': 'a/b'}),
+        throwsFormatException,
+      );
+      // Non-UUID idempotency key.
+      expect(
+        () => Fact.fromJson({...rotationJson, 'id': 'p1_rotation'}),
+        throwsFormatException,
+      );
+    });
+  });
+
   test('FactBatch round-trips a mixed batch in order', () {
     final batch = FactBatch.fromJson({
       'facts': [
@@ -465,6 +530,13 @@ void main() {
               },
             },
           ],
+          'rotations': [
+            {
+              'profileId': 'p1',
+              'juz': [1, 2, 30],
+              'changedAtUtc': '2026-06-10T19:30:00.000Z',
+            },
+          ],
         },
       };
 
@@ -493,6 +565,19 @@ void main() {
       expect(streak.toStreakData().lastActiveDate, DateTime(2026, 6, 10));
 
       expect(response.derived.plans.single.plan.sabaqPage, 135);
+
+      final rotation = response.derived.rotations.single;
+      expect(rotation.profileId, 'p1');
+      expect(rotation.juz, [1, 2, 30]);
+      expect(rotation.changedAtUtc, DateTime.utc(2026, 6, 10, 19, 30));
+
+      // Additive field: a pre-rotation server response still parses.
+      final withoutRotations = FactsResponse.fromJson({
+        ...responseJson,
+        'derived': {...responseJson['derived'] as Map<String, dynamic>}
+          ..remove('rotations'),
+      });
+      expect(withoutRotations.derived.rotations, isEmpty);
 
       // Lossless round-trip back to the wire.
       final reencoded = roundTrip(response.toJson());

@@ -1,0 +1,146 @@
+{
+  "description": "Phase 5 plural-safe contract — a SECOND profile's session fact regenerates ITS plan, not the active one's: the fold runs for profile p2 (rotation [3] -> juz 3 every day, manzil pages 42-46), regenerates p2's plan to revision 1 with sabaq carry-over 1-4 -> 5-8, and leaves the OTHER profile's (p1) plan untouched at revision 0 — the p1 fact in the batch is ignored by the p2 fold (facts are profileId-keyed).",
+  "profile": {
+    "id": "p2",
+    "name": "Second",
+    "createdAt": "2026-01-01T00:00:00.000",
+    "startDate": "2026-01-01T00:00:00.000",
+    "age": 25,
+    "ageGroup": 2,
+    "encodingSpeed": 1,
+    "retentionStrength": 1,
+    "learningPreference": 0,
+    "dailyTimeMinutes": 30,
+    "preferredTimeOfDay": 0,
+    "goal": 0,
+    "goalDetails": "",
+    "defaultReciterId": 7,
+    "defaultReciterSource": 0,
+    "startingPage": 1,
+    "isActive": 0,
+    "activeDays": "0,1,2,3,4,5,6",
+    "pacePreference": 1,
+    "hifzExperience": 0
+  },
+  "rotationJuz": [3],
+  "priorProgress": [],
+  "priorPlans": {
+    "p2_2026-06-10T00:00:00.000": {
+      "revision": 0,
+      "isCompleted": false,
+      "plan": {
+        "id": "p2_2026-06-10T00:00:00.000",
+        "profileId": "p2",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 1,
+        "sabaqLineStart": 1,
+        "sabaqLineEnd": 4,
+        "sabqiPages": "",
+        "manzilJuz": 0,
+        "manzilPages": ""
+      }
+    },
+    "p1_2026-06-10T00:00:00.000": {
+      "revision": 0,
+      "isCompleted": false,
+      "plan": {
+        "id": "p1_2026-06-10T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 582,
+        "sabaqLineStart": 1,
+        "sabaqLineEnd": 4,
+        "sabqiPages": "",
+        "manzilJuz": 0,
+        "manzilPages": ""
+      }
+    }
+  },
+  "sessionFacts": [
+    {
+      "kind": "session",
+      "id": "b2222222-2222-4222-8222-222222222222",
+      "coreVersion": "1.2.0",
+      "profileId": "p2",
+      "date": "2026-06-10",
+      "tzOffsetMinutes": 60,
+      "durationMinutes": 30,
+      "repCount": 20,
+      "sabaq": { "completed": true, "assessment": 2, "page": 1 },
+      "sabqi": { "completed": false, "assessment": null, "pages": [] },
+      "manzil": { "completed": false, "assessment": null, "pages": [] },
+      "actualPagesCovered": [],
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null,
+      "planId": "p2_2026-06-10T00:00:00.000",
+      "planRevision": 0,
+      "planOrigin": "server",
+      "recordedAtUtc": "2026-06-10T10:00:00Z"
+    },
+    {
+      "kind": "session",
+      "id": "b1111111-1111-4111-8111-111111111111",
+      "coreVersion": "1.2.0",
+      "profileId": "p1",
+      "date": "2026-06-10",
+      "tzOffsetMinutes": 60,
+      "durationMinutes": 30,
+      "repCount": 20,
+      "sabaq": { "completed": true, "assessment": 2, "page": 582 },
+      "sabqi": { "completed": false, "assessment": null, "pages": [] },
+      "manzil": { "completed": false, "assessment": null, "pages": [] },
+      "actualPagesCovered": [],
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null,
+      "planId": "p1_2026-06-10T00:00:00.000",
+      "planRevision": 0,
+      "planOrigin": "server",
+      "recordedAtUtc": "2026-06-10T11:00:00Z"
+    }
+  ],
+  "expectedPlans": {
+    "p2_2026-06-10T00:00:00.000": {
+      "revision": 1,
+      "isCompleted": false,
+      "plan": {
+        "id": "p2_2026-06-10T00:00:00.000",
+        "profileId": "p2",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 1,
+        "sabaqLineStart": 5,
+        "sabaqLineEnd": 8,
+        "sabaqTargetMinutes": 14,
+        "sabqiPages": "1",
+        "sabqiTargetMinutes": 9,
+        "manzilJuz": 3,
+        "manzilPages": "42,43,44,45,46",
+        "manzilTargetMinutes": 7
+      }
+    },
+    "p1_2026-06-10T00:00:00.000": {
+      "revision": 0,
+      "isCompleted": false,
+      "plan": {
+        "id": "p1_2026-06-10T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 582,
+        "sabaqLineStart": 1,
+        "sabaqLineEnd": 4
+      }
+    }
+  },
+  "expectedCompletedRevisions": [{ "revision": 0, "isCompleted": true }],
+  "expectedProgress": [
+    {
+      "pageNumber": 1,
+      "profileId": "p2",
+      "status": 1,
+      "lastReviewedAt": "2026-06-10T10:00:00.000Z",
+      "reviewCount": 1,
+      "memorizedAt": null,
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    }
+  ]
+}

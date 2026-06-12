@@ -290,6 +290,45 @@ final class PlanDelta {
   };
 }
 
+/// Canonical manzil rotation for one profile (server-owned state under
+/// `users/{uid}/meta/manzil_rotation`, roadmap §8 Phase 5 task 4), derived
+/// from `rotationChanged` facts via LWW on (`changedAtUtc`, fact id).
+final class RotationDelta {
+  final String profileId;
+
+  /// Juz numbers 1–30, distinct, order preserved (semantic: the generator
+  /// round-robins by index).
+  final List<int> juz;
+
+  /// The winning edit's instant — the LWW key a client can compare its own
+  /// pending edits against.
+  final DateTime changedAtUtc;
+
+  const RotationDelta({
+    required this.profileId,
+    required this.juz,
+    required this.changedAtUtc,
+  });
+
+  factory RotationDelta.fromJson(Map<String, dynamic> json) => RotationDelta(
+    profileId: WireCodec.requireString(json, 'profileId'),
+    juz: WireCodec.requireIntList(
+      json,
+      'juz',
+      min: FactBounds.minJuz,
+      max: FactBounds.maxJuz,
+      maxLength: FactBounds.maxJuz,
+    ),
+    changedAtUtc: WireCodec.requireUtcInstant(json, 'changedAtUtc'),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'profileId': profileId,
+    'juz': juz,
+    'changedAtUtc': WireCodec.encodeUtcInstant(changedAtUtc),
+  };
+}
+
 /// The `derived` envelope on a facts response — canonical state that
 /// overwrites the client cache.
 final class DerivedState {
@@ -297,12 +336,14 @@ final class DerivedState {
   final List<CardSrsDelta> cards;
   final StreakDelta? streak;
   final List<PlanDelta> plans;
+  final List<RotationDelta> rotations;
 
   const DerivedState({
     this.progress = const [],
     this.cards = const [],
     this.streak,
     this.plans = const [],
+    this.rotations = const [],
   });
 
   factory DerivedState.fromJson(Map<String, dynamic> json) {
@@ -334,6 +375,8 @@ final class DerivedState {
           ? null
           : StreakDelta.fromJson(WireCodec.requireMap(json, 'streak')),
       plans: parseList('plans', PlanDelta.fromJson),
+      // Additive (Phase 5): absent on pre-rotation servers -> [].
+      rotations: parseList('rotations', RotationDelta.fromJson),
     );
   }
 
@@ -342,6 +385,7 @@ final class DerivedState {
     'cards': [for (final c in cards) c.toJson()],
     'streak': streak?.toJson(),
     'plans': [for (final p in plans) p.toJson()],
+    'rotations': [for (final r in rotations) r.toJson()],
   };
 }
 
