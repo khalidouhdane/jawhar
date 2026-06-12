@@ -10,3 +10,9 @@ source "https://rubygems.org"
 # See https://github.com/fastlane/fastlane/issues/30065
 # Bump this version deliberately; do not float.
 gem "fastlane", "2.236.1"
+
+# flutter build ipa runs `pod install` INSIDE the `bundle exec` context, so
+# the bundle must provide CocoaPods — otherwise the system pod binstub fails
+# to load ("CocoaPods is installed but broken. Skipping pod install") and
+# the archive aborts.
+gem "cocoapods", "~> 1.16"

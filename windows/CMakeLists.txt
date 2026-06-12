@@ -10,6 +10,13 @@ set(BINARY_NAME "quran_app")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# MSVC in Visual Studio 2026 hard-errors on <experimental/coroutine>, which
+# the audioplayers_windows and flutter_local_notifications_windows plugins
+# still include. This is Microsoft's documented silencer; directory-scoped
+# here so it propagates to every plugin target. Remove once those plugins
+# migrate to C++20 <coroutine>.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
