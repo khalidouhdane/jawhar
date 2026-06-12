@@ -1,5 +1,12 @@
 # 🏗️ Architecture & Technical Decisions
 
+> ⚠️ **STALE — predates the 2026-06 cloud-first migration (v1.9).** The app
+> is now client (UI + cache + outbox) → `jawhar-api` (Dart on Cloud Run) →
+> Firestore, with shared domain logic in `packages/hifz_core`. For the
+> current architecture read **`AGENTS.md`** (repo root) and
+> `docs/PHASE8_LOCKDOWN_RUNBOOK.md`. This document's full rewrite is a
+> Phase 8 lockdown task. Content below describes the pre-migration app.
+
 > **Tech stack, project structure, and key engineering decisions for Le Quran.**
 
 ---

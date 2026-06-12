@@ -1,5 +1,14 @@
 # 🔌 API Reference
 
+> ⚠️ **STALE — predates the 2026-06 cloud-first migration (v1.9).** The app
+> now talks primarily to its own backend, `jawhar-api` (`/v1` on Cloud Run:
+> facts, plan, plan:enhance, calibration, analytics, bootstrap,
+> content/token, DELETE /v1/me) — see `server/api/README.md` and
+> `AGENTS.md`. QF preprod user-API credentials are deleted; QF content
+> tokens are served by `POST /v1/content/token`. This document's full
+> rewrite is a Phase 8 lockdown task. Content below describes the
+> pre-migration integrations.
+
 > **All external APIs, authentication, and CDN endpoints used by Le Quran.**
 
 ---
