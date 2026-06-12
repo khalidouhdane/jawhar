@@ -8,6 +8,11 @@ const String kDefaultGeminiModel = 'gemini-3.5-flash';
 /// The Firebase project this service belongs to (token audience).
 const String kDefaultProjectId = 'quran-app-e5e86';
 
+/// Default QF OAuth token endpoint for `POST /v1/content/token`
+/// (client-credentials exchange — roadmap §5 #12 / §8 Phase 7 task 1).
+/// Same default the client compiled in (`quran_auth_service.dart`).
+const String kDefaultQuranAuthUrl = 'https://oauth2.quran.foundation/oauth2/token';
+
 /// Default CORS allow-list when CORS_ALLOWED_ORIGINS is not set: the
 /// production web app (Vercel) plus local Flutter-web dev servers, which
 /// bind a RANDOM localhost port per `flutter run` (hence the `:*` port
@@ -33,6 +38,10 @@ class Config {
     this.rateLimitBurst = 20,
     this.rateLimitPerMinute = 60,
     this.corsAllowedOrigins = kDefaultCorsAllowedOrigins,
+    this.adminUids = const [],
+    this.quranClientId,
+    this.quranClientSecret,
+    this.quranAuthUrl = kDefaultQuranAuthUrl,
   });
 
   factory Config.fromEnvironment([Map<String, String>? env]) {
@@ -51,6 +60,10 @@ class Config {
       rateLimitPerMinute:
           double.tryParse(e['RATE_LIMIT_PER_MINUTE'] ?? '') ?? 60,
       corsAllowedOrigins: _originList(e['CORS_ALLOWED_ORIGINS']),
+      adminUids: _csvList(e['ADMIN_UIDS']),
+      quranClientId: _nonEmpty(e['QURAN_API_CLIENT_ID']),
+      quranClientSecret: _nonEmpty(e['QURAN_API_CLIENT_SECRET']),
+      quranAuthUrl: _nonEmpty(e['QURAN_API_AUTH_URL']) ?? kDefaultQuranAuthUrl,
     );
   }
 
@@ -98,7 +111,35 @@ class Config {
   /// (`http://localhost:*`). Enforced by `middleware/cors.dart`.
   final List<String> corsAllowedOrigins;
 
+  /// Firebase uids allowed to call `/v1/admin/*` (env ADMIN_UIDS,
+  /// comma-separated). Default empty — NOBODY is an admin unless the
+  /// deployment explicitly says so. This backs the Phase 4 per-user
+  /// `writePath` flip (roadmap §8 Phase 4 task 4 / R2 rollback lever);
+  /// the same flip is always possible without the endpoint via the
+  /// Firestore console (`users/{uid}/meta/server` → `writePath`).
+  final List<String> adminUids;
+
+  /// QF Content API OAuth client id (env QURAN_API_CLIENT_ID). When this or
+  /// [quranClientSecret] is unset, `POST /v1/content/token` answers 503.
+  final String? quranClientId;
+
+  /// QF Content API OAuth client secret (env QURAN_API_CLIENT_SECRET,
+  /// injected from Secret Manager via `--update-secrets` — never baked into
+  /// the image, never logged).
+  final String? quranClientSecret;
+
+  /// QF OAuth token endpoint (env QURAN_API_AUTH_URL).
+  final String quranAuthUrl;
+
   static String? _nonEmpty(String? v) => (v == null || v.isEmpty) ? null : v;
+
+  static List<String> _csvList(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return const [];
+    return [
+      for (final entry in raw.split(','))
+        if (entry.trim().isNotEmpty) entry.trim(),
+    ];
+  }
 
   static List<String> _originList(String? raw) {
     if (raw == null || raw.trim().isEmpty) return kDefaultCorsAllowedOrigins;

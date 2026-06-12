@@ -138,6 +138,24 @@ class GatewayTransaction {
     return snapshot.data();
   }
 
+  /// Transactional equality-filtered read of a whole collection — same
+  /// semantics as [FirestoreGateway.query] minus orderBy/limit (the facts
+  /// handler needs full progress maps, not ordered slices). Firestore
+  /// transaction rules apply: ALL reads (including these) before any write.
+  Future<List<({String id, Map<String, dynamic> data})>> query(
+    String collectionPath, {
+    Map<String, Object?> whereEquals = const {},
+  }) async {
+    fs.Query<fs.DocumentData> q = _db.collection(collectionPath);
+    for (final entry in whereEquals.entries) {
+      q = q.where(entry.key, fs.WhereFilter.equal, entry.value);
+    }
+    final snapshot = await _transaction.getQuery(q);
+    return [
+      for (final doc in snapshot.docs) (id: doc.id, data: doc.data()),
+    ];
+  }
+
   /// Transactional write of the document at [path].
   void set(String path, Map<String, dynamic> data, {bool merge = false}) {
     _transaction.set(
@@ -145,5 +163,12 @@ class GatewayTransaction {
       data,
       options: merge ? const fs.SetOptions.merge() : null,
     );
+  }
+
+  /// Transactional delete of the document at [path] (used when a
+  /// `cardCreated` fact attaches identity to an SRS placeholder and the
+  /// placeholder doc moves into `flashcards/`).
+  void delete(String path) {
+    _transaction.delete(_db.doc(path));
   }
 }

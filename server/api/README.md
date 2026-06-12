@@ -16,6 +16,34 @@ structured JSON logging, Sentry (no-op without DSN), `FirestoreGateway`
 | `SENTRY_DSN` | enables Sentry when set | unset → no-op |
 | `CORS_ALLOWED_ORIGINS` | comma-separated CORS allow-list; entries are exact origins or `scheme://host:*` any-port wildcards; setting it REPLACES the default (localhost entries included) | Vercel web app + `http://localhost:*` + `http://127.0.0.1:*` |
 | `FIRESTORE_EMULATOR_HOST` | routes all Firestore traffic to the emulator, credential-free | unset → production + ADC |
+| `DATASET_EPOCH` | server data-generation id (§5); facts requests carrying a stale `X-Dataset-Epoch` are refused 409 | `e1` |
+| `WRITE_PATH` | fleet-default Phase 4 write-path flag; overridden per user by `users/{uid}/meta/server.writePath` (admin endpoint or console) | `legacy` |
+| `ADMIN_UIDS` | comma-separated Firebase uids allowed to call `/v1/admin/*` (the per-user `writePath` flip) | empty → nobody |
+| `QURAN_API_CLIENT_ID` | QF Content API OAuth client id (identifier, not a secret) | unset → `/v1/content/token` answers 503 |
+| `QURAN_API_CLIENT_SECRET` | QF Content API OAuth client secret — inject from Secret Manager via `--update-secrets QURAN_API_CLIENT_SECRET=QURAN_API_CLIENT_SECRET:latest`, never bake into the image | unset → `/v1/content/token` answers 503 |
+| `QURAN_API_AUTH_URL` | QF OAuth token endpoint | `https://oauth2.quran.foundation/oauth2/token` |
+
+## datasetEpoch bump runbook (§5 / §8 reset protocol — read BEFORE the first bump)
+
+A bump announces a destructive data-generation reset. The client's recovery
+is wipe-outbox + re-backfill **with the SAME fact ids**, so derived state is
+rebuilt ONLY if the server-side wipe also deleted the per-user dedup log —
+a partial wipe leaves the dedup memory in place, every re-backfilled fact
+returns `applied:false` with no application, and the user's derived state is
+silently never rebuilt. Procedure, in order:
+
+1. Run the tester reset protocol (announce ≥48h, state what is lost/kept,
+   minimum build, confirm receipt).
+2. For every affected uid, delete **all** of:
+   - `users/{uid}/facts` — the dedup/idempotency log (MANDATORY: stale
+     entries here permanently swallow the re-backfill);
+   - the derived/mirror docs being reset (`progress`, `sessions`, `plans`,
+     `flashcards`, `flashcard_reviews`, `meta/streak` as announced);
+   - `users/{uid}/srs_placeholders` and `users/{uid}/analytics` caches.
+3. Only then redeploy with the new `DATASET_EPOCH` value. Stale clients are
+   refused with 409 (+ the current epoch in the body) before any write,
+   wipe their outbox + backfill markers, adopt the new epoch, and
+   re-backfill automatically.
 
 ## Develop
 

@@ -1,5 +1,6 @@
 import 'package:jawhar_api/app.dart';
 import 'package:jawhar_api/config.dart';
+import 'package:jawhar_api/content/content_token_service.dart';
 import 'package:jawhar_api/gateway/firestore_gateway.dart';
 import 'package:jawhar_api/middleware/auth.dart';
 import 'package:jawhar_api/middleware/rate_limit.dart';
@@ -31,6 +32,7 @@ Handler buildTestHandler({
   FakeVertexClient? vertex,
   FakeAiQuota? aiQuota,
   FirestoreGateway? gateway,
+  ContentTokenService? contentTokens,
   TokenBucketRateLimiter? rateLimiter,
   LogSink? logSink,
   DateTime Function()? nowUtc,
@@ -45,6 +47,7 @@ Handler buildTestHandler({
     vertex: vertex ?? FakeVertexClient(),
     aiQuota: aiQuota ?? FakeAiQuota(),
     gateway: gateway,
+    contentTokens: contentTokens,
     rateLimiter: rateLimiter,
     logSink: logSink,
     nowUtc: nowUtc,
