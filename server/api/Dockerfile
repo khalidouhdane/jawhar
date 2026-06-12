@@ -13,13 +13,17 @@ WORKDIR /app
 # package has no path dependencies, so the standalone solve is equivalent.
 # The lockfile lives at the workspace root (which pins Flutter app deps and
 # cannot resolve here), so the image resolves fresh; CI's post-deploy
-# /healthz + smoke checks are the guard against surprise transitive bumps.
-# If hifz_core ever becomes a dependency, switch the build context to the
-# repo root and COPY packages/hifz_core in (with a path override here).
+# /health + smoke checks are the guard against surprise transitive bumps.
+# hifz_core IS a dependency (not on pub.dev): the build context MUST be a
+# STAGED copy of server/api with packages/hifz_core vendored in and a
+# dependency_overrides path appended to pubspec.yaml — see the
+# "Stage build context" step in .github/workflows/deploy-api.yml for the
+# canonical recipe (local deploys must replicate it).
 # The \r? keeps the strip working when the build context comes from a
 # CRLF working tree (local `gcloud run deploy --source` on Windows; CI
 # checkouts are LF and match either way).
 COPY pubspec.yaml ./
+COPY packages/ ./packages/
 RUN sed -i '/^resolution: workspace\r\?$/d' pubspec.yaml && dart pub get
 
 COPY . .
