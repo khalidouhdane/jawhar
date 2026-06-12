@@ -75,6 +75,10 @@ dependencies:
   cloud_functions: 5.6.2
   firebase_core: 3.15.2
   firebase_auth: 5.7.0
+  # App Check, LOG-ONLY wave (roadmap §8 Phase 8 task 3): Play Integrity on
+  # Android release, debug provider on debug builds; iOS/web NOT activated
+  # yet; Windows has no provider (documented §9 exemption).
+  firebase_app_check: ^0.3.2
   cloud_firestore: 5.6.12
   google_sign_in: 6.3.0
   connectivity_plus: ^7.0.0

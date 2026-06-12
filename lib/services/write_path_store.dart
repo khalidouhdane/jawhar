@@ -11,6 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - `datasetEpoch` is the server data-generation id (§5). On mismatch the
 ///   client clears the outbox and its backfill markers so history is
 ///   re-submitted against the new epoch.
+/// - `minSupportedBuild` backs the §5 force-update gate: builds below it
+///   BLOCK SYNC ONLY (outbox drain + legacy CloudSyncService pushes pause)
+///   while the offline core loop keeps working untouched — the §5 rule is
+///   "never block the offline loop". See [updateRequired].
 class WritePathStore {
   static const String legacy = 'legacy';
   static const String facts = 'facts';
@@ -18,10 +22,36 @@ class WritePathStore {
   static const String _writePathPrefix = 'sync.writePath.';
   static const String _backfillPrefix = 'sync.backfillDone.';
   static const String _epochKey = 'sync.datasetEpoch';
+  static const String _minBuildKey = 'sync.minSupportedBuild';
 
   final SharedPreferences _prefs;
 
   WritePathStore(this._prefs);
+
+  /// The running app's build number (pubspec `+N`), set once at startup from
+  /// `PackageInfo`. Null (e.g. before startup wiring, or an unparsable
+  /// build string) disables the gate — fail-open, sync keeps working.
+  int? currentBuildNumber;
+
+  /// Last `minSupportedBuild` seen from the server (`/v1/me/bootstrap`);
+  /// persisted so the gate survives restarts while offline. Default 0 =
+  /// nothing blocked before first server contact.
+  int get minSupportedBuild => _prefs.getInt(_minBuildKey) ?? 0;
+
+  Future<void> setMinSupportedBuild(int value) =>
+      _prefs.setInt(_minBuildKey, value);
+
+  /// §5 force-update gate: true when this build is below the server's
+  /// `minSupportedBuild`. While true, the SyncWorker skips drains and
+  /// CloudSyncService skips its legacy pushes/pulls; enqueueing (and the
+  /// whole offline core loop) continues unaffected, so nothing is lost —
+  /// the outbox drains as soon as the updated build runs. Lifts without an
+  /// app update if the server lowers `minSupportedBuild` (re-read on every
+  /// bootstrap-meta refresh).
+  bool get updateRequired {
+    final build = currentBuildNumber;
+    return build != null && build < minSupportedBuild;
+  }
 
   /// The cached write path for [uid]; `legacy` when unknown/offline.
   String pathFor(String uid) =>

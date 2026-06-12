@@ -299,6 +299,34 @@ void main() {
       expect(stats.pending, 0);
       expect(stats.poisoned, 0);
     });
+
+    test('clearForUid drops exactly that uid\'s rows (pending AND '
+        'poisoned), silently — no drain is scheduled by it', () async {
+      await outbox.enqueue(_reviewFact(), uid: 'doomed');
+      await outbox.enqueue(_reviewFact(), uid: 'doomed');
+      await outbox.enqueue(_reviewFact(), uid: 'other');
+      await outbox.enqueue(_reviewFact(), uid: null);
+      final doomedRows = await outbox.pendingForUid('doomed');
+      await outbox.poisonRow(doomedRows.first.seq, 'HTTP 422');
+
+      var notified = false;
+      outbox.addListener(() => notified = true);
+
+      final removed = await outbox.clearForUid('doomed');
+
+      expect(removed, 2, reason: 'pending + poisoned rows for the uid');
+      final doomedStats = await outbox.stats(uid: 'doomed');
+      expect(doomedStats.pending, 0);
+      expect(doomedStats.poisoned, 0);
+      expect((await outbox.stats(uid: 'other')).pending, 1,
+          reason: 'other uids untouched');
+      expect((await outbox.stats()).pending, 2,
+          reason: 'NULL-uid row also untouched');
+      expect(notified, isFalse,
+          reason: 'the only listener is the SyncWorker drain scheduler — '
+              'notifying would schedule exactly the POST this exists to '
+              'prevent');
+    });
   });
 
   group('transactional enqueue', () {
@@ -446,6 +474,104 @@ void main() {
       // upsert keeps replays free.
       expect((await outbox.pendingForUid('uid-A')).single.entityId, id);
       expect((await outbox.pendingForUid('uid-B')).single.entityId, id);
+    });
+
+    test('enqueues one rotationChanged snapshot per profile with a '
+        'non-empty rotation; deterministic id makes re-runs free', () async {
+      final db = await dbService.database;
+      await _insertProfile(db, 'p1');
+      await _insertProfile(db, 'p2');
+      for (final juz in [2, 1, 30]) {
+        await dbService.addJuzToRotation('p1', juz);
+      }
+      await dbService.addJuzToRotation('p1', 5);
+      await dbService.removeJuzFromRotation('p1', 5); // isInRotation = 0
+      // p2 has no rotation rows at all -> no fact.
+
+      final enqueued = await outbox.enqueueBackfillForUid('u');
+      expect(enqueued, 1);
+
+      final row = (await outbox.pendingForUid('u')).single;
+      expect(row.kind, 'rotationChanged');
+      final fact =
+          Fact.fromJson(jsonDecode(row.payload) as Map<String, dynamic>)
+              as RotationChangedFact;
+      expect(fact.profileId, 'p1');
+      expect(fact.juz, [1, 2, 30], reason: 'juzNumber ASC, excluded 5');
+      expect(
+        fact.id,
+        OutboxService.deterministicUuid('rotationBackfill|u|p1|1,2,30'),
+      );
+
+      // Re-run: same deterministic id -> INSERT OR IGNORE skips it.
+      expect(await outbox.enqueueBackfillForUid('u'), 0);
+      expect(await outbox.pendingForUid('u'), hasLength(1));
+    });
+  });
+
+  group('rotation edits (Phase 5 task 4)', () {
+    test('replaceRotationAndEnqueue rewrites the local table AND enqueues '
+        'the fact in one transaction', () async {
+      final db = await dbService.database;
+      await _insertProfile(db, 'p1');
+      await dbService.addJuzToRotation('p1', 7); // pre-existing local state
+
+      final fact = RotationChangedFact(
+        id: IdGenerator.uuidV4(),
+        coreVersion: hifzCoreVersion,
+        profileId: 'p1',
+        juz: const [1, 29],
+        changedAtUtc: DateTime.utc(2026, 6, 10, 12),
+      );
+      await outbox.replaceRotationAndEnqueue(fact, uid: 'u');
+
+      // Local table now mirrors the snapshot exactly (7 is gone).
+      expect(await dbService.getRotationJuz('p1'), [1, 29]);
+
+      final row = (await outbox.pendingForUid('u')).single;
+      expect(row.kind, 'rotationChanged');
+      expect(row.entityId, fact.id);
+      final parsed =
+          Fact.fromJson(jsonDecode(row.payload) as Map<String, dynamic>)
+              as RotationChangedFact;
+      expect(parsed.juz, [1, 29]);
+      expect(parsed.changedAtUtc, DateTime.utc(2026, 6, 10, 12));
+    });
+
+    test('an empty snapshot clears the rotation locally and still syncs',
+        () async {
+      final db = await dbService.database;
+      await _insertProfile(db, 'p1');
+      await dbService.addJuzToRotation('p1', 3);
+
+      await outbox.replaceRotationAndEnqueue(
+        RotationChangedFact(
+          id: IdGenerator.uuidV4(),
+          coreVersion: hifzCoreVersion,
+          profileId: 'p1',
+          juz: const [],
+          changedAtUtc: DateTime.utc(2026, 6, 10, 13),
+        ),
+        uid: 'u',
+      );
+      expect(await dbService.getRotationJuz('p1'), isEmpty);
+      expect((await outbox.pendingForUid('u')).single.kind, 'rotationChanged');
+    });
+
+    test('deterministicUuid is stable, RFC-4122-shaped, and seed-sensitive',
+        () {
+      final a = OutboxService.deterministicUuid('rotationBackfill|u|p1|1,2');
+      final b = OutboxService.deterministicUuid('rotationBackfill|u|p1|1,2');
+      final c = OutboxService.deterministicUuid('rotationBackfill|u|p1|1,3');
+      expect(a, b);
+      expect(a, isNot(c));
+      expect(
+        RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+        ).hasMatch(a),
+        isTrue,
+        reason: 'must satisfy the wire codec UUID pattern: $a',
+      );
     });
   });
 }

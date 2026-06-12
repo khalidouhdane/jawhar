@@ -171,6 +171,45 @@ class OutboxService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Replace a profile's manzil rotation locally AND enqueue its
+  /// `rotationChanged` fact in one transaction (roadmap §8 Phase 5 task 4 —
+  /// rotation edits flow to the server like every other fact, queueing
+  /// offline for free). [fact] must carry the same `profileId` and the
+  /// FULL new rotation list (snapshot semantics — the server folds LWW per
+  /// profile on `changedAtUtc`).
+  ///
+  /// This is the ONLY sanctioned mutation path for the rotation: writing
+  /// `manzil_rotation` directly (HifzDatabaseService.addJuzToRotation /
+  /// removeJuzFromRotation) would leave the server's copy stale until the
+  /// next backfill reconcile.
+  Future<void> replaceRotationAndEnqueue(
+    RotationChangedFact fact, {
+    String? uid,
+  }) async {
+    final db = await _db.database;
+    await db.transaction((txn) async {
+      await txn.delete(
+        'manzil_rotation',
+        where: 'profileId = ?',
+        whereArgs: [fact.profileId],
+      );
+      for (final juz in fact.juz) {
+        await txn.insert('manzil_rotation', {
+          'profileId': fact.profileId,
+          'juzNumber': juz,
+          'isInRotation': 1,
+          'currentDay': 0,
+        });
+      }
+      await txn.insert(
+        'sync_outbox',
+        _rowFor(fact, uid),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    });
+    notifyListeners();
+  }
+
   /// NULL-uid adoption rule (§7.2): the first uid that signs in adopts all
   /// rows enqueued while signed out — exactly once. Returns the number of
   /// adopted rows.
@@ -239,7 +278,8 @@ class OutboxService extends ChangeNotifier {
             final raw =
                 decoded['recordedAtUtc'] ??
                 decoded['reviewedAtUtc'] ??
-                decoded['createdAtUtc'];
+                decoded['createdAtUtc'] ??
+                decoded['changedAtUtc'];
             if (raw is String) {
               final parsed = DateTime.tryParse(raw);
               if (parsed != null) return parsed.toUtc();
@@ -369,6 +409,31 @@ class OutboxService extends ChangeNotifier {
     final removed = await db.delete('sync_outbox');
     AppLogger.warn('Outbox', 'Cleared outbox ($removed rows) on epoch reset');
     notifyListeners();
+  }
+
+  /// Drop every row (pending AND poisoned) stamped with [uid] — the outbox
+  /// half of the account-deletion quiesce (§5 #11): the server is about to
+  /// delete `users/{uid}`, and any row that drained afterwards (the ID
+  /// token outlives `auth.deleteUser`) would recreate permanently orphaned
+  /// docs under the dead uid. Returns the number of rows removed.
+  ///
+  /// Deliberately does NOT notify listeners: the only listener is the
+  /// SyncWorker's drain scheduler, and scheduling a drain is exactly what
+  /// this call exists to prevent.
+  Future<int> clearForUid(String uid) async {
+    final db = await _db.database;
+    final removed = await db.delete(
+      'sync_outbox',
+      where: 'uid = ?',
+      whereArgs: [uid],
+    );
+    if (removed > 0) {
+      AppLogger.warn(
+        'Outbox',
+        'Cleared $removed rows for $uid (account deletion)',
+      );
+    }
+    return removed;
   }
 
   /// Aggregate state for the debug screen. [uid] = null aggregates over
@@ -566,11 +631,97 @@ class OutboxService extends ChangeNotifier {
       if (inserted != 0) enqueued++;
     }
 
+    // 4. Manzil rotation — one snapshot fact per profile with a non-empty
+    //    rotation (server-owned under users/{uid}/meta/manzil_rotation,
+    //    Phase 5 task 4). The fact id is DETERMINISTIC over
+    //    (uid, profileId, list), so re-running the backfill re-derives the
+    //    same id and both dedup layers skip it. `changedAtUtc` is the
+    //    enqueue instant (the table stores no edit time) — documented LWW
+    //    caveat: a backfill re-run after a content change competes as a
+    //    fresh edit, acceptable at tester scale.
+    final rotationRows = await db.query(
+      'manzil_rotation',
+      where: 'isInRotation = 1',
+      orderBy: 'profileId ASC, juzNumber ASC',
+    );
+    final rotationByProfile = <String, List<int>>{};
+    for (final row in rotationRows) {
+      final profileId = row['profileId'] as String?;
+      final juz = row['juzNumber'] as int?;
+      if (profileId == null ||
+          !WireCodec.isSafeId(profileId) ||
+          juz == null ||
+          juz < FactBounds.minJuz ||
+          juz > FactBounds.maxJuz) {
+        continue;
+      }
+      rotationByProfile.putIfAbsent(profileId, () => <int>[]).add(juz);
+    }
+    for (final entry in rotationByProfile.entries) {
+      final fact = RotationChangedFact(
+        id: deterministicUuid(
+          'rotationBackfill|$uid|${entry.key}|${entry.value.join(',')}',
+        ),
+        coreVersion: hifzCoreVersion,
+        profileId: entry.key,
+        juz: entry.value,
+        changedAtUtc: DateTime.now().toUtc(),
+      );
+      final inserted = await db.insert(
+        'sync_outbox',
+        _rowFor(fact, uid),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      if (inserted != 0) enqueued++;
+    }
+
     if (enqueued > 0) {
       AppLogger.info('Outbox', 'Backfill enqueued $enqueued facts for $uid');
       notifyListeners();
     }
     return enqueued;
+  }
+
+  /// RFC-4122-shaped UUID derived deterministically from [seed] (Jenkins
+  /// one-at-a-time over four salts — 32-bit masked ops, safe on dart2js's
+  /// 53-bit ints). Used for backfill facts that have no stored UUID of
+  /// their own (the rotation snapshot): a stable id is what makes backfill
+  /// re-runs free at both dedup layers (UNIQUE(uid, entity_id) locally,
+  /// `(uid, fact.id)` upsert server-side).
+  @visibleForTesting
+  static String deterministicUuid(String seed) {
+    int oaat(int salt) {
+      var h = salt;
+      for (final unit in seed.codeUnits) {
+        h = (h + unit) & 0xFFFFFFFF;
+        h = (h + ((h << 10) & 0xFFFFFFFF)) & 0xFFFFFFFF;
+        h = h ^ (h >> 6);
+      }
+      h = (h + ((h << 3) & 0xFFFFFFFF)) & 0xFFFFFFFF;
+      h = h ^ (h >> 11);
+      h = (h + ((h << 15) & 0xFFFFFFFF)) & 0xFFFFFFFF;
+      return h;
+    }
+
+    final bytes = <int>[];
+    for (final salt in const [0x6A617768, 0x61723573, 0x726F7461, 0x74696F6E]) {
+      final h = oaat(salt);
+      bytes
+        ..add((h >> 24) & 0xFF)
+        ..add((h >> 16) & 0xFF)
+        ..add((h >> 8) & 0xFF)
+        ..add(h & 0xFF);
+    }
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version nibble
+    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant bits
+
+    String hex(int value) => value.toRadixString(16).padLeft(2, '0');
+    final value = bytes.map(hex).join();
+    return '${value.substring(0, 8)}-'
+        '${value.substring(8, 12)}-'
+        '${value.substring(12, 16)}-'
+        '${value.substring(16, 20)}-'
+        '${value.substring(20)}';
   }
 
   static String _truncate(String s, [int max = 500]) =>

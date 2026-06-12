@@ -636,6 +636,13 @@ class HifzDatabaseService {
   // ════════════════════════════════════════════
 
   /// Add a juz to the manzil rotation.
+  ///
+  /// ⚠ Local-only write. The rotation is server-owned state since Phase 5
+  /// (`users/{uid}/meta/manzil_rotation`): any UI mutation path MUST go
+  /// through `OutboxService.replaceRotationAndEnqueue` instead, which
+  /// updates this table AND enqueues the `rotationChanged` fact in one
+  /// transaction. Kept for the local-table plumbing only (no callers
+  /// today).
   Future<void> addJuzToRotation(String profileId, int juzNumber) async {
     final db = await database;
     await db.insert('manzil_rotation', {
@@ -659,6 +666,9 @@ class HifzDatabaseService {
   }
 
   /// Remove a juz from the rotation.
+  ///
+  /// ⚠ Local-only write — see [addJuzToRotation]: UI mutation paths must
+  /// use `OutboxService.replaceRotationAndEnqueue` so the edit syncs.
   Future<void> removeJuzFromRotation(String profileId, int juzNumber) async {
     final db = await database;
     await db.update(

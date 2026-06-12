@@ -68,7 +68,17 @@ class SyncDrainResult {
 ///   poisoned — they can be environmental (App Check rollout, middleware
 ///   misconfig); 422/400 stay immediate poison;
 /// - `writePath` is read from the bootstrap response and cached per uid in
-///   [WritePathStore] (offline default `legacy`).
+///   [WritePathStore] (offline default `legacy`);
+/// - `minSupportedBuild` is read from the bootstrap response and persisted:
+///   when the running build is below it ([updateRequired]) every drain is
+///   skipped — BLOCK SYNC ONLY (§5): enqueueing and the whole offline core
+///   loop continue, and the queued facts flush as soon as an updated build
+///   (or a lowered server threshold, re-read on every bootstrap refresh)
+///   lifts the gate;
+/// - when [appCheckTokenProvider] is wired (Android), the current App Check
+///   token rides along as `X-Firebase-AppCheck` on bootstrap and facts
+///   requests — the server is LOG-ONLY on the verdict (§8 Phase 8 task 3),
+///   so a missing/failed token never affects the drain.
 ///
 /// Derived-state deltas in facts responses are NOT yet applied to the
 /// local cache — that is the Phase 5 "canonical server state overwrites on
@@ -80,6 +90,7 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
   final Listenable _authChanges;
   final String? Function() _uidProvider;
   final Future<String?> Function({bool forceRefresh}) _idTokenProvider;
+  final Future<String?> Function()? _appCheckTokenProvider;
   final String _baseUrl;
   final http.Client? _injectedClient;
   final int _batchSize;
@@ -96,6 +107,8 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
   bool _drainQueued = false;
   int _failureStreak = 0;
   bool _disposed = false;
+  bool _quiesced = false;
+  Completer<void>? _drainDone;
 
   SyncDrainResult? _lastDrainResult;
   DateTime? _lastBootstrapAtUtc;
@@ -106,6 +119,7 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     required Listenable authChanges,
     required String? Function() uidProvider,
     required Future<String?> Function({bool forceRefresh}) idTokenProvider,
+    Future<String?> Function()? appCheckTokenProvider,
     String? apiBaseUrl,
     http.Client? httpClient,
     Stream<dynamic>? connectivityChanges,
@@ -117,6 +131,7 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
        _authChanges = authChanges,
        _uidProvider = uidProvider,
        _idTokenProvider = idTokenProvider,
+       _appCheckTokenProvider = appCheckTokenProvider,
        _baseUrl = _normalizeBase(apiBaseUrl ?? kJawharApiBaseUrl),
        _injectedClient = httpClient,
        _batchSize = batchSize,
@@ -135,12 +150,26 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
   static String _normalizeBase(String raw) =>
       raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
 
+  /// A drain that completes after [dispose] (e.g. the test/teardown window
+  /// between "outbox empty" and the finally block) must not throw — same
+  /// guard OutboxService uses.
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
   // ── Debug-screen surface ──
 
   SyncDrainResult? get lastDrainResult => _lastDrainResult;
   DateTime? get lastBootstrapAtUtc => _lastBootstrapAtUtc;
   bool get isDraining => _draining;
   String? get datasetEpoch => _store.datasetEpoch;
+
+  /// §5 force-update gate (see [WritePathStore.updateRequired]): true while
+  /// this build is below the server's `minSupportedBuild`. Drives the
+  /// non-dismissable update banner and pauses drains; listeners are
+  /// notified whenever a bootstrap refresh changes the threshold.
+  bool get updateRequired => _store.updateRequired;
 
   /// Cached write path for the signed-in user (`legacy` when signed out
   /// or unknown).
@@ -173,6 +202,9 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     if (uid == null) {
       _lastSignedInUid = null;
       _retryTimer?.cancel();
+      // Sign-out ends any account-deletion quiesce: a future sign-in
+      // (possibly a different user) must get a working sync path.
+      _quiesced = false;
       return;
     }
     if (uid == _lastSignedInUid) return;
@@ -185,7 +217,7 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _handleEnqueue() {
-    if (_disposed) return;
+    if (_disposed || _quiesced) return;
     _debounce?.cancel();
     _debounce = Timer(const Duration(seconds: 2), () {
       unawaited(_drain('enqueue'));
@@ -198,14 +230,27 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     // connectivity_plus emits List<ConnectivityResult>; "none" alone means
     // offline. Anything else is a (re)gained transport.
     if (text.contains('none') && !text.contains(',')) return;
-    unawaited(_drain('connectivity'));
+    unawaited(_refreshGateIfRequiredThenDrain('connectivity'));
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(_drain('foreground'));
+      unawaited(_refreshGateIfRequiredThenDrain('foreground'));
     }
+  }
+
+  /// §5 force-update gate refresh cadence: a gated app deliberately
+  /// schedules no backoff, so without this the "server lowers
+  /// `minSupportedBuild` → gate lifts, queue drains, no app update needed"
+  /// rollback lever would only fire on the next full app restart. While the
+  /// gate is engaged, the foreground/connectivity triggers re-read the
+  /// threshold first — a cheap bootstrap GET that cannot hammer the facts
+  /// endpoint (the drain itself stays gated until the threshold drops).
+  Future<void> _refreshGateIfRequiredThenDrain(String trigger) async {
+    if (_disposed) return;
+    if (_store.updateRequired) await refreshBootstrapMeta();
+    await _drain(trigger);
   }
 
   // ── Bootstrap meta (writePath + datasetEpoch) ──
@@ -222,7 +267,10 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     final client = _injectedClient ?? http.Client();
     try {
       final response = await client
-          .get(Uri.parse('$_baseUrl/v1/me/bootstrap'), headers: _headers(token))
+          .get(
+            Uri.parse('$_baseUrl/v1/me/bootstrap'),
+            headers: await _headersWithAppCheck(token),
+          )
           .timeout(_requestTimeout);
       if (response.statusCode != 200) {
         AppLogger.warn(
@@ -240,6 +288,22 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
       final epoch = decoded['datasetEpoch'];
       if (epoch is String && epoch.isNotEmpty) {
         await _handleEpoch(epoch);
+      }
+      // §5 force-update gate input. Stored even when it does not change the
+      // gate, so the threshold survives offline restarts.
+      final minBuild = decoded['minSupportedBuild'];
+      if (minBuild is int && minBuild >= 0) {
+        final wasRequired = _store.updateRequired;
+        await _store.setMinSupportedBuild(minBuild);
+        if (_store.updateRequired != wasRequired) {
+          AppLogger.warn(
+            'Sync',
+            'update gate ${_store.updateRequired ? 'ENGAGED' : 'lifted'} '
+                '(build=${_store.currentBuildNumber} '
+                'minSupportedBuild=$minBuild) — sync only; offline loop '
+                'unaffected',
+          );
+        }
       }
       _lastBootstrapAtUtc = DateTime.now().toUtc();
       notifyListeners();
@@ -283,18 +347,61 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  // ── Account-deletion quiesce (§5 #11) ──
+
+  /// True while [quiesceForAccountDeletion] holds drains stopped.
+  bool get isQuiesced => _quiesced;
+
+  /// Stops the facts write path for an imminent `DELETE /v1/me`: cancels
+  /// the enqueue debounce and backoff-retry timers, refuses every new drain
+  /// trigger, and waits for any in-flight drain to finish.
+  ///
+  /// Why: the account deletion is not transactional and the ID token stays
+  /// VALID for its remaining lifetime even after `auth.deleteUser` — a
+  /// drain racing the server-side tree deletion would recreate
+  /// `users/{uid}` docs that are then orphaned forever (no client can ever
+  /// authenticate as that uid again). Callers must quiesce + clear the
+  /// uid's outbox rows BEFORE calling the API.
+  ///
+  /// Lifted by [resumeAfterFailedAccountDeletion] (deletion failed, user
+  /// keeps the account) or automatically on sign-out (a fresh sign-in must
+  /// get a working sync path).
+  Future<void> quiesceForAccountDeletion() async {
+    _quiesced = true;
+    _debounce?.cancel();
+    _retryTimer?.cancel();
+    // Await the in-flight drain, if any (its finally block completes the
+    // completer; a requeued follow-up drain is refused by the flag).
+    while (_draining) {
+      final inFlight = _drainDone?.future;
+      if (inFlight != null) {
+        await inFlight;
+      } else {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
+  }
+
+  /// Re-enables drains after an account deletion that did NOT remove the
+  /// account (API unreachable + fallback failed, or a rethrown error): the
+  /// user still exists, so sync must keep working.
+  void resumeAfterFailedAccountDeletion() {
+    _quiesced = false;
+  }
+
   // ── Drain ──
 
   /// Public manual trigger (also used by the debug screen).
   Future<void> requestDrain({String trigger = 'manual'}) => _drain(trigger);
 
   Future<void> _drain(String trigger) async {
-    if (_disposed || _baseUrl.isEmpty) return;
+    if (_disposed || _quiesced || _baseUrl.isEmpty) return;
     if (_draining) {
       _drainQueued = true;
       return;
     }
     _draining = true;
+    _drainDone = Completer<void>();
     notifyListeners();
 
     var sent = 0, applied = 0, skipped = 0, poisoned = 0, deferred = 0;
@@ -303,6 +410,18 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     try {
       final uid = _uidProvider();
       if (uid == null) return;
+
+      // §5 force-update gate: BLOCK SYNC ONLY. No facts leave the device
+      // (and no backfill markers move) until the build is up to date, but
+      // enqueueing — the offline core loop — continues untouched. No
+      // backoff retry: the gate lifts via an app update or the next
+      // bootstrap refresh, not by hammering the server.
+      if (_store.updateRequired) {
+        failure =
+            'update-required: build ${_store.currentBuildNumber} < '
+            'minSupportedBuild ${_store.minSupportedBuild}';
+        return;
+      }
 
       // Adoption + one-time backfill before any flush (§7.2 / §7.3).
       await _outbox.adoptOrphanRows(uid);
@@ -322,6 +441,9 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
       while (!_disposed) {
         // A signed-out switch mid-drain stops the flush immediately.
         if (_uidProvider() != uid) break;
+        // An account-deletion quiesce stops between batches: the caller is
+        // awaiting this drain before deleting the server-side tree.
+        if (_quiesced) break;
         final rows = await _outbox.pendingForUid(
           uid,
           limit: oneByOne ? 1 : _batchSize,
@@ -381,8 +503,10 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
       );
       AppLogger.info('Sync', 'Outbox drain $_lastDrainResult');
       _draining = false;
+      _drainDone?.complete();
+      _drainDone = null;
       notifyListeners();
-      if (_drainQueued && !_disposed) {
+      if (_drainQueued && !_disposed && !_quiesced) {
         _drainQueued = false;
         unawaited(_drain('requeued'));
       }
@@ -423,6 +547,10 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
       return _BatchOutcome.fail('no Firebase ID token');
     }
 
+    // Fetched once per batch (not per retry): the App Check verdict is
+    // log-only server-side, so a stale-but-recent token is fine.
+    final appCheckToken = await _appCheckToken();
+
     // §5 epoch arbitration, client half: assert the data generation this
     // outbox belongs to so the SERVER refuses a stale flush BEFORE any
     // write (the 200-body check alone learns of a bump only after up to a
@@ -432,6 +560,7 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
       return {
         ..._headers(token),
         if (stored != null && stored.isNotEmpty) 'X-Dataset-Epoch': stored,
+        'X-Firebase-AppCheck': ?appCheckToken,
       };
     }
 
@@ -638,6 +767,27 @@ class SyncWorker extends ChangeNotifier with WidgetsBindingObserver {
     'Content-Type': 'application/json',
     'X-Client-Core-Version': hifzCoreVersion,
   };
+
+  /// [_headers] plus `X-Firebase-AppCheck` when a token is available.
+  Future<Map<String, String>> _headersWithAppCheck(String token) async {
+    final appCheckToken = await _appCheckToken();
+    return {..._headers(token), 'X-Firebase-AppCheck': ?appCheckToken};
+  }
+
+  /// App Check token via the injected provider; null (= header omitted, the
+  /// server logs `absent`) on unsupported platforms or any failure — the
+  /// log-only contract means attestation can never block sync.
+  Future<String?> _appCheckToken() async {
+    final provider = _appCheckTokenProvider;
+    if (provider == null) return null;
+    try {
+      final token = await provider();
+      return (token == null || token.isEmpty) ? null : token;
+    } catch (e) {
+      AppLogger.warn('Sync', 'App Check token fetch failed: $e');
+      return null;
+    }
+  }
 
   Future<String?> _token({bool forceRefresh = false}) async {
     try {

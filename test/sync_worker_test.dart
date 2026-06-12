@@ -718,4 +718,93 @@ void main() {
       expect(store.backfillDoneFor('u1'), isTrue);
     });
   });
+
+  group('account-deletion quiesce (§5 #11)', () {
+    // A drain racing DELETE /v1/me recreates docs under the deleted uid —
+    // permanently orphaned, because the ID token outlives auth.deleteUser
+    // but no client can ever sign in as that uid again.
+
+    test('quiesce refuses every new drain until resumed; queued rows stay',
+        () async {
+      auth.uid = 'u1';
+      await store.markBackfillDone('u1');
+      await outbox.enqueue(_reviewFact(), uid: 'u1');
+
+      worker = buildWorker();
+      await worker!.quiesceForAccountDeletion();
+      expect(worker!.isQuiesced, isTrue);
+
+      await worker!.requestDrain();
+      expect(factsRequests, isEmpty, reason: 'no POST while quiesced');
+      expect((await outbox.stats(uid: 'u1')).pending, 1);
+
+      worker!.resumeAfterFailedAccountDeletion();
+      await worker!.requestDrain();
+      expect(factsRequests, hasLength(1),
+          reason: 'a FAILED deletion restores normal sync');
+    });
+
+    test('quiesce AWAITS the in-flight drain — no POST completes after it '
+        'returns', () async {
+      auth.uid = 'u1';
+      await store.markBackfillDone('u1');
+      await outbox.enqueue(_reviewFact(), uid: 'u1');
+
+      var postsStarted = 0;
+      var postsFinished = 0;
+      final slowClient = MockClient((request) async {
+        if (request.url.path == '/v1/me/facts') {
+          postsStarted++;
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+          postsFinished++;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          return okFacts((body['facts'] as List).cast<Map<String, dynamic>>());
+        }
+        return http.Response(jsonEncode({'profiles': []}), 200);
+      });
+      worker = SyncWorker(
+        outbox: outbox,
+        store: store,
+        authChanges: auth,
+        uidProvider: () => auth.uid,
+        idTokenProvider: ({bool forceRefresh = false}) async => 'test-token',
+        apiBaseUrl: 'https://api.test',
+        httpClient: slowClient,
+        observeAppLifecycle: false,
+      );
+
+      final drain = worker!.requestDrain();
+      final deadline = DateTime.now().add(const Duration(seconds: 5));
+      while (postsStarted == 0 && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+      expect(postsStarted, 1, reason: 'drain reached the slow POST');
+
+      await worker!.quiesceForAccountDeletion();
+      expect(postsFinished, 1,
+          reason: 'quiesce returned only after the in-flight POST finished');
+      expect(worker!.isDraining, isFalse);
+      await drain;
+    });
+
+    test('sign-out lifts the quiesce: the next sign-in syncs normally',
+        () async {
+      auth.uid = 'u1';
+      await store.markBackfillDone('u1');
+      worker = buildWorker();
+      await worker!.quiesceForAccountDeletion();
+
+      auth.signOut();
+      expect(worker!.isQuiesced, isFalse);
+
+      await store.markBackfillDone('u2');
+      await outbox.enqueue(_reviewFact(), uid: 'u2');
+      auth.signIn('u2');
+      final deadline = DateTime.now().add(const Duration(seconds: 5));
+      while (factsRequests.isEmpty && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 25));
+      }
+      expect(factsRequests, hasLength(1));
+    });
+  });
 }

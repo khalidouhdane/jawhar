@@ -43,12 +43,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:quran_app/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:quran_app/services/account_api.dart';
+import 'package:quran_app/services/app_check_service.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/auth_sync_coordinator.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/outbox_service.dart';
 import 'package:quran_app/services/sync_worker.dart';
 import 'package:quran_app/services/write_path_store.dart';
+import 'package:quran_app/widgets/update_required_banner.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/screens/splash_screen.dart';
@@ -104,26 +108,56 @@ Future<void> _bootstrap() async {
     );
   }
 
+  // App Check, LOG-ONLY wave (roadmap §8 Phase 8 task 3): Android only
+  // (Play Integrity / debug provider); iOS+web deferred, Windows exempt
+  // (§9 — no provider exists). Fail-open: never blocks startup.
+  await AppCheckService.activate();
+
   // Initialize auth service
   final authService = AuthService();
   authService.init();
 
-  // Initialize cloud sync service (legacy direct-Firestore mirror — kept
-  // compiled-in as the Phase 4 rollback target)
-  final cloudSyncService = CloudSyncService(hifzDb);
+  // Per-user sync flags + the §5 force-update gate. The build number feeds
+  // the gate (`updateRequired`): below the server's minSupportedBuild, SYNC
+  // ONLY pauses — the offline core loop is untouched.
+  final writePathStore = WritePathStore(prefs);
+  try {
+    final packageInfo = await PackageInfo.fromPlatform();
+    writePathStore.currentBuildNumber = int.tryParse(packageInfo.buildNumber);
+  } catch (e) {
+    // Unknown build number disables the gate (fail-open, sync keeps going).
+    debugPrint('PackageInfo unavailable, update gate disabled: $e');
+  }
+
+  // ID-token source shared by every /v1 client below.
+  Future<String?> idTokenProvider({bool forceRefresh = false}) async =>
+      FirebaseAuth.instance.currentUser?.getIdToken(forceRefresh);
 
   // Facts write path (roadmap §7): uid-partitioned outbox + drain worker.
   final outboxService = OutboxService(hifzDb);
-  final writePathStore = WritePathStore(prefs);
   final syncWorker = SyncWorker(
     outbox: outboxService,
     store: writePathStore,
     authChanges: authService,
     uidProvider: () => authService.uid,
-    idTokenProvider: ({bool forceRefresh = false}) async =>
-        FirebaseAuth.instance.currentUser?.getIdToken(forceRefresh),
+    idTokenProvider: idTokenProvider,
+    appCheckTokenProvider: AppCheckService.getToken,
     connectivityChanges: Connectivity().onConnectivityChanged,
   );
+
+  // Initialize cloud sync service (legacy direct-Firestore mirror — kept
+  // compiled-in as the Phase 4 rollback target). Account deletion goes
+  // through `DELETE /v1/me` first (§5 #11), legacy cascade as fallback;
+  // the worker + outbox are quiesced before the deletion so a racing
+  // drain cannot recreate orphaned docs under the deleted uid.
+  final cloudSyncService = CloudSyncService(
+    hifzDb,
+    writePathStore: writePathStore,
+    accountApi: AccountApi(idTokenProvider: idTokenProvider),
+    syncWorker: syncWorker,
+    outbox: outboxService,
+  );
+
   // App-start trigger: bootstrap meta (writePath/datasetEpoch) + drain.
   unawaited(syncWorker.start());
 
@@ -475,7 +509,13 @@ class QuranApp extends StatelessWidget {
           builder: (context, child) {
             return AnnotatedRegion<SystemUiOverlayStyle>(
               value: themeProvider.systemOverlayStyle,
-              child: DevicePreview.appBuilder(context, child),
+              child: DevicePreview.appBuilder(
+                context,
+                // §5 force-update gate: non-dismissable banner over every
+                // route while sync is paused; the app (offline core loop)
+                // stays fully usable behind it.
+                UpdateRequiredGate(child: child),
+              ),
             );
           },
           title: 'Jawhar',

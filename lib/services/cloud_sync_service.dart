@@ -6,8 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/flashcard_models.dart';
+import 'package:quran_app/services/account_api.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
+import 'package:quran_app/services/outbox_service.dart';
+import 'package:quran_app/services/sync_worker.dart';
+import 'package:quran_app/services/write_path_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
@@ -24,6 +28,10 @@ enum SyncStatus { idle, syncing, synced, error }
 class CloudSyncService extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final HifzDatabaseService _db;
+  final WritePathStore? _writePathStore;
+  final AccountApi? _accountApi;
+  final SyncWorker? _syncWorker;
+  final OutboxService? _outbox;
 
   SyncStatus _status = SyncStatus.idle;
   DateTime? _lastSyncTime;
@@ -36,7 +44,31 @@ class CloudSyncService extends ChangeNotifier {
   String? get lastError => _lastError;
   bool get isSyncing => _status == SyncStatus.syncing;
 
-  CloudSyncService(this._db);
+  /// [writePathStore] backs the §5 force-update gate (see [_syncGated]);
+  /// [accountApi] is the `DELETE /v1/me` client used by [deleteAccount]
+  /// (API first, legacy client-side cascade as the unreachable-fallback).
+  /// [syncWorker] + [outbox] are quiesced by [deleteAccount] BEFORE the
+  /// API call — a drain racing the server-side tree deletion would
+  /// recreate permanently orphaned docs under the deleted uid (the ID
+  /// token outlives `auth.deleteUser`).
+  CloudSyncService(
+    this._db, {
+    WritePathStore? writePathStore,
+    AccountApi? accountApi,
+    SyncWorker? syncWorker,
+    OutboxService? outbox,
+  }) : _writePathStore = writePathStore,
+       _accountApi = accountApi,
+       _syncWorker = syncWorker,
+       _outbox = outbox;
+
+  /// §5 force-update gate, legacy half: when the running build is below the
+  /// server's `minSupportedBuild`, every legacy Firestore push/pull is a
+  /// silent no-op (sync is blocked; the local SQLite write the caller
+  /// already made — the offline core loop — is untouched, and the outbox
+  /// keeps enqueueing for the post-update drain). [deleteAccount] is
+  /// deliberately NOT gated: account deletion must always work.
+  bool get _syncGated => _writePathStore?.updateRequired ?? false;
 
   /// Reference to the user's root document.
   DocumentReference _userDoc(String uid) =>
@@ -59,6 +91,10 @@ class CloudSyncService extends ChangeNotifier {
   /// 3. If no: push local SQLite → Firestore
   /// 4. If both exist: cloud wins for profile/settings, merge progress
   Future<void> performInitialSync(String uid) async {
+    if (_syncGated) {
+      AppLogger.warn('Sync', '[SYNC] initial sync skipped: update required');
+      return;
+    }
     if (_syncOperationActive) return;
     _syncOperationActive = true;
     _setStatus(SyncStatus.syncing);
@@ -115,6 +151,10 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Manual full sync with retry — pushes everything to cloud.
   Future<void> syncAll(String uid) async {
+    if (_syncGated) {
+      AppLogger.warn('Sync', '[SYNC] full sync skipped: update required');
+      return;
+    }
     if (_syncOperationActive) return;
     _syncOperationActive = true;
     _setStatus(SyncStatus.syncing);
@@ -193,6 +233,7 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push the full local profile to Firestore.
   Future<void> syncProfile(String uid, MemoryProfile profile) async {
+    if (_syncGated) return;
     try {
       await _writeProfile(uid, profile);
       AppLogger.info('Sync', '[SYNC] Profile pushed');
@@ -203,6 +244,7 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push settings (SharedPreferences values) to Firestore.
   Future<void> syncSettings(String uid) async {
+    if (_syncGated) return;
     try {
       await _writeSettings(uid);
       AppLogger.info('Sync', '[SYNC] Settings pushed');
@@ -217,6 +259,7 @@ class CloudSyncService extends ChangeNotifier {
     int pageNumber,
     Map<String, dynamic> progressData,
   ) async {
+    if (_syncGated) return;
     try {
       await _userDoc(uid).collection('progress').doc('$pageNumber').set({
         ...progressData,
@@ -229,6 +272,7 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push a session record (append-only).
   Future<void> syncSession(String uid, SessionRecord session) async {
+    if (_syncGated) return;
     try {
       await _userDoc(uid).collection('sessions').doc(session.id).set({
         ...session.toMap(),
@@ -241,6 +285,7 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push a daily plan (append-only).
   Future<void> syncPlan(String uid, DailyPlan plan) async {
+    if (_syncGated) return;
     try {
       await _userDoc(uid).collection('plans').doc(plan.id).set({
         ...plan.toMap(),
@@ -253,6 +298,7 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push streak data.
   Future<void> syncStreak(String uid, StreakData streak) async {
+    if (_syncGated) return;
     try {
       await _writeStreak(uid, streak);
     } catch (e) {
@@ -716,26 +762,113 @@ class CloudSyncService extends ChangeNotifier {
   /// Delete all user data from Firestore and Firebase Auth.
   ///
   /// Use when user wants to completely remove their cloud account.
+  ///
+  /// Path order (§5 #11 / §8 Phase 8 task 2):
+  /// 1. **`DELETE /v1/me` first** — the server recursively deletes the whole
+  ///    `users/{uid}` tree (including server-only docs the rules never let
+  ///    this client see: facts log, SRS placeholders, plural profiles,
+  ///    `meta/server`...) AND the Firebase Auth user via the Admin SDK.
+  ///    This is the only path that survives the Phase 8 deny-all rules flip.
+  /// 2. **Legacy client-side cascade as fallback** when the API is
+  ///    unreachable/refuses — byte-for-byte the pre-§5#11 behavior.
+  ///
+  /// Deliberately NOT gated by [_syncGated]: account deletion must always
+  /// work, force-update gate or not.
   Future<void> deleteAccount(String uid) async {
     _setStatus(SyncStatus.syncing);
+
+    // Quiesce the facts write path FIRST (§5 #11): a drain in flight — or
+    // one scheduled by the 2s enqueue debounce ("finish session, delete
+    // account" is a realistic sequence) — could POST /v1/me/facts while
+    // the server deletes the tree. The deletion is not transactional and
+    // the ID token stays valid for its remaining lifetime even after
+    // `auth.deleteUser`, so a late flush would recreate docs under the
+    // deleted uid, permanently orphaned (no client can ever authenticate
+    // as that uid again). Stop new drains, await any in-flight one, then
+    // drop the uid's queued rows.
+    await _syncWorker?.quiesceForAccountDeletion();
+    await _outbox?.clearForUid(uid);
+
+    var dataDeleted = false;
     try {
-      // Delete all subcollections
+      final outcome = await _accountApi?.deleteAccount();
+      if (outcome != null && outcome.deleted) {
+        dataDeleted = true;
+        AppLogger.info(
+          'Sync',
+          '[SYNC] Account deleted via DELETE /v1/me '
+              '(authUserDeleted=${outcome.authUserDeleted})',
+        );
+        if (!outcome.authUserDeleted) {
+          // Server deployment without the auth half — keep the original
+          // client-side step two (its requires-recent-login error surfaces
+          // to the caller exactly as before).
+          try {
+            await FirebaseAuth.instance.currentUser?.delete();
+          } catch (e) {
+            AppLogger.info('Sync', '[SYNC] Auth user deletion error: $e');
+            _lastError = e.toString();
+            _setStatus(SyncStatus.error);
+            rethrow;
+          }
+        }
+        _setStatus(SyncStatus.idle);
+        return;
+      }
+
+      // Fallback: the API was unreachable (offline, outage, no token) —
+      // legacy client-side cascade. It can only touch what the rules let
+      // THIS client touch: server-only collections (facts,
+      // srs_placeholders, plural profiles, meta/manzil_rotation,
+      // meta/server) are denied and stay behind — only the API path is a
+      // complete deletion (operator cleanup: docs/PHASE8_LOCKDOWN_RUNBOOK.md).
+      AppLogger.info(
+        'Sync',
+        '[SYNC] DELETE /v1/me unavailable — falling back to client-side '
+            'cascade deletion',
+      );
+      // Subcollections the rules allow this client to LIST. `meta` is NOT
+      // listable at all ("rules are not filters": a collection query must
+      // be provable for every possible doc, and meta reads are allowed
+      // only for the ids 'settings'/'streak') — its two reachable docs
+      // are deleted directly below. A permission-denied collection is
+      // skipped, never fatal: `user.delete()` must always be reached.
       for (final collection in [
         'progress',
         'sessions',
         'plans',
         'flashcards',
         'flashcard_reviews',
-        'meta',
       ]) {
-        final snap = await _userDoc(uid).collection(collection).get();
-        for (final doc in snap.docs) {
-          await doc.reference.delete();
+        try {
+          final snap = await _userDoc(uid).collection(collection).get();
+          for (final doc in snap.docs) {
+            await doc.reference.delete();
+          }
+        } on FirebaseException catch (e) {
+          if (e.code != 'permission-denied') rethrow;
+          AppLogger.warn(
+            'Sync',
+            '[SYNC] fallback cascade: "$collection" denied — skipped',
+          );
         }
       }
-      // Delete user root document
-      await _userDoc(uid).delete();
-      AppLogger.info('Sync', '[SYNC] All cloud data deleted for $uid');
+      for (final docId in ['settings', 'streak']) {
+        try {
+          await _userDoc(uid).collection('meta').doc(docId).delete();
+        } on FirebaseException catch (e) {
+          if (e.code != 'permission-denied') rethrow;
+        }
+      }
+      // Delete user root document.
+      try {
+        await _userDoc(uid).delete();
+      } on FirebaseException catch (e) {
+        if (e.code != 'permission-denied') rethrow;
+        AppLogger.warn('Sync', '[SYNC] fallback cascade: root doc denied');
+      }
+      AppLogger.info('Sync', '[SYNC] Client-deletable cloud data deleted '
+          'for $uid');
 
       // Delete Firebase Auth user
       final user = FirebaseAuth.instance.currentUser;
@@ -743,6 +876,7 @@ class CloudSyncService extends ChangeNotifier {
         await user.delete();
         AppLogger.info('Sync', '[SYNC] Firebase Auth user deleted');
       }
+      dataDeleted = true;
 
       _setStatus(SyncStatus.idle);
     } catch (e) {
@@ -750,11 +884,19 @@ class CloudSyncService extends ChangeNotifier {
       _lastError = e.toString();
       _setStatus(SyncStatus.error);
       rethrow;
+    } finally {
+      // Deletion failed and the account survives → sync must come back.
+      // On success the quiesce holds until sign-out clears it (the
+      // profile-screen flow signs out immediately after).
+      if (!dataDeleted) {
+        _syncWorker?.resumeAfterFailedAccountDeletion();
+      }
     }
   }
 
   /// Push a single flashcard update.
   Future<void> syncFlashcard(String uid, Flashcard card) async {
+    if (_syncGated) return;
     try {
       await _userDoc(uid).collection('flashcards').doc(card.id).set({
         ...card.toMap(),
@@ -767,6 +909,7 @@ class CloudSyncService extends ChangeNotifier {
 
   /// Push a flashcard review.
   Future<void> syncFlashcardReview(String uid, FlashcardReview review) async {
+    if (_syncGated) return;
     try {
       final reviewId = review.id;
       await _userDoc(uid).collection('flashcard_reviews').doc(reviewId).set({
