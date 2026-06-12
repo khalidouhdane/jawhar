@@ -53,19 +53,21 @@ platform :ios do
       
       UI.message("Found #{dist_certs.count} active distribution certificates on the portal.")
       
-      # Apple limits Apple Distribution certificates to 3 per account.
-      # We only revoke the oldest one if there are 2 or more active certificates,
-      # which ensures we always have free slots without wiping other developers' certificates.
-      if dist_certs.count >= 2
-        # Sort by expiration date (ISO string) to find the oldest one
-        sorted_certs = dist_certs.sort_by { |c| c.expiration_date || "" }
-        oldest_cert = sorted_certs.first
-        
-        UI.message("Threshold reached (>= 2 certs). Revoking oldest certificate to free up a slot: #{oldest_cert.name} (ID: #{oldest_cert.id}, Expires: #{oldest_cert.expiration_date})")
-        oldest_cert.delete!
-        UI.message("Successfully cleared the oldest active Distribution certificate.")
+      # Every CI run creates a fresh certificate (the runner keychain is
+      # ephemeral, so existing certs are never reusable here and exist only
+      # as dead weight against Apple's 3-cert limit). Revoke ALL active
+      # distribution certificates, then wait out the portal's propagation
+      # lag — revoke-one-then-create-immediately still hit "maximum number
+      # of certificates" 3 seconds later (run 27400502914).
+      if dist_certs.count >= 1
+        dist_certs.each do |cert|
+          UI.message("Revoking distribution certificate: #{cert.name} (ID: #{cert.id}, Expires: #{cert.expiration_date})")
+          cert.delete!
+        end
+        UI.message("Revoked #{dist_certs.count} distribution certificate(s); waiting 15s for portal propagation...")
+        sleep(15)
       else
-        UI.message("Active distribution certificate count (#{dist_certs.count}) is below the threshold. No certificates were revoked.")
+        UI.message("No active distribution certificates to clear.")
       end
     rescue => e
       UI.error("Error while managing developer portal certificates: #{e.message}")
