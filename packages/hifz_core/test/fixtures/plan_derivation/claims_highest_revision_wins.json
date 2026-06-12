@@ -1,0 +1,77 @@
+{
+  "description": "Offline planGenerated claims reconcile highest-revision-wins per (profileId, date); ties go to the incumbent server copy; a claim for a date with no incumbent is adopted. Claims arrive out of order.",
+  "currentPlans": {
+    "p1_2026-06-10T00:00:00.000": {
+      "revision": 2,
+      "isCompleted": false,
+      "plan": {
+        "id": "p1_2026-06-10T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 100
+      }
+    }
+  },
+  "claims": [
+    {
+      "kind": "planGenerated",
+      "id": "c3333333-3333-4333-8333-333333333333",
+      "coreVersion": "1.0.0",
+      "profileId": "p1",
+      "date": "2026-06-10",
+      "revision": 3,
+      "plan": {
+        "id": "p1_2026-06-10T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 103
+      }
+    },
+    {
+      "kind": "planGenerated",
+      "id": "c1111111-1111-4111-8111-111111111111",
+      "coreVersion": "1.0.0",
+      "profileId": "p1",
+      "date": "2026-06-10",
+      "revision": 1,
+      "plan": {
+        "id": "p1_2026-06-10T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 101
+      }
+    },
+    {
+      "kind": "planGenerated",
+      "id": "c2222222-2222-4222-8222-222222222222",
+      "coreVersion": "1.0.0",
+      "profileId": "p1",
+      "date": "2026-06-10",
+      "revision": 2,
+      "plan": {
+        "id": "p1_2026-06-10T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-10T00:00:00.000",
+        "sabaqPage": 102
+      }
+    },
+    {
+      "kind": "planGenerated",
+      "id": "c4444444-4444-4444-8444-444444444444",
+      "coreVersion": "1.0.0",
+      "profileId": "p1",
+      "date": "2026-06-11",
+      "revision": 0,
+      "plan": {
+        "id": "p1_2026-06-11T00:00:00.000",
+        "profileId": "p1",
+        "date": "2026-06-11T00:00:00.000",
+        "sabaqPage": 104
+      }
+    }
+  ],
+  "expected": {
+    "p1_2026-06-10T00:00:00.000": { "revision": 3, "sabaqPage": 103 },
+    "p1_2026-06-11T00:00:00.000": { "revision": 0, "sabaqPage": 104 }
+  }
+}

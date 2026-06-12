@@ -21,15 +21,29 @@ class PlanGenerator {
   /// [previousPlan] is today's pre-existing plan when regenerating after a
   /// completed session — sabaq line/verse progress carries over from it.
   /// Plan ids stay deterministic: `'${profile.id}_${today.toIso8601String()}'`.
+  ///
+  /// [localToday] (additive, Phase 4): the user-local calendar day as a
+  /// timezone-naive midnight. On the device, [now] is the local wall clock,
+  /// so its date components ARE the local day and its epoch IS the true
+  /// instant — one value serves both. A server folding facts on a UTC host
+  /// has no such DateTime: it passes the fact's `recordedAtUtc` as [now]
+  /// (exact instant comparisons for the sabqi window and future-date
+  /// guard) and the fact's client-local `date` here (plan id/date and
+  /// manzil rotation day). When null, the historical behavior is
+  /// byte-identical: the day is taken from [now]'s own components.
   static DailyPlan generate({
     required MemoryProfile profile,
     required Map<int, PageProgress> progress,
     required List<int> rotationJuz,
     DailyPlan? previousPlan,
     DateTime? now,
+    DateTime? localToday,
     PlanLog? log,
   }) {
     final localNow = now ?? DateTime.now();
+    final today = localToday == null
+        ? DateTime(localNow.year, localNow.month, localNow.day)
+        : DateTime(localToday.year, localToday.month, localToday.day);
 
     // Calculate framework parameters from profile
     final params = _getFrameworkParams(profile);
@@ -47,13 +61,12 @@ class PlanGenerator {
     final sabqiPages = _getSabqiPages(progress, params, localNow);
 
     // Generate manzil (long-term review) — only if user has memorized juz
-    final manzilData = _getManzilAssignment(rotationJuz, params, localNow);
+    final manzilData = _getManzilAssignment(rotationJuz, params, today);
 
     // For brand new users: if there's nothing to review, skip those phases
     final hasReviewContent = sabqiPages.isNotEmpty;
     final hasManzilContent = manzilData.pages.isNotEmpty;
 
-    final today = DateTime(localNow.year, localNow.month, localNow.day);
     final planId = '${profile.id}_${today.toIso8601String()}';
 
     // ── Smart time redistribution ──
@@ -248,18 +261,18 @@ class PlanGenerator {
         .toList();
   }
 
-  /// Get manzil assignment from the rotation.
+  /// Get manzil assignment from the rotation. [localToday] is the user-local
+  /// calendar day as a naive midnight (already resolved by [generate]).
   static _ManzilData _getManzilAssignment(
     List<int> rotationJuz,
     _FrameworkParams params,
-    DateTime now,
+    DateTime localToday,
   ) {
     if (rotationJuz.isEmpty) {
       return _ManzilData(juz: 0, pages: []);
     }
 
     // Round-robin through rotation juz
-    final localToday = DateTime(now.year, now.month, now.day);
     final dayIndex = localToday.difference(DateTime(2024, 1, 1)).inDays;
     final currentJuz = rotationJuz[dayIndex % rotationJuz.length];
 

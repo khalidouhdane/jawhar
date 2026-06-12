@@ -1,0 +1,119 @@
+{
+  "description": "The roadmap section-10 mandatory case: multi-page actualPagesCovered promotion byte-identical to completeSession (session_provider.dart:459-546). Pins: verse fields land only on the LAST covered page; sabaq/sabqi writes DROP memorizedAt (fresh row); manzil strong stamps memorizedAt = recordedAtUtc; a page covered by sabaq and then manzil in the same session is promoted twice (live evolving state).",
+  "priorProgress": [
+    {
+      "pageNumber": 134,
+      "profileId": "p1",
+      "status": 1,
+      "lastReviewedAt": "2026-06-09T10:00:00.000Z",
+      "reviewCount": 2,
+      "memorizedAt": null,
+      "lastVerseLearned": 8,
+      "totalVersesOnPage": 15
+    },
+    {
+      "pageNumber": 130,
+      "profileId": "p1",
+      "status": 2,
+      "lastReviewedAt": "2026-06-08T10:00:00.000Z",
+      "reviewCount": 4,
+      "memorizedAt": "2026-05-01T10:00:00.000Z",
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    },
+    {
+      "pageNumber": 22,
+      "profileId": "p1",
+      "status": 2,
+      "lastReviewedAt": "2026-06-01T10:00:00.000Z",
+      "reviewCount": 6,
+      "memorizedAt": "2026-04-01T10:00:00.000Z",
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    }
+  ],
+  "sessionFacts": [
+    {
+      "kind": "session",
+      "id": "d1111111-1111-4111-8111-111111111111",
+      "coreVersion": "1.0.0",
+      "profileId": "p1",
+      "date": "2026-06-10",
+      "tzOffsetMinutes": 60,
+      "durationMinutes": 38,
+      "repCount": 14,
+      "sabaq": { "completed": true, "assessment": 0, "page": 134 },
+      "sabqi": { "completed": true, "assessment": 1, "pages": [130, 131] },
+      "manzil": { "completed": true, "assessment": 0, "pages": [22, 23, 135] },
+      "actualPagesCovered": [134, 135],
+      "lastVerseLearned": 12,
+      "totalVersesOnPage": 15,
+      "planId": "p1_2026-06-10T00:00:00.000",
+      "planRevision": 1,
+      "planOrigin": "server",
+      "recordedAtUtc": "2026-06-10T19:04:11Z"
+    }
+  ],
+  "expected": [
+    {
+      "pageNumber": 22,
+      "profileId": "p1",
+      "status": 3,
+      "lastReviewedAt": "2026-06-10T19:04:11.000Z",
+      "reviewCount": 7,
+      "memorizedAt": "2026-06-10T19:04:11.000Z",
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    },
+    {
+      "pageNumber": 23,
+      "profileId": "p1",
+      "status": 3,
+      "lastReviewedAt": "2026-06-10T19:04:11.000Z",
+      "reviewCount": 1,
+      "memorizedAt": "2026-06-10T19:04:11.000Z",
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    },
+    {
+      "pageNumber": 130,
+      "profileId": "p1",
+      "status": 2,
+      "lastReviewedAt": "2026-06-10T19:04:11.000Z",
+      "reviewCount": 5,
+      "memorizedAt": null,
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    },
+    {
+      "pageNumber": 131,
+      "profileId": "p1",
+      "status": 2,
+      "lastReviewedAt": "2026-06-10T19:04:11.000Z",
+      "reviewCount": 1,
+      "memorizedAt": null,
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    },
+    {
+      "pageNumber": 134,
+      "profileId": "p1",
+      "status": 1,
+      "lastReviewedAt": "2026-06-10T19:04:11.000Z",
+      "reviewCount": 3,
+      "memorizedAt": null,
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    },
+    {
+      "pageNumber": 135,
+      "profileId": "p1",
+      "status": 3,
+      "lastReviewedAt": "2026-06-10T19:04:11.000Z",
+      "reviewCount": 2,
+      "memorizedAt": "2026-06-10T19:04:11.000Z",
+      "lastVerseLearned": null,
+      "totalVersesOnPage": null
+    }
+  ]
+}

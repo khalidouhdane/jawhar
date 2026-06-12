@@ -64,4 +64,14 @@ class QuranMeta {
   /// (juz 30 ends on page 604).
   static int juzEndPage(int juz) =>
       juz < totalJuz ? juzStartPage(juz + 1) - 1 : totalPages;
+
+  /// The juz containing [page] — the largest juz whose start page is
+  /// <= [page] (same semantics as the historical
+  /// `AnalyticsService._pageToJuz` table walk; pages below 1 map to juz 1).
+  static int pageToJuz(int page) {
+    for (var juz = totalJuz; juz >= 1; juz--) {
+      if (page >= juzStartPages[juz]) return juz;
+    }
+    return 1;
+  }
 }

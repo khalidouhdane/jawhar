@@ -6,6 +6,16 @@
 /// or Firebase — it runs unchanged on the client and on Cloud Run.
 library;
 
+export 'src/analytics/analytics_calculators.dart';
+export 'src/derivation/plan_derivation.dart';
+export 'src/derivation/progress_derivation.dart';
+export 'src/derivation/srs_fold.dart';
+export 'src/derivation/streak_derivation.dart';
+export 'src/dto/api_error.dart';
+export 'src/dto/dataset_epoch.dart';
+export 'src/dto/fact_results.dart';
+export 'src/dto/facts.dart';
+export 'src/dto/wire_codec.dart';
 export 'src/models/flashcard_models.dart';
 export 'src/models/hifz_models.dart';
 export 'src/models/session_recipe_models.dart';

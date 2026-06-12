@@ -1,0 +1,45 @@
+{
+  "description": "Reviews for a card the server has never seen (unknown-card tolerance, roadmap section 5): a placeholder is created and folded. Non-UTC case: first review at 2026-06-10T21:30Z with tzOffsetMinutes 180 is 00:30 LOCAL on 2026-06-11 - the due date anchors to the LOCAL day (2026-06-11 + 3 = 2026-06-14); a UTC fold would anchor to 2026-06-10 and produce 2026-06-13.",
+  "priorCards": {},
+  "reviewFacts": [
+    {
+      "kind": "review",
+      "id": "44444444-4444-4444-8444-444444444444",
+      "coreVersion": "1.0.0",
+      "cardId": "9e107d9d-372b-4cde-8a3e-1a9b6c2d4e5f",
+      "rating": 0,
+      "reviewedAtUtc": "2026-06-10T21:30:00Z",
+      "tzOffsetMinutes": 180,
+      "clientComputed": { "interval": 2.5, "easeFactor": 2.6 }
+    },
+    {
+      "kind": "review",
+      "id": "55555555-5555-4555-8555-555555555555",
+      "coreVersion": "1.0.0",
+      "cardId": "9e107d9d-372b-4cde-8a3e-1a9b6c2d4e5f",
+      "rating": 3,
+      "reviewedAtUtc": "2026-06-11T20:00:00Z",
+      "tzOffsetMinutes": 180
+    }
+  ],
+  "expectedAfterFirstReview": {
+    "dueDate": "2026-06-14T00:00:00.000",
+    "utcFoldDueDateWouldBe": "2026-06-13T00:00:00.000"
+  },
+  "expected": {
+    "cards": {
+      "9e107d9d-372b-4cde-8a3e-1a9b6c2d4e5f": {
+        "interval": 1.0,
+        "easeFactor": 2.4,
+        "dueDate": "2026-06-12T00:00:00.000",
+        "lastReviewedAtUtc": "2026-06-11T20:00:00.000Z",
+        "reviewCount": 2
+      }
+    },
+    "placeholderCardIds": ["9e107d9d-372b-4cde-8a3e-1a9b6c2d4e5f"],
+    "appliedFactIds": [
+      "44444444-4444-4444-8444-444444444444",
+      "55555555-5555-4555-8555-555555555555"
+    ]
+  }
+}
