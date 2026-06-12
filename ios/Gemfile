@@ -1,0 +1,12 @@
+source "https://rubygems.org"
+
+# Pin fastlane instead of using whatever version the GitHub Actions runner
+# image preinstalls. The macos-26 image of 2026-06-10 shipped fastlane
+# 2.236.0, where fastlane/fastlane#30057 double-decodes Base64 API key
+# content (we pass is_key_content_base64: true) when writing the .p8 file
+# for altool, corrupting the key and failing TestFlight uploads with:
+#   [altool] ERROR: ... isn't in the correct format. (259)
+# Fixed by the revert fastlane/fastlane#30066, released in 2.236.1.
+# See https://github.com/fastlane/fastlane/issues/30065
+# Bump this version deliberately; do not float.
+gem "fastlane", "2.236.1"

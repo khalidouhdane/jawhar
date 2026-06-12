@@ -44,7 +44,13 @@ jobs:
           ASC_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
         run: |
           cd ios
-          fastlane beta
+          # Use the fastlane version pinned in ios/Gemfile (2.236.1) instead of
+          # the runner image's preinstalled fastlane. 2.236.0 (preinstalled on
+          # macos-26 image 20260610) corrupts the .p8 API key written for
+          # altool, failing the upload with error 259 "isn't in the correct
+          # format" (fastlane/fastlane#30065, fixed in 2.236.1).
+          bundle install
+          bundle exec fastlane beta
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
