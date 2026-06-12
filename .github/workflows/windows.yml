@@ -44,6 +44,12 @@ jobs:
         run: flutter config --enable-windows-desktop
 
       - name: Build Windows App
+        env:
+          # GitHub runners now ship CMake 4.x, which hard-errors on the
+          # ancient cmake_minimum_required declared inside the vendored
+          # Firebase C++ SDK. This is CMake's documented escape hatch
+          # restoring pre-4.0 policy compatibility for such dependencies.
+          CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         run: flutter build windows --release --dart-define-from-file=.env
 
       - name: Package Windows Build
