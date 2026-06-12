@@ -11,9 +11,10 @@
 #     project roles: run.admin, cloudbuild.builds.editor, artifactregistry.writer,
 #                    storage.objectAdmin (Cloud Build staging bucket), plus
 #                    serviceusage.serviceUsageConsumer from Wave 1
-#     SA-level:      iam.serviceAccountUser on the default compute SA
-#                    (556087735735-compute@..., the service's runtime identity —
-#                    it already holds aiplatform.user + secretmanager access)
+#     SA-level:      iam.serviceAccountUser on the service's runtime identity
+#                    jawhar-api-sa@quran-app-e5e86.iam.gserviceaccount.com
+#                    (dedicated SA since Wave 3; holds aiplatform.user +
+#                    secret-level accessor bindings)
 #
 # GIT_SHA: `gcloud run deploy --source` cannot pass Docker build args, so the
 # Dockerfile's ARG GIT_SHA stays "unknown" in the image and the deploy sets the
@@ -140,10 +141,10 @@ jobs:
           printf '\ndependency_overrides:\n  hifz_core:\n    path: packages/hifz_core\n' >> "$STAGE/pubspec.yaml"
           echo "STAGE_DIR=$STAGE" >> "$GITHUB_ENV"
 
-      # Runtime identity: default compute SA (no --service-account flag) —
-      # verified to hold roles/aiplatform.user and Secret Manager access.
-      # allUsers invoker + in-code ID-token auth is the decided posture
-      # (roadmap §8 Phase 2 task 9).
+      # Runtime identity: jawhar-api-sa (preserved across deploys — no
+      # --service-account flag needed). allUsers invoker + in-code ID-token
+      # auth is the decided posture (roadmap §8 Phase 2 task 9).
+      # --update-secrets keeps the QF content secret mounted (Phase 7).
       - name: Deploy to Cloud Run (source build)
         run: >-
           gcloud run deploy jawhar-api
@@ -153,6 +154,7 @@ jobs:
           --allow-unauthenticated
           --min-instances 0
           --update-env-vars GIT_SHA=${{ github.sha }}
+          --update-secrets QURAN_API_CLIENT_SECRET=QURAN_API_CLIENT_SECRET:latest
           --quiet
 
       # /health, not /healthz: Cloud Run's frontend swallows the literal
