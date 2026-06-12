@@ -122,6 +122,101 @@ class FirestoreGateway {
   /// directly).
   static bool _isMaskedRetryableTransactionError(Object e) =>
       e.toString().toLowerCase().contains('transaction is invalid');
+
+  /// Recursively deletes the document at [docPath] and every document in
+  /// every (transitively) nested subcollection — `DELETE /v1/me` (§5 #11).
+  /// Returns the number of document locations deleted.
+  ///
+  /// Implementation note: deliberately NOT the library's
+  /// `Firestore.recursiveDelete` — that builds a kindless all-descendants
+  /// query, an API surface the Firestore EMULATOR does not reliably support,
+  /// and our contract tests live on the emulator. Manual recursion via
+  /// `listCollections()` + `listDocuments()` (`showMissing: true` is
+  /// hardcoded inside the package, so "missing" parents whose only existence
+  /// is a nested subcollection are still traversed) is emulator-safe.
+  /// Deletes are committed in [_deleteBatchSize]-document `WriteBatch`es,
+  /// children before parents, so an interrupted run never strands an
+  /// orphaned subcollection under an already-deleted parent: re-running
+  /// resumes idempotently (deleting a missing doc is a success).
+  ///
+  /// ⚠ Pagination: `google_cloud_firestore` 0.5.2's
+  /// `CollectionReference.listDocuments()` issues a SINGLE
+  /// `ListDocumentsRequest` and never follows `nextPageToken` — the
+  /// production backend caps one page at ~300 documents (the package's own
+  /// comment). Each collection is therefore looped DELETE-THEN-RELIST to
+  /// exhaustion: the flush before every relist makes the listing shrink
+  /// monotonically (deleted docs and emptied "missing" parents drop out of
+  /// the next page), so the loop converges on every tree size. A paranoid
+  /// pass cap turns a non-converging walk into a thrown
+  /// [DeleteTreeIncompleteException] (handler maps it to a retryable 502)
+  /// instead of a silent partial delete behind a 200.
+  Future<int> deleteTree(String docPath) async {
+    final pending = <fs.DocumentReference<fs.DocumentData>>[];
+    var deleted = 0;
+
+    Future<void> flush() async {
+      if (pending.isEmpty) return;
+      final batch = _db.batch();
+      for (final ref in pending) {
+        batch.delete(ref);
+      }
+      await batch.commit();
+      deleted += pending.length;
+      pending.clear();
+    }
+
+    Future<void> visit(fs.DocumentReference<fs.DocumentData> ref) async {
+      for (final collection in await ref.listCollections()) {
+        var passes = 0;
+        while (true) {
+          final children = await collection.listDocuments();
+          if (children.isEmpty) break;
+          if (++passes > _maxDeletePassesPerCollection) {
+            throw DeleteTreeIncompleteException(
+              'deleteTree did not converge for "${collection.path}" after '
+              '$_maxDeletePassesPerCollection delete-and-relist passes '
+              '($deleted docs deleted so far) — aborting instead of '
+              'reporting a partial delete as success.',
+            );
+          }
+          for (final child in children) {
+            await visit(child);
+          }
+          // Commit before relisting so the next page excludes what this
+          // pass already deleted (this is what makes the loop converge).
+          await flush();
+        }
+      }
+      pending.add(ref);
+      if (pending.length >= _deleteBatchSize) await flush();
+    }
+
+    await visit(_db.doc(docPath));
+    await flush();
+    return deleted;
+  }
+
+  /// Documents per delete batch (Firestore caps a commit at 500 writes).
+  static const int _deleteBatchSize = 400;
+
+  /// Delete-and-relist passes allowed per collection before [deleteTree]
+  /// gives up. Each pass clears one backend page (~300 docs), so this caps
+  /// a single collection at ~60k documents — orders of magnitude above
+  /// tester scale, while still bounding a pathological non-converging loop.
+  static const int _maxDeletePassesPerCollection = 200;
+}
+
+/// [FirestoreGateway.deleteTree] could not prove the tree is fully gone
+/// (pass cap hit). The data already deleted STAYS deleted; retrying the
+/// operation resumes idempotently — so callers must surface this as a
+/// retryable failure, never as success.
+class DeleteTreeIncompleteException implements Exception {
+  DeleteTreeIncompleteException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'DeleteTreeIncompleteException: $message';
 }
 
 /// Narrow transactional surface handed to [FirestoreGateway.runTransaction]

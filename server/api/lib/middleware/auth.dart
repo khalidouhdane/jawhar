@@ -77,12 +77,19 @@ Middleware firebaseAuthMiddleware(TokenVerifier verifier) {
         return _unauthorized('Token subject (uid) is empty.');
       }
 
-      return inner(
+      final response = await inner(
         request.change(context: {
           ...request.context,
           uidContextKey: verified.uid,
         }),
       );
+      // Also surface the uid on the response: the outermost request logger
+      // only holds the ORIGINAL request, so inner-middleware context is
+      // visible to it exclusively through the response on the way out.
+      return response.change(context: {
+        ...response.context,
+        uidContextKey: verified.uid,
+      });
     };
   };
 }

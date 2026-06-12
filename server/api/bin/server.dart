@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:firebase_admin_sdk/firebase_admin_sdk.dart';
 import 'package:jawhar_api/ai/vertex_client.dart';
 import 'package:jawhar_api/app.dart';
+import 'package:jawhar_api/auth/admin_sdk_app_check_verifier.dart';
 import 'package:jawhar_api/auth/admin_sdk_token_verifier.dart';
+import 'package:jawhar_api/auth/admin_sdk_user_deleter.dart';
 import 'package:jawhar_api/config.dart';
 import 'package:jawhar_api/content/content_token_service.dart';
 import 'package:jawhar_api/gateway/firestore_gateway.dart';
@@ -15,6 +17,22 @@ Future<void> main() async {
   final config = Config.fromEnvironment();
 
   await initSentry(config.sentryDsn, gitSha: config.gitSha);
+
+  // One-shot observability canary: when SENTRY_CANARY is set, capture a
+  // single synthetic exception at startup, log its Sentry event id, and
+  // serve normally. Operate via
+  //   gcloud run services update jawhar-api \
+  //     --update-env-vars SENTRY_CANARY=<label>
+  // and REMOVE the var (--remove-env-vars SENTRY_CANARY) once the event is
+  // verified in Sentry — each instance start fires one event while set.
+  final canaryLabel = Platform.environment['SENTRY_CANARY'];
+  if (canaryLabel != null && canaryLabel.isNotEmpty) {
+    final canaryEventId = await captureCanaryException(canaryLabel);
+    stdout.writeln(
+      '{"severity":"WARNING","message":"SENTRY_CANARY fired: '
+      'label=$canaryLabel eventId=$canaryEventId"}',
+    );
+  }
 
   // On Cloud Run the SDK uses Application Default Credentials (metadata
   // server); against the local emulator no credentials are needed.
@@ -39,6 +57,13 @@ Future<void> main() async {
   // Secret Manager; without them the endpoint answers 503.
   final contentTokens = ContentTokenService(config: config);
 
+  // LOG-ONLY App Check (§8 Phase 8 task 3): verdicts go to the request log,
+  // nothing is ever rejected. Enforcement is a post-soak runbook step.
+  final appCheckVerifier = AdminSdkAppCheckVerifier(app);
+
+  // DELETE /v1/me auth half (§5 #11) — idempotent Admin-SDK user deletion.
+  final userDeleter = AdminSdkUserDeleter(app);
+
   final handler = buildHandler(
     config: config,
     verifier: verifier,
@@ -46,6 +71,8 @@ Future<void> main() async {
     aiQuota: aiQuota,
     gateway: gateway,
     contentTokens: contentTokens,
+    appCheckVerifier: appCheckVerifier,
+    deleteAuthUser: userDeleter.call,
   );
 
   final server = await shelf_io.serve(

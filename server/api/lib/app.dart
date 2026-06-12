@@ -7,6 +7,7 @@ import 'ai/vertex_client.dart';
 import 'config.dart';
 import 'content/content_token_service.dart';
 import 'gateway/firestore_gateway.dart';
+import 'handlers/account.dart';
 import 'handlers/admin.dart';
 import 'handlers/analytics.dart';
 import 'handlers/bootstrap.dart';
@@ -16,6 +17,8 @@ import 'handlers/facts.dart';
 import 'handlers/healthz.dart';
 import 'handlers/plan_enhance.dart';
 import 'handlers/plan_get.dart';
+import 'handlers/profiles.dart';
+import 'middleware/app_check.dart';
 import 'middleware/auth.dart';
 import 'middleware/body_limit.dart';
 import 'middleware/cors.dart';
@@ -36,14 +39,21 @@ import 'quota/ai_quota.dart';
 /// [vertex] and [aiQuota] are injectable so handler tests run with fakes;
 /// [rateLimiter] defaults to one built from [config] (tests inject a tiny or
 /// pre-drained one). [gateway] backs the Firestore-reading routes (plan,
-/// facts, backfill, analytics, admin, per-user bootstrap flag — and the
-/// Firestore-backed [AiQuota] constructed from it in `bin/server.dart`);
-/// when null — Firestore-less unit-test composition — those routes are not
-/// registered and answer 404 (still 401 without a token: auth wraps the
-/// whole `/v1` mount). [contentTokens] defaults to a service built from
-/// [config] (tests inject one with a fake HTTP client). [nowUtc] is the
-/// plan/facts/analytics clock, injectable for date-boundary and cache-TTL
-/// contract tests.
+/// facts, backfill, analytics, admin, account deletion, per-user bootstrap
+/// flag — and the Firestore-backed [AiQuota] constructed from it in
+/// `bin/server.dart`); when null — Firestore-less unit-test composition —
+/// those routes are not registered and answer 404 (still 401 without a
+/// token: auth wraps the whole `/v1` mount). [contentTokens] defaults to a
+/// service built from [config] (tests inject one with a fake HTTP client).
+/// [nowUtc] is the plan/facts/analytics clock, injectable for date-boundary
+/// and cache-TTL contract tests.
+///
+/// [appCheckVerifier] backs the LOG-ONLY App Check middleware (§8 Phase 8
+/// task 3): verdicts are attached to the request log and never reject; a
+/// null verifier logs header-carrying requests as `unverifiable`.
+/// [deleteAuthUser] is the Admin-SDK auth half of `DELETE /v1/me` (§5 #11);
+/// when null the endpoint deletes Firestore data only and reports
+/// `authUserDeleted: false` (client `user.delete()` stays step two).
 Handler buildHandler({
   required Config config,
   required TokenVerifier verifier,
@@ -54,6 +64,8 @@ Handler buildHandler({
   TokenBucketRateLimiter? rateLimiter,
   LogSink? logSink,
   DateTime Function()? nowUtc,
+  AppCheckVerifier? appCheckVerifier,
+  AuthUserDeleter? deleteAuthUser,
 }) {
   final planEnhance = planEnhanceHandler(
     config: config,
@@ -93,6 +105,12 @@ Handler buildHandler({
     final facts = factsHandler(gateway: gateway, config: config, nowUtc: nowUtc);
     v1.post('/me/facts', facts);
     v1.post('/me/backfill', facts);
+    // §5 #7 — plural-keyed MemoryProfile upsert (LWW on updatedAt); what
+    // lets a second profile's facts derive (Phase 5 plural-safe contract).
+    v1.put(
+      '/me/profiles/<profileId>',
+      profilePutHandler(gateway: gateway, nowUtc: nowUtc),
+    );
     // §5 #10 — weekly analytics snapshot (canonical path + bare alias).
     final analytics = analyticsHandler(gateway: gateway, nowUtc: nowUtc);
     v1.get('/me/analytics/snapshot', analytics);
@@ -102,6 +120,11 @@ Handler buildHandler({
     v1.post(
       '/admin/users/<targetUid>/writePath',
       adminWritePathHandler(gateway: gateway, config: config, nowUtc: nowUtc),
+    );
+    // §5 #11 — account + cascade delete (Firestore tree + Auth user).
+    v1.delete(
+      '/me',
+      accountDeleteHandler(gateway: gateway, deleteAuthUser: deleteAuthUser),
     );
   }
 
@@ -121,7 +144,11 @@ Handler buildHandler({
     ..get('/healthz', healthzHandler(config))
     ..mount(
       '/v1',
-      const Pipeline()
+      Pipeline()
+          // App Check verdict BEFORE auth so the log-only soak also sees
+          // 401-bound traffic (JWKS is cached ~6h by the SDK, so verifying
+          // pre-auth is cheap). NEVER rejects — §8 Phase 8 task 3 ceiling.
+          .addMiddleware(appCheckLogOnly(appCheckVerifier))
           .addMiddleware(firebaseAuthMiddleware(verifier))
           .addMiddleware(perUidRateLimit(limiter))
           // After auth + rate limit: junk traffic never makes us buffer a

@@ -29,6 +29,20 @@ Future<void> reportError(Object error, StackTrace stackTrace) async {
   await Sentry.captureException(error, stackTrace: stackTrace);
 }
 
+/// Captures one synthetic canary exception and returns its Sentry event id
+/// (the empty id `00000000000000000000000000000000` when Sentry is disabled
+/// or the send failed). Backs the SENTRY_CANARY startup hook in
+/// `bin/server.dart` — proves the Sentry pipeline end-to-end against the
+/// LIVE service (roadmap §8 Phase 2 task 4 exit criterion).
+Future<String> captureCanaryException(String label) async {
+  if (!_sentryEnabled) return SentryId.empty().toString();
+  final id = await Sentry.captureException(
+    StateError('jawhar-api Sentry canary: $label'),
+    stackTrace: StackTrace.current,
+  );
+  return id.toString();
+}
+
 /// Flushes and closes Sentry (call on shutdown). No-op when disabled.
 Future<void> closeSentry() async {
   if (!_sentryEnabled) return;
