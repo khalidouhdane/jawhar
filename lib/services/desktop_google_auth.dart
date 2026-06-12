@@ -16,11 +16,23 @@ import 'package:quran_app/utils/app_logger.dart';
 /// 4. Exchanges the auth code for tokens via Google's token endpoint
 /// 5. Returns the idToken + accessToken for Firebase signInWithCredential
 class DesktopGoogleAuth {
-  /// Web OAuth Client ID — injected via --dart-define-from-file=.env
-  static const _clientId = String.fromEnvironment('DESKTOP_OAUTH_CLIENT_ID');
+  /// Desktop-type ("installed app") OAuth client — created 2026-06-12
+  /// (roadmap §8 Phase 7 strand 3). Google explicitly treats installed-app
+  /// client credentials as NON-confidential — every desktop binary ships
+  /// them — so they live here as plain constants instead of flowing through
+  /// the secrets channel. Overridable via --dart-define for forks/dev.
+  static const _clientId = String.fromEnvironment(
+    'DESKTOP_OAUTH_CLIENT_ID',
+    defaultValue:
+        '556087735735-ifl6n3r60rgucphgt0i4frn9p6pl03ld.apps.googleusercontent.com',
+  );
 
-  /// Client secret — injected via --dart-define-from-file=.env
-  /// Required for Web-type OAuth clients (Google considers non-confidential).
+  /// Required by Google's token endpoint even for installed apps; per
+  /// Google's own OAuth docs this value "is obviously not treated as a
+  /// secret" for Desktop-type clients. It still arrives via
+  /// --dart-define-from-file=.env rather than as a literal here only
+  /// because GitHub push protection blocks the GOCSPX- pattern in public
+  /// repos regardless of client type.
   static const _clientSecret = String.fromEnvironment(
     'DESKTOP_OAUTH_CLIENT_SECRET',
   );
