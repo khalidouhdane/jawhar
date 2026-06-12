@@ -54,6 +54,33 @@ abstract final class UserPaths {
   /// Legacy streak mirror (rules: `users/{uid}/meta/streak`).
   static String streakDoc(String uid) => 'users/$uid/meta/streak';
 
+  /// SERVER-ONLY: canonical manzil rotation, keyed by profileId inside the
+  /// doc (roadmap §8 Phase 5 task 4 — "server-persisted plan context under
+  /// users/{uid}/meta/"). Rules allow clients only `meta/settings` and
+  /// `meta/streak`, so clients can never write this directly — edits flow
+  /// exclusively through `rotationChanged` facts.
+  /// Shape: `{profiles: {profileId: {juz: [...], changedAtUtc, factId}},
+  /// updatedAt}` — `updatedAt` is the max winning `changedAtUtc`
+  /// (deterministic, never the wall clock, §5 idempotency).
+  static String rotationDoc(String uid) => 'users/$uid/meta/manzil_rotation';
+
+  /// SERVER-ONLY: plural profile keyspace (§5 #7 — profiles keyed by
+  /// profileId from day one). The legacy ROOT doc (`users/{uid}`) keeps
+  /// mirroring the device's active profile for dual-window pull compat;
+  /// this collection is what makes a SECOND profile's facts derivable.
+  static String profileDoc(String uid, String profileId) =>
+      'users/$uid/profiles/$profileId';
+
+  /// SERVER-ONLY: plural-safe page progress for NON-root profiles. The
+  /// legacy `users/{uid}/progress/{page}` keyspace is page-keyed for the
+  /// whole account (one doc per page number), so a foreign profile's
+  /// promotion writing there would clobber the root profile's docs — each
+  /// non-root profile gets its own subcollection instead.
+  static String profileProgressDoc(String uid, String profileId, int page) =>
+      'users/$uid/profiles/$profileId/progress/$page';
+  static String profileProgressCollection(String uid, String profileId) =>
+      'users/$uid/profiles/$profileId/progress';
+
   /// SERVER-ONLY: the durable (uid, fact.id) log — both the idempotency
   /// memory (§5 upsert on `(uid, fact.id)`) and the re-derivation source
   /// (R2: corruption is re-derivable from facts). Clients cannot write here
@@ -263,6 +290,80 @@ abstract final class LegacyDocs {
       plan: parsed.state.plan,
     );
   }
+
+  /// Rotation doc → profileId-keyed [RotationState] map (healing parser:
+  /// malformed per-profile entries are skipped, never fatal).
+  static Map<String, RotationState> rotationStatesFromDoc(
+    Map<String, dynamic>? doc,
+  ) {
+    final raw = doc?['profiles'];
+    if (raw is! Map) return const {};
+    final result = <String, RotationState>{};
+    for (final entry in raw.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      if (key is! String || value is! Map) continue;
+      final rawJuz = value['juz'];
+      final rawInstant = value['changedAtUtc'];
+      final rawFactId = value['factId'];
+      if (rawJuz is! List || rawInstant is! String || rawFactId is! String) {
+        continue;
+      }
+      final juz = <int>[];
+      var bad = false;
+      for (final element in rawJuz) {
+        if (element is int &&
+            element >= FactBounds.minJuz &&
+            element <= FactBounds.maxJuz) {
+          juz.add(element);
+        } else {
+          bad = true;
+          break;
+        }
+      }
+      final instant = DateTime.tryParse(rawInstant);
+      if (bad || instant == null) continue;
+      result[key] = RotationState(
+        juz: juz,
+        changedAtUtc: instant.toUtc(),
+        factId: rawFactId,
+      );
+    }
+    return result;
+  }
+
+  /// [RotationState] map → rotation doc. `updatedAt` is the max winning
+  /// `changedAtUtc` — deterministic so a replayed fact reads back
+  /// byte-identical state (§5 idempotency), never the wall clock.
+  static Map<String, dynamic> rotationStatesToDoc(
+    Map<String, RotationState> states,
+  ) {
+    DateTime? latest;
+    for (final state in states.values) {
+      if (latest == null || state.changedAtUtc.isAfter(latest)) {
+        latest = state.changedAtUtc;
+      }
+    }
+    return {
+      'profiles': {
+        for (final entry in states.entries)
+          entry.key: {
+            'juz': entry.value.juz,
+            'changedAtUtc': WireCodec.encodeUtcInstant(entry.value.changedAtUtc),
+            'factId': entry.value.factId,
+          },
+      },
+      if (latest != null) 'updatedAt': WireCodec.encodeUtcInstant(latest),
+    };
+  }
+
+  /// One profile's [RotationState] → the §5 wire delta.
+  static RotationDelta rotationDelta(String profileId, RotationState state) =>
+      RotationDelta(
+        profileId: profileId,
+        juz: state.juz,
+        changedAtUtc: state.changedAtUtc,
+      );
 
   static String _isoDay(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'

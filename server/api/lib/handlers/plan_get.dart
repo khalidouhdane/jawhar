@@ -5,6 +5,7 @@ import 'package:shelf/shelf.dart';
 
 import '../gateway/firestore_gateway.dart';
 import '../middleware/auth.dart';
+import '../store/legacy_docs.dart';
 
 /// `GET /v1/me/plan?profileId=…&date=YYYY-MM-DD&tzOffsetMinutes=…`
 /// (authenticated) — roadmap §5 #3 / §8 Phase 3 task 2.
@@ -42,13 +43,18 @@ import '../middleware/auth.dart';
 ///   facts don't exist until Phase 4, and whenever a session was completed
 ///   today the client has already mirrored today's plan, so the read path —
 ///   not the generator — serves it.
-/// - `rotationJuz` is `[]`: manzil rotation is device-local SQLite until
-///   Phase 5 task 4 moves it under `users/{uid}/meta/`; the generator's time
-///   redistribution handles the empty manzil phase.
 /// - `?recovery` is accepted and ignored: recovery mode only changes the AI
 ///   preamble, which lives in `plan:enhance`.
-/// - `?profileId` defaults to the mirrored profile's id; any other value is
-///   404 — the legacy root-doc mirror holds exactly one profile.
+///
+/// Phase 5 resolutions (this handler):
+/// - `rotationJuz` comes from the server-persisted rotation under
+///   `users/{uid}/meta/manzil_rotation` (profileId-keyed; absent → `[]`),
+///   written exclusively by `rotationChanged` facts — task 4's "GET
+///   /v1/me/plan consumes the persisted rotation".
+/// - `?profileId` resolves plural-safely (§5 #7): the mirrored root
+///   profile first, else `users/{uid}/profiles/{profileId}` (upserted via
+///   `PUT /v1/me/profiles/{profileId}`). Non-root profiles generate from
+///   their OWN progress subcollection. Unknown profiles are still 404.
 Handler planGetHandler({
   required FirestoreGateway gateway,
   DateTime Function()? nowUtc,
@@ -69,38 +75,54 @@ Handler planGetHandler({
     }
 
     final uid = request.uid;
+    final requestedProfileId = params['profileId'];
 
     // ── Profile (legacy mirror root doc) ──
-    final profileDoc = await gateway.getDoc('users/$uid');
-    MemoryProfile? profile;
+    final profileDoc = await gateway.getDoc(UserPaths.userDoc(uid));
+    MemoryProfile? rootProfile;
     if (profileDoc != null) {
       try {
-        profile = MemoryProfile.fromMap(profileDoc);
+        rootProfile = MemoryProfile.fromMap(profileDoc);
       } catch (_) {
         // A root doc that does not parse as a profile is not a usable
         // mirror; same outcome as no doc at all.
-        profile = null;
+        rootProfile = null;
+      }
+    }
+
+    // ── Plural-safe resolution (§5 #7) ──
+    MemoryProfile? profile;
+    var isRootProfile = false;
+    if (requestedProfileId == null ||
+        (rootProfile != null && requestedProfileId == rootProfile.id)) {
+      profile = rootProfile;
+      isRootProfile = profile != null;
+    } else {
+      final pluralDoc =
+          await gateway.getDoc(UserPaths.profileDoc(uid, requestedProfileId));
+      if (pluralDoc != null) {
+        try {
+          final parsed = MemoryProfile.fromMap(pluralDoc);
+          if (parsed.id == requestedProfileId) profile = parsed;
+        } catch (_) {
+          profile = null;
+        }
       }
     }
     if (profile == null) {
       return _error(
         404,
         'not-found',
-        'No profile is mirrored in Firestore for this account yet — '
-        'sign in on a device and let it sync first.',
-      );
-    }
-    final requestedProfileId = params['profileId'];
-    if (requestedProfileId != null && requestedProfileId != profile.id) {
-      return _error(
-        404,
-        'not-found',
-        'Profile "$requestedProfileId" is not mirrored for this account.',
+        requestedProfileId == null || rootProfile == null
+            ? 'No profile is mirrored in Firestore for this account yet — '
+                'sign in on a device and let it sync first.'
+            : 'Profile "$requestedProfileId" is not mirrored for this '
+                'account.',
       );
     }
 
     final dateIso = day.toIso8601String();
-    final plansPath = 'users/$uid/plans';
+    final plansPath = UserPaths.plansCollection(uid);
     final planDocPath = '$plansPath/${profile.id}_$dateIso';
 
     // ── Read: highest revision for (profileId, date), §5 semantics ──
@@ -117,26 +139,42 @@ Handler planGetHandler({
     final legacy = await gateway.getDoc(planDocPath);
     if (legacy != null) return _planResponse(legacy, day);
 
-    // ── Create: deterministic generation from the legacy mirror ──
-    final progressDocs = await gateway.query(
-      'users/$uid/progress',
-      whereEquals: {'profileId': profile.id},
-    );
+    // ── Create: deterministic generation from the mirrored state ──
+    // Root profile reads the legacy progress mirror (dual-window input);
+    // a non-root profile reads its own plural-safe subcollection (the
+    // facts fold writes it there — see facts.dart keyspace rule).
+    final progressDocs = isRootProfile
+        ? await gateway.query(
+            UserPaths.progressCollection(uid),
+            whereEquals: {'profileId': profile.id},
+          )
+        : await gateway.query(
+            UserPaths.profileProgressCollection(uid, profile.id),
+          );
     final progress = <int, PageProgress>{};
     for (final doc in progressDocs) {
       try {
         final page = PageProgress.fromMap(doc.data);
-        progress[page.pageNumber] = page;
+        if (page.profileId == profile.id) {
+          progress[page.pageNumber] = page;
+        }
       } catch (_) {
         // Skip malformed rows, mirroring CloudSyncService._mergeData's
         // tolerance — one bad doc must not take the endpoint down.
       }
     }
 
+    // ── Server-persisted manzil rotation (Phase 5 task 4) ──
+    final rotationDoc = await gateway.getDoc(UserPaths.rotationDoc(uid));
+    final rotationJuz = LegacyDocs.rotationStatesFromDoc(
+          rotationDoc,
+        )[profile.id]?.juz ??
+        const <int>[];
+
     final plan = PlanGenerator.generate(
       profile: profile,
       progress: progress,
-      rotationJuz: const [], // device-local until Phase 5 — see header.
+      rotationJuz: rotationJuz,
       now: day,
     );
     // `day` as the recipe clock keeps recipe ids deterministic per

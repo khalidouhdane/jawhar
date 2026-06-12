@@ -42,17 +42,32 @@ import '../store/legacy_docs.dart';
 ///   are rejected as poison — one far-future date would freeze the streak
 ///   fold for years; future `recordedAtUtc` values are clamped to the
 ///   server clock before derivation (mirroring the SrsFold review clamp).
-/// - **Multi-profile keyspace guard**: progress/streak/plan derivation runs
-///   only for the mirrored ROOT profile's facts; foreign-profile facts are
-///   logged + mirrored as session docs (lossless, re-derivable) without
-///   clobbering the root's page-keyed progress docs or singleton streak.
+/// - **Multi-profile keyspace rule (§5 plural-safe contract, Phase 5)**:
+///   the mirrored ROOT profile derives into the legacy keyspace
+///   (`progress/{page}`, singleton `meta/streak`) for dual-window pull
+///   compat. A NON-root profile known to the plural keyspace
+///   (`users/{uid}/profiles/{profileId}`, upserted via
+///   `PUT /v1/me/profiles/{profileId}`) derives its OWN progress (plural
+///   subcollection) and regenerates ITS OWN plan (`plans/{profileId_date}`
+///   is plural-keyed already) — never the root's. Its facts do NOT touch
+///   the singleton streak doc (it mirrors the root profile's streak).
+///   A non-root profile UNKNOWN to the plural keyspace falls back to the
+///   lossless behavior: logged + mirrored as a session doc, derive nothing.
+/// - **Manzil rotation (Phase 5 task 4)**: plan regeneration reads the
+///   server-persisted rotation (`users/{uid}/meta/manzil_rotation`, keyed
+///   by profileId) instead of the old hard-coded `[]`; `rotationChanged`
+///   facts fold into that doc LWW per profile. A rotation edit does NOT
+///   regenerate the current plan revision — exactly like the device, where
+///   the rotation is read at generation time only.
 ///
 /// Application order inside a batch (input order never matters, mirroring
 /// the hifz_core fold contracts): `cardCreated` (identity first), then
-/// `review` by (`reviewedAtUtc`, id), then `planGenerated` by
-/// (`revision`, id), then `session` by (`recordedAtUtc`, id). Results are
-/// emitted in INPUT order; duplicate ids inside one batch apply once and
-/// every duplicate position reports that single outcome.
+/// `review` by (`reviewedAtUtc`, id), then `rotationChanged` by
+/// (`changedAtUtc`, id) (so a same-batch session regenerates with the new
+/// rotation), then `planGenerated` by (`revision`, id), then `session` by
+/// (`recordedAtUtc`, id). Results are emitted in INPUT order; duplicate ids
+/// inside one batch apply once and every duplicate position reports that
+/// single outcome.
 Handler factsHandler({
   required FirestoreGateway gateway,
   required Config config,
@@ -174,6 +189,7 @@ Handler factsHandler({
     final progress = <String, ProgressDelta>{};
     final cards = <String, CardSrsDelta>{};
     final plans = <String, PlanDelta>{};
+    final rotations = <String, RotationDelta>{};
     StreakDelta? streak;
     final emitted = <String>{};
     for (final id in inputIds) {
@@ -194,6 +210,9 @@ Handler factsHandler({
       for (final delta in outcome.plans) {
         plans[delta.id] = delta;
       }
+      for (final delta in outcome.rotations) {
+        rotations[delta.profileId] = delta;
+      }
       streak = outcome.streak ?? streak;
     }
 
@@ -205,6 +224,7 @@ Handler factsHandler({
         cards: cards.values.toList(),
         streak: streak,
         plans: plans.values.toList(),
+        rotations: rotations.values.toList(),
       ),
     );
     return Response.ok(
@@ -295,8 +315,9 @@ List<Fact> _applicationOrder(List<Fact> facts) {
   int kindRank(Fact f) => switch (f) {
         CardCreatedFact() => 0,
         ReviewFact() => 1,
-        PlanGeneratedFact() => 2,
-        SessionFact() => 3,
+        RotationChangedFact() => 2,
+        PlanGeneratedFact() => 3,
+        SessionFact() => 4,
       };
   // Comparable primary key within each kind group.
   int compare(Fact a, Fact b) {
@@ -307,6 +328,8 @@ List<Fact> _applicationOrder(List<Fact> facts) {
         x.createdAtUtc.compareTo(y.createdAtUtc),
       (final ReviewFact x, final ReviewFact y) =>
         x.reviewedAtUtc.compareTo(y.reviewedAtUtc),
+      (final RotationChangedFact x, final RotationChangedFact y) =>
+        x.changedAtUtc.compareTo(y.changedAtUtc),
       (final PlanGeneratedFact x, final PlanGeneratedFact y) =>
         x.revision.compareTo(y.revision),
       (final SessionFact x, final SessionFact y) =>
@@ -328,6 +351,7 @@ class FactOutcome {
     this.progress = const [],
     this.cards = const [],
     this.plans = const [],
+    this.rotations = const [],
     this.streak,
   });
 
@@ -335,6 +359,7 @@ class FactOutcome {
   final List<ProgressDelta> progress;
   final List<CardSrsDelta> cards;
   final List<PlanDelta> plans;
+  final List<RotationDelta> rotations;
   final StreakDelta? streak;
 }
 
@@ -345,14 +370,18 @@ class FactOutcome {
 ///
 /// Transaction boundaries:
 /// - **session fact** — atomic unit: dedup-log doc + legacy session doc +
-///   every promoted progress doc + streak doc + the regenerated
-///   next-revision plan doc.
+///   every promoted progress doc (legacy keyspace for the root profile,
+///   plural subcollection for a known non-root profile) + streak doc
+///   (root/no-profile facts only) + the regenerated next-revision plan doc.
 /// - **review fact** — atomic unit: dedup-log doc + legacy review-event
 ///   doc + the folded card SRS state (real card or placeholder).
 /// - **cardCreated fact** — atomic unit: dedup-log doc + flashcard doc
 ///   (+ placeholder deletion when identity attaches late).
 /// - **planGenerated fact** — atomic unit: dedup-log doc + the plan doc
 ///   when the claim wins (highest-revision-wins, ties → incumbent).
+/// - **rotationChanged fact** — atomic unit: dedup-log doc + the rotation
+///   doc (LWW fold; a losing edit is consumed and answered with the
+///   canonical rotation).
 ///
 /// The 0.5.x read-only-transaction commit defect (see `quota/ai_quota.dart`)
 /// means every code path must write: replays re-write the dedup-log doc
@@ -368,6 +397,7 @@ class FactApplier {
         final ReviewFact f => _applyReview(uid, f),
         final CardCreatedFact f => _applyCardCreated(uid, f),
         final PlanGeneratedFact f => _applyPlanGenerated(uid, f),
+        final RotationChangedFact f => _applyRotationChanged(uid, f),
       };
 
   Map<String, dynamic> _factLogDoc(Fact fact) => {
@@ -409,30 +439,66 @@ class FactApplier {
       // ── Reads (all before writes — Firestore transaction rule) ──
       final existingLog = await tx.get(factPath);
       final profileDoc = await tx.get(UserPaths.userDoc(uid));
-      MemoryProfile? profile;
+      MemoryProfile? rootProfile;
       if (profileDoc != null) {
         try {
-          profile = MemoryProfile.fromMap(profileDoc);
+          rootProfile = MemoryProfile.fromMap(profileDoc);
         } on Object {
-          profile = null;
+          rootProfile = null;
         }
       }
-      // Multi-profile keyspace guard: progress docs are keyed
-      // `users/{uid}/progress/{page}` for ALL profiles and the streak doc
-      // is a singleton — deriving from a NON-root profile's fact would
-      // overwrite the mirrored root profile's state (and the root's next
-      // plan regeneration would silently absorb the foreign rows). Until
-      // Phase 5 plural hydration, foreign-profile facts are logged and get
-      // their legacy session doc (nothing lost — re-derivable later) but
-      // derive no progress/streak/plan. When no profile is mirrored at all
-      // there is nothing to clobber, so derivation proceeds.
-      final isForeignProfile = profile != null && profile.id != fact.profileId;
-      // Plan regeneration is only possible for the mirrored profile (the
-      // legacy root doc holds exactly one until Phase 5 plural hydration).
-      final canRegenerate = profile != null && profile.id == fact.profileId;
+      // Multi-profile keyspace resolution (§5 plural-safe contract):
+      // - ROOT fact (root mirror parses and ids match) → legacy keyspace,
+      //   full derivation incl. regeneration (dual-window pull compat).
+      // - NON-root fact whose profile exists in the PLURAL keyspace
+      //   (`users/{uid}/profiles/{profileId}`) → derive ITS progress into
+      //   its own subcollection and regenerate ITS plan (`plans/` ids are
+      //   profileId-keyed already); the singleton streak doc mirrors the
+      //   root profile and is never touched by non-root facts.
+      // - NON-root fact with NO plural profile → lossless fallback: logged
+      //   + session doc only (re-derivable once the profile is upserted).
+      // - NO profile mirrored anywhere → historical behavior: promote the
+      //   affected pages + streak in the legacy keyspace (nothing to
+      //   clobber), no regeneration (no profile to generate from).
+      final isRootFact =
+          rootProfile != null && rootProfile.id == fact.profileId;
+      MemoryProfile? pluralProfile;
+      if (!isRootFact) {
+        final pluralDoc =
+            await tx.get(UserPaths.profileDoc(uid, fact.profileId));
+        if (pluralDoc != null) {
+          try {
+            final parsed = MemoryProfile.fromMap(pluralDoc);
+            if (parsed.id == fact.profileId) pluralProfile = parsed;
+          } on Object {
+            pluralProfile = null;
+          }
+        }
+      }
+      final isForeignDerived = !isRootFact && pluralProfile != null;
+      final isLossless =
+          !isRootFact && !isForeignDerived && rootProfile != null;
+      final canRegenerate = isRootFact || isForeignDerived;
+      final profile = isRootFact ? rootProfile : pluralProfile;
+
+      // Progress keyspace for this fact's profile (see resolution above).
+      String progressPath(int page) => isForeignDerived
+          ? UserPaths.profileProgressDoc(uid, fact.profileId, page)
+          : UserPaths.progressDoc(uid, page);
+
+      // Server-persisted manzil rotation (Phase 5 task 4) — regeneration
+      // input, profile-scoped.
+      var rotationJuz = const <int>[];
+      if (canRegenerate) {
+        final rotationDoc = await tx.get(UserPaths.rotationDoc(uid));
+        rotationJuz = LegacyDocs.rotationStatesFromDoc(
+              rotationDoc,
+            )[fact.profileId]?.juz ??
+            const <int>[];
+      }
 
       if (existingLog != null) {
-        if (isForeignProfile) {
+        if (isLossless) {
           // Same (empty) delta set as the original application.
           tx.set(factPath, existingLog); // keep the tx non-read-only
           return FactOutcome(result: FactResult(id: fact.id, applied: false));
@@ -440,26 +506,31 @@ class FactApplier {
         // Replay: current canonical state for the same entity set.
         final progressDeltas = <ProgressDelta>[];
         for (final page in affected) {
-          final doc = await tx.get(UserPaths.progressDoc(uid, page));
+          final doc = await tx.get(progressPath(page));
           final delta = _progressDeltaFromDoc(doc, fact.recordedAtUtc);
           if (delta != null && delta.profileId == fact.profileId) {
             progressDeltas.add(delta);
           }
         }
-        final streakDoc = await tx.get(UserPaths.streakDoc(uid));
+        StreakDelta? streakDelta;
+        if (!isForeignDerived) {
+          final streakDoc = await tx.get(UserPaths.streakDoc(uid));
+          streakDelta =
+              LegacyDocs.streakDelta(LegacyDocs.streakFromDoc(streakDoc));
+        }
         final planDoc = await tx.get(planPath);
         tx.set(factPath, existingLog); // keep the tx non-read-only
         return FactOutcome(
           result: FactResult(id: fact.id, applied: false),
           progress: progressDeltas,
-          streak: LegacyDocs.streakDelta(LegacyDocs.streakFromDoc(streakDoc)),
+          streak: streakDelta,
           plans: [
             ?LegacyDocs.planDeltaFromDoc(planId, planDoc),
           ],
         );
       }
 
-      if (isForeignProfile) {
+      if (isLossless) {
         // Log + legacy session doc only (atomic with the dedup mark).
         tx.set(factPath, _factLogDoc(originalFact));
         tx.set(
@@ -470,7 +541,7 @@ class FactApplier {
       }
 
       final priorProgress = <int, PageProgress>{};
-      if (canRegenerate) {
+      if (isRootFact) {
         // The generator scans the FULL progress map (next sabaq page,
         // sabqi candidates) — transactional query, profile-scoped.
         final rows = await tx.query(
@@ -483,6 +554,21 @@ class FactApplier {
             priorProgress[page.pageNumber] = page;
           } on Object {
             // Skip malformed rows (CloudSyncService tolerance).
+          }
+        }
+      } else if (isForeignDerived) {
+        // The plural subcollection is already profile-scoped.
+        final rows = await tx.query(
+          UserPaths.profileProgressCollection(uid, fact.profileId),
+        );
+        for (final row in rows) {
+          try {
+            final page = LegacyDocs.progressFromDoc(row.data);
+            if (page.profileId == fact.profileId) {
+              priorProgress[page.pageNumber] = page;
+            }
+          } on Object {
+            // Skip malformed rows.
           }
         }
       } else {
@@ -501,7 +587,10 @@ class FactApplier {
       }
 
       final planDoc = await tx.get(planPath);
-      final streakDoc = await tx.get(UserPaths.streakDoc(uid));
+      Map<String, dynamic>? streakDoc;
+      if (!isForeignDerived) {
+        streakDoc = await tx.get(UserPaths.streakDoc(uid));
+      }
 
       // ── Derive (pure hifz_core folds) ──
       Map<int, PageProgress> newProgress;
@@ -515,8 +604,8 @@ class FactApplier {
           priorProgress: priorProgress,
           facts: [fact],
           // `canRegenerate` promotes `profile` to non-null here.
-          profile: profile,
-          rotationJuz: const [], // device-local until Phase 5 task 4.
+          profile: profile!,
+          rotationJuz: rotationJuz,
         );
         newProgress = fold.progress;
         newPlanState = fold.plans[planId];
@@ -526,10 +615,13 @@ class FactApplier {
           fact: fact,
         );
       }
-      final newStreak = StreakDerivation.fold(
-        prior: LegacyDocs.streakFromDoc(streakDoc),
-        sessions: [fact],
-      );
+      StreakData? newStreak;
+      if (!isForeignDerived) {
+        newStreak = StreakDerivation.fold(
+          prior: LegacyDocs.streakFromDoc(streakDoc),
+          sessions: [fact],
+        );
+      }
 
       // ── Writes (atomic with the dedup-log mark) ──
       tx.set(factPath, _factLogDoc(originalFact));
@@ -542,7 +634,7 @@ class FactApplier {
         final state = newProgress[page];
         if (state == null) continue;
         tx.set(
-          UserPaths.progressDoc(uid, page),
+          progressPath(page),
           LegacyDocs.progressToDoc(state, fact.recordedAtUtc),
         );
         progressDeltas.add(
@@ -552,10 +644,12 @@ class FactApplier {
           ),
         );
       }
-      tx.set(
-        UserPaths.streakDoc(uid),
-        LegacyDocs.streakToDoc(newStreak, fact.recordedAtUtc),
-      );
+      if (newStreak != null) {
+        tx.set(
+          UserPaths.streakDoc(uid),
+          LegacyDocs.streakToDoc(newStreak, fact.recordedAtUtc),
+        );
+      }
       final planDeltas = <PlanDelta>[];
       if (newPlanState != null) {
         // Recipes travel with the plan; the fact's instant keys recipe ids
@@ -586,7 +680,7 @@ class FactApplier {
       return FactOutcome(
         result: FactResult(id: fact.id, applied: true),
         progress: progressDeltas,
-        streak: LegacyDocs.streakDelta(newStreak),
+        streak: newStreak == null ? null : LegacyDocs.streakDelta(newStreak),
         plans: planDeltas,
       );
     });
@@ -816,6 +910,68 @@ class FactApplier {
             isCompleted: winner.isCompleted,
             plan: winner.plan,
           ),
+        ],
+      );
+    });
+  }
+
+  // ── rotationChanged ──────────────────────────────────────────────────
+
+  /// Applies one rotation edit (Phase 5 task 4): LWW fold per profileId
+  /// into `users/{uid}/meta/manzil_rotation`. A losing (older) edit is
+  /// still CONSUMED (`applied:true` — it will never retry); the canonical
+  /// rotation in `derived.rotations` is how the client adopts the winner.
+  ///
+  /// Deliberately does NOT regenerate the plan: on-device a rotation edit
+  /// takes effect at the NEXT generation (get-or-create or post-session
+  /// regeneration), and the server matches that semantics exactly.
+  Future<FactOutcome> _applyRotationChanged(
+    String uid,
+    RotationChangedFact originalFact,
+  ) {
+    return gateway.runTransaction<FactOutcome>((tx) async {
+      // Clock-skew clamp (the recordedAtUtc clamp, ported): a far-future
+      // `changedAtUtc` would win LWW against every legitimate edit until
+      // that instant passes — the rotation would be stuck for years.
+      final nowInstant = nowUtc();
+      final fact = originalFact.changedAtUtc.isAfter(nowInstant)
+          ? RotationChangedFact(
+              id: originalFact.id,
+              coreVersion: originalFact.coreVersion,
+              profileId: originalFact.profileId,
+              juz: originalFact.juz,
+              changedAtUtc: nowInstant.toUtc(),
+            )
+          : originalFact;
+
+      final factPath = UserPaths.factDoc(uid, fact.id);
+      final rotationPath = UserPaths.rotationDoc(uid);
+
+      final existingLog = await tx.get(factPath);
+      final rotationDoc = await tx.get(rotationPath);
+      final states = LegacyDocs.rotationStatesFromDoc(rotationDoc);
+
+      if (existingLog != null) {
+        // Replay: current canonical rotation for this profile.
+        tx.set(factPath, existingLog); // keep the tx non-read-only
+        final state = states[fact.profileId];
+        return FactOutcome(
+          result: FactResult(id: fact.id, applied: false),
+          rotations: [
+            if (state != null)
+              LegacyDocs.rotationDelta(fact.profileId, state),
+          ],
+        );
+      }
+
+      final folded = RotationDerivation.fold(prior: states, facts: [fact]);
+      tx.set(factPath, _factLogDoc(originalFact));
+      tx.set(rotationPath, LegacyDocs.rotationStatesToDoc(folded));
+
+      return FactOutcome(
+        result: FactResult(id: fact.id, applied: true),
+        rotations: [
+          LegacyDocs.rotationDelta(fact.profileId, folded[fact.profileId]!),
         ],
       );
     });
