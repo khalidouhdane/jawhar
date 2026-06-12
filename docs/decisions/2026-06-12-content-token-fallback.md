@@ -73,4 +73,8 @@ path exists, one of:
 
 ## Sign-off
 
-- Owner: Khalid Ouhdane — signed off: ____________________ date: __________
+- Owner: Khalid Ouhdane — **signed off 2026-06-12** with direction: the
+  fallback stays for now; the eventual end-state is a **limited guest mode**
+  (signed-out users keep core reading; selected features require sign-up).
+  The eviction work (revisit trigger above) is scheduled together with the
+  guest-mode product design — part of the v2 design era, not v1.9.

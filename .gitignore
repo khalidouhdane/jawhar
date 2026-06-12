@@ -110,3 +110,6 @@ reciters.json
 
 # Internal migration planning (contains account/billing identifiers)
 docs/CLOUD_FIRST_MIGRATION_ROADMAP.md
+
+# Play Console verification artifact (keep local; public repo)
+android/app/src/main/assets/adi-registration.properties
