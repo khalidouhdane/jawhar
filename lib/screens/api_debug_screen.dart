@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:quran_app/config/api_config.dart';
 import 'package:quran_app/providers/theme_provider.dart';
+import 'package:quran_app/services/outbox_service.dart';
+import 'package:quran_app/services/sync_worker.dart';
 
 /// Hidden jawhar-api debug screen (roadmap §10).
 ///
@@ -15,6 +17,9 @@ import 'package:quran_app/providers/theme_provider.dart';
 ///   1. GET  /health                  (no auth)
 ///   2. GET  /v1/me/bootstrap         (Firebase ID token)
 ///   3. POST /v1/me/plan:enhance      (Firebase ID token, tiny canary context)
+/// plus the Phase 4 outbox panel: pending/poisoned counts, oldest pending
+/// age, last drain result, cached writePath/datasetEpoch, a manual drain
+/// and the §7.3 "Reconcile" action (re-runs backfill + drain).
 ///
 /// Debug-only surface: strings are intentionally plain English (not l10n).
 class ApiDebugScreen extends StatefulWidget {
@@ -142,6 +147,102 @@ class _ApiDebugScreenState extends State<ApiDebugScreen> {
     });
   }
 
+  Future<void> _showOutboxState() async {
+    final outbox = context.read<OutboxService>();
+    final worker = context.read<SyncWorker>();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    setState(() => _busy = true);
+    try {
+      final all = await outbox.stats();
+      final mine = uid == null ? null : await outbox.stats(uid: uid);
+      final nowUtc = DateTime.now().toUtc();
+      final lines = <String>[
+        'Outbox state',
+        '',
+        'writePath (cached): ${worker.currentWritePath}',
+        'datasetEpoch: ${worker.datasetEpoch ?? '(none yet)'}',
+        'pending (all uids): ${all.pending} · poisoned: ${all.poisoned}',
+        if (mine != null)
+          'pending ($uid): ${mine.pending} · poisoned: ${mine.poisoned}',
+        'oldest pending age: '
+            '${all.oldestAge(nowUtc)?.toString() ?? '(empty)'}',
+        'draining now: ${worker.isDraining}',
+        'last drain: ${worker.lastDrainResult?.toString() ?? '(never)'}',
+        if (worker.lastDrainResult != null)
+          'last drain at: ${worker.lastDrainResult!.atUtc.toIso8601String()}',
+        'last bootstrap meta: '
+            '${worker.lastBootstrapAtUtc?.toIso8601String() ?? '(never)'}',
+      ];
+      setState(() => _output = lines.join('\n'));
+    } catch (e) {
+      setState(() => _output = 'Outbox state\n\nFAILED: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _runDrain() async {
+    final worker = context.read<SyncWorker>();
+    setState(() {
+      _busy = true;
+      _output = 'Manual drain\n\nDraining...';
+    });
+    try {
+      await worker.requestDrain(trigger: 'debug-screen');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (mounted) await _showOutboxState();
+  }
+
+  Future<void> _runReconcile() async {
+    final worker = context.read<SyncWorker>();
+    if (FirebaseAuth.instance.currentUser == null) {
+      setState(() {
+        _output =
+            'Reconcile\n\nNot signed in — reconcile re-enqueues local '
+            'history for the signed-in uid. Sign in first.';
+      });
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _output = 'Reconcile\n\nRe-running backfill + drain...';
+    });
+    try {
+      await worker.reconcile();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (mounted) await _showOutboxState();
+  }
+
+  /// Recovery lever for rows poisoned by a since-cleared environmental
+  /// condition (e.g. a transient server-side 403): re-marks them pending
+  /// and drains.
+  Future<void> _retryPoisonedRows() async {
+    final outbox = context.read<OutboxService>();
+    final worker = context.read<SyncWorker>();
+    setState(() {
+      _busy = true;
+      _output = 'Retry poisoned rows\n\nReviving + draining...';
+    });
+    try {
+      final revived = await outbox.retryPoisonedRows();
+      await worker.requestDrain(trigger: 'debug-retry-poisoned');
+      if (mounted) {
+        setState(() => _output = 'Retry poisoned rows\n\nRevived $revived');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _output = 'Retry poisoned rows\n\nFAILED: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (mounted) await _showOutboxState();
+  }
+
   Future<void> _runPlanEnhanceCanary() {
     return _runAuthenticated('POST /v1/me/plan:enhance (canary)', (
       client,
@@ -238,6 +339,22 @@ class _ApiDebugScreenState extends State<ApiDebugScreen> {
                   ElevatedButton(
                     onPressed: _busy ? null : _runPlanEnhanceCanary,
                     child: const Text('POST plan:enhance canary'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _busy ? null : _showOutboxState,
+                    child: const Text('Outbox state'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _busy ? null : _runDrain,
+                    child: const Text('Drain outbox'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _busy ? null : _runReconcile,
+                    child: const Text('Reconcile (backfill + drain)'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _busy ? null : _retryPoisonedRows,
+                    child: const Text('Retry poisoned rows'),
                   ),
                 ],
               ),

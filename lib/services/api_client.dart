@@ -72,9 +72,10 @@ class ApiClient {
     }
 
     final authHeaders = await _getAuthHeaders();
-    final mergedHeaders = {...authHeaders, ...?headers};
+    var mergedHeaders = {...authHeaders, ...?headers};
 
     Object? lastError;
+    var retriedAuth = false;
 
     for (int attempt = 0; attempt < maxRetries; attempt++) {
       final client = _freshClient();
@@ -85,6 +86,25 @@ class ApiClient {
 
         // Success
         if (response.statusCode == 200) return response;
+
+        // 401 from a content host: the cached OAuth token can be expired
+        // even when our local expiry says otherwise (the server-issued
+        // token's real lifetime is shorter near its cache edge). Drop the
+        // cache and retry ONCE with a fresh token.
+        if (response.statusCode == 401 && !retriedAuth) {
+          retriedAuth = true;
+          AppLogger.info(
+            'ApiClient',
+            '[ApiClient] 401 on $uri — refreshing content token and retrying',
+          );
+          QuranAuthService.invalidateToken();
+          mergedHeaders = {...await _getAuthHeaders(), ...?headers};
+          final retried = await _freshRequest(
+            (c) => c.get(uri, headers: mergedHeaders).timeout(timeout),
+          );
+          if (retried != null) return retried;
+          return response;
+        }
 
         // Server error — retry with backoff
         if (retryOn5xx &&
@@ -225,6 +245,22 @@ class ApiClient {
     Map<String, String>? headers,
   }) {
     return get(uri, timeout: timeout, maxRetries: 1, headers: headers);
+  }
+
+  /// One isolated request on a fresh client; null on any failure (the
+  /// caller falls back to its original response/error handling).
+  static Future<http.Response?> _freshRequest(
+    Future<http.Response> Function(http.Client client) send,
+  ) async {
+    final client = _freshClient();
+    try {
+      final response = await send(client);
+      return response.statusCode == 200 ? response : null;
+    } catch (_) {
+      return null;
+    } finally {
+      client.close();
+    }
   }
 
   /// Get authenticated headers (OAuth token + client ID).

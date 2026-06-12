@@ -1,18 +1,15 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:quran_app/models/werd_models.dart';
 import 'package:quran_app/services/local_storage_service.dart';
-import 'package:quran_app/services/qf_user_api_service.dart';
-import 'package:quran_app/utils/app_logger.dart';
 
 /// Manages the daily recitation (werd) state and persistence.
+/// Per-device counter only — the QF user-sync mirror was deleted in the
+/// cloud-first migration Phase 7 (nobody used it; R10 resolved).
 class WerdProvider extends ChangeNotifier {
   final LocalStorageService _storage;
-  final QfUserApiService? _qfApi;
   WerdConfig? _config;
 
-  WerdProvider(this._storage, {QfUserApiService? qfApi}) : _qfApi = qfApi {
+  WerdProvider(this._storage) {
     _load();
   }
 
@@ -48,25 +45,6 @@ class WerdProvider extends ChangeNotifier {
     _config = newConfig;
     _storage.saveWerdConfig(newConfig);
     notifyListeners();
-
-    // QF User API sync (fire-and-forget)
-    final qfApi = _qfApi;
-    if (qfApi != null && qfApi.isAvailable) {
-      unawaited(
-        qfApi
-            .createGoal(
-              type: 'pages',
-              target: newConfig.todayTarget,
-              period: 'daily',
-            )
-            .then((_) {
-              AppLogger.info(
-                'Werd',
-                '[QF_SYNC] Goal synced: ${newConfig.todayTarget} pages/day',
-              );
-            }),
-      );
-    }
   }
 
   /// Increment today's pages-read counter.

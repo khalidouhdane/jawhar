@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hifz_core/hifz_core.dart'
+    show ClientComputedSrs, FactBounds, ReviewFact, hifzCoreVersion;
 import 'package:quran_app/models/flashcard_models.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/services/outbox_service.dart';
 import 'package:quran_app/services/srs_engine.dart';
 import 'package:quran_app/services/card_generation_service.dart';
+import 'package:quran_app/services/write_path_store.dart';
 import 'package:quran_app/utils/app_logger.dart';
 import 'package:quran_app/utils/id_generator.dart';
 
@@ -15,6 +19,8 @@ class FlashcardProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
   final AuthService _auth;
   final CloudSyncService _sync;
+  final OutboxService? _outbox;
+  final WritePathStore? _writePathStore;
 
   List<Flashcard> _dueCards = [];
   int _currentIndex = 0;
@@ -37,7 +43,14 @@ class FlashcardProvider extends ChangeNotifier {
   // Per-type stats: {FlashcardType.index: {total: X, due: Y}}
   Map<int, Map<String, int>> _statsByType = {};
 
-  FlashcardProvider(this._db, this._auth, this._sync);
+  FlashcardProvider(
+    this._db,
+    this._auth,
+    this._sync, {
+    OutboxService? outbox,
+    WritePathStore? writePathStore,
+  }) : _outbox = outbox,
+       _writePathStore = writePathStore;
 
   bool _disposed = false;
 
@@ -263,20 +276,46 @@ class FlashcardProvider extends ChangeNotifier {
     final updated = SrsEngine.processReview(currentCard!, rating);
 
     if (!_isSandbox) {
-      // Process SRS and DB only for real cards
-      await _db.updateFlashcard(updated);
-
-      // Save review event
+      // Save review event — the EVENT syncs, not the computed state (§7.5)
       final review = FlashcardReview(
         id: IdGenerator.uuidV4(),
         cardId: currentCard!.id,
         rating: rating,
         reviewedAt: DateTime.now().toUtc(),
       );
-      await _db.saveFlashcardReview(review);
 
-      // Cloud sync (fire-and-forget)
-      if (_auth.isSignedIn) {
+      if (_outbox != null) {
+        // SRS state + review event + review fact in ONE transaction.
+        final fact = ReviewFact(
+          id: review.id,
+          coreVersion: hifzCoreVersion,
+          cardId: review.cardId,
+          rating: rating,
+          reviewedAtUtc: review.reviewedAt,
+          tzOffsetMinutes: DateTime.now().timeZoneOffset.inMinutes.clamp(
+            FactBounds.minTzOffsetMinutes,
+            FactBounds.maxTzOffsetMinutes,
+          ),
+          // Advisory telemetry only; the server's fold is canonical.
+          clientComputed: ClientComputedSrs(
+            interval: updated.interval,
+            easeFactor: updated.easeFactor,
+          ),
+        );
+        await _outbox.saveReviewAndEnqueue(
+          updated,
+          review,
+          fact,
+          uid: _auth.isSignedIn ? _auth.uid : null,
+        );
+      } else {
+        await _db.updateFlashcard(updated);
+        await _db.saveFlashcardReview(review);
+      }
+
+      // Legacy cloud sync (fire-and-forget) — skipped for "facts" users.
+      if (_auth.isSignedIn &&
+          !(_writePathStore?.isFactsUser(_auth.uid) ?? false)) {
         unawaited(_sync.syncFlashcard(_auth.uid!, updated));
         unawaited(_sync.syncFlashcardReview(_auth.uid!, review));
       }

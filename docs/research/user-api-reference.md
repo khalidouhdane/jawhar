@@ -1,5 +1,16 @@
 # Jawhar — Quran Foundation User API Reference
 
+> **⚠ OBSOLETE (2026-06-12).** The QF user-sync mirror was DELETED in
+> migration Phase 7 (roadmap §8, "delete branch" decided 2026-06-10):
+> `qf_user_auth_service.dart` / `qf_user_api_service.dart` and every call
+> site are gone, and the `QURAN_PREPROD_*` credentials were stripped from
+> `.env`/dart-defines. This document is kept for historical reference only —
+> do not build against it. The placeholder `{QURAN_PREPROD_CLIENT_ID}`
+> below is a key NAME, not a value. Outstanding operator actions: regenerate
+> the `ENV_FILE` GitHub Actions secret without the `QURAN_PREPROD_*` lines,
+> and rotate/revoke the preprod OAuth client with Quran Foundation (the
+> secret shipped in historical tester binaries).
+
 > **Environment:** Pre-live (for development). Switch to production by swapping credentials only.
 > **Source:** [api-docs.quran.foundation](https://api-docs.quran.foundation)
 > **Last updated:** May 13, 2026

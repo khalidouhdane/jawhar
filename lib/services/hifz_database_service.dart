@@ -12,7 +12,7 @@ import 'package:quran_app/utils/persisted_data_parser.dart';
 /// flashcards, and mutashabihat groups.
 class HifzDatabaseService {
   static const _dbName = 'hifz_data.db';
-  static const _dbVersion = 7;
+  static const _dbVersion = 8;
 
   Database? _db;
 
@@ -166,6 +166,9 @@ class HifzDatabaseService {
 
     // ── AI Plan Generation: Session recipes table ──
     await _createSessionRecipesTable(db);
+
+    // ── Sync outbox (cloud-first migration §7.2) ──
+    await _createSyncOutboxTable(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -216,6 +219,41 @@ class HifzDatabaseService {
       // Birthday column for profiles
       await db.execute('ALTER TABLE profiles ADD COLUMN birthday TEXT');
     }
+    if (oldVersion < 8) {
+      // Cloud-first migration (roadmap §7.2): uid-partitioned sync outbox.
+      await _createSyncOutboxTable(db);
+    }
+  }
+
+  /// Creates the `sync_outbox` table (roadmap §7.2).
+  ///
+  /// `uid` is load-bearing: rows are stamped with the signed-in uid at
+  /// enqueue time (NULL while signed out) and only ever drained under that
+  /// uid; NULL rows are adopted exactly once by the next sign-in.
+  /// `entity_id` is the fact's UUID idempotency key; the UNIQUE(uid,
+  /// entity_id) index makes backfill re-enqueues free (INSERT OR IGNORE).
+  Future<void> _createSyncOutboxTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sync_outbox (
+        seq INTEGER PRIMARY KEY AUTOINCREMENT,
+        uid TEXT,
+        kind TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        attempts INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'pending',
+        last_error TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_sync_outbox_uid_entity
+        ON sync_outbox (uid, entity_id)
+    ''');
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_sync_outbox_uid_status
+        ON sync_outbox (uid, status, seq)
+    ''');
   }
 
   Future<void> _createFlashcardTables(Database db) async {

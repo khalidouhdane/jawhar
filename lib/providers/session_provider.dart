@@ -1,6 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hifz_core/hifz_core.dart'
+    show
+        FactBounds,
+        PhaseOutcome,
+        PlanOrigin,
+        SabaqOutcome,
+        SessionFact,
+        hifzCoreVersion;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
@@ -8,7 +16,8 @@ import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
 import 'package:quran_app/services/card_generation_service.dart';
-import 'package:quran_app/services/qf_user_api_service.dart';
+import 'package:quran_app/services/outbox_service.dart';
+import 'package:quran_app/services/write_path_store.dart';
 import 'package:quran_app/utils/app_logger.dart';
 import 'package:quran_app/utils/id_generator.dart';
 
@@ -18,7 +27,8 @@ class SessionProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
   final AuthService _auth;
   final CloudSyncService _sync;
-  final QfUserApiService? _qfApi;
+  final OutboxService? _outbox;
+  final WritePathStore? _writePathStore;
 
   DailyPlan? _plan;
   SessionPhase _currentPhase = SessionPhase.sabaq;
@@ -60,8 +70,14 @@ class SessionProvider extends ChangeNotifier {
   int _currentStepIndex = 0;
   int _stepRepCount = 0; // rep count for current step
 
-  SessionProvider(this._db, this._auth, this._sync, {QfUserApiService? qfApi})
-    : _qfApi = qfApi;
+  SessionProvider(
+    this._db,
+    this._auth,
+    this._sync, {
+    OutboxService? outbox,
+    WritePathStore? writePathStore,
+  }) : _outbox = outbox,
+       _writePathStore = writePathStore;
 
   bool _disposed = false;
 
@@ -481,7 +497,19 @@ class SessionProvider extends ChangeNotifier {
       repCount: _totalSessionReps,
     );
 
-    await _db.saveSessionRecord(record);
+    // Save the session and — when the outbox is wired — enqueue the
+    // session fact in the SAME SQLite transaction (roadmap §8 Phase 4a):
+    // a crash can't separate "user saw it saved" from "it will sync".
+    final fact = _plan == null ? null : await _buildSessionFact(record);
+    if (_outbox != null && fact != null) {
+      await _outbox.saveSessionRecordAndEnqueue(
+        record,
+        fact,
+        uid: _auth.isSignedIn ? _auth.uid : null,
+      );
+    } else {
+      await _db.saveSessionRecord(record);
+    }
 
     // ── Save page progress with status promotion ──
     // Sabaq pages → learning (new memorization)
@@ -569,8 +597,13 @@ class SessionProvider extends ChangeNotifier {
       }
     }
 
-    // ── Cloud sync (fire-and-forget) ──
-    if (_auth.isSignedIn && _plan != null) {
+    // ── Legacy cloud sync (fire-and-forget) ──
+    // Gated by the server-served writePath flag (§8 Phase 4b task 4):
+    // "legacy" users keep the direct-Firestore mirror alongside the fact
+    // enqueued above; "facts" users rely on the outbox alone.
+    if (_auth.isSignedIn &&
+        _plan != null &&
+        !(_writePathStore?.isFactsUser(_auth.uid) ?? false)) {
       final uid = _auth.uid!;
       unawaited(_sync.syncSession(uid, record));
       unawaited(_sync.syncStreak(uid, await _db.getStreak(_plan!.profileId)));
@@ -584,41 +617,71 @@ class SessionProvider extends ChangeNotifier {
       }
     }
 
-    // ── QF User API sync (fire-and-forget) ──
-    final qfApi = _qfApi;
-    if (qfApi != null && qfApi.isAvailable && _plan != null) {
-      // Record reading session
-      final startPage = coveredPages.isNotEmpty
-          ? coveredPages.first
-          : _plan!.sabaqPage;
-      final endPage = coveredPages.isNotEmpty
-          ? coveredPages.last
-          : _plan!.sabaqPage;
-      unawaited(
-        qfApi
-            .createReadingSession(
-              startPage: startPage,
-              endPage: endPage,
-              durationSeconds: _elapsedSeconds,
-            )
-            .then((_) {
-              AppLogger.info(
-                'Session',
-                '[QF_SYNC] Reading session recorded: pages $startPage-$endPage',
-              );
-            }),
-      );
-
-      // Record streak activity
-      unawaited(
-        qfApi.recordStreakActivity().then((_) {
-          AppLogger.info('Session', '[QF_SYNC] Streak activity recorded');
-        }),
-      );
-    }
-
     _safeNotify();
     return record;
+  }
+
+  /// Builds the §5 session fact for [record] from live session state —
+  /// including `actualPagesCovered` / verse carry-over fields the persisted
+  /// [SessionRecord] cannot hold, and the client-local `date` +
+  /// `tzOffsetMinutes` that drive plan keying and streak derivation.
+  Future<SessionFact> _buildSessionFact(SessionRecord record) async {
+    final plan = _plan!;
+    final now = DateTime.now();
+    // Plan revision = completed-session count at plan generation time (§5);
+    // the session being recorded is not saved yet, so today's stored count
+    // IS the revision of the plan this session ran against.
+    int planRevision = 0;
+    try {
+      planRevision = (await _db.getSessionCountForDate(
+        plan.profileId,
+        now,
+      )).clamp(0, FactBounds.maxRevision);
+    } catch (e) {
+      AppLogger.warn('Session', 'Plan revision lookup failed: $e');
+    }
+    return SessionFact(
+      id: record.id,
+      coreVersion: hifzCoreVersion,
+      profileId: plan.profileId,
+      date:
+          '${now.year.toString().padLeft(4, '0')}-'
+          '${now.month.toString().padLeft(2, '0')}-'
+          '${now.day.toString().padLeft(2, '0')}',
+      tzOffsetMinutes: now.timeZoneOffset.inMinutes.clamp(
+        FactBounds.minTzOffsetMinutes,
+        FactBounds.maxTzOffsetMinutes,
+      ),
+      durationMinutes: record.durationMinutes.clamp(
+        0,
+        FactBounds.maxDurationMinutes,
+      ),
+      repCount: record.repCount.clamp(0, FactBounds.maxRepCount),
+      sabaq: SabaqOutcome(
+        completed: _sabaqDone,
+        assessment: _sabaqAssessment,
+        page: plan.sabaqPage,
+      ),
+      sabqi: PhaseOutcome(
+        completed: _sabqiDone,
+        assessment: _sabqiAssessment,
+        pages: plan.sabqiPages,
+      ),
+      manzil: PhaseOutcome(
+        completed: _manzilDone,
+        assessment: _manzilAssessment,
+        pages: plan.manzilPages,
+      ),
+      // Raw coverage — the server applies the same "empty → [sabaq.page]"
+      // fallback completeSession itself uses.
+      actualPagesCovered: _actualPagesCovered,
+      lastVerseLearned: _lastVerseLearned,
+      totalVersesOnPage: _totalVersesOnPage,
+      planId: plan.id,
+      planRevision: planRevision,
+      planOrigin: PlanOrigin.client,
+      recordedAtUtc: record.date.toUtc(),
+    );
   }
 
   /// Clear session state (on exit without completing).

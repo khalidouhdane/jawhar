@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:quran_app/providers/locale_provider.dart';
 import 'package:quran_app/providers/quran_reading_provider.dart';
 import 'package:quran_app/screens/app_shell.dart';
+import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
-import 'package:quran_app/services/qf_user_auth_service.dart';
 import 'package:quran_app/theme/geist_tokens.dart';
 import 'package:quran_app/theme/geist_typography.dart';
 import 'package:quran_app/widgets/geist_button.dart';
@@ -19,7 +19,7 @@ import 'package:quran_app/l10n/app_localizations.dart';
 /// 0. Welcome — brand statement
 /// 1. Language — English / العربية
 /// 2. Rewaya — Hafs / Warsh
-/// 3. Account — QF OAuth sign-in (optional)
+/// 3. Account — Google sign-in via Firebase Auth (optional)
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -124,8 +124,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     });
 
     try {
-      final qfAuth = context.read<QfUserAuthService>();
-      final success = await qfAuth.signIn();
+      // Google sign-in via Firebase Auth — the account that actually backs
+      // cloud sync. (The former QF OAuth sign-in was deleted with the QF
+      // user mirror — cloud-first migration Phase 7.)
+      final auth = context.read<AuthService>();
+      final success = await auth.signInWithGoogle();
       if (mounted) {
         if (success) {
           // Brief success moment, then complete
@@ -419,7 +422,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   // ═══════════════════════════════════════════
-  // Step 3: Account (QF OAuth)
+  // Step 3: Account (Google sign-in)
   // ═══════════════════════════════════════════
   Widget _buildAccountStep(AppLocalizations l10n) {
     return Padding(

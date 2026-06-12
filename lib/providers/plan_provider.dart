@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hifz_core/hifz_core.dart'
+    show FactBounds, IdGenerator, PlanGeneratedFact, hifzCoreVersion;
 import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/models/session_recipe_models.dart';
 import 'package:quran_app/services/ai_plan_service.dart';
@@ -8,7 +10,9 @@ import 'package:quran_app/services/ai_plan_validator.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
+import 'package:quran_app/services/outbox_service.dart';
 import 'package:quran_app/services/plan_generation_service.dart';
+import 'package:quran_app/services/write_path_store.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
 /// AI plan generation progress states.
@@ -22,6 +26,8 @@ class PlanProvider extends ChangeNotifier {
   final AIPlanService? _aiService;
   final AuthService _auth;
   final CloudSyncService _sync;
+  final OutboxService? _outbox;
+  final WritePathStore? _writePathStore;
 
   DailyPlan? _todayPlan;
   bool _isLoading = false;
@@ -36,9 +42,17 @@ class PlanProvider extends ChangeNotifier {
   int _planGen = 0;
   bool _disposed = false;
 
-  PlanProvider(this._db, this._auth, this._sync, {AIPlanService? aiPlanService})
-    : _planService = PlanGenerationService(_db),
-      _aiService = aiPlanService;
+  PlanProvider(
+    this._db,
+    this._auth,
+    this._sync, {
+    AIPlanService? aiPlanService,
+    OutboxService? outbox,
+    WritePathStore? writePathStore,
+  }) : _planService = PlanGenerationService(_db),
+       _aiService = aiPlanService,
+       _outbox = outbox,
+       _writePathStore = writePathStore;
 
   bool _isCurrent(int generation) => !_disposed && generation == _planGen;
 
@@ -119,6 +133,14 @@ class PlanProvider extends ChangeNotifier {
 
       // Fallback to deterministic if AI didn't work
       if (!aiSuccess) {
+        // Detect whether this call actually generates a NEW plan (vs
+        // returning today's stored one) — only new local generations are
+        // offline plan claims (§7.4).
+        DailyPlan? existingBefore;
+        if (!forceRegenerate) {
+          existingBefore = await _db.getTodayPlan(profile.id);
+          if (!_isCurrent(gen)) return;
+        }
         _todayPlan = await _planService.generateTodayPlan(
           profile,
           forceRegenerate: forceRegenerate,
@@ -127,6 +149,9 @@ class PlanProvider extends ChangeNotifier {
         _isAiGenerated = false;
         _aiReasoning = null;
         _todayRecipes = [];
+        if (_todayPlan != null && (forceRegenerate || existingBefore == null)) {
+          unawaited(_enqueuePlanClaim(_todayPlan!));
+        }
       }
 
       // If plan exists, load any stored recipes — or generate defaults
@@ -174,9 +199,41 @@ class PlanProvider extends ChangeNotifier {
     _todaySessionCount++;
     await loadOrGeneratePlan(profile, forceRegenerate: true);
 
-    // Cloud sync (fire-and-forget)
-    if (_auth.isSignedIn && _todayPlan != null) {
+    // Legacy cloud sync (fire-and-forget) — skipped for "facts" users,
+    // whose plan claims travel through the outbox instead.
+    if (_auth.isSignedIn &&
+        _todayPlan != null &&
+        !(_writePathStore?.isFactsUser(_auth.uid) ?? false)) {
       unawaited(_sync.syncPlan(_auth.uid!, _todayPlan!));
+    }
+  }
+
+  /// Enqueues an offline plan claim (§7.4): client-generated plans carry
+  /// `revision` = completed-session count at generation time; the server
+  /// reconciles highest-revision-wins per (profileId, date).
+  Future<void> _enqueuePlanClaim(DailyPlan plan) async {
+    final outbox = _outbox;
+    if (outbox == null) return;
+    try {
+      final revision = (await _db.getSessionCountForDate(
+        plan.profileId,
+        DateTime.now(),
+      )).clamp(0, FactBounds.maxRevision);
+      final date = plan.date;
+      final fact = PlanGeneratedFact(
+        id: IdGenerator.uuidV4(),
+        coreVersion: hifzCoreVersion,
+        profileId: plan.profileId,
+        date:
+            '${date.year.toString().padLeft(4, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}',
+        revision: revision,
+        plan: plan,
+      );
+      await outbox.enqueue(fact, uid: _auth.isSignedIn ? _auth.uid : null);
+    } catch (e) {
+      AppLogger.warn('Plan', 'Plan claim enqueue failed: $e');
     }
   }
 
@@ -200,6 +257,7 @@ class PlanProvider extends ChangeNotifier {
         _todayPlan = _todayPlan!.copyWith(isCompleted: false);
         await _db.updateDailyPlan(_todayPlan!);
         if (!_isCurrent(generation)) return;
+        unawaited(_enqueuePlanClaim(_todayPlan!));
       }
     } catch (e) {
       AppLogger.info('Plan', 'Extra session generation error: $e');
@@ -407,6 +465,7 @@ class PlanProvider extends ChangeNotifier {
     // Save plan
     await _db.saveDailyPlan(plan);
     if (!_isCurrent(generation)) return false;
+    unawaited(_enqueuePlanClaim(plan));
 
     // Parse and save recipes if present
     final recipesRaw = validated['recipes'] as Map<String, dynamic>? ?? {};

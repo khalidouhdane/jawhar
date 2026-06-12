@@ -41,11 +41,14 @@ import 'package:quran_app/services/motivational_messages_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quran_app/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/auth_sync_coordinator.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
-import 'package:quran_app/services/qf_user_auth_service.dart';
-import 'package:quran_app/services/qf_user_api_service.dart';
+import 'package:quran_app/services/outbox_service.dart';
+import 'package:quran_app/services/sync_worker.dart';
+import 'package:quran_app/services/write_path_store.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quran_app/screens/splash_screen.dart';
@@ -105,15 +108,24 @@ Future<void> _bootstrap() async {
   final authService = AuthService();
   authService.init();
 
-  // Initialize cloud sync service
+  // Initialize cloud sync service (legacy direct-Firestore mirror — kept
+  // compiled-in as the Phase 4 rollback target)
   final cloudSyncService = CloudSyncService(hifzDb);
 
-  // Initialize QF User Auth (OAuth2 PKCE) — loads stored tokens
-  final qfUserAuth = QfUserAuthService();
-  await qfUserAuth.init();
-
-  // Initialize QF User API client
-  final qfUserApi = QfUserApiService(qfUserAuth);
+  // Facts write path (roadmap §7): uid-partitioned outbox + drain worker.
+  final outboxService = OutboxService(hifzDb);
+  final writePathStore = WritePathStore(prefs);
+  final syncWorker = SyncWorker(
+    outbox: outboxService,
+    store: writePathStore,
+    authChanges: authService,
+    uidProvider: () => authService.uid,
+    idTokenProvider: ({bool forceRefresh = false}) async =>
+        FirebaseAuth.instance.currentUser?.getIdToken(forceRefresh),
+    connectivityChanges: Connectivity().onConnectivityChanged,
+  );
+  // App-start trigger: bootstrap meta (writePath/datasetEpoch) + drain.
+  unawaited(syncWorker.start());
 
   // Import mutashabihat dataset if needed (non-blocking)
   unawaited(MutashabihatImportService(hifzDb).importIfNeeded());
@@ -291,7 +303,7 @@ Future<void> _bootstrap() async {
                   hifzDb,
                   authService,
                   cloudSyncService,
-                  qfApi: qfUserApi,
+                  writePathStore: writePathStore,
                 ),
               ),
               ChangeNotifierProvider(
@@ -300,6 +312,8 @@ Future<void> _bootstrap() async {
                   authService,
                   cloudSyncService,
                   aiPlanService: aiPlanService,
+                  outbox: outboxService,
+                  writePathStore: writePathStore,
                 ),
               ),
               ChangeNotifierProvider(
@@ -307,15 +321,21 @@ Future<void> _bootstrap() async {
                   hifzDb,
                   authService,
                   cloudSyncService,
-                  qfApi: qfUserApi,
+                  outbox: outboxService,
+                  writePathStore: writePathStore,
                 ),
               ),
               ChangeNotifierProvider(
-                create: (_) =>
-                    FlashcardProvider(hifzDb, authService, cloudSyncService),
+                create: (_) => FlashcardProvider(
+                  hifzDb,
+                  authService,
+                  cloudSyncService,
+                  outbox: outboxService,
+                  writePathStore: writePathStore,
+                ),
               ),
               ChangeNotifierProvider(
-                create: (_) => WerdProvider(storageService, qfApi: qfUserApi),
+                create: (_) => WerdProvider(storageService),
               ),
               ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
               ChangeNotifierProvider(create: (_) => UpdateProvider()),
@@ -324,7 +344,6 @@ Future<void> _bootstrap() async {
                   storageService,
                   authService,
                   cloudSyncService,
-                  qfApi: qfUserApi,
                 ),
               ),
               ChangeNotifierProvider(
@@ -357,8 +376,9 @@ Future<void> _bootstrap() async {
               Provider.value(value: motivationalService),
               ChangeNotifierProvider.value(value: authService),
               ChangeNotifierProvider.value(value: cloudSyncService),
-              ChangeNotifierProvider.value(value: qfUserAuth),
-              Provider.value(value: qfUserApi),
+              ChangeNotifierProvider.value(value: outboxService),
+              ChangeNotifierProvider.value(value: syncWorker),
+              Provider.value(value: writePathStore),
               Provider(
                 create: (_) =>
                     AuthSyncCoordinator(authService, cloudSyncService),

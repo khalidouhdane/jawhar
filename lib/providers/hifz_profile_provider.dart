@@ -5,7 +5,7 @@ import 'package:quran_app/models/hifz_models.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/hifz_database_service.dart';
-import 'package:quran_app/services/qf_user_api_service.dart';
+import 'package:quran_app/services/write_path_store.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
 /// Manages the active Hifz profile and profile CRUD operations.
@@ -14,7 +14,7 @@ class HifzProfileProvider extends ChangeNotifier {
   final HifzDatabaseService _db;
   final AuthService _auth;
   final CloudSyncService _sync;
-  final QfUserApiService? _qfApi;
+  final WritePathStore? _writePathStore;
 
   MemoryProfile? _activeProfile;
   List<MemoryProfile> _allProfiles = [];
@@ -28,8 +28,8 @@ class HifzProfileProvider extends ChangeNotifier {
     this._db,
     this._auth,
     this._sync, {
-    QfUserApiService? qfApi,
-  }) : _qfApi = qfApi {
+    WritePathStore? writePathStore,
+  }) : _writePathStore = writePathStore {
     unawaited(_init());
   }
 
@@ -179,22 +179,13 @@ class HifzProfileProvider extends ChangeNotifier {
     _streakData = streak;
     _safeNotify();
 
-    // Cloud sync (fire-and-forget)
-    if (_auth.isSignedIn) {
+    // Legacy cloud sync (fire-and-forget) — skipped for "facts" users.
+    // NOTE: a standalone active-day has no fact kind in the §5 contract
+    // (streak is derived from session facts); for facts users this event
+    // stays in the optimistic local counter only.
+    if (_auth.isSignedIn &&
+        !(_writePathStore?.isFactsUser(_auth.uid) ?? false)) {
       unawaited(_sync.syncStreak(_auth.uid!, _streakData));
-    }
-
-    // QF User API sync (fire-and-forget)
-    final qfApi = _qfApi;
-    if (qfApi != null && qfApi.isAvailable) {
-      unawaited(
-        qfApi.recordStreakActivity().then((_) {
-          AppLogger.info(
-            'HifzProfile',
-            '[QF_SYNC] Streak activity recorded via HifzProfileProvider',
-          );
-        }),
-      );
     }
   }
 

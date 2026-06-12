@@ -6,8 +6,6 @@ import 'package:quran_app/models/bookmark_collection.dart';
 import 'package:quran_app/services/auth_service.dart';
 import 'package:quran_app/services/cloud_sync_service.dart';
 import 'package:quran_app/services/local_storage_service.dart';
-import 'package:quran_app/services/qf_user_api_service.dart';
-import 'package:quran_app/utils/app_logger.dart';
 import 'package:quran_app/utils/verse_ref_formatter.dart';
 
 /// Predefined bookmark color palette (12 colors).
@@ -33,16 +31,10 @@ class BookmarkProvider extends ChangeNotifier {
   final LocalStorageService _storage;
   final AuthService _auth;
   final CloudSyncService _sync;
-  final QfUserApiService? _qfApi;
   List<Bookmark> _bookmarks = [];
   List<BookmarkCollection> _collections = [];
 
-  BookmarkProvider(
-    this._storage,
-    this._auth,
-    this._sync, {
-    QfUserApiService? qfApi,
-  }) : _qfApi = qfApi {
+  BookmarkProvider(this._storage, this._auth, this._sync) {
     _load();
   }
 
@@ -144,17 +136,6 @@ class BookmarkProvider extends ChangeNotifier {
     _bookmarks.add(bookmark);
     _save();
     notifyListeners();
-
-    // QF User API sync (fire-and-forget)
-    final qfApi = _qfApi;
-    if (qfApi != null && qfApi.isAvailable && bookmark.verseKey != null) {
-      qfApi.createBookmark(verseKey: bookmark.verseKey!).then((_) {
-        AppLogger.info(
-          'Bookmark',
-          '[QF_SYNC] Bookmark synced: ${bookmark.verseKey}',
-        );
-      });
-    }
   }
 
   void removeBookmark(String id) {
