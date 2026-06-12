@@ -648,17 +648,26 @@ export default function EssenceFlowHero() {
       <div className={styles.copy}>
         <p className={styles.wordmark}>jawhar</p>
         <h1 className={styles.headline}>
-          {"Memorize with Meaning.".split('').map((char, i) => (
-            <span
-              key={i}
-              style={{ display: 'inline-block', overflow: 'hidden' }}
-            >
-              <span
-                className="split-char"
-                style={{ display: 'inline-block', whiteSpace: 'pre' }}
-              >
-                {char === ' ' ? '\u00A0' : char}
+          {/* Chars are grouped per word (nowrap) so the line can only break
+              at the plain spaces between words \u2014 never mid-word. */}
+          {"Memorize with Meaning.".split(' ').map((word, w, words) => (
+            <span key={w}>
+              <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+                {word.split('').map((char, i) => (
+                  <span
+                    key={i}
+                    style={{ display: 'inline-block', overflow: 'hidden' }}
+                  >
+                    <span
+                      className="split-char"
+                      style={{ display: 'inline-block', whiteSpace: 'pre' }}
+                    >
+                      {char}
+                    </span>
+                  </span>
+                ))}
               </span>
+              {w < words.length - 1 ? ' ' : ''}
             </span>
           ))}
         </h1>

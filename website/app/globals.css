@@ -480,3 +480,11 @@ img, video, svg {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Horizontally-overflowing animations must never widen the page: clip
+   (not hidden, which would create a scroll container) keeps the fixed
+   navbar and hamburger aligned with the visual viewport on mobile. */
+html,
+body {
+  overflow-x: clip;
+}
