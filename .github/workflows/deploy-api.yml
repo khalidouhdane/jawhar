@@ -21,10 +21,11 @@
 # --update-env-vars (not --set-) so out-of-band vars like GEMINI_MODEL or
 # SENTRY_DSN survive deploys.
 #
-# Workspace note: server/api is a pub workspace member (root pubspec.yaml).
-# The Docker build context stays server/api alone — the Dockerfile strips the
-# `resolution: workspace` line and resolves standalone (no path deps), so
-# `--source server/api` below remains correct.
+# Workspace note: server/api is a pub workspace member (root pubspec.yaml)
+# and depends on hifz_core, which is NOT on pub.dev and lives outside
+# server/api. The deploy job therefore stages a build context that vendors
+# packages/hifz_core and overrides the dependency to a path; the Dockerfile's
+# `resolution: workspace` strip then resolves standalone inside the container.
 #
 # Follow-up (out of scope here): post-deploy indexed-query smoke test against
 # real Firestore once authenticated read endpoints query the composite
@@ -124,6 +125,21 @@ jobs:
         with:
           project_id: quran-app-e5e86
 
+      # server/api depends on hifz_core (not on pub.dev, outside the
+      # server/api context). Vendor it into a staged context and override
+      # the dependency to a path; strip the package's own
+      # `resolution: workspace` line (path deps cannot declare workspace
+      # resolution outside a workspace).
+      - name: Stage build context (vendor hifz_core)
+        run: |
+          STAGE="$(mktemp -d)"
+          cp -r server/api/. "$STAGE/"
+          mkdir -p "$STAGE/packages"
+          cp -r packages/hifz_core "$STAGE/packages/hifz_core"
+          sed -i 's/^resolution: workspace\r\{0,1\}$//' "$STAGE/packages/hifz_core/pubspec.yaml"
+          printf '\ndependency_overrides:\n  hifz_core:\n    path: packages/hifz_core\n' >> "$STAGE/pubspec.yaml"
+          echo "STAGE_DIR=$STAGE" >> "$GITHUB_ENV"
+
       # Runtime identity: default compute SA (no --service-account flag) —
       # verified to hold roles/aiplatform.user and Secret Manager access.
       # allUsers invoker + in-code ID-token auth is the decided posture
@@ -131,7 +147,7 @@ jobs:
       - name: Deploy to Cloud Run (source build)
         run: >-
           gcloud run deploy jawhar-api
-          --source server/api
+          --source "$STAGE_DIR"
           --region europe-southwest1
           --project quran-app-e5e86
           --allow-unauthenticated
