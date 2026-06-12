@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:quran_app/config/distribution_config.dart';
 import 'package:quran_app/providers/navigation_provider.dart';
 import 'package:quran_app/providers/notification_provider.dart';
 import 'package:quran_app/providers/plan_provider.dart';
@@ -38,7 +39,9 @@ class _AppShellState extends State<AppShell> {
 
   Future<void> _checkForUpdate() async {
     if (!mounted) return;
-    // Skip on iOS — updates are delivered via TestFlight / App Store, not APK.
+    // Store builds (Google Play / App Store) must not self-update; only
+    // sideloaded builds compiled with ENABLE_SELF_UPDATE=true check GitHub.
+    if (!kSelfUpdateEnabled) return;
     if (Theme.of(context).platform == TargetPlatform.iOS) return;
     final updateProvider = context.read<UpdateProvider>();
     final hasUpdate = await updateProvider.checkForUpdate();

@@ -138,11 +138,16 @@ class UpdateService {
       onProgress?.call(1.0);
     }
 
-    // Trigger the Android APK installer
-    await OpenFilex.open(
+    // Trigger the Android APK installer. Without REQUEST_INSTALL_PACKAGES
+    // (dropped from the manifest for Play) this is denied — surface it so the
+    // caller can fall back to the release page.
+    final result = await OpenFilex.open(
       filePath,
       type: 'application/vnd.android.package-archive',
     );
+    if (result.type != ResultType.done) {
+      throw Exception('Installer unavailable: ${result.message}');
+    }
   }
 
   /// Compare two semver strings. Returns `true` if [remote] > [current].

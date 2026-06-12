@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:quran_app/services/update_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Status of the update flow.
 enum UpdateStatus {
@@ -96,6 +97,20 @@ class UpdateProvider extends ChangeNotifier {
       _status = UpdateStatus.readyToInstall;
       _safeNotify();
     } catch (e) {
+      // Direct install can fail (no REQUEST_INSTALL_PACKAGES in store
+      // builds) — fall back to the release page in the browser.
+      final fallback = _updateInfo?.htmlUrl;
+      if (fallback != null && fallback.isNotEmpty) {
+        try {
+          if (await launchUrl(
+            Uri.parse(fallback),
+            mode: LaunchMode.externalApplication,
+          )) {
+            dismiss();
+            return;
+          }
+        } catch (_) {}
+      }
       _status = UpdateStatus.error;
       _errorMessage = e.toString();
       _safeNotify();
