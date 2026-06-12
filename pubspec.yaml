@@ -154,6 +154,6 @@ flutter:
           weight: 400
     - family: AmiriQuran
       fonts:
-        - asset: assets/fonts/Amiri Quran-Regular.ttf
+        - asset: assets/fonts/AmiriQuran-Regular.ttf
           weight: 400
 
