@@ -129,7 +129,19 @@ class AICalibrationService {
         .call<Map<Object?, Object?>>(payload)
         .timeout(const Duration(seconds: 20));
 
-    return Map<String, dynamic>.from(result.data);
+    // Deep-convert: nested maps from the platform channel are
+    // Map<Object?, Object?>; a shallow .from() breaks nested casts.
+    return _deepStringKeyed(result.data) as Map<String, dynamic>;
+  }
+
+  static dynamic _deepStringKeyed(dynamic value) {
+    if (value is Map) {
+      return value.map<String, dynamic>(
+        (k, v) => MapEntry(k.toString(), _deepStringKeyed(v)),
+      );
+    }
+    if (value is List) return value.map(_deepStringKeyed).toList();
+    return value;
   }
 
   /// POST [payload] to `{base}{path}` on jawhar-api with a Firebase ID

@@ -223,8 +223,20 @@ Return valid JSON only.
           },
         );
 
-    // Convert Map<Object?, Object?> to Map<String, dynamic>
-    return Map<String, dynamic>.from(result.data);
+    // Deep-convert: the callable's platform channel delivers
+    // Map<Object?, Object?> at EVERY level; a shallow .from() leaves nested
+    // maps Object?-keyed and the plan validator's nested casts throw.
+    return _deepStringKeyed(result.data) as Map<String, dynamic>;
+  }
+
+  static dynamic _deepStringKeyed(dynamic value) {
+    if (value is Map) {
+      return value.map<String, dynamic>(
+        (k, v) => MapEntry(k.toString(), _deepStringKeyed(v)),
+      );
+    }
+    if (value is List) return value.map(_deepStringKeyed).toList();
+    return value;
   }
 
   /// POST [payload] to `{base}{path}` on jawhar-api with a Firebase ID
