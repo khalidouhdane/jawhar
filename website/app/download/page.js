@@ -12,8 +12,8 @@ const platforms = [
   {
     icon: Monitor,
     name: "Windows",
-    action: "Download ZIP",
-    href: "https://github.com/khalidouhdane/jawhar/releases/latest/download/jawhar-windows.zip",
+    action: "Install for Windows",
+    href: "https://github.com/khalidouhdane/jawhar/releases/latest/download/jawhar-setup.exe",
     available: true,
   },
   {

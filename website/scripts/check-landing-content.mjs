@@ -38,6 +38,10 @@ assert(
   "Supporting public copy should consistently say closed source for now"
 );
 assert(
+  download.includes("jawhar-setup.exe") && !download.includes("jawhar-windows.zip"),
+  "Download page should serve the jawhar-setup.exe installer, not the zip"
+);
+assert(
   !footer.includes("Open source") &&
     !footer.includes("github.com/khalidouhdane/jawhar") &&
     !download.includes("fully open source") &&
