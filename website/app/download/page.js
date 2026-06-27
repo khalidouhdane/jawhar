@@ -5,6 +5,9 @@ import { ArrowRight, Monitor, Smartphone, Laptop, Globe, LockKeyhole } from "luc
 import ScrollReveal from "../../components/shared/ScrollReveal";
 import styles from "./download.module.css";
 
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.alphafoundr.jawhar";
+
 const platforms = [
   {
     icon: Monitor,
@@ -16,8 +19,9 @@ const platforms = [
   {
     icon: Smartphone,
     name: "Android",
-    action: "Download APK",
-    href: "https://github.com/khalidouhdane/jawhar/releases/latest/download/app-release.apk",
+    action: "Get it on Google Play",
+    href: PLAY_STORE_URL,
+    sideload: "https://github.com/khalidouhdane/jawhar/releases/latest/download/app-release.apk",
     available: true,
   },
   {
@@ -108,9 +112,16 @@ export default function DownloadPage() {
                     <Icon size={28} strokeWidth={1.5} />
                     <span className={styles.name}>{platform.name}</span>
                     {platform.available ? (
-                      <a href={platform.href} className={`btn ${showHighlight ? "btn-primary" : "btn-ghost"}`} style={{ fontSize: 13, width: "100%", justifyContent: "center" }}>
-                        {platform.action}
-                      </a>
+                      <>
+                        <a href={platform.href} target={platform.href.startsWith("http") ? "_blank" : undefined} rel={platform.href.startsWith("http") ? "noopener noreferrer" : undefined} className={`btn ${showHighlight ? "btn-primary" : "btn-ghost"}`} style={{ fontSize: 13, width: "100%", justifyContent: "center" }}>
+                          {platform.action}
+                        </a>
+                        {platform.sideload && (
+                          <a href={platform.sideload} target="_blank" rel="noopener noreferrer" className={styles.sideload}>
+                            or sideload the APK
+                          </a>
+                        )}
+                      </>
                     ) : (
                       <span className={styles.soonText}>{platform.action}</span>
                     )}
@@ -134,7 +145,7 @@ export default function DownloadPage() {
                 Release Channel
               </h3>
               <p style={{ color: "var(--text-secondary)", fontSize: 15, marginTop: 8 }}>
-                Every time we commit to main, GitHub Actions automatically builds and releases updates to the downloads above, keeping the app synced.
+                Every time we commit to main, GitHub Actions automatically builds and ships updates — Android rolls out through Google Play review, while Windows and sideload builds update straight from GitHub — keeping every platform in sync.
               </p>
               <a
                 href="https://github.com/khalidouhdane/jawhar/releases"

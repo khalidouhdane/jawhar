@@ -112,7 +112,12 @@ export default function Footer() {
               <a href="/download" className={styles.badgeLink}>
                 <AppleStoreBadge />
               </a>
-              <a href="/download" className={styles.badgeLink}>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.alphafoundr.jawhar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.badgeLink}
+              >
                 <GooglePlayBadge />
               </a>
             </div>
