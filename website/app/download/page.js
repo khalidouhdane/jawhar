@@ -133,6 +133,42 @@ export default function DownloadPage() {
               );
             })}
           </div>
+
+          <div className={styles.comingSoonSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Coming soon</h2>
+              <p className={styles.sectionSubtitle}>More platforms are on the way.</p>
+            </div>
+
+            <div className={styles.comingSoonRows}>
+              {comingSoonPlatforms.map((platform, i) => {
+                const Icon = platform.icon;
+                const isDetected = platform.name === userOS;
+                return (
+                  <ScrollReveal key={platform.name} delay={0.2 + i * 0.06} variant="fade">
+                    <div
+                      className={`card ${styles.comingSoonRow} ${
+                        isDetected ? styles.comingSoonDetected : ""
+                      }`}
+                    >
+                      <div className={styles.comingSoonLeft}>
+                        <Icon size={22} strokeWidth={1.5} />
+                        <span className={styles.comingSoonName}>{platform.name}</span>
+                      </div>
+                      <div className={styles.comingSoonRight}>
+                        {isDetected && (
+                          <span className={styles.comingSoonNote}>
+                            You&apos;re on {platform.name}
+                          </span>
+                        )}
+                        <span className={styles.comingSoonBadge}>Coming soon</span>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
 
