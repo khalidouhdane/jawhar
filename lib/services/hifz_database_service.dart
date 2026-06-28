@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quran_app/models/hifz_models.dart';
@@ -34,7 +36,7 @@ class HifzDatabaseService {
       );
     }
 
-    final dbPath = await getDatabasesPath();
+    final dbPath = await _databaseDirectory();
     final path = join(dbPath, _dbName);
 
     return openDatabase(
@@ -43,6 +45,24 @@ class HifzDatabaseService {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
+  }
+
+  /// Returns a writable directory for the SQLite database.
+  ///
+  /// On mobile (Android/iOS) we keep using [getDatabasesPath] so existing
+  /// databases are not moved. On desktop we use the OS application-support
+  /// directory because the bundled install directory (e.g. Program Files on
+  /// Windows) is read-only for regular users.
+  Future<String> _databaseDirectory() async {
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      final dir = await getApplicationSupportDirectory();
+      final appDir = Directory(join(dir.path, 'Jawhar'));
+      if (!appDir.existsSync()) {
+        await appDir.create(recursive: true);
+      }
+      return appDir.path;
+    }
+    return getDatabasesPath();
   }
 
   Future<void> _onCreate(Database db, int version) async {

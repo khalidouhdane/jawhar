@@ -207,6 +207,13 @@ Win32Window::MessageHandler(HWND hwnd,
       return 0;
     }
 
+    case WM_GETMINMAXINFO: {
+      auto* minmax = reinterpret_cast<MINMAXINFO*>(lparam);
+      minmax->ptMinTrackSize.x = 900;
+      minmax->ptMinTrackSize.y = 600;
+      return 0;
+    }
+
     case WM_ACTIVATE:
       if (child_content_ != nullptr) {
         SetFocus(child_content_);
