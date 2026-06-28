@@ -52,14 +52,23 @@ jobs:
           CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         run: flutter build windows --release --dart-define-from-file=.env
 
-      - name: Package Windows Build
-        shell: powershell
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress
+
+      - name: Build Installer
+        shell: bash
         run: |
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath build\windows\jawhar-windows.zip
+          # Extract display version (e.g. "1.9.0" from "version: 1.9.0+25")
+          APP_VERSION=$(grep -E '^version:' pubspec.yaml | head -1 | sed -E 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          echo "Version: $APP_VERSION"
+          # Compile the installer; /O forces output into build/windows
+          iscc //DAppVersion="$APP_VERSION" //O"build/windows" "windows/installer/jawhar.iss"
+          test -f "build/windows/jawhar-setup.exe" || { echo "ERROR: jawhar-setup.exe was not produced"; exit 1; }
+          echo "Produced build/windows/jawhar-setup.exe"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/windows/jawhar-windows.zip
+          files: build/windows/jawhar-setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
