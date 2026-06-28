@@ -56,15 +56,17 @@ jobs:
         run: choco install innosetup --no-progress
 
       - name: Build Installer
-        shell: bash
+        shell: powershell
         run: |
-          # Extract display version (e.g. "1.9.0" from "version: 1.9.0+25")
-          APP_VERSION=$(grep -E '^version:' pubspec.yaml | head -1 | sed -E 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-          echo "Version: $APP_VERSION"
-          # Compile the installer; /O forces output into build/windows
-          iscc //DAppVersion="$APP_VERSION" //O"build/windows" "windows/installer/jawhar.iss"
-          test -f "build/windows/jawhar-setup.exe" || { echo "ERROR: jawhar-setup.exe was not produced"; exit 1; }
-          echo "Produced build/windows/jawhar-setup.exe"
+          $versionLine = (Select-String -Path pubspec.yaml -Pattern '^version:').Line
+          $version = $versionLine -replace '^version:\s*',''
+          $display = ($version -split '\+')[0]
+          Write-Output "Version: $display"
+          iscc /DAppVersion="$display" /O"build/windows" "windows/installer/jawhar.iss"
+          if (-not (Test-Path "build/windows/jawhar-setup.exe")) {
+            throw "ERROR: jawhar-setup.exe was not produced"
+          }
+          Write-Output "Produced build/windows/jawhar-setup.exe"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
