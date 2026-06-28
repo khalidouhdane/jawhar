@@ -191,6 +191,7 @@ class AudioProxyServer {
       'everyayah.com',
       'mp3quran.net',
       'download.quran.com',
+      'quranicaudio.com',
     ];
     final hostname = targetUri.host.toLowerCase();
     return allowedHosts.any(
