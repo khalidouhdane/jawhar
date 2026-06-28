@@ -1,20 +1,20 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ArrowRight, Monitor, Smartphone, Laptop, Globe, LockKeyhole } from "lucide-react";
+import { ArrowRight, Monitor, Smartphone, Laptop, Globe, LockKeyhole, Apple } from "lucide-react";
 import ScrollReveal from "../../components/shared/ScrollReveal";
 import styles from "./download.module.css";
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.alphafoundr.jawhar";
 
-const platforms = [
+const availablePlatforms = [
   {
     icon: Monitor,
     name: "Windows",
     action: "Install for Windows",
     href: "https://github.com/khalidouhdane/jawhar/releases/latest/download/jawhar-setup.exe",
-    available: true,
+    gradient: "gradientWindows",
   },
   {
     icon: Smartphone,
@@ -22,33 +22,21 @@ const platforms = [
     action: "Get it on Google Play",
     href: PLAY_STORE_URL,
     sideload: "https://github.com/khalidouhdane/jawhar/releases/latest/download/app-release.apk",
-    available: true,
+    gradient: "gradientAndroid",
   },
   {
-    icon: Laptop,
-    name: "macOS",
-    action: "Coming soon",
-    available: false,
-  },
-  {
-    icon: Monitor,
-    name: "Linux",
-    action: "Coming soon",
-    available: false,
-  },
-  {
-    icon: Smartphone,
+    icon: Apple,
     name: "iOS",
     action: "Join TestFlight",
     href: "https://testflight.apple.com/join/XYY6tqxC",
-    available: true,
+    gradient: "gradientIos",
   },
-  {
-    icon: Globe,
-    name: "Web",
-    action: "Coming soon",
-    available: false,
-  },
+];
+
+const comingSoonPlatforms = [
+  { icon: Laptop, name: "macOS" },
+  { icon: Monitor, name: "Linux" },
+  { icon: Globe, name: "Web" },
 ];
 
 function detectOS() {
@@ -98,32 +86,47 @@ export default function DownloadPage() {
             </ScrollReveal>
           </div>
 
-          <div className={styles.grid}>
-            {platforms.map((platform, i) => {
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Download now</h2>
+            <p className={styles.sectionSubtitle}>Get Jawhar on your device today.</p>
+          </div>
+
+          <div className={styles.availableGrid}>
+            {availablePlatforms.map((platform, i) => {
               const Icon = platform.icon;
               const isDetected = platform.name === userOS;
-              const showHighlight = isDetected && platform.available;
               return (
-                <ScrollReveal key={i} delay={0.08 + i * 0.06} variant="scale">
-                  <div className={`card ${styles.item} ${!platform.available ? styles.unavailable : ""} ${showHighlight ? styles.highlighted : ""}`}>
-                    {showHighlight && (
+                <ScrollReveal key={platform.name} delay={0.08 + i * 0.06} variant="scale">
+                  <div
+                    className={`card ${styles.availableCard} ${styles[platform.gradient]} ${
+                      isDetected ? styles.detected : ""
+                    }`}
+                  >
+                    {isDetected && (
                       <span className={styles.detectedBadge}>Recommended</span>
                     )}
-                    <Icon size={28} strokeWidth={1.5} />
-                    <span className={styles.name}>{platform.name}</span>
-                    {platform.available ? (
-                      <>
-                        <a href={platform.href} target={platform.href.startsWith("http") ? "_blank" : undefined} rel={platform.href.startsWith("http") ? "noopener noreferrer" : undefined} className={`btn ${showHighlight ? "btn-primary" : "btn-ghost"}`} style={{ fontSize: 13, width: "100%", justifyContent: "center" }}>
-                          {platform.action}
-                        </a>
-                        {platform.sideload && (
-                          <a href={platform.sideload} target="_blank" rel="noopener noreferrer" className={styles.sideload}>
-                            or sideload the APK
-                          </a>
-                        )}
-                      </>
-                    ) : (
-                      <span className={styles.soonText}>{platform.action}</span>
+                    <div className={styles.iconWrapper}>
+                      <Icon size={28} strokeWidth={1.5} />
+                    </div>
+                    <span className={styles.platformName}>{platform.name}</span>
+                    <a
+                      href={platform.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`btn ${isDetected ? "btn-primary" : "btn-ghost"}`}
+                      style={{ fontSize: 14, width: "100%", justifyContent: "center" }}
+                    >
+                      {platform.action}
+                    </a>
+                    {platform.sideload && (
+                      <a
+                        href={platform.sideload}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.sideload}
+                      >
+                        or sideload the APK
+                      </a>
                     )}
                   </div>
                 </ScrollReveal>
