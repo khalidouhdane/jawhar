@@ -151,3 +151,14 @@ the QF content secret's compiled-in fallback exists only for signed-out
 reading (see `docs/decisions/2026-06-12-content-token-fallback.md`); the
 desktop Google OAuth client is installed-app type (id is a plain constant
 by design).
+
+## 7. Versioning practice
+
+The current product era is **v1.9.x**. Version numbers are semantic for users, not just CI counters:
+
+- **v1.9.0** is the stable feature baseline (post-cloud-first migration).
+- **Patch/fix releases** on the 1.9.0 baseline only bump the Flutter **build number** in `pubspec.yaml` (e.g. `version: 1.9.0+25` → `1.9.0+26`). Do not advance `1.9.0` to `1.9.1` for bug fixes or build-pipeline corrections.
+- **1.9.1, 1.9.2, …** are reserved for meaningful feature releases on the path toward 2.0.
+- **v2.0** is reserved for the major design/UX overhaul (admin panel, analytics dashboards, possible native Compose/Swift clients on this same backend). It is not a routine version bump.
+
+When cutting a single-platform respin, prefer a tag like `v1.9.0.1-windows` (or `v1.9.0+N-windows`) rather than advancing the user-facing version for a build-only fix.
