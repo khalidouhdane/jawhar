@@ -133,3 +133,73 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-ring);
 }
+
+.gradientWindows {
+  --gradient-start: rgba(59, 130, 246, 0.1);
+  --gradient-end: rgba(147, 197, 253, 0.05);
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradientAndroid {
+  --gradient-start: rgba(34, 197, 94, 0.1);
+  --gradient-end: rgba(134, 239, 172, 0.05);
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradientIos {
+  --gradient-start: rgba(168, 85, 247, 0.1);
+  --gradient-end: rgba(216, 180, 254, 0.05);
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+[data-theme="light"] .gradientWindows {
+  --gradient-start: rgba(59, 130, 246, 0.12);
+  --gradient-end: rgba(147, 197, 253, 0.08);
+}
+
+[data-theme="light"] .gradientAndroid {
+  --gradient-start: rgba(34, 197, 94, 0.12);
+  --gradient-end: rgba(134, 239, 172, 0.08);
+}
+
+[data-theme="light"] .gradientIos {
+  --gradient-start: rgba(168, 85, 247, 0.12);
+  --gradient-end: rgba(216, 180, 254, 0.08);
+}
+
+.detectedBadge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-white);
+  background: var(--color-black);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.detected {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--focus-ring),
+                0 0 24px rgba(59, 130, 246, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--focus-ring),
+                0 0 40px rgba(59, 130, 246, 0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detected {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+}
