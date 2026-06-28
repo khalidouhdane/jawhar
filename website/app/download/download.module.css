@@ -38,7 +38,7 @@
               box-shadow var(--duration-base) var(--ease);
 }
 
-.availableCard:hover {
+.availableCard:not(.detected):hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
 }
@@ -217,6 +217,7 @@
   .availableGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+    justify-items: center;
   }
 
   .availableCard {

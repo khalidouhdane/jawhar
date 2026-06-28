@@ -1,6 +1,5 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import Link from "next/link";
 import { ArrowRight, Monitor, Smartphone, Laptop, Globe, LockKeyhole, Apple } from "lucide-react";
 import ScrollReveal from "../../components/shared/ScrollReveal";
 import styles from "./download.module.css";
@@ -158,7 +157,7 @@ export default function DownloadPage() {
                       <div className={styles.comingSoonRight}>
                         {isDetected && (
                           <span className={styles.comingSoonNote}>
-                            You&apos;re on {platform.name}
+                            You&apos;re on {platform.name} — Jawhar for {platform.name} is on the way.
                           </span>
                         )}
                         <span className={styles.comingSoonBadge}>Coming soon</span>
