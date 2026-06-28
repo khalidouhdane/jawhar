@@ -50,17 +50,24 @@ class HifzDatabaseService {
   /// Returns a writable directory for the SQLite database.
   ///
   /// On mobile (Android/iOS) we keep using [getDatabasesPath] so existing
-  /// databases are not moved. On desktop we use the OS application-support
+  /// databases are not moved. On desktop we prefer the OS application-support
   /// directory because the bundled install directory (e.g. Program Files on
-  /// Windows) is read-only for regular users.
+  /// Windows) is read-only for regular users. If the platform binding is not
+  /// initialized (e.g. unit tests), we fall back to [getDatabasesPath].
   Future<String> _databaseDirectory() async {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      final dir = await getApplicationSupportDirectory();
-      final appDir = Directory(join(dir.path, 'Jawhar'));
-      if (!appDir.existsSync()) {
-        await appDir.create(recursive: true);
+      try {
+        final dir = await getApplicationSupportDirectory();
+        final appDir = Directory(join(dir.path, 'Jawhar'));
+        if (!appDir.existsSync()) {
+          await appDir.create(recursive: true);
+        }
+        return appDir.path;
+      } catch (_) {
+        // path_provider requires a bound ServicesBinding; unit tests don't
+        // always initialize one. Fall back to the legacy path in that case.
+        return getDatabasesPath();
       }
-      return appDir.path;
     }
     return getDatabasesPath();
   }
