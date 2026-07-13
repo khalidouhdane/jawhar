@@ -84,7 +84,7 @@ platform :ios do
     # 4. Download/Generate the provisioning profiles
     get_provisioning_profile(
       api_key: api_key,
-      app_identifier: "com.memorize.quran.ai",
+      app_identifier: "com.alphafoundr.jawhar",
       filename: "profile.mobileprovision"
     )
 
@@ -103,7 +103,7 @@ platform :ios do
       path: "Runner.xcodeproj",
       use_automatic_signing: false,
       team_id: team_id,
-      bundle_identifier: "com.memorize.quran.ai",
+      bundle_identifier: "com.alphafoundr.jawhar",
       profile_name: profile_name,
       code_sign_identity: "iPhone Distribution"
     )
@@ -127,7 +127,7 @@ platform :ios do
       \t<string>Apple Distribution</string>
       \t<key>provisioningProfiles</key>
       \t<dict>
-      \t\t<key>com.memorize.quran.ai</key>
+      \t\t<key>com.alphafoundr.jawhar</key>
       \t\t<string>#{profile_name}</string>
       \t</dict>
       \t<key>stripSwiftSymbols</key>

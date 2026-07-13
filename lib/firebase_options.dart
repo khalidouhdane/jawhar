@@ -39,12 +39,15 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD9d4HJfmx3fGPto0L0zbQT3GHGJ8ecy40',
-    appId: '1:556087735735:ios:0bdf1c97c5c7c739512432',
+    apiKey: 'AIzaSyACA_NHJ2n97-9tCU7Ak4AWurfOn8jXNkg',
+    // App id for bundle com.alphafoundr.jawhar (ios/Runner/GoogleService-Info.plist).
+    appId: '1:556087735735:ios:037b986fb8d026f1512432',
     messagingSenderId: '556087735735',
     projectId: 'quran-app-e5e86',
     storageBucket: 'quran-app-e5e86.firebasestorage.app',
-    iosBundleId: 'com.memorize.quran.ai',
+    iosClientId:
+        '556087735735-jq248nagiqu2deprh6hb7dm5k6hglo5a.apps.googleusercontent.com',
+    iosBundleId: 'com.alphafoundr.jawhar',
   );
 
   static const FirebaseOptions web = FirebaseOptions(
