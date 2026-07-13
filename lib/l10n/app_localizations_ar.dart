@@ -1313,6 +1313,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'قم بعمل نسخة احتياطية ومزامنة بياناتك عبر الأجهزة';
 
   @override
+  String get signInWithApple => 'تسجيل الدخول باستخدام Apple';
+
+  @override
   String get pracPracticeTab => 'التدريب';
 
   @override
@@ -2371,7 +2374,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'سجل الدخول للمزامنة عبر الأجهزة.\nبياناتك ستبقى على جهازك خلاف ذلك.';
 
   @override
-  String get onboardingSignIn => 'تسجيل الدخول باستخدام Quran.com';
+  String get onboardingSignIn => 'تسجيل الدخول باستخدام Google';
 
   @override
   String get onboardingSignInCancelled => 'تم إلغاء تسجيل الدخول';

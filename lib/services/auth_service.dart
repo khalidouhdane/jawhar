@@ -1,19 +1,32 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:quran_app/services/desktop_google_auth.dart';
 import 'package:quran_app/utils/app_logger.dart';
 
-/// Authentication service — Google Sign-In via Firebase Auth.
+/// Authentication service — Google and Apple Sign-In via Firebase Auth.
 ///
 /// Uses `google_sign_in` plugin on mobile/web where it's natively supported.
 /// Uses a loopback OAuth flow with PKCE on Windows/macOS/Linux, which opens
 /// the system browser for Google consent and catches the redirect on localhost.
+/// Sign in with Apple is offered on iOS/macOS only (App Store Guideline 4.8).
 ///
 /// Does NOT force sign-in; the app works fully offline without auth.
 class AuthService extends ChangeNotifier {
+  /// Whether Sign in with Apple is available on this platform.
+  /// Native-only (iOS/macOS); web and Android would need an Apple
+  /// Services ID, which we don't configure.
+  static bool get supportsAppleSignIn =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -188,6 +201,86 @@ class AuthService extends ChangeNotifier {
     return true;
   }
 
+  /// Sign in with Apple (iOS/macOS only).
+  ///
+  /// Uses a SHA-256 nonce so the Apple identity token is bound to this
+  /// Firebase sign-in request (replay protection, required by Firebase).
+  ///
+  /// Returns true if sign-in was successful, false if cancelled or failed.
+  Future<bool> signInWithApple() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final rawNonce = _generateNonce();
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: sha256.convert(utf8.encode(rawNonce)).toString(),
+      );
+
+      final credential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      // Apple provides the name only on the FIRST authorization; persist it
+      // to the Firebase profile since the identity token never carries it.
+      final user = userCredential.user;
+      if (user != null &&
+          (user.displayName == null || user.displayName!.isEmpty)) {
+        final name = [
+          appleCredential.givenName,
+          appleCredential.familyName,
+        ].whereType<String>().join(' ').trim();
+        if (name.isNotEmpty) {
+          await user.updateDisplayName(name);
+          await user.reload();
+          _user = _auth.currentUser;
+        }
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code != AuthorizationErrorCode.canceled) {
+        AppLogger.info('Auth', '[AUTH] Apple sign-in error: ${e.code} - $e');
+        _error = 'Sign-in failed';
+      }
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on FirebaseAuthException catch (e) {
+      AppLogger.info('Auth', '[AUTH] Firebase error: ${e.code} - ${e.message}');
+      _error = e.message ?? 'Sign-in failed';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      AppLogger.info('Auth', '[AUTH] Apple sign-in error: $e');
+      _error = 'Sign-in failed: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Cryptographically secure random nonce for Apple/Firebase token binding.
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
   /// Sign out from both Firebase and Google.
   Future<void> signOut() async {
     _isLoading = true;
@@ -210,6 +303,7 @@ class AuthService extends ChangeNotifier {
   /// Cloud data deletion is handled by CloudSyncService.
   Future<bool> deleteAccount() async {
     try {
+      await _revokeAppleTokenIfNeeded();
       await _user?.delete();
       return true;
     } on FirebaseAuthException catch (e) {
@@ -220,6 +314,27 @@ class AuthService extends ChangeNotifier {
       }
       notifyListeners();
       return false;
+    }
+  }
+
+  /// App Store Guideline 5.1.1(v): apps must revoke Sign in with Apple
+  /// tokens when the user deletes their account. Requires a fresh Apple
+  /// authorization to obtain the code; best-effort — a failure here must
+  /// not strand the user in a half-deleted state.
+  Future<void> _revokeAppleTokenIfNeeded() async {
+    final hasApple =
+        _user?.providerData.any((p) => p.providerId == 'apple.com') ?? false;
+    if (!hasApple || !supportsAppleSignIn) return;
+
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [],
+      );
+      final code = appleCredential.authorizationCode;
+      await _auth.revokeTokenWithAuthorizationCode(code);
+      AppLogger.info('Auth', '[AUTH] Apple token revoked before deletion');
+    } catch (e) {
+      AppLogger.info('Auth', '[AUTH] Apple token revocation failed: $e');
     }
   }
 }

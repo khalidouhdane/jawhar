@@ -2666,6 +2666,12 @@ abstract class AppLocalizations {
   /// **'Back up and sync your data across devices'**
   String get profileSignInGoogleDesc;
 
+  /// No description provided for @signInWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Apple'**
+  String get signInWithApple;
+
   /// No description provided for @pracPracticeTab.
   ///
   /// In en, this message translates to:
@@ -4469,7 +4475,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSignIn.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with Quran.com'**
+  /// **'Sign in with Google'**
   String get onboardingSignIn;
 
   /// No description provided for @onboardingSignInCancelled.

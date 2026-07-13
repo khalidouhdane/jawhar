@@ -1327,6 +1327,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Back up and sync your data across devices';
 
   @override
+  String get signInWithApple => 'Sign in with Apple';
+
+  @override
   String get pracPracticeTab => 'Practice';
 
   @override
@@ -2392,7 +2395,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in to sync across devices.\nYour data stays on your device otherwise.';
 
   @override
-  String get onboardingSignIn => 'Sign in with Quran.com';
+  String get onboardingSignIn => 'Sign in with Google';
 
   @override
   String get onboardingSignInCancelled => 'Sign-in was cancelled';

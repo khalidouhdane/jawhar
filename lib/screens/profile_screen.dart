@@ -1010,104 +1010,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    // Signed-out state: Google Sign-In button
-    return GestureDetector(
-      onTap: auth.isLoading
-          ? null
-          : () async {
-              final success = await auth.signInWithGoogle();
-              if (success && auth.uid != null && context.mounted) {
-                // Trigger initial sync
-                final syncService = context.read<CloudSyncService>();
-                syncService.performInitialSync(auth.uid!);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.profileSyncing,
+    // Signed-out state: sign-in buttons (Google everywhere, Apple on iOS/macOS)
+    Future<void> handleSignIn(Future<bool> Function() signIn) async {
+      final success = await signIn();
+      if (success && auth.uid != null && context.mounted) {
+        // Trigger initial sync
+        final syncService = context.read<CloudSyncService>();
+        syncService.performInitialSync(auth.uid!);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.profileSyncing),
+              backgroundColor: theme.accentColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else if (auth.error != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(auth.error!),
+            backgroundColor: GeistTokens.red800,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+
+    Widget signInCard({
+      required IconData icon,
+      required String title,
+      required Future<bool> Function() signIn,
+    }) {
+      return GestureDetector(
+        onTap: auth.isLoading ? null : () => handleSignIn(signIn),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(theme.radiusLg),
+            boxShadow: theme.shadowCard,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: theme.accentColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(theme.radiusMd),
+                ),
+                child: Center(
+                  child: auth.isLoading
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.accentColor,
+                          ),
+                        )
+                      : Icon(icon, size: 20, color: theme.accentColor),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.primaryText,
                       ),
-                      backgroundColor: theme.accentColor,
-                      behavior: SnackBarBehavior.floating,
                     ),
-                  );
-                }
-              } else if (auth.error != null && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(auth.error!),
-                    backgroundColor: GeistTokens.red800,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(theme.radiusLg),
-          boxShadow: theme.shadowCard,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: theme.accentColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(theme.radiusMd),
-              ),
-              child: Center(
-                child: auth.isLoading
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.accentColor,
-                        ),
-                      )
-                    : Icon(
-                        LucideIcons.cloud,
-                        size: 20,
-                        color: theme.accentColor,
+                    Text(
+                      AppLocalizations.of(context)!.profileSignInGoogleDesc,
+                      style: TextStyle(
+                        fontFamily: GeistTypography.primaryFontFamily,
+                        fontSize: 12,
+                        color: theme.mutedText,
                       ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.profileSignInGoogle,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.primaryText,
                     ),
-                  ),
-                  Text(
-                    AppLocalizations.of(context)!.profileSignInGoogleDesc,
-                    style: TextStyle(
-                      fontFamily: GeistTypography.primaryFontFamily,
-                      fontSize: 12,
-                      color: theme.mutedText,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            DirectionalIcon(
-              icon: LucideIcons.chevronRight,
-              size: 18,
-              color: theme.mutedText,
-            ),
-          ],
+              DirectionalIcon(
+                icon: LucideIcons.chevronRight,
+                size: 18,
+                color: theme.mutedText,
+              ),
+            ],
+          ),
         ),
-      ),
+      );
+    }
+
+    return Column(
+      children: [
+        signInCard(
+          icon: LucideIcons.cloud,
+          title: AppLocalizations.of(context)!.profileSignInGoogle,
+          signIn: auth.signInWithGoogle,
+        ),
+        if (AuthService.supportsAppleSignIn) ...[
+          const SizedBox(height: 12),
+          signInCard(
+            icon: Icons.apple,
+            title: AppLocalizations.of(context)!.signInWithApple,
+            signIn: auth.signInWithApple,
+          ),
+        ],
+      ],
     );
   }
 

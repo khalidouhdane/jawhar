@@ -117,18 +117,20 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     ).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
   }
 
-  Future<void> _signIn() async {
+  Future<void> _signIn({bool apple = false}) async {
     setState(() {
       _isSigningIn = true;
       _signInError = null;
     });
 
     try {
-      // Google sign-in via Firebase Auth — the account that actually backs
-      // cloud sync. (The former QF OAuth sign-in was deleted with the QF
-      // user mirror — cloud-first migration Phase 7.)
+      // Google/Apple sign-in via Firebase Auth — the account that actually
+      // backs cloud sync. (The former QF OAuth sign-in was deleted with the
+      // QF user mirror — cloud-first migration Phase 7.)
       final auth = context.read<AuthService>();
-      final success = await auth.signInWithGoogle();
+      final success = apple
+          ? await auth.signInWithApple()
+          : await auth.signInWithGoogle();
       if (mounted) {
         if (success) {
           // Brief success moment, then complete
@@ -481,12 +483,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 ),
               ),
             )
-          else
+          else ...[
             _buildPrimaryButton(
               label: l10n.onboardingSignIn,
               icon: LucideIcons.logIn,
               onTap: _signIn,
             ),
+            if (AuthService.supportsAppleSignIn) ...[
+              const SizedBox(height: 12),
+              _buildPrimaryButton(
+                label: l10n.signInWithApple,
+                icon: Icons.apple,
+                onTap: () => _signIn(apple: true),
+              ),
+            ],
+          ],
 
           // Error message
           if (_signInError != null) ...[
