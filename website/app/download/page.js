@@ -27,7 +27,7 @@ const availablePlatforms = [
     icon: Apple,
     name: "iOS",
     action: "Join TestFlight",
-    href: "https://testflight.apple.com/join/XYY6tqxC",
+    href: "https://testflight.apple.com/join/nxB1WVj3",
     gradient: "gradientIos",
   },
 ];
