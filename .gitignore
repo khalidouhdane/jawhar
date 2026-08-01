@@ -72,7 +72,15 @@ hackathon_data.md
 
 # AI agent configuration (development-time only)
 .agents/
-.claude/
+# Note the trailing /* rather than /: git will not descend into a fully
+# excluded directory, so the negations below would not be reachable. The
+# committed exceptions are the Claude Code on the web startup hook and the
+# settings that register it — every cloud session needs them to install the
+# Flutter toolchain. Personal overrides (.claude/settings.local.json) and the
+# rest of .claude/ stay ignored.
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 .codex/
 .gemini/
 .qwen/
