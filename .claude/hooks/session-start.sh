@@ -82,8 +82,11 @@ flutter precache --universal >/dev/null
 # AGENTS.md §6: every compile/run/test needs --dart-define-from-file=.env, and
 # the file is gitignored. CI feeds it from the ENV_FILE secret; mirror that here
 # so cloud sessions behave the same when ENV_FILE is set on the environment.
-# Without it, write an empty file so the test harness still runs — suites that
-# need real credentials will fail loudly rather than the whole command aborting.
+# Without it, write an empty file: --dart-define-from-file needs the path to
+# exist, and every suite passes without real values (verified 439/439) because
+# the tests inject their own doubles rather than reading dart-defines. Cloud
+# environments have no secrets store, so do NOT set ENV_FILE to a .env holding
+# DESKTOP_OAUTH_CLIENT_SECRET / QURAN_API_CLIENT_SECRET just to run tests.
 cd "$REPO_DIR"
 if [ -n "${ENV_FILE:-}" ]; then
   printf '%s' "$ENV_FILE" > .env
@@ -92,8 +95,7 @@ elif [ -s .env ]; then
   log ".env already present, leaving it alone"
 else
   : > .env
-  log "WARNING: no ENV_FILE set — wrote an empty .env. Auth, cloud sync, and"
-  log "         content-loading tests will fail until it is populated."
+  log "no ENV_FILE set — wrote an empty .env (all suites pass without one)"
 fi
 
 # --- 3. Dependencies ----------------------------------------------------------
@@ -117,15 +119,39 @@ if [ -f website/package.json ]; then
   fi
 fi
 
-# functions/ is deliberately skipped: AGENTS.md §2 freezes it, and its
-# test:rules gate needs JDK 21 for the Firestore emulator, which this container
-# does not carry.
+# functions/ is frozen for editing (AGENTS.md §2) but its devDependencies carry
+# firebase-tools, which provides the Firestore emulator that server/api's
+# contract suite (replay, kill-mid-drain, A->B isolation) runs against. The
+# container does ship JDK 21, so those suites work here — install the deps.
+if [ -f functions/package.json ]; then
+  log "Installing functions dependencies (firebase-tools for the emulator)..."
+  (cd functions && npm ci --no-audit --no-fund) || log "WARNING: functions npm ci failed"
+fi
 
 # --- 4. Persist the toolchain for the session ---------------------------------
+# The Firestore emulator needs JAVA_HOME. The container ships JDK 21 but leaves
+# the variable unset, and AGENTS.md §4 warns it must point at a real JDK rather
+# than the Android Studio JBR.
+JAVA_HOME_DETECTED=""
+for candidate in /usr/lib/jvm/java-21-openjdk-amd64 /usr/lib/jvm/openjdk-21 "${JAVA_HOME:-}"; do
+  if [ -n "$candidate" ] && [ -x "$candidate/bin/java" ]; then
+    JAVA_HOME_DETECTED="$candidate"
+    break
+  fi
+done
+if [ -n "$JAVA_HOME_DETECTED" ]; then
+  log "JDK found at $JAVA_HOME_DETECTED (Firestore emulator suites available)"
+else
+  log "WARNING: no JDK found — the emulator-backed server/api suite will skip"
+fi
+
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   {
-    echo "export PATH=\"$FLUTTER_DIR/bin:$FLUTTER_DIR/bin/cache/dart-sdk/bin:\$PATH\""
+    echo "export PATH=\"$FLUTTER_DIR/bin:$FLUTTER_DIR/bin/cache/dart-sdk/bin:$REPO_DIR/functions/node_modules/.bin:\$PATH\""
     echo "export FLUTTER_SUPPRESS_ANALYTICS=true"
+    if [ -n "$JAVA_HOME_DETECTED" ]; then
+      echo "export JAVA_HOME=\"$JAVA_HOME_DETECTED\""
+    fi
   } >> "$CLAUDE_ENV_FILE"
 fi
 
