@@ -102,6 +102,10 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   analyzer: ^10.0.1
   flutter_launcher_icons: ^0.13.1
+  # Drives real user flows against a real engine (browser here, device in CI).
+  # Widget tests cannot catch what only breaks once the whole app is running.
+  integration_test:
+    sdk: flutter
 
 
 flutter_launcher_icons:
