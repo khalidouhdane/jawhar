@@ -71,7 +71,7 @@ jobs:
       - name: Upload APK as a build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jawhar-apk-${{ github.ref_name }}-${{ github.run_number }}
+          name: jawhar-apk-${{ github.run_number }}-${{ github.job }}
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
