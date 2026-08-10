@@ -128,6 +128,43 @@ if [ -f functions/package.json ]; then
   (cd functions && npm ci --no-audit --no-fund) || log "WARNING: functions npm ci failed"
 fi
 
+# --- 4. Browser driving for integration_test ----------------------------------
+# `flutter drive ... -d web-server --browser-name=chrome` is the only real-engine
+# target available here: there is no /dev/kvm, so an Android emulator would fall
+# back to software rendering and is not worth the wall clock. Three things stand
+# between a stock container and a working WebDriver session.
+CHROME_WRAPPER=/usr/bin/google-chrome
+CHROME_BIN="$(ls -d /opt/pw-browsers/chromium-*/chrome-linux/chrome 2>/dev/null | sort -V | tail -1 || true)"
+
+if [ -n "$CHROME_BIN" ]; then
+  # (1) chromedriver probes standard names on PATH and never finds Playwright's
+  # versioned directory. (2) Chrome refuses to start as root without
+  # --no-sandbox, and chromedriver cannot inject launch flags — so they live in
+  # the wrapper.
+  cat > "$CHROME_WRAPPER" <<WRAPPER
+#!/bin/sh
+exec $CHROME_BIN --no-sandbox --disable-dev-shm-usage --disable-gpu "\$@"
+WRAPPER
+  chmod +x "$CHROME_WRAPPER"
+
+  # (3) The preinstalled chromedriver tracks a different Chrome major than the
+  # bundled Chromium and refuses the session outright. Fetch the matching build.
+  CHROME_VERSION="$("$CHROME_WRAPPER" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' || true)"
+  DRIVER_DIR="$FLUTTER_DIR/.chromedriver"
+  if [ -n "$CHROME_VERSION" ] && [ ! -x "$DRIVER_DIR/chromedriver" ]; then
+    DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip"
+    if curl -fsSL --retry 2 --max-time 180 -o /tmp/chromedriver.zip "$DRIVER_URL" 2>/dev/null; then
+      mkdir -p "$DRIVER_DIR"
+      unzip -oqj /tmp/chromedriver.zip 'chromedriver-linux64/chromedriver' -d "$DRIVER_DIR"
+      chmod +x "$DRIVER_DIR/chromedriver"
+      rm -f /tmp/chromedriver.zip
+      log "chromedriver $CHROME_VERSION installed for browser-driven integration tests"
+    else
+      log "WARNING: no chromedriver for Chrome $CHROME_VERSION; browser-driven runs will fail"
+    fi
+  fi
+fi
+
 # --- 4. Persist the toolchain for the session ---------------------------------
 # The Firestore emulator needs JAVA_HOME. The container ships JDK 21 but leaves
 # the variable unset, and AGENTS.md §4 warns it must point at a real JDK rather
@@ -149,6 +186,12 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   {
     echo "export PATH=\"$FLUTTER_DIR/bin:$FLUTTER_DIR/bin/cache/dart-sdk/bin:$REPO_DIR/functions/node_modules/.bin:\$PATH\""
     echo "export FLUTTER_SUPPRESS_ANALYTICS=true"
+    if [ -x "$CHROME_WRAPPER" ]; then
+      echo "export CHROME_EXECUTABLE=\"$CHROME_WRAPPER\""
+    fi
+    if [ -x "$FLUTTER_DIR/.chromedriver/chromedriver" ]; then
+      echo "export CHROMEDRIVER=\"$FLUTTER_DIR/.chromedriver/chromedriver\""
+    fi
     if [ -n "$JAVA_HOME_DETECTED" ]; then
       echo "export JAVA_HOME=\"$JAVA_HOME_DETECTED\""
     fi
